@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cotizador de Servicios</title>
+  <meta name="description" content="Dashboard simple para seleccionar servicios y calcular el costo total." />
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --panel-2: #f0f3f8;
+      --text: #172033;
+      --muted: #687084;
+      --line: #dde3ec;
+      --brand: #174ea6;
+      --brand-2: #0b3470;
+      --accent: #e9f1ff;
+      --ok: #188038;
+      --danger: #b3261e;
+      --shadow: 0 12px 35px rgba(23, 32, 51, .08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Roboto, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #e8f0fe 0, transparent 34rem), var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    .shell {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .hero-card, .summary-card, .panel {
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(221,227,236,.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      border-radius: 999px;
+      background: var(--accent);
+      right: -70px;
+      top: -80px;
+      z-index: 0;
+    }
+
+    .hero-content { position: relative; z-index: 1; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--brand-2);
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.05;
+      letter-spacing: -.04em;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .summary-card {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 6px;
+    }
+
+    .total-main {
+      font-size: clamp(30px, 4vw, 42px);
+      font-weight: 850;
+      letter-spacing: -.04em;
+    }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .mini-stat {
+      background: var(--panel-2);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .mini-stat strong {
+      display: block;
+      font-size: 20px;
+    }
+
+    .mini-stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .field {
+      position: relative;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 13px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(23, 78, 166, .12);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .status strong { color: var(--text); }
+    .status.error { background: #fff2f0; color: #7b211b; border-color: #f4c7c3; }
+    .status.ok { background: #edf7ee; color: #176b2c; border-color: #c8e6c9; }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .service-card {
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      padding: 16px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 210px;
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+
+    .service-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(23, 32, 51, .09);
+      border-color: #cbd6e6;
+    }
+
+    .service-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .service-title {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -.02em;
+      line-height: 1.18;
+    }
+
+    .description {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      flex: 1;
+      white-space: pre-line;
+    }
+
+    .price {
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: -.03em;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid transparent;
+      background: var(--brand);
+      color: #fff;
+      border-radius: 14px;
+      padding: 11px 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .12s ease, filter .12s ease, background .12s ease;
+      text-decoration: none;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      user-select: none;
+    }
+
+    .btn:hover { filter: brightness(.97); }
+    .btn:active { transform: translateY(1px); }
+    .btn.secondary { background: #fff; color: var(--brand); border-color: #c8d7ee; }
+    .btn.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+    .btn.danger { background: #fff2f0; color: var(--danger); border-color: #f4c7c3; }
+    .btn.full { width: 100%; }
+    .btn[disabled] { opacity: .55; cursor: not-allowed; }
+
+    .cart {
+      position: sticky;
+      top: 14px;
+    }
+
+    .cart h2, .panel h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+      letter-spacing: -.03em;
+    }
+
+    .cart-empty {
+      color: var(--muted);
+      background: var(--panel-2);
+      border-radius: 14px;
+      padding: 16px;
+      margin: 0 0 14px;
+    }
+
+    .cart-items {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .cart-item {
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .cart-item-title {
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .cart-item-line {
+      color: var(--muted);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .qty-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .qty-controls {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--panel-2);
+    }
+
+    .qty-controls button {
+      width: 34px;
+      height: 34px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-weight: 900;
+      color: var(--brand);
+    }
+
+    .qty-controls span {
+      min-width: 28px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .remove-link {
+      border: none;
+      background: transparent;
+      color: var(--danger);
+      cursor: pointer;
+      font-weight: 700;
+      padding: 0;
+    }
+
+    .totals {
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .total-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+    }
+
+    .total-line strong { color: var(--text); }
+    .total-line.final {
+      font-size: 24px;
+      color: var(--text);
+      font-weight: 850;
+      letter-spacing: -.03em;
+    }
+
+    .client-box {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .summary-output {
+      min-height: 110px;
+      resize: vertical;
+      color: var(--text);
+    }
+
+    .fineprint {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .loading {
+      display: grid;
+      place-items: center;
+      padding: 34px;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 17px;
+      background: #fff;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      .cart { position: static; }
+    }
+
+    @media (max-width: 700px) {
+      .shell { width: min(100% - 18px, 1180px); padding-top: 14px; }
+      .hero-card, .summary-card, .panel { border-radius: 16px; }
+      .hero-card { padding: 22px; }
+      .toolbar { grid-template-columns: 1fr; }
+      .services-grid { grid-template-columns: 1fr; }
+      .mini-stats { grid-template-columns: 1fr 1fr; }
+      .status { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .toolbar, .status, .services-panel, .btn, .footer-note { display: none !important; }
+      .shell { width: 100%; padding: 0; }
+      .hero { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: 1fr; }
+      .cart { position: static; }
+      .hero-card, .summary-card, .panel { box-shadow: none; border-color: #ccc; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="hero-content">
+          <div class="eyebrow">Cotizador comercial</div>
+          <h1>Armá tu paquete de servicios</h1>
+          <p class="lead">Seleccioná los servicios de la lista y el total se calcula automáticamente. La información se toma desde la hoja de cálculo publicada.</p>
+        </div>
+      </div>
+
+      <aside class="summary-card" aria-label="Resumen principal">
+        <div>
+          <p class="label">Total seleccionado</p>
+          <div id="heroTotal" class="total-main">$ 0</div>
+          <div id="heroTotalExtra" class="small-note">Sin servicios seleccionados</div>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat"><strong id="heroCount">0</strong><span>Servicios</span></div>
+          <div class="mini-stat"><strong id="heroQty">0</strong><span>Ítems</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <div class="panel services-panel">
+        <h2>Servicios disponibles</h2>
+        <div class="toolbar">
+          <div class="field">
+            <label for="searchInput">Buscar servicio</label>
+            <input id="searchInput" type="search" placeholder="Ej: redes, diseño, pauta, web..." autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="categoryFilter">Categoría</label>
+            <select id="categoryFilter">
+              <option value="">Todas</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="statusBox" class="status">
+          <span><strong>Estado:</strong> cargando servicios desde Google Sheets.</span>
+          <button id="reloadBtn" class="btn ghost" type="button">Actualizar</button>
+        </div>
+
+        <div id="servicesGrid" class="services-grid">
+          <div class="loading">Cargando servicios…</div>
+        </div>
+      </div>
+
+      <aside class="panel cart" aria-label="Carrito de servicios">
+        <h2>Servicios elegidos</h2>
+        <div id="cartContent"></div>
+
+        <div class="client-box">
+          <div class="field">
+            <label for="clientName">Nombre del cliente</label>
+            <input id="clientName" type="text" placeholder="Opcional" />
+          </div>
+          <button id="copyBtn" class="btn full" type="button">Copiar resumen</button>
+          <button id="printBtn" class="btn secondary full" type="button">Imprimir / guardar PDF</button>
+          <button id="clearBtn" class="btn danger full" type="button">Vaciar selección</button>
+          <div class="field">
+            <label for="summaryText">Resumen</label>
+            <textarea id="summaryText" class="summary-output" readonly></textarea>
+          </div>
+        </div>
+        <p class="fineprint">Los precios se muestran según la hoja publicada. Si modificás la hoja, usá “Actualizar” para recargar los datos.</p>
+      </aside>
+    </section>
+
+    <p class="footer-note">Archivo HTML listo para GitHub Pages. No requiere base de datos ni instalación.</p>
+  </main>
+
+  <script>
+    // === CONFIGURACIÓN ===
+    // Hoja publicada: Archivo > Compartir > Publicar en la web.
+    const SHEET_PUB_ID = "2PACX-1vRHOpGPB8GJtAh_wGUHJSs9TR6GSSBtKnCVzzQcL4mhkDavqholhSbsBKf_T4oTM9uS5i6YQ-DWMSxQ";
+    const SHEET_GID = "0";
+    const CSV_URLS = [
+      `https://docs.google.com/spreadsheets/d/e/${SHEET_PUB_ID}/pub?gid=${SHEET_GID}&single=true&output=csv`,
+      `https://docs.google.com/spreadsheets/d/e/${SHEET_PUB_ID}/pub?output=csv`,
+      `https://docs.google.com/spreadsheets/d/e/${SHEET_PUB_ID}/pub?gid=${SHEET_GID}&single=true&output=csv&cacheBust=${Date.now()}`
+    ];
+
+    const moneyFormatterARS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+    const moneyFormatterUSD = new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
+    const state = {
+      services: [],
+      filtered: [],
+      cart: new Map(),
+      headers: [],
+      lastLoadedAt: null
+    };
+
+    const el = {
+      grid: document.getElementById("servicesGrid"),
+      status: document.getElementById("statusBox"),
+      reload: document.getElementById("reloadBtn"),
+      search: document.getElementById("searchInput"),
+      category: document.getElementById("categoryFilter"),
+      cart: document.getElementById("cartContent"),
+      heroTotal: document.getElementById("heroTotal"),
+      heroTotalExtra: document.getElementById("heroTotalExtra"),
+      heroCount: document.getElementById("heroCount"),
+      heroQty: document.getElementById("heroQty"),
+      copy: document.getElementById("copyBtn"),
+      print: document.getElementById("printBtn"),
+      clear: document.getElementById("clearBtn"),
+      summary: document.getElementById("summaryText"),
+      client: document.getElementById("clientName")
+    };
+
+    function normalize(text) {
+      return String(text || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === "," && !inQuotes) {
+          row.push(cell);
+          cell = "";
+        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(cell);
+          if (row.some(item => String(item).trim() !== "")) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += char;
+        }
+      }
+
+      row.push(cell);
+      if (row.some(item => String(item).trim() !== "")) rows.push(row);
+      return rows;
+    }
+
+    function findHeaderIndex(headers, aliases) {
+      const normalizedHeaders = headers.map(normalize);
+      for (const alias of aliases) {
+        const normalizedAlias = normalize(alias);
+        const exact = normalizedHeaders.indexOf(normalizedAlias);
+        if (exact >= 0) return exact;
+      }
+      for (const alias of aliases) {
+        const normalizedAlias = normalize(alias);
+        const partial = normalizedHeaders.findIndex(header => header.includes(normalizedAlias) || normalizedAlias.includes(header));
+        if (partial >= 0) return partial;
+      }
+      return -1;
+    }
+
+    function detectCurrency(raw) {
+      const text = normalize(raw);
+      if (/\bu\s?s\s?d\b|dolar|dolares/.test(text) || String(raw).includes("U$S")) return "USD";
+      return "ARS";
+    }
+
+    function parseMoney(raw) {
+      const original = String(raw ?? "").trim();
+      if (!original) return { amount: 0, currency: "ARS", hasPrice: false };
+
+      let cleaned = original
+        .replace(/\s/g, "")
+        .replace(/ars|pesos?|\$|usd|u\$s|dolares?|dólares?/gi, "")
+        .replace(/[^0-9,.-]/g, "");
+
+      if (!/\d/.test(cleaned)) return { amount: 0, currency: "ARS", hasPrice: false };
+
+      const comma = cleaned.lastIndexOf(",");
+      const dot = cleaned.lastIndexOf(".");
+
+      if (comma > -1 && dot > -1) {
+        if (comma > dot) cleaned = cleaned.replace(/\./g, "").replace(",", ".");
+        else cleaned = cleaned.replace(/,/g, "");
+      } else if (comma > -1) {
+        const decimals = cleaned.length - comma - 1;
+        cleaned = decimals === 2 ? cleaned.replace(",", ".") : cleaned.replace(/,/g, "");
+      } else if (dot > -1) {
+        const decimals = cleaned.length - dot - 1;
+        if (decimals !== 2) cleaned = cleaned.replace(/\./g, "");
+      }
+
+      const amount = Number(cleaned);
+      if (!Number.isFinite(amount) || amount <= 0) return { amount: 0, currency: "ARS", hasPrice: false };
+      return { amount, currency: detectCurrency(original), hasPrice: true };
+    }
+
+    function formatMoney(amount, currency = "ARS") {
+      if (!Number.isFinite(amount)) amount = 0;
+      return currency === "USD" ? moneyFormatterUSD.format(amount) : moneyFormatterARS.format(amount);
+    }
+
+    function pickValue(row, index) {
+      return index >= 0 ? String(row[index] ?? "").trim() : "";
+    }
+
+    function rowToService(row, headers, index, inheritedCategory) {
+      const serviceIdx = findHeaderIndex(headers, ["servicio", "servicios", "nombre", "producto", "item", "concepto", "plan", "paquete"]);
+      const categoryIdx = findHeaderIndex(headers, ["categoria", "categoría", "rubro", "tipo", "linea", "línea", "grupo"]);
+      const descriptionIdx = findHeaderIndex(headers, ["descripcion", "descripción", "detalle", "incluye", "que incluye", "observaciones", "comentario"]);
+      const priceIdx = findHeaderIndex(headers, ["precio", "valor", "costo", "monto", "importe", "mensual", "total", "honorarios"]);
+      const frequencyIdx = findHeaderIndex(headers, ["frecuencia", "modalidad", "periodicidad", "tipo de pago", "pago"]);
+      const activeIdx = findHeaderIndex(headers, ["activo", "visible", "disponible", "estado"]);
+
+      const activeText = normalize(pickValue(row, activeIdx));
+      if (["no", "inactivo", "oculto", "baja", "false"].includes(activeText)) return null;
+
+      let name = pickValue(row, serviceIdx);
+      let category = pickValue(row, categoryIdx) || inheritedCategory || "Servicios";
+      let description = pickValue(row, descriptionIdx);
+      let frequency = pickValue(row, frequencyIdx);
+      let priceSource = pickValue(row, priceIdx);
+      let price = parseMoney(priceSource);
+
+      if (!name) {
+        const firstTextCell = row.find(cell => String(cell).trim() && !parseMoney(cell).hasPrice);
+        name = String(firstTextCell || "").trim();
+      }
+
+      if (!price.hasPrice) {
+        for (let i = row.length - 1; i >= 0; i--) {
+          const candidate = parseMoney(row[i]);
+          if (candidate.hasPrice) {
+            price = candidate;
+            priceSource = row[i];
+            break;
+          }
+        }
+      }
+
+      if (!description) {
+        const texts = row
+          .map(cell => String(cell || "").trim())
+          .filter(Boolean)
+          .filter(cell => cell !== name && cell !== category && cell !== frequency && cell !== priceSource)
+          .filter(cell => !parseMoney(cell).hasPrice);
+        description = texts.slice(0, 2).join(" · ");
+      }
+
+      if (!name || !price.hasPrice) return null;
+
+      return {
+        id: `svc-${index}-${normalize(name).replace(/\s+/g, "-")}`,
+        name,
+        category: category || "Servicios",
+        description,
+        frequency,
+        amount: price.amount,
+        currency: price.currency,
+        raw: row
+      };
+    }
+
+    function normalizeServices(rows) {
+      if (!rows.length) return [];
+
+      let headerRowIndex = 0;
+      for (let i = 0; i < Math.min(rows.length, 8); i++) {
+        const normalized = rows[i].map(normalize).join(" ");
+        if (/servicio|precio|valor|costo|categoria|descripcion|detalle|plan|paquete/.test(normalized)) {
+          headerRowIndex = i;
+          break;
+        }
+      }
+
+      const headers = rows[headerRowIndex].map(cell => String(cell || "").trim());
+      state.headers = headers;
+      const dataRows = rows.slice(headerRowIndex + 1);
+      const services = [];
+      let inheritedCategory = "Servicios";
+
+      dataRows.forEach((row, idx) => {
+        const filled = row.map(cell => String(cell || "").trim()).filter(Boolean);
+        if (!filled.length) return;
+
+        const hasAnyPrice = row.some(cell => parseMoney(cell).hasPrice);
+        if (!hasAnyPrice && filled.length === 1) {
+          inheritedCategory = filled[0];
+          return;
+        }
+
+        const service = rowToService(row, headers, idx, inheritedCategory);
+        if (service) services.push(service);
+      });
+
+      return services;
+    }
+
+    async function fetchText(url) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const text = await response.text();
+      if (!text || !text.includes(",")) throw new Error("La respuesta no parece CSV.");
+      return text;
+    }
+
+    async function loadServices() {
+      setStatus("cargando", "Cargando servicios desde Google Sheets.");
+      el.grid.innerHTML = '<div class="loading">Cargando servicios…</div>';
+
+      const errors = [];
+      const urlAttempts = [
+        ...CSV_URLS,
+        ...CSV_URLS.map(url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`),
+        ...CSV_URLS.map(url => `https://corsproxy.io/?${encodeURIComponent(url)}`)
+      ];
+
+      for (const url of urlAttempts) {
+        try {
+          const csv = await fetchText(url);
+          const rows = parseCSV(csv);
+          const services = normalizeServices(rows);
+          if (!services.length) throw new Error("No se detectaron servicios con precio.");
+          state.services = services;
+          state.lastLoadedAt = new Date();
+          buildCategoryFilter();
+          applyFilters();
+          restoreCart();
+          setStatus("ok", `Servicios cargados: ${services.length}. Última actualización: ${state.lastLoadedAt.toLocaleString("es-AR")}.`);
+          return;
+        } catch (error) {
+          errors.push(`${url}: ${error.message}`);
+        }
+      }
+
+      state.services = [];
+      applyFilters();
+      setStatus("error", "No se pudo leer la hoja publicada. Revisá que la hoja esté publicada en la web y que tenga columnas de servicio y precio.");
+      console.warn("Errores de carga:", errors);
+    }
+
+    function setStatus(type, message) {
+      el.status.className = `status ${type === "ok" ? "ok" : type === "error" ? "error" : ""}`;
+      el.status.innerHTML = `<span><strong>Estado:</strong> ${escapeHtml(message)}</span><button id="reloadBtnInline" class="btn ghost" type="button">Actualizar</button>`;
+      document.getElementById("reloadBtnInline").addEventListener("click", loadServices);
+    }
+
+    function buildCategoryFilter() {
+      const categories = [...new Set(state.services.map(service => service.category).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "es"));
+      el.category.innerHTML = '<option value="">Todas</option>' + categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join("");
+    }
+
+    function applyFilters() {
+      const query = normalize(el.search.value);
+      const category = el.category.value;
+
+      state.filtered = state.services.filter(service => {
+        const haystack = normalize([service.name, service.category, service.description, service.frequency].join(" "));
+        const matchQuery = !query || haystack.includes(query);
+        const matchCategory = !category || service.category === category;
+        return matchQuery && matchCategory;
+      });
+
+      renderServices();
+      renderCart();
+    }
+
+    function renderServices() {
+      if (!state.services.length) {
+        el.grid.innerHTML = '<div class="loading">No hay servicios para mostrar.</div>';
+        return;
+      }
+
+      if (!state.filtered.length) {
+        el.grid.innerHTML = '<div class="loading">No se encontraron servicios con ese filtro.</div>';
+        return;
+      }
+
+      el.grid.innerHTML = state.filtered.map(service => {
+        const inCart = state.cart.has(service.id);
+        return `
+          <article class="service-card">
+            <div class="service-top">
+              <div>
+                <span class="pill">${escapeHtml(service.category)}</span>
+                <h3 class="service-title">${escapeHtml(service.name)}</h3>
+              </div>
+            </div>
+            <p class="description">${escapeHtml(service.description || "Servicio disponible para sumar al paquete.")}</p>
+            <div>
+              <div class="price">${formatMoney(service.amount, service.currency)}</div>
+              ${service.frequency ? `<div class="small-note">${escapeHtml(service.frequency)}</div>` : ""}
+            </div>
+            <div class="actions">
+              <button class="btn full ${inCart ? "secondary" : ""}" type="button" data-add="${escapeHtml(service.id)}">
+                ${inCart ? "Sumar otro" : "Agregar"}
+              </button>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      el.grid.querySelectorAll("[data-add]").forEach(button => {
+        button.addEventListener("click", () => addToCart(button.getAttribute("data-add")));
+      });
+    }
+
+    function addToCart(id) {
+      const service = state.services.find(item => item.id === id);
+      if (!service) return;
+      const current = state.cart.get(id);
+      state.cart.set(id, { ...service, qty: current ? current.qty + 1 : 1 });
+      persistCart();
+      renderServices();
+      renderCart();
+    }
+
+    function removeFromCart(id) {
+      state.cart.delete(id);
+      persistCart();
+      renderServices();
+      renderCart();
+    }
+
+    function changeQty(id, delta) {
+      const item = state.cart.get(id);
+      if (!item) return;
+      const nextQty = item.qty + delta;
+      if (nextQty <= 0) removeFromCart(id);
+      else {
+        state.cart.set(id, { ...item, qty: nextQty });
+        persistCart();
+        renderCart();
+      }
+    }
+
+    function getTotals() {
+      const totals = { ARS: 0, USD: 0, qty: 0, count: state.cart.size };
+      [...state.cart.values()].forEach(item => {
+        totals[item.currency] = (totals[item.currency] || 0) + item.amount * item.qty;
+        totals.qty += item.qty;
+      });
+      return totals;
+    }
+
+    function renderCart() {
+      const items = [...state.cart.values()];
+      const totals = getTotals();
+
+      if (!items.length) {
+        el.cart.innerHTML = `
+          <p class="cart-empty">Todavía no seleccionaste servicios.</p>
+          <div class="totals">
+            <div class="total-line final"><span>Total</span><strong>$ 0</strong></div>
+          </div>
+        `;
+      } else {
+        const itemsHtml = items.map(item => `
+          <div class="cart-item">
+            <div class="cart-item-title">${escapeHtml(item.name)}</div>
+            <div class="cart-item-line"><span>${escapeHtml(item.category)}</span><strong>${formatMoney(item.amount, item.currency)}</strong></div>
+            <div class="qty-row">
+              <div class="qty-controls" aria-label="Cantidad">
+                <button type="button" data-dec="${escapeHtml(item.id)}">−</button>
+                <span>${item.qty}</span>
+                <button type="button" data-inc="${escapeHtml(item.id)}">+</button>
+              </div>
+              <button type="button" class="remove-link" data-remove="${escapeHtml(item.id)}">Quitar</button>
+            </div>
+          </div>
+        `).join("");
+
+        const totalsHtml = renderTotalsHtml(totals);
+        el.cart.innerHTML = `<div class="cart-items">${itemsHtml}</div>${totalsHtml}`;
+
+        el.cart.querySelectorAll("[data-inc]").forEach(btn => btn.addEventListener("click", () => changeQty(btn.getAttribute("data-inc"), 1)));
+        el.cart.querySelectorAll("[data-dec]").forEach(btn => btn.addEventListener("click", () => changeQty(btn.getAttribute("data-dec"), -1)));
+        el.cart.querySelectorAll("[data-remove]").forEach(btn => btn.addEventListener("click", () => removeFromCart(btn.getAttribute("data-remove"))));
+      }
+
+      updateHero(totals);
+      updateSummaryText();
+    }
+
+    function renderTotalsHtml(totals) {
+      const lines = [];
+      if (totals.ARS > 0) lines.push(`<div class="total-line final"><span>Total ARS</span><strong>${formatMoney(totals.ARS, "ARS")}</strong></div>`);
+      if (totals.USD > 0) lines.push(`<div class="total-line final"><span>Total USD</span><strong>${formatMoney(totals.USD, "USD")}</strong></div>`);
+      if (!lines.length) lines.push('<div class="total-line final"><span>Total</span><strong>$ 0</strong></div>');
+      return `<div class="totals">${lines.join("")}<div class="total-line"><span>Servicios distintos</span><strong>${totals.count}</strong></div><div class="total-line"><span>Ítems seleccionados</span><strong>${totals.qty}</strong></div></div>`;
+    }
+
+    function updateHero(totals) {
+      const parts = [];
+      if (totals.ARS > 0) parts.push(formatMoney(totals.ARS, "ARS"));
+      if (totals.USD > 0) parts.push(formatMoney(totals.USD, "USD"));
+      el.heroTotal.textContent = parts.length ? parts.join(" + ") : "$ 0";
+      el.heroTotalExtra.textContent = totals.qty ? `${totals.qty} ítem${totals.qty === 1 ? "" : "s"} seleccionado${totals.qty === 1 ? "" : "s"}` : "Sin servicios seleccionados";
+      el.heroCount.textContent = totals.count;
+      el.heroQty.textContent = totals.qty;
+    }
+
+    function updateSummaryText() {
+      const items = [...state.cart.values()];
+      const totals = getTotals();
+      const client = el.client.value.trim();
+      const lines = [];
+
+      lines.push("Resumen de servicios seleccionados");
+      if (client) lines.push(`Cliente: ${client}`);
+      lines.push("");
+
+      if (!items.length) {
+        lines.push("Sin servicios seleccionados.");
+      } else {
+        items.forEach((item, idx) => {
+          lines.push(`${idx + 1}. ${item.name} x${item.qty} — ${formatMoney(item.amount * item.qty, item.currency)}`);
+        });
+        lines.push("");
+        if (totals.ARS > 0) lines.push(`Total ARS: ${formatMoney(totals.ARS, "ARS")}`);
+        if (totals.USD > 0) lines.push(`Total USD: ${formatMoney(totals.USD, "USD")}`);
+      }
+
+      el.summary.value = lines.join("\n");
+    }
+
+    function persistCart() {
+      const payload = [...state.cart.values()].map(item => ({ id: item.id, qty: item.qty }));
+      localStorage.setItem("servicios-cart-v1", JSON.stringify(payload));
+    }
+
+    function restoreCart() {
+      try {
+        const stored = JSON.parse(localStorage.getItem("servicios-cart-v1") || "[]");
+        state.cart.clear();
+        stored.forEach(({ id, qty }) => {
+          const service = state.services.find(item => item.id === id);
+          if (service) state.cart.set(id, { ...service, qty: Math.max(1, Number(qty) || 1) });
+        });
+      } catch (_) {
+        state.cart.clear();
+      }
+      renderServices();
+      renderCart();
+    }
+
+    async function copySummary() {
+      updateSummaryText();
+      try {
+        await navigator.clipboard.writeText(el.summary.value);
+        const original = el.copy.textContent;
+        el.copy.textContent = "Resumen copiado";
+        setTimeout(() => { el.copy.textContent = original; }, 1400);
+      } catch (_) {
+        el.summary.select();
+        document.execCommand("copy");
+      }
+    }
+
+    el.search.addEventListener("input", applyFilters);
+    el.category.addEventListener("change", applyFilters);
+    el.reload.addEventListener("click", loadServices);
+    el.copy.addEventListener("click", copySummary);
+    el.print.addEventListener("click", () => window.print());
+    el.clear.addEventListener("click", () => {
+      state.cart.clear();
+      persistCart();
+      renderServices();
+      renderCart();
+    });
+    el.client.addEventListener("input", updateSummaryText);
+
+    loadServices();
+  </script>
+</body>
+</html>
