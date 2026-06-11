@@ -508,6 +508,31 @@
       border-color: #b9cce8;
     }
 
+    .bonus-section {
+      border: 1px dashed #b9cce8;
+      border-radius: 16px;
+      padding: 12px;
+      margin: 0 0 14px;
+      background: linear-gradient(135deg, #f7fbff, #ffffff);
+    }
+
+    .bonus-section-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 8px;
+    }
+
+    .bonus-section .cart-item {
+      margin-top: 8px;
+    }
+
+    .bonus-section .cart-item:first-of-type {
+      margin-top: 0;
+    }
+
     .cart-item-title.with-badge {
       display: flex;
       align-items: center;
@@ -1199,30 +1224,36 @@
       });
     }
 
-    function getBonusItems(totals = null) {
-      const paidTotals = totals || getTotals();
+    function getSelectedItemQty() {
+      return [...state.cart.values()].reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+    }
+
+    function getBonusItems() {
+      const selectedQty = getSelectedItemQty();
       const bonuses = [];
 
-      if (paidTotals.qty >= 1) {
+      if (selectedQty >= 1) {
         bonuses.push({
           id: "bonus-auditoria",
           name: "Auditoría",
           category: "Bonificado",
           regularAmount: 25000,
           currency: "ARS",
-          note: "Incluido al seleccionar al menos 1 ítem. No se suma al total."
+          trigger: "1 ítem seleccionado",
+          note: "Bonificado por seleccionar al menos 1 ítem. No se suma al total."
         });
       }
 
-      if (paidTotals.qty >= 2) {
-        const dashboardService = findServiceByNamePart(["dashboard", "tablero"]);
+      if (selectedQty >= 2) {
+        const dashboardService = findServiceByNamePart(["dashboard", "tablero", "reporte", "informes"]);
         bonuses.push({
           id: "bonus-dashboard",
           name: dashboardService?.name || "Dashboard",
           category: "Bonificado",
           regularAmount: dashboardService?.amount || 0,
           currency: dashboardService?.currency || "ARS",
-          note: "Incluido al seleccionar 2 ítems o más. No se suma al total."
+          trigger: "2 ítems seleccionados",
+          note: "Bonificado por seleccionar 2 ítems o más. No se suma al total."
         });
       }
 
@@ -1280,15 +1311,19 @@
               <span class="bonus-badge">Bonificado</span>
             </div>
             <div class="cart-item-line">
-              <span>${escapeHtml(bonus.category)}</span>
+              <span>${escapeHtml(bonus.trigger)}</span>
               <strong>${renderBonusPrice(bonus)}</strong>
             </div>
             <div class="bonus-note">${escapeHtml(bonus.note)}</div>
           </div>
         `).join("");
 
+        const bonusSectionHtml = bonusItems.length
+          ? `<section class="bonus-section" aria-label="Servicios bonificados"><div class="bonus-section-title">Bonificados aplicados</div>${bonusHtml}</section>`
+          : "";
+
         const totalsHtml = renderTotalsHtml(totals, bonusItems.length);
-        el.cart.innerHTML = `<div class="cart-items">${itemsHtml}${bonusHtml}</div>${totalsHtml}`;
+        el.cart.innerHTML = `<div class="cart-items">${itemsHtml}</div>${bonusSectionHtml}${totalsHtml}`;
 
         el.cart.querySelectorAll("[data-inc]").forEach(btn => btn.addEventListener("click", () => changeQty(btn.getAttribute("data-inc"), 1)));
         el.cart.querySelectorAll("[data-dec]").forEach(btn => btn.addEventListener("click", () => changeQty(btn.getAttribute("data-dec"), -1)));
@@ -1313,7 +1348,10 @@
       if (totals.ARS > 0) parts.push(formatMoney(totals.ARS, "ARS"));
       if (totals.USD > 0) parts.push(formatMoney(totals.USD, "USD"));
       el.heroTotal.textContent = parts.length ? parts.join(" + ") : "$ 0";
-      el.heroTotalExtra.textContent = totals.qty ? `${totals.qty} ítem${totals.qty === 1 ? "" : "s"} seleccionado${totals.qty === 1 ? "" : "s"}` : "Sin servicios seleccionados";
+      const bonusCount = getBonusItems().length;
+      el.heroTotalExtra.textContent = totals.qty
+        ? `${totals.qty} ítem${totals.qty === 1 ? "" : "s"} seleccionado${totals.qty === 1 ? "" : "s"}${bonusCount ? ` + ${bonusCount} bonificado${bonusCount === 1 ? "" : "s"}` : ""}`
+        : "Sin servicios seleccionados";
       el.heroCount.textContent = totals.count;
       el.heroQty.textContent = totals.qty;
     }
@@ -1345,8 +1383,8 @@
           lines.push("");
           lines.push("BONIFICADOS:");
           bonusItems.forEach(bonus => {
-            const regularPrice = bonus.regularAmount > 0 ? `${formatMoney(bonus.regularAmount, bonus.currency)} bonificado` : "Bonificado";
-            lines.push(`- ${bonus.name}: ${regularPrice}`);
+            const regularPrice = bonus.regularAmount > 0 ? `${formatMoney(bonus.regularAmount, bonus.currency)} tachado` : "precio de referencia no disponible";
+            lines.push(`- ${bonus.name}: ${regularPrice} → Subtotal $ 0`);
           });
         }
 
