@@ -502,6 +502,52 @@
       padding: 0;
     }
 
+    .cart-item.bonus {
+      background: linear-gradient(135deg, #f7fbff, #ffffff);
+      border-style: dashed;
+      border-color: #b9cce8;
+    }
+
+    .cart-item-title.with-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .bonus-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: #e6f4ea;
+      color: var(--ok);
+      border: 1px solid #b7dfbf;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      white-space: nowrap;
+    }
+
+    .bonus-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .old-price {
+      color: var(--muted);
+      text-decoration: line-through;
+      margin-right: 8px;
+      font-weight: 700;
+    }
+
+    .free-price {
+      color: var(--ok);
+      font-weight: 900;
+    }
+
     .totals {
       border-top: 1px solid var(--line);
       padding-top: 14px;
@@ -612,6 +658,9 @@
       .budget-table .num { text-align: right; white-space: nowrap; }
       .budget-item-name { font-weight: 700; }
       .budget-item-note { color: #555; font-size: 11px; margin-top: 2px; }
+      .budget-bonus-badge { display: inline-block; margin-top: 3px; padding: 2px 6px; border: 1px solid #188038; color: #188038; border-radius: 999px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+      .budget-old-price { color: #555; text-decoration: line-through; margin-right: 6px; }
+      .budget-free-price { color: #188038; font-weight: 800; }
       .budget-totals { width: 45%; margin-left: auto; margin-top: 18px; font-size: 13px; }
       .budget-total-row { display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; padding: 8px 0; }
       .budget-total-row.final { font-size: 18px; font-weight: 800; border-bottom: 2px solid #111; }
@@ -1142,6 +1191,51 @@
       }
     }
 
+    function findServiceByNamePart(parts) {
+      const keywords = Array.isArray(parts) ? parts : [parts];
+      return state.services.find(service => {
+        const serviceName = normalize(service.name);
+        return keywords.some(keyword => serviceName.includes(normalize(keyword)));
+      });
+    }
+
+    function getBonusItems(totals = null) {
+      const paidTotals = totals || getTotals();
+      const bonuses = [];
+
+      if (paidTotals.qty >= 1) {
+        bonuses.push({
+          id: "bonus-auditoria",
+          name: "Auditoría",
+          category: "Bonificado",
+          regularAmount: 25000,
+          currency: "ARS",
+          note: "Incluido al seleccionar al menos 1 ítem. No se suma al total."
+        });
+      }
+
+      if (paidTotals.qty >= 2) {
+        const dashboardService = findServiceByNamePart(["dashboard", "tablero"]);
+        bonuses.push({
+          id: "bonus-dashboard",
+          name: dashboardService?.name || "Dashboard",
+          category: "Bonificado",
+          regularAmount: dashboardService?.amount || 0,
+          currency: dashboardService?.currency || "ARS",
+          note: "Incluido al seleccionar 2 ítems o más. No se suma al total."
+        });
+      }
+
+      return bonuses;
+    }
+
+    function renderBonusPrice(bonus) {
+      const oldPrice = bonus.regularAmount > 0
+        ? `<span class="old-price">${formatMoney(bonus.regularAmount, bonus.currency)}</span>`
+        : "";
+      return `${oldPrice}<span class="free-price">$ 0</span>`;
+    }
+
     function getTotals() {
       const totals = { ARS: 0, USD: 0, qty: 0, count: state.cart.size };
       [...state.cart.values()].forEach(item => {
@@ -1163,6 +1257,7 @@
           </div>
         `;
       } else {
+        const bonusItems = getBonusItems(totals);
         const itemsHtml = items.map(item => `
           <div class="cart-item">
             <div class="cart-item-title">${escapeHtml(item.name)}</div>
@@ -1178,8 +1273,22 @@
           </div>
         `).join("");
 
-        const totalsHtml = renderTotalsHtml(totals);
-        el.cart.innerHTML = `<div class="cart-items">${itemsHtml}</div>${totalsHtml}`;
+        const bonusHtml = bonusItems.map(bonus => `
+          <div class="cart-item bonus">
+            <div class="cart-item-title with-badge">
+              <span>${escapeHtml(bonus.name)}</span>
+              <span class="bonus-badge">Bonificado</span>
+            </div>
+            <div class="cart-item-line">
+              <span>${escapeHtml(bonus.category)}</span>
+              <strong>${renderBonusPrice(bonus)}</strong>
+            </div>
+            <div class="bonus-note">${escapeHtml(bonus.note)}</div>
+          </div>
+        `).join("");
+
+        const totalsHtml = renderTotalsHtml(totals, bonusItems.length);
+        el.cart.innerHTML = `<div class="cart-items">${itemsHtml}${bonusHtml}</div>${totalsHtml}`;
 
         el.cart.querySelectorAll("[data-inc]").forEach(btn => btn.addEventListener("click", () => changeQty(btn.getAttribute("data-inc"), 1)));
         el.cart.querySelectorAll("[data-dec]").forEach(btn => btn.addEventListener("click", () => changeQty(btn.getAttribute("data-dec"), -1)));
@@ -1190,12 +1299,13 @@
       updateSummaryText();
     }
 
-    function renderTotalsHtml(totals) {
+    function renderTotalsHtml(totals, bonusCount = 0) {
       const lines = [];
       if (totals.ARS > 0) lines.push(`<div class="total-line final"><span>Total ARS</span><strong>${formatMoney(totals.ARS, "ARS")}</strong></div>`);
       if (totals.USD > 0) lines.push(`<div class="total-line final"><span>Total USD</span><strong>${formatMoney(totals.USD, "USD")}</strong></div>`);
       if (!lines.length) lines.push('<div class="total-line final"><span>Total</span><strong>$ 0</strong></div>');
-      return `<div class="totals">${lines.join("")}<div class="total-line"><span>Servicios distintos</span><strong>${totals.count}</strong></div><div class="total-line"><span>Ítems seleccionados</span><strong>${totals.qty}</strong></div></div>`;
+      const bonusLine = bonusCount > 0 ? `<div class="total-line"><span>Bonificados</span><strong>${bonusCount}</strong></div>` : "";
+      return `<div class="totals">${lines.join("")}<div class="total-line"><span>Servicios distintos</span><strong>${totals.count}</strong></div><div class="total-line"><span>Ítems seleccionados</span><strong>${totals.qty}</strong></div>${bonusLine}</div>`;
     }
 
     function updateHero(totals) {
@@ -1211,6 +1321,7 @@
     function updateSummaryText() {
       const items = [...state.cart.values()];
       const totals = getTotals();
+      const bonusItems = getBonusItems(totals);
       const client = el.client.value.trim();
       const lines = [];
 
@@ -1229,6 +1340,16 @@
           lines.push(`   Unitario: ${formatMoney(item.amount, item.currency)}`);
           lines.push(`   Subtotal: ${formatMoney(subtotal, item.currency)}`);
         });
+
+        if (bonusItems.length) {
+          lines.push("");
+          lines.push("BONIFICADOS:");
+          bonusItems.forEach(bonus => {
+            const regularPrice = bonus.regularAmount > 0 ? `${formatMoney(bonus.regularAmount, bonus.currency)} bonificado` : "Bonificado";
+            lines.push(`- ${bonus.name}: ${regularPrice}`);
+          });
+        }
+
         lines.push("");
         if (totals.ARS > 0) lines.push(`TOTAL ARS: ${formatMoney(totals.ARS, "ARS")}`);
         if (totals.USD > 0) lines.push(`TOTAL USD: ${formatMoney(totals.USD, "USD")}`);
@@ -1242,6 +1363,7 @@
     function buildPrintBudget() {
       const items = [...state.cart.values()];
       const totals = getTotals();
+      const bonusItems = getBonusItems(totals);
       const client = el.client.value.trim() || "Sin especificar";
       const date = new Date().toLocaleDateString("es-AR");
       const logo = document.querySelector('.summary-brand img')?.getAttribute('src') || "";
@@ -1251,7 +1373,7 @@
         return;
       }
 
-      const rows = items.map((item, index) => {
+      const paidRows = items.map((item, index) => {
         const subtotal = item.amount * item.qty;
         const details = item.details && item.details.length
           ? item.details.map(detail => `${escapeHtml(detail.label)}: ${escapeHtml(detail.value)}`).join(" · ")
@@ -1270,6 +1392,27 @@
           </tr>
         `;
       }).join("");
+
+      const bonusRows = bonusItems.map((bonus, index) => {
+        const regularPrice = bonus.regularAmount > 0
+          ? `<span class="budget-old-price">${formatMoney(bonus.regularAmount, bonus.currency)}</span><span class="budget-free-price">$ 0</span>`
+          : `<span class="budget-free-price">$ 0</span>`;
+        return `
+          <tr>
+            <td class="num">${items.length + index + 1}</td>
+            <td>
+              <div class="budget-item-name">${escapeHtml(bonus.name)}</div>
+              <div class="budget-bonus-badge">Bonificado</div>
+              <div class="budget-item-note">${escapeHtml(bonus.note)}</div>
+            </td>
+            <td class="num">1</td>
+            <td class="num">${regularPrice}</td>
+            <td class="num"><span class="budget-free-price">$ 0</span></td>
+          </tr>
+        `;
+      }).join("");
+
+      const rows = paidRows + bonusRows;
 
       const totalRows = [];
       if (totals.ARS > 0) totalRows.push(`<div class="budget-total-row final"><span>Total ARS</span><strong>${formatMoney(totals.ARS, "ARS")}</strong></div>`);
@@ -1290,6 +1433,7 @@
               <div><strong>Cliente:</strong> ${escapeHtml(client)}</div>
               <div><strong>Servicios:</strong> ${totals.count}</div>
               <div><strong>Ítems:</strong> ${totals.qty}</div>
+              ${bonusItems.length ? `<div><strong>Bonificados:</strong> ${bonusItems.length}</div>` : ""}
             </div>
           </header>
 
@@ -1311,7 +1455,7 @@
           </div>
 
           <p class="budget-footer">
-            Presupuesto sujeto a revisión final. El total se calcula únicamente desde la columna <strong>Costo</strong>. Los valores de presupuesto mínimo o máximo son informativos y no se suman al total.
+            Presupuesto sujeto a revisión final. El total se calcula únicamente desde la columna <strong>Costo</strong>. Los valores de presupuesto mínimo o máximo son informativos y no se suman al total. Los servicios bonificados figuran con precio de referencia tachado y subtotal $ 0.
           </p>
         </div>
       `;
