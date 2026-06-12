@@ -1,52 +1,126 @@
 {
-  "updatedAt": "2026-06-11T00:00:00-03:00",
-  "_nota": "Este archivo reemplaza la lectura directa de Google Sheets. Completá services y codes con tus datos reales. El dashboard ignora campos que empiecen con guion bajo.",
-  "services": [],
-  "codes": [],
-  "_schema": {
-    "services": [
-      {
-        "id": "gestion-meta-ads",
-        "title": "Gestión Meta Ads",
-        "description": "Descripción breve del servicio",
-        "category": "Publicidad",
-        "costo": 0,
-        "presupuestoMinimo": 0,
-        "presupuestoMaximo": 0,
-        "kind": "normal"
-      },
-      {
-        "id": "auditoria",
-        "title": "Auditoría",
-        "description": "Servicio bonificado automáticamente con 1 ítem pago",
-        "costo": 25000,
-        "presupuestoMinimo": 0,
-        "presupuestoMaximo": 0,
-        "kind": "auditoria"
-      },
-      {
-        "id": "dashboard",
-        "title": "Dashboard",
-        "description": "Servicio bonificado automáticamente con 2 ítems pagos",
-        "costo": 0,
-        "presupuestoMinimo": 0,
-        "presupuestoMaximo": 0,
-        "kind": "dashboard"
-      }
-    ],
-    "codes": [
-      {
-        "code": "PROMO10",
-        "type": "percent",
-        "value": 10,
-        "active": true
-      },
-      {
-        "code": "DESCUENTO5000",
-        "type": "fixed",
-        "value": 5000,
-        "active": true
-      }
-    ]
-  }
+  "updatedAt": "2026-06-11T21:30:50-03:00",
+  "services": [
+    {
+      "id": "crear-cuenta-publicitaria-y-portfolio-metodo-de-pago-y-verificacion-de-negocio-digital",
+      "title": "Crear cuenta publicitaria y portfolio + metodo de pago y verificacion de negocio digital.",
+      "description": "Configurar cuenta de meta para publicidad (Plazo de 30 días, al menos 2 llamadas para sincronizar informacion importante)",
+      "category": "Meta Ads",
+      "costo": 85000,
+      "presupuestoMinimo": 30000,
+      "presupuestoMaximo": 0,
+      "details": [
+        "Requisitos: Tener cuenta de facebook e instagram"
+      ],
+      "kind": "normal"
+    },
+    {
+      "id": "campana-de-alcance",
+      "title": "Campaña de Alcance",
+      "description": "Configurar y segmentar contenidos organicos para ampliar el publico.",
+      "category": "Meta Ads",
+      "costo": 30000,
+      "presupuestoMinimo": 70000,
+      "presupuestoMaximo": 300000,
+      "details": [
+        "Requisitos: Plataforma de meta ads configurada con metodo de pago // Tener una campaña activa // Tener contenidos aptos para clientes potenciales"
+      ],
+      "kind": "normal"
+    },
+    {
+      "id": "campana-de-consultas",
+      "title": "Campaña de Consultas",
+      "description": "Configurar y segmentar contenidos para un grupo o producto, orientado a ventas",
+      "category": "Meta Ads",
+      "costo": 30000,
+      "presupuestoMinimo": 70000,
+      "presupuestoMaximo": 300000,
+      "details": [
+        "Requisitos: Plataforma de meta ads configurada con metodo de pago // Tener una campaña activa // Tener contenidos aptos de productos o servicios"
+      ],
+      "kind": "normal"
+    },
+    {
+      "id": "auditoria-puntos-de-mejora-o-indispensables",
+      "title": "Auditoria Puntos de mejora o indispensables",
+      "description": "Revisar redes, mensaje, campañas activas y resultados",
+      "category": "Meta Ads",
+      "costo": 29000,
+      "presupuestoMinimo": 0,
+      "presupuestoMaximo": 0,
+      "details": [],
+      "kind": "auditoria"
+    },
+    {
+      "id": "actividad-diaria-con-contenidos-anteriores",
+      "title": "Actividad diaria con contenidos anteriores",
+      "description": "Compartir historias y reels anteriores",
+      "category": "Meta Ads",
+      "costo": 30000,
+      "presupuestoMinimo": 50000,
+      "presupuestoMaximo": 0,
+      "details": [
+        "Requisitos: Tener una campaña activa"
+      ],
+      "kind": "normal"
+    },
+    {
+      "id": "pack-de-10-contenidos-edicion-minima-para-emergencia",
+      "title": "Pack de 10 contenidos (edición minima para emergencia)",
+      "description": "Subir reels con contenido de valor (grabado por el cliente), respuestas a preguntas frecuentes, datos importantes de tu sector, informacion importante para tus clientes potenciales. Edicion simple, musica de fondo, logo, solo para adaptar a la identidad de marca, subtitulos si es necesario y copy para redes.",
+      "category": "Meta Ads",
+      "costo": 100000,
+      "presupuestoMinimo": 50000,
+      "presupuestoMaximo": 0,
+      "details": [
+        "Requisitos: Plataforma de meta ads configurada con metodo de pago // Tener una campaña activa // Tener contenidos aptos de productos o servicios"
+      ],
+      "kind": "normal"
+    },
+    {
+      "id": "dashboard-con-informacion-clave-de-campanas",
+      "title": "Dashboard con información clave de campañas",
+      "description": "Panel de informacion general de las campañas sin necesidad de ingresar en la plataforma de meta",
+      "category": "Meta Ads",
+      "costo": 30000,
+      "presupuestoMinimo": 30000,
+      "presupuestoMaximo": 0,
+      "details": [
+        "Requisitos: Tener una campaña activa"
+      ],
+      "kind": "dashboard"
+    }
+  ],
+  "codes": [
+    {
+      "code": "ABCD",
+      "type": "percent",
+      "value": 10,
+      "active": true
+    },
+    {
+      "code": "ZZZZ",
+      "type": "percent",
+      "value": 15,
+      "active": true
+    },
+    {
+      "code": "PATO",
+      "type": "percent",
+      "value": 20,
+      "active": true
+    },
+    {
+      "code": "HOPE",
+      "type": "percent",
+      "value": 30,
+      "active": true
+    },
+    {
+      "code": "MAXX",
+      "type": "percent",
+      "value": 50,
+      "active": true
+    }
+  ]
 }
