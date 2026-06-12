@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Convertir CSV a data.json</title>
+<style>body{font-family:Arial,sans-serif;background:#f0f2f5;color:#1c2b33;margin:0;padding:24px}.wrap{max-width:920px;margin:auto}.box{background:white;border:1px solid #d9e2ef;border-radius:18px;padding:18px;margin:14px 0}textarea{width:100%;min-height:180px;border:1px solid #d9e2ef;border-radius:12px;padding:12px;font-family:monospace}button{background:#0866ff;color:#fff;border:0;border-radius:999px;padding:12px 16px;font-weight:800;cursor:pointer}.muted{color:#667085}.ok{color:#137333;font-weight:800}.error{color:#b42318;font-weight:800}</style></head>
+<body><main class="wrap"><h1>Convertir CSV a data.json</h1><p class="muted">Pegá el CSV de Servicios_Web y Codigos_Web. Luego descargá data.json y subilo junto a index.html.</p>
+<div class="box"><h2>Servicios_Web CSV</h2><textarea id="servicesCsv" placeholder="Pegá acá el CSV de servicios"></textarea></div>
+<div class="box"><h2>Codigos_Web CSV</h2><textarea id="codesCsv" placeholder="Pegá acá el CSV de códigos. Opcional."></textarea></div>
+<button onclick="downloadJson()">Descargar data.json</button><p id="msg"></p></main>
+<script>
+function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(q){if(c==='"'&&n==='"'){cell+='"';i++;}else if(c==='"'){q=false;}else{cell+=c;}}else{if(c==='"'){q=true;}else if(c===','){row.push(cell);cell='';}else if(c==='
+'){row.push(cell);rows.push(row);row=[];cell='';}else if(c===''){}else{cell+=c;}}}row.push(cell);if(row.some(v=>String(v).trim()))rows.push(row);return rows;}
+function rowsToObjects(csv){const rows=parseCSV(csv.trim());if(!rows.length)return[];const headers=rows[0].map(h=>String(h).trim());return rows.slice(1).map(r=>{const o={};headers.forEach((h,i)=>o[h]=r[i]??'');return o;}).filter(o=>Object.values(o).some(v=>String(v).trim()));}
+function downloadJson(){try{const data={updatedAt:new Date().toISOString(),services:rowsToObjects(document.getElementById('servicesCsv').value),codes:rowsToObjects(document.getElementById('codesCsv').value)};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data.json';a.click();document.getElementById('msg').className='ok';document.getElementById('msg').textContent='data.json generado.';}catch(e){document.getElementById('msg').className='error';document.getElementById('msg').textContent='No se pudo generar: '+e.message;}}
+</script></body></html>
