@@ -22,3 +22,9 @@ PENDIENTE PARA PRODUCCIÓN:
 2. Reemplazar emojis/visuales de ejemplo por fotos reales.
 3. Definir catálogo final, marcas, presentaciones y precios.
 4. Conectar Google Sheets / endpoint cacheado si se desea actualización automática.
+
+
+INCREMENTAL IMÁGENES
+--------------------
+Las 18 imágenes de ejemplo están vinculadas desde assets/images/.
+Ver assets/images/LEEME.txt para nombres y tamaños exactos.

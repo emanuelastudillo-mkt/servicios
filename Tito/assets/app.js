@@ -1,25 +1,23 @@
 const categories = [
-  { id: 'tapas', name: 'Tapas de empanadas', icon: '🥟', description: 'Criollas, hojaldre y más.', color: '#b65f43', soft: '#f3ddd4' },
-  { id: 'prepizzas', name: 'Prepizzas', icon: '🍕', description: 'Distintos tamaños y formatos.', color: '#c79542', soft: '#f4ead3' },
-  { id: 'aceitunas', name: 'Aceitunas', icon: '🫒', description: 'Verdes, negras y variedades.', color: '#7f8550', soft: '#e9ead8' },
-  { id: 'quesos', name: 'Quesos', icon: '🧀', description: 'Muzzarella, cremosos y barra.', color: '#d3ae55', soft: '#f5ecd5' },
-  { id: 'fiambres', name: 'Fiambres', icon: '🥓', description: 'Jamón, paleta, salames y más.', color: '#b45c58', soft: '#f0d9d7' },
-  { id: 'almacen', name: 'Almacén y otros', icon: '🥫', description: 'Complementos para tu negocio.', color: '#54756a', soft: '#dbe8e3' }
+  { id: 'tapas', name: 'Tapas de empanadas', icon: '🥟', description: 'Criollas, hojaldre y más.', color: '#b65f43', soft: '#f3ddd4', image: 'assets/images/categoria-tapas-empanadas.webp' },
+  { id: 'prepizzas', name: 'Prepizzas', icon: '🍕', description: 'Distintos tamaños y formatos.', color: '#c79542', soft: '#f4ead3', image: 'assets/images/categoria-prepizzas.webp' },
+  { id: 'aceitunas', name: 'Aceitunas', icon: '🫒', description: 'Verdes, negras y variedades.', color: '#7f8550', soft: '#e9ead8', image: 'assets/images/categoria-aceitunas.webp' },
+  { id: 'quesos', name: 'Quesos', icon: '🧀', description: 'Muzzarella, cremosos y barra.', color: '#d3ae55', soft: '#f5ecd5', image: 'assets/images/categoria-quesos.webp' },
+  { id: 'fiambres', name: 'Fiambres', icon: '🥓', description: 'Jamón, paleta, salames y más.', color: '#b45c58', soft: '#f0d9d7', image: 'assets/images/categoria-fiambres.webp' },
+  { id: 'almacen', name: 'Almacén y otros', icon: '🥫', description: 'Complementos para tu negocio.', color: '#54756a', soft: '#dbe8e3', image: 'assets/images/categoria-almacen.webp' }
 ];
 
 const products = [
-  { id: 1, name: 'Tapas criollas', category: 'tapas', brand: 'Marca surtida', presentation: 'Pack gastronómico', emoji: '🥟' },
-  { id: 2, name: 'Tapas de hojaldre', category: 'tapas', brand: 'Marca surtida', presentation: 'Pack gastronómico', emoji: '🥟' },
-  { id: 3, name: 'Prepizza tradicional', category: 'prepizzas', brand: 'Marca surtida', presentation: 'Pack por unidades', emoji: '🍕' },
-  { id: 4, name: 'Aceitunas verdes', category: 'aceitunas', brand: 'Marca surtida', presentation: 'Presentación gastronómica', emoji: '🫒' },
-  { id: 5, name: 'Aceitunas descarozadas', category: 'aceitunas', brand: 'Marca surtida', presentation: 'Presentación gastronómica', emoji: '🫒' },
-  { id: 6, name: 'Muzzarella', category: 'quesos', brand: 'Marca surtida', presentation: 'Barra / horma', emoji: '🧀' },
-  { id: 7, name: 'Queso cremoso', category: 'quesos', brand: 'Marca surtida', presentation: 'Horma', emoji: '🧀' },
-  { id: 8, name: 'Jamón cocido', category: 'fiambres', brand: 'Marca surtida', presentation: 'Pieza', emoji: '🥓' },
-  { id: 9, name: 'Paleta cocida', category: 'fiambres', brand: 'Marca surtida', presentation: 'Pieza', emoji: '🥓' },
-  { id: 10, name: 'Salame', category: 'fiambres', brand: 'Marca surtida', presentation: 'Pieza', emoji: '🥩' },
-  { id: 11, name: 'Salsa de tomate', category: 'almacen', brand: 'Marca surtida', presentation: 'Caja / unidad', emoji: '🥫' },
-  { id: 12, name: 'Queso rallado', category: 'quesos', brand: 'Marca surtida', presentation: 'Bolsa gastronómica', emoji: '🧀' }
+  { id: 1, name: 'Tapas criollas', category: 'tapas', brand: 'Marca surtida', presentation: 'Pack gastronómico', image: 'assets/images/producto-tapas-criollas.webp' },
+  { id: 2, name: 'Tapas de hojaldre', category: 'tapas', brand: 'Marca surtida', presentation: 'Pack gastronómico', image: 'assets/images/producto-tapas-hojaldradas.webp' },
+  { id: 3, name: 'Prepizza clásica', category: 'prepizzas', brand: 'Marca surtida', presentation: 'Pack por unidades', image: 'assets/images/producto-prepizza-clasica.webp' },
+  { id: 4, name: 'Prepizza individual', category: 'prepizzas', brand: 'Marca surtida', presentation: 'Pack por unidades', image: 'assets/images/producto-prepizza-individual.webp' },
+  { id: 5, name: 'Aceitunas verdes', category: 'aceitunas', brand: 'Marca surtida', presentation: 'Presentación gastronómica', image: 'assets/images/producto-aceitunas-verdes.webp' },
+  { id: 6, name: 'Aceitunas negras', category: 'aceitunas', brand: 'Marca surtida', presentation: 'Presentación gastronómica', image: 'assets/images/producto-aceitunas-negras.webp' },
+  { id: 7, name: 'Muzzarella en barra', category: 'quesos', brand: 'Marca surtida', presentation: 'Barra / horma', image: 'assets/images/producto-muzzarella-barra.webp' },
+  { id: 8, name: 'Queso cremoso', category: 'quesos', brand: 'Marca surtida', presentation: 'Horma', image: 'assets/images/producto-queso-cremoso.webp' },
+  { id: 9, name: 'Jamón cocido', category: 'fiambres', brand: 'Marca surtida', presentation: 'Pieza', image: 'assets/images/producto-jamon-cocido.webp' },
+  { id: 10, name: 'Salame', category: 'fiambres', brand: 'Marca surtida', presentation: 'Pieza', image: 'assets/images/producto-salame.webp' }
 ];
 
 const state = {
@@ -51,7 +49,7 @@ function catName(id) {
 
 function renderCategories() {
   els.categories.innerHTML = categories.map(c => `
-    <article class="category-card" style="--cat:${c.color};--cat-soft:${c.soft}">
+    <article class="category-card" style="--cat:${c.color};--cat-soft:${c.soft};--cat-image:url('${c.image}')">
       <div class="category-icon">${c.icon}</div>
       <h3>${c.name}</h3>
       <p>${c.description}</p>
@@ -82,7 +80,7 @@ function renderProducts() {
     const isAdded = !!state.order[p.id];
     return `
       <article class="product-card">
-        <div class="product-image" data-emoji="${p.emoji}"><span class="product-chip">${p.brand}</span></div>
+        <div class="product-image" style="--product-image:url('${p.image}')" role="img" aria-label="${p.name}"><span class="product-chip">${p.brand}</span></div>
         <div class="product-body">
           <span class="product-category">${catName(p.category)}</span>
           <h3>${p.name}</h3>

@@ -1,0 +1,29 @@
+IMÁGENES ESPERADAS POR LA WEB
+
+Copiar en esta carpeta los 18 archivos WEBP con estos nombres exactos:
+
+hero-distribuidora-alimentos.webp
+institucional-entregas-caba-gba.webp
+categoria-tapas-empanadas.webp
+categoria-prepizzas.webp
+categoria-aceitunas.webp
+categoria-quesos.webp
+categoria-fiambres.webp
+categoria-almacen.webp
+producto-tapas-criollas.webp
+producto-tapas-hojaldradas.webp
+producto-prepizza-clasica.webp
+producto-prepizza-individual.webp
+producto-aceitunas-verdes.webp
+producto-aceitunas-negras.webp
+producto-muzzarella-barra.webp
+producto-queso-cremoso.webp
+producto-jamon-cocido.webp
+producto-salame.webp
+
+Tamaños recomendados:
+- hero-distribuidora-alimentos.webp: 1600x900 px
+- institucional-entregas-caba-gba.webp: 1400x900 px
+- resto: 1000x1000 px
+
+La web ya tiene todas estas rutas vinculadas. Si una imagen no está presente, se muestra un fondo de respaldo.
