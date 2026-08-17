@@ -20,6 +20,30 @@ const products = [
   { id: 10, name: 'Salame', category: 'fiambres', brand: 'Marca surtida', presentation: 'Pieza', image: 'assets/images/producto-salame.webp' }
 ];
 
+const THEME_STORAGE_KEY = 'gentilezzaTheme';
+const VALID_THEMES = ['clasica', 'alternativa', 'moderna'];
+const THEME_COLORS = {
+  clasica: '#173f33',
+  alternativa: '#536451',
+  moderna: '#173f33'
+};
+
+function applyTheme(theme, persist = true) {
+  const nextTheme = VALID_THEMES.includes(theme) ? theme : 'clasica';
+  document.body.dataset.theme = nextTheme;
+
+  const selector = document.querySelector('#theme-select');
+  if (selector && selector.value !== nextTheme) selector.value = nextTheme;
+
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) themeMeta.setAttribute('content', THEME_COLORS[nextTheme]);
+
+  if (persist) localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+}
+
+const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+applyTheme(VALID_THEMES.includes(savedTheme) ? savedTheme : 'clasica', false);
+
 const state = {
   filter: 'todos',
   search: '',
@@ -40,7 +64,8 @@ const els = {
   clear: document.querySelector('#clear-order'),
   send: document.querySelector('#send-order'),
   menuToggle: document.querySelector('.menu-toggle'),
-  nav: document.querySelector('#main-nav')
+  nav: document.querySelector('#main-nav'),
+  theme: document.querySelector('#theme-select')
 };
 
 function catName(id) {
@@ -217,6 +242,10 @@ els.send.addEventListener('click', () => {
   navigator.clipboard?.writeText(text).catch(() => {});
   alert('Pedido preparado y copiado. Falta configurar el número de WhatsApp para enviarlo directamente.');
 });
+
+if (els.theme) {
+  els.theme.addEventListener('change', e => applyTheme(e.target.value));
+}
 
 els.menuToggle.addEventListener('click', () => {
   const open = els.nav.classList.toggle('open');
