@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#173f33" />
+  <meta name="description" content="La Gentilezza — Distribuidora de alimentos en Lomas del Mirador. Entregas en CABA y Gran Buenos Aires." />
+  <title>La Gentilezza | Distribuidora de Alimentos</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="La Gentilezza - Inicio">
+        <span class="brand-mark">LG</span>
+        <span class="brand-copy">
+          <strong>La Gentilezza</strong>
+          <small>Distribuidora de Alimentos</small>
+        </span>
+      </a>
+
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="main-nav" id="main-nav">
+        <a href="#productos">Productos</a>
+        <a href="#categorias">Categorías</a>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#entregas">Entregas</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+
+      <button class="order-pill" type="button" data-open-order>
+        Pedido <span id="order-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Distribución gastronómica · CABA + GBA</p>
+          <h1>Todo para abastecer <em>tu negocio.</em></h1>
+          <p class="hero-lead">Alimentos seleccionados, variedad de marcas y entrega coordinada desde Lomas del Mirador.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#productos">Ver productos</a>
+            <button class="btn btn-secondary" type="button" data-open-order>Armar pedido</button>
+          </div>
+          <div class="hero-notes">
+            <span>Entregas programadas</span>
+            <span>Atención directa</span>
+            <span>Catálogo multimarca</span>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Selección de alimentos">
+          <div class="hero-card hero-card-main">
+            <div class="food-shape cheese"></div>
+            <div class="food-shape olives"></div>
+            <div class="food-shape dough"></div>
+            <div class="food-shape coldcuts"></div>
+          </div>
+          <div class="hero-badge">
+            <span>Base</span>
+            <strong>Lomas del Mirador</strong>
+            <small>La Matanza · Buenos Aires</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-strip">
+      <div class="container trust-grid">
+        <article>
+          <strong>+ variedad</strong>
+          <span>Distintas categorías en un solo pedido.</span>
+        </article>
+        <article>
+          <strong>+ simple</strong>
+          <span>Seleccioná productos y enviá tu consulta.</span>
+        </article>
+        <article>
+          <strong>+ cerca</strong>
+          <span>Entregas en CABA y Gran Buenos Aires.</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="categorias">
+      <div class="container">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="eyebrow">Categorías</p>
+            <h2>Lo que necesitás, <em>más ordenado.</em></h2>
+          </div>
+          <p>La web organiza el catálogo por rubros para encontrar rápido cada producto, sin depender de una marca propia.</p>
+        </div>
+
+        <div class="category-grid" id="category-grid"></div>
+      </div>
+    </section>
+
+    <section class="section section-products" id="productos">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">Catálogo</p>
+          <h2>Encontrá lo que buscás.</h2>
+        </div>
+
+        <div class="catalog-toolbar">
+          <label class="search-box">
+            <span class="search-icon">⌕</span>
+            <input id="product-search" type="search" placeholder="Buscar producto, categoría o marca..." autocomplete="off" />
+          </label>
+          <div class="filter-row" id="filter-row"></div>
+        </div>
+
+        <div class="product-grid" id="product-grid"></div>
+        <p class="empty-state" id="empty-state" hidden>No encontramos productos con ese filtro.</p>
+      </div>
+    </section>
+
+    <section class="section about-section" id="nosotros">
+      <div class="container about-grid">
+        <div class="about-card">
+          <p class="eyebrow">La Gentilezza</p>
+          <h2>Distribución con <em>atención cercana.</em></h2>
+          <p>Una propuesta pensada para comercios, gastronomía y clientes que necesitan resolver diferentes categorías de alimentos desde un mismo proveedor.</p>
+          <p>El catálogo puede crecer con nuevas marcas, presentaciones y rubros sin modificar la estructura del sitio.</p>
+        </div>
+        <div class="about-points">
+          <div><span>01</span><strong>Catálogo multimarca</strong><p>No atamos la identidad del sitio a productos propios.</p></div>
+          <div><span>02</span><strong>Pedido simple</strong><p>El cliente arma una lista y luego confirma disponibilidad y entrega.</p></div>
+          <div><span>03</span><strong>Escalable</strong><p>Preparado para integrar stock, precios y fotos dinámicas más adelante.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section delivery-section" id="entregas">
+      <div class="container delivery-grid">
+        <div>
+          <p class="eyebrow eyebrow-light">Zona de distribución</p>
+          <h2>Llegamos a <em>tu negocio.</em></h2>
+          <p>Coordinamos entregas desde Lomas del Mirador hacia distintos puntos de CABA y Gran Buenos Aires.</p>
+          <a class="btn btn-light" href="#contacto">Consultar mi zona</a>
+        </div>
+        <div class="delivery-map" aria-hidden="true">
+          <div class="map-ring ring-1"></div>
+          <div class="map-ring ring-2"></div>
+          <div class="map-ring ring-3"></div>
+          <div class="map-pin pin-base"><span></span><small>Lomas del Mirador</small></div>
+          <div class="map-pin pin-caba"><span></span><small>CABA</small></div>
+          <div class="map-pin pin-gba"><span></span><small>GBA</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section contact-section" id="contacto">
+      <div class="container contact-card">
+        <div>
+          <p class="eyebrow">Contacto</p>
+          <h2>¿Necesitás abastecerte?</h2>
+          <p>Armá una lista desde el catálogo y después coordinamos disponibilidad, cantidades y entrega.</p>
+        </div>
+        <button class="btn btn-primary" type="button" data-open-order>Ver mi pedido</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <a class="brand footer-brand" href="#top">
+          <span class="brand-mark">LG</span>
+          <span class="brand-copy"><strong>La Gentilezza</strong><small>Distribuidora de Alimentos</small></span>
+        </a>
+        <p>Lomas del Mirador · La Matanza · Buenos Aires</p>
+      </div>
+      <div>
+        <strong>Productos</strong>
+        <a href="#productos">Tapas</a>
+        <a href="#productos">Prepizzas</a>
+        <a href="#productos">Quesos</a>
+        <a href="#productos">Fiambres</a>
+      </div>
+      <div>
+        <strong>Distribución</strong>
+        <span>CABA</span>
+        <span>Gran Buenos Aires</span>
+        <span>Entrega coordinada</span>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <span>© <span id="year"></span> La Gentilezza</span>
+      <span>Distribuidora de Alimentos</span>
+    </div>
+  </footer>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+  <aside class="order-drawer" id="order-drawer" aria-hidden="true" aria-label="Pedido">
+    <div class="drawer-header">
+      <div>
+        <p class="eyebrow">Tu selección</p>
+        <h3>Armar pedido</h3>
+      </div>
+      <button class="icon-btn" type="button" id="close-order" aria-label="Cerrar">×</button>
+    </div>
+    <div class="drawer-content" id="order-items"></div>
+    <div class="drawer-footer">
+      <p class="drawer-help">La selección no confirma stock ni precio. El pedido se valida al contactar a la distribuidora.</p>
+      <button class="btn btn-primary btn-full" type="button" id="send-order">Enviar consulta</button>
+      <button class="text-btn" type="button" id="clear-order">Vaciar pedido</button>
+    </div>
+  </aside>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
