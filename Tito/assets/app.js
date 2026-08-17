@@ -72,12 +72,37 @@ function catName(id) {
   return categories.find(c => c.id === id)?.name || id;
 }
 
-// Permite conservar la estructura recomendada /assets/images/ y, a la vez,
-// usar proyectos donde los WEBP fueron guardados directamente en /assets/.
-// CSS usa ambas URL como capas: si la primera no existe, se ve la segunda.
+// Soporta tanto los nombres finales WEBP como los nombres PNG originales
+// generados durante la creación de las imágenes. También prueba /assets/images/
+// y /assets/ para tolerar ambas estructuras de carpetas.
+const IMAGE_ALIASES = {
+  'categoria-tapas-empanadas.webp': ['image-gen-1.png'],
+  'categoria-prepizzas.webp': ['Fresh Tomato Basil Pizza Preparation.png'],
+  'categoria-aceitunas.webp': ['Rustic Mediterranean Olive Still Life.png'],
+  'categoria-quesos.webp': ['Artisanal Cheese Platter with Fresh Garnishes.png'],
+  'categoria-fiambres.webp': ['Rustic Charcuterie Board with Olives.png'],
+  'categoria-almacen.webp': ['Rustic Preserves Pantry Still Life.png'],
+  'producto-tapas-criollas.webp': ['Flour-Dusted Dough Wrapper Stacks.png'],
+  'producto-tapas-hojaldradas.webp': ['Layered Pastry Disc Stacks.png'],
+  'producto-prepizza-clasica.webp': ['image-gen-1(1).png'],
+  'producto-prepizza-individual.webp': ['image-gen-1(2).png'],
+  'producto-aceitunas-verdes.webp': ['Rustic Bowl of Glossy Green Olives.png'],
+  'producto-aceitunas-negras.webp': ['Glossy Black Olives in a Dark Bowl.png'],
+  'producto-muzzarella-barra.webp': ['image-gen-1(3).png'],
+  'producto-queso-cremoso.webp': ['Creamy Cheese Wheel on Marble Board.png'],
+  'producto-jamon-cocido.webp': ['Sliced Smoked Ham on Wooden Board.png'],
+  'producto-salame.webp': ['Rustic Salami and Rosemary Board.png']
+};
+
 function imageFallbackStack(path) {
-  const alternate = path.replace('assets/images/', 'assets/');
-  return `url('${path}'),url('${alternate}')`;
+  const filename = path.split('/').pop();
+  const candidates = [filename, ...(IMAGE_ALIASES[filename] || [])];
+  const urls = [];
+  for (const name of candidates) {
+    urls.push(`url('assets/images/${name}')`);
+    urls.push(`url('assets/${name}')`);
+  }
+  return urls.join(',');
 }
 
 function renderCategories() {

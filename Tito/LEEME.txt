@@ -1,14 +1,13 @@
-LA GENTILEZZA — FIX RUTAS DE IMÁGENES
+FIX DE NOMBRES DE IMÁGENES — LA GENTILEZZA
 
-Copiar el contenido de este ZIP sobre la raíz de la versión actual.
-Solo reemplaza:
+Reemplazar únicamente:
 - assets/app.js
 - assets/styles.css
 
-Las imágenes pueden estar en cualquiera de estas carpetas:
-- assets/images/
-- assets/
+El código ahora busca cada imagen usando:
+1) nombre final .webp en assets/images/
+2) nombre final .webp en assets/
+3) nombre PNG original generado en assets/images/
+4) nombre PNG original generado en assets/
 
-El código prueba ambas ubicaciones automáticamente.
-
-IMPORTANTE: los archivos WEBP deben existir físicamente en alguna de esas dos carpetas.
+IMPORTANTE: las imágenes deben estar físicamente subidas al hosting.
