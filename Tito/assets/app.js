@@ -1,10 +1,10 @@
 const categories = [
-  { id: 'tapas', name: 'Tapas de empanadas', icon: '🥟', description: 'Criollas, hojaldre y más.', color: '#b65f43', soft: '#f3ddd4', image: 'categoria-tapas-empanadas.webp' },
-  { id: 'prepizzas', name: 'Prepizzas', icon: '🍕', description: 'Distintos tamaños y formatos.', color: '#c79542', soft: '#f4ead3', image: 'categoria-prepizzas.webp' },
-  { id: 'aceitunas', name: 'Aceitunas', icon: '🫒', description: 'Verdes, negras y variedades.', color: '#7f8550', soft: '#e9ead8', image: 'categoria-aceitunas.webp' },
-  { id: 'quesos', name: 'Quesos', icon: '🧀', description: 'Muzzarella, cremosos y barra.', color: '#d3ae55', soft: '#f5ecd5', image: 'categoria-quesos.webp' },
-  { id: 'fiambres', name: 'Fiambres', icon: '🥓', description: 'Jamón, paleta, salames y más.', color: '#b45c58', soft: '#f0d9d7', image: 'categoria-fiambres.webp' },
-  { id: 'almacen', name: 'Almacén y otros', icon: '🥫', description: 'Complementos para tu negocio.', color: '#54756a', soft: '#dbe8e3', image: 'categoria-almacen.webp' }
+  { id: 'tapas', name: 'Tapas de empanadas', description: 'Criollas, hojaldre y más.', color: '#b65f43', soft: '#f3ddd4', image: 'categoria-tapas-empanadas.webp' },
+  { id: 'prepizzas', name: 'Prepizzas', description: 'Distintos tamaños y formatos.', color: '#c79542', soft: '#f4ead3', image: 'categoria-prepizzas.webp' },
+  { id: 'aceitunas', name: 'Aceitunas', description: 'Verdes, negras y variedades.', color: '#7f8550', soft: '#e9ead8', image: 'categoria-aceitunas.webp' },
+  { id: 'quesos', name: 'Quesos', description: 'Muzzarella, cremosos y barra.', color: '#d3ae55', soft: '#f5ecd5', image: 'categoria-quesos.webp' },
+  { id: 'fiambres', name: 'Fiambres', description: 'Jamón, paleta, salames y más.', color: '#b45c58', soft: '#f0d9d7', image: 'categoria-fiambres.webp' },
+  { id: 'almacen', name: 'Almacén y otros', description: 'Complementos para tu negocio.', color: '#54756a', soft: '#dbe8e3', image: 'categoria-almacen.webp' }
 ];
 
 const products = [
@@ -23,7 +23,7 @@ const products = [
 const THEME_STORAGE_KEY = 'gentilezzaTheme';
 const VALID_THEMES = ['clasica', 'alternativa', 'moderna'];
 const THEME_COLORS = { clasica: '#173f33', alternativa: '#536451', moderna: '#173f33' };
-const ASSET_VERSION = '20260817-4';
+const ASSET_VERSION = '20260817-5';
 
 function safeStorageGet(key, fallback = null) {
   try { return localStorage.getItem(key) ?? fallback; } catch (_) { return fallback; }
@@ -122,10 +122,11 @@ function renderCategories() {
     <article class="category-card" style="--cat:${c.color};--cat-soft:${c.soft}">
       ${imageTag(c.image, c.name, 'media-image')}
       <div class="category-overlay"></div>
-      <div class="category-icon">${c.icon}</div>
-      <h3>${c.name}</h3>
-      <p>${c.description}</p>
-      <button type="button" aria-label="Ver ${c.name}" data-category-jump="${c.id}">→</button>
+      <div class="category-copy">
+        <h3>${c.name}</h3>
+        <p>${c.description}</p>
+        <button type="button" aria-label="Ver productos de ${c.name}" data-category-jump="${c.id}">Ver productos</button>
+      </div>
     </article>
   `).join('');
   enableImageFallbacks(els.categories);
@@ -280,8 +281,14 @@ els.menuToggle?.addEventListener('click', () => {
   if (!els.nav) return;
   const open = els.nav.classList.toggle('open');
   els.menuToggle.setAttribute('aria-expanded', String(open));
+  els.menuToggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+  els.menuToggle.textContent = open ? 'Cerrar' : 'Menú';
 });
 els.nav?.addEventListener('click', () => {
   els.nav.classList.remove('open');
-  els.menuToggle?.setAttribute('aria-expanded', 'false');
+  if (els.menuToggle) {
+    els.menuToggle.setAttribute('aria-expanded', 'false');
+    els.menuToggle.setAttribute('aria-label', 'Abrir menú');
+    els.menuToggle.textContent = 'Menú';
+  }
 });

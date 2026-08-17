@@ -546,7 +546,7 @@ body[data-theme="moderna"] .order-item-controls button { border-radius: 9px; }
 }
 
 
-/* Carga robusta de imágenes v20260817-4 */
+/* Carga robusta de imágenes v20260817-5 */
 .media-image { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
 .media-image.image-missing { display:none; }
 .hero-card-main > .media-image { z-index:0; }
@@ -560,3 +560,104 @@ body[data-theme="moderna"] .order-item-controls button { border-radius: 9px; }
 .product-chip { z-index:2; }
 .about-photo > .media-image { z-index:0; }
 .about-photo::after { content:""; position:absolute; inset:0; z-index:1; background:linear-gradient(to top,rgba(23,63,51,.18),transparent 48%); pointer-events:none; }
+
+
+/* =========================================================
+   INCREMENTAL V20260817-5 — SIN ICONOS DECORATIVOS
+   La identidad visual se apoya en fotografía, tipografía,
+   color, composición y tratamiento de superficies.
+   ========================================================= */
+
+/* Header mobile: control textual, sin hamburguesa */
+.menu-toggle {
+  width: auto;
+  min-width: 54px;
+  min-height: 36px;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+.menu-toggle span { display: none !important; }
+body[data-theme="alternativa"] .menu-toggle { border-radius: 6px; }
+body[data-theme="moderna"] .menu-toggle { border-radius: 9px; background: transparent; }
+
+/* Hero: separar atributos con espacio/bordes, no bullets */
+.hero-notes { gap: 0; }
+.hero-notes span { padding: 0 14px; border-left: 1px solid var(--line); }
+.hero-notes span:first-child { padding-left: 0; border-left: 0; }
+.hero-notes span::before { content: none !important; }
+
+/* Categorías: fotografía protagonista, sin emojis ni botones circulares */
+.category-card { padding: 0; }
+.category-copy {
+  position: absolute;
+  z-index: 3;
+  left: 24px;
+  right: 24px;
+  bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.category-card h3 {
+  margin: 0 0 5px;
+  font-size: 29px;
+}
+.category-card p { margin: 0; max-width: 80%; }
+.category-card button {
+  position: static;
+  width: auto;
+  height: auto;
+  margin-top: 15px;
+  padding: 0 0 4px;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.65);
+  border-radius: 0 !important;
+  background: transparent;
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.category-card button:hover { border-bottom-color: white; }
+.category-icon { display: none !important; }
+body[data-theme="alternativa"] .category-card button,
+body[data-theme="moderna"] .category-card button { border-radius: 0 !important; }
+
+/* Buscador: campo puramente tipográfico */
+.search-icon { display: none !important; }
+.search-box input { padding-left: 18px; }
+
+/* Drawer: cierre textual */
+.drawer-close-btn {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--green);
+  padding: 6px 0 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.drawer-close-btn:hover { border-bottom-color: var(--green); }
+.icon-btn { display: none !important; }
+
+/* Los enlaces externos se presentan como texto, sin flechas o pictogramas. */
+.map-address-card a { text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 2px; }
+
+@media (max-width: 640px) {
+  .category-copy { left: 16px; right: 16px; bottom: 16px; }
+  .category-card h3 { font-size: 21px; margin: 0 0 4px; }
+  .category-card p { max-width: 100%; font-size: 12px; }
+  .category-card button { margin-top: 10px; font-size: 9px; }
+  .hero-notes span { padding: 0 9px; }
+}
+
+@media (max-width: 420px) {
+  .menu-toggle { min-width: 48px; padding-inline: 8px; font-size: 10px; }
+}

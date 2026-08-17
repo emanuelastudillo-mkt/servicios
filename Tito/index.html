@@ -6,11 +6,10 @@
   <meta name="theme-color" content="#173f33" />
   <meta name="description" content="La Gentilezza — Distribuidora de alimentos en Lomas del Mirador. Entregas en CABA y Gran Buenos Aires." />
   <title>La Gentilezza | Distribuidora de Alimentos</title>
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/styles.css?v=20260817-4" />
+  <link rel="stylesheet" href="assets/styles.css?v=20260817-5" />
 </head>
 <body data-theme="clasica">
   <header class="site-header" id="top">
@@ -23,9 +22,7 @@
         </span>
       </a>
 
-      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menú">
-        <span></span><span></span><span></span>
-      </button>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menú">Menú</button>
 
       <nav class="main-nav" id="main-nav">
         <a href="#productos">Productos</a>
@@ -119,7 +116,6 @@
 
         <div class="catalog-toolbar">
           <label class="search-box">
-            <span class="search-icon">⌕</span>
             <input id="product-search" type="search" placeholder="Buscar producto, categoría o marca..." autocomplete="off" />
           </label>
           <div class="filter-row" id="filter-row"></div>
@@ -169,7 +165,7 @@
             <span>Base de distribución</span>
             <strong>Colón 4100</strong>
             <small>Lomas del Mirador · La Matanza · Buenos Aires</small>
-            <a href="https://google.com/maps/place/34%C2%B040'19.9%22S+58%C2%B031'20.1%22W/@-34.6710469,-58.5246007,16z/data=!4m4!3m3!8m2!3d-34.672203!4d-58.52224?entry=ttu&g_ep=EgoyMDI2MDgxMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer">Abrir en Google Maps ↗</a>
+            <a href="https://google.com/maps/place/34%C2%B040'19.9%22S+58%C2%B031'20.1%22W/@-34.6710469,-58.5246007,16z/data=!4m4!3m3!8m2!3d-34.672203!4d-58.52224?entry=ttu&g_ep=EgoyMDI2MDgxMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
           </div>
         </div>
       </div>
@@ -223,7 +219,7 @@
         <p class="eyebrow">Tu selección</p>
         <h3>Armar pedido</h3>
       </div>
-      <button class="icon-btn" type="button" id="close-order" aria-label="Cerrar">×</button>
+      <button class="drawer-close-btn" type="button" id="close-order" aria-label="Cerrar pedido">Cerrar</button>
     </div>
     <div class="drawer-content" id="order-items"></div>
     <div class="drawer-footer">
@@ -233,6 +229,6 @@
     </div>
   </aside>
 
-  <script src="assets/app.js?v=20260817-4"></script>
+  <script src="assets/app.js?v=20260817-5"></script>
 </body>
 </html>

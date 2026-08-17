@@ -1,34 +1,19 @@
-FIX IMÁGENES V2 — LA GENTILEZZA
+INCREMENTAL LA GENTILEZZA — V20260817-5 SIN ICONOS
 
-Reemplazar estos 3 archivos sobre la versión publicada:
+Reemplazar:
 - index.html
 - assets/styles.css
 - assets/app.js
 
-El nuevo cargador prueba automáticamente cada imagen en:
-1) assets/images/
-2) assets/
-3) images/
-4) raíz del sitio (/Tito/)
+No modifica /assets/images ni los nombres de las imágenes.
 
-Además agrega ?v=20260817-4 para evitar caché de archivos/404 antiguos.
-
-Nombres esperados:
-- hero-distribuidora-alimentos.webp
-- institucional-entregas-caba-gba.webp
-- categoria-tapas-empanadas.webp
-- categoria-prepizzas.webp
-- categoria-aceitunas.webp
-- categoria-quesos.webp
-- categoria-fiambres.webp
-- categoria-almacen.webp
-- producto-tapas-criollas.webp
-- producto-tapas-hojaldradas.webp (NO figuraba en el listado recibido; temporalmente usa producto-tapas-criollas.webp si falta)
-- producto-prepizza-clasica.webp
-- producto-prepizza-individual.webp
-- producto-aceitunas-verdes.webp
-- producto-aceitunas-negras.webp
-- producto-muzzarella-barra.webp
-- producto-queso-cremoso.webp
-- producto-jamon-cocido.webp
-- producto-salame.webp
+Cambios:
+- elimina emojis de categorías;
+- categorías guiadas por fotografía + texto;
+- elimina lupa del buscador;
+- reemplaza menú hamburguesa por control textual Menú/Cerrar;
+- reemplaza X del drawer por Cerrar;
+- elimina flecha externa de Google Maps;
+- elimina bullets decorativos del hero;
+- conserva + y − únicamente como controles funcionales de cantidad;
+- mantiene las 3 versiones estéticas, catálogo, mapa, pedido y localStorage.
