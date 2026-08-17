@@ -1,0 +1,14 @@
+LA GENTILEZZA — FIX RUTAS DE IMÁGENES
+
+Copiar el contenido de este ZIP sobre la raíz de la versión actual.
+Solo reemplaza:
+- assets/app.js
+- assets/styles.css
+
+Las imágenes pueden estar en cualquiera de estas carpetas:
+- assets/images/
+- assets/
+
+El código prueba ambas ubicaciones automáticamente.
+
+IMPORTANTE: los archivos WEBP deben existir físicamente en alguna de esas dos carpetas.

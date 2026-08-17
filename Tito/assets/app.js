@@ -72,9 +72,17 @@ function catName(id) {
   return categories.find(c => c.id === id)?.name || id;
 }
 
+// Permite conservar la estructura recomendada /assets/images/ y, a la vez,
+// usar proyectos donde los WEBP fueron guardados directamente en /assets/.
+// CSS usa ambas URL como capas: si la primera no existe, se ve la segunda.
+function imageFallbackStack(path) {
+  const alternate = path.replace('assets/images/', 'assets/');
+  return `url('${path}'),url('${alternate}')`;
+}
+
 function renderCategories() {
   els.categories.innerHTML = categories.map(c => `
-    <article class="category-card" style="--cat:${c.color};--cat-soft:${c.soft};--cat-image:url('${c.image}')">
+    <article class="category-card" style="--cat:${c.color};--cat-soft:${c.soft};--cat-image:${imageFallbackStack(c.image)}">
       <div class="category-icon">${c.icon}</div>
       <h3>${c.name}</h3>
       <p>${c.description}</p>
@@ -105,7 +113,7 @@ function renderProducts() {
     const isAdded = !!state.order[p.id];
     return `
       <article class="product-card">
-        <div class="product-image" style="--product-image:url('${p.image}')" role="img" aria-label="${p.name}"><span class="product-chip">${p.brand}</span></div>
+        <div class="product-image" style="--product-image:${imageFallbackStack(p.image)}" role="img" aria-label="${p.name}"><span class="product-chip">${p.brand}</span></div>
         <div class="product-body">
           <span class="product-category">${catName(p.category)}</span>
           <h3>${p.name}</h3>
