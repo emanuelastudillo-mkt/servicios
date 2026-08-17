@@ -15,12 +15,11 @@ function productPrice(product) {
 function productCard(product) {
   const image = product.image || 'assets/product-placeholder.svg';
   const presentation = product.presentation || 'Consultar presentación';
-  const message = `Hola, quiero consultar por ${product.name} - ${product.variety}${product.presentation ? ` (${product.presentation})` : ''}.`;
   return `
     <article class="product-card" data-variety="${product.variety || ''}">
-      <a class="product-image" href="${waLink(message)}" target="_blank" rel="noopener" aria-label="Consultar ${product.name} ${product.variety}">
-        <img src="${image}" alt="${product.name} ${product.variety}" loading="lazy" onerror="this.src='assets/product-placeholder.svg'">
-      </a>
+      <div class="product-image">
+        <img src="${image}" alt="${product.name} ${product.variety}" loading="lazy" onerror="if(!this.dataset.extRetry && this.src.includes('.wedp')){this.dataset.extRetry='1';this.src=this.src.replace('.wedp','.webp')}else{this.onerror=null;this.src='assets/product-placeholder.svg'}">
+      </div>
       <div class="product-body">
         <span class="tag">Elaboración artesanal</span>
         <h3>${product.name}</h3>
@@ -68,14 +67,14 @@ async function loadCatalog() {
     const status = document.querySelector('#syncStatus');
     if (data.updatedAt) {
       const date = new Date(data.updatedAt);
-      status.textContent = `Catálogo actualizado: ${date.toLocaleString('es-AR')}`;
+      status.textContent = `Catálogo actualizado: ${date.toLocaleDateString('es-AR')}`;
     } else {
-      status.textContent = 'Catálogo listo para vincular con Google Sheets.';
+      status.textContent = '';
     }
   } catch (error) {
     console.error(error);
     allProducts = [];
-    document.querySelector('#productGrid').innerHTML = '<div class="empty-state">No pudimos cargar el catálogo. Consultanos por WhatsApp.</div>';
+    document.querySelector('#productGrid').innerHTML = '<div class="empty-state">No pudimos cargar el catálogo en este momento.</div>';
   }
 }
 
