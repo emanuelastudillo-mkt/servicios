@@ -8,6 +8,15 @@
   <title>Abuela Florentina | Tapas para empanadas artesanales</title>
   <link rel="icon" href="assets/favicon.png" type="image/png">
   <link rel="preload" href="assets/logo-abuela-florentina-512.webp" as="image">
+  <style>
+    .contact-map{margin-top:42px;border-radius:30px;overflow:hidden;border:1px solid rgba(255,255,255,.14);background:#10194c}
+    .contact-map iframe{display:block;width:100%;height:390px;border:0}
+    .contact-map-bar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;color:#fff}
+    .contact-map-bar strong{display:block;font-size:.95rem}
+    .contact-map-bar span{display:block;margin-top:2px;color:#ccd1ed;font-size:.86rem}
+    .contact-map-link{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:999px;padding:10px 15px;background:#ffe637;color:#172362;font-size:.84rem;font-weight:850}
+    @media(max-width:620px){.contact-map{margin-top:30px;border-radius:22px}.contact-map iframe{height:300px}.contact-map-bar{align-items:flex-start;flex-direction:column}.contact-map-link{width:100%}}
+  </style>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -117,7 +126,7 @@
           <p class="section-copy">Para pedidos, precios, presentaciones y consultas comerciales, escribinos directamente.</p>
           <div class="contact-list">
             <div class="contact-item"><div>●</div><div><b>WhatsApp</b><span>11 6126-4371</span></div></div>
-            <div class="contact-item"><div>●</div><div><b>Ubicación</b><span>Lomas del Mirador, La Matanza, Buenos Aires</span></div></div>
+            <div class="contact-item"><div>●</div><div><b>Ubicación</b><span>Colón 4055 · Lomas del Mirador, La Matanza, Buenos Aires</span></div></div>
             <div class="contact-item"><div>●</div><div><b>Productos</b><span>Tapas para empanadas · Criolla y Hojaldrada</span></div></div>
           </div>
         </div>
@@ -125,6 +134,24 @@
           <h3>Pedidos y consultas</h3>
           <p>Escribinos para conocer precios, presentaciones y disponibilidad.</p>
           <a class="btn btn-yellow" data-wa="Hola, quiero consultar por los productos de Abuela Florentina." target="_blank" rel="noopener">Escribir por WhatsApp</a>
+        </div>
+      </div>
+      <div class="container">
+        <div class="contact-map">
+          <iframe
+            src="https://www.google.com/maps?q=-34.672203,-58.52224&z=16&output=embed"
+            title="Mapa de Abuela Florentina - Colón 4055, Lomas del Mirador"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen>
+          </iframe>
+          <div class="contact-map-bar">
+            <div>
+              <strong>Abuela Florentina</strong>
+              <span>Colón 4055 · Lomas del Mirador, La Matanza</span>
+            </div>
+            <a class="contact-map-link" href="https://www.google.com/maps/place/34%C2%B040'19.9%22S+58%C2%B031'20.1%22W/@-34.6710469,-58.5246007,16z/data=!4m4!3m3!8m2!3d-34.672203!4d-58.52224?entry=ttu&g_ep=EgoyMDI2MDgxMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Abrir en Google Maps</a>
+          </div>
         </div>
       </div>
     </section>
