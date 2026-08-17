@@ -3,41 +3,328 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#202f86">
-  <meta name="description" content="Abuela Florentina. Fábrica de tapas para empanadas de elaboración artesanal: masa criolla y hojaldrada en Lomas del Mirador, La Matanza, Buenos Aires.">
+  <meta name="theme-color" content="#24398f">
+  <meta name="description" content="Abuela Florentina. Fábrica de tapas para empanadas artesanales en Lomas del Mirador, La Matanza. Masa criolla y hojaldrada.">
   <title>Abuela Florentina | Tapas para empanadas artesanales</title>
   <link rel="icon" href="assets/favicon.png" type="image/png">
-  <link rel="preload" href="assets/logo-abuela-florentina-512.webp" as="image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:wght@500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    .contact-map{margin-top:42px;border-radius:30px;overflow:hidden;border:1px solid rgba(255,255,255,.14);background:#10194c}
-    .contact-map iframe{display:block;width:100%;height:390px;border:0}
-    .contact-map-bar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;color:#fff}
+    :root{
+      --bg:#fffdf4;
+      --bg-soft:#f8f2d5;
+      --surface:#ffffff;
+      --surface-2:#fff8d8;
+      --text:#16214c;
+      --muted:#5f6785;
+      --line:rgba(22,33,76,.12);
+      --primary:#24398f;
+      --primary-2:#172866;
+      --accent:#ffe34c;
+      --accent-2:#ffd22e;
+      --success:#1d9b6c;
+      --shadow:0 20px 55px rgba(23,40,102,.12);
+      --radius-xl:34px;
+      --radius-lg:26px;
+      --radius-md:18px;
+      --radius-sm:999px;
+      --container:1180px;
+      --heading-font:"Cormorant Garamond", serif;
+      --body-font:"Inter", sans-serif;
+      --hero-gradient:linear-gradient(135deg, #fff9dc 0%, #f5f7ff 54%, #ebf0ff 100%);
+      --hero-badge-bg:#ffffff;
+      --product-card-bg:#ffffff;
+      --product-media-bg:linear-gradient(135deg, #fff6bf 0%, #f6f8ff 100%);
+      --header-bg:rgba(255,253,244,.85);
+      --header-border:rgba(22,33,76,.08);
+      --section-gap:92px;
+      --hero-offset:120px;
+      --btn-shadow:0 12px 24px rgba(23,40,102,.16);
+      --image-treatment:none;
+    }
+
+    body[data-theme="clasica"]{
+      --bg:#fffdf4;
+      --bg-soft:#f8f2d5;
+      --surface:#ffffff;
+      --surface-2:#fff8d8;
+      --text:#16214c;
+      --muted:#5f6785;
+      --line:rgba(22,33,76,.12);
+      --primary:#24398f;
+      --primary-2:#172866;
+      --accent:#ffe34c;
+      --accent-2:#ffd22e;
+      --shadow:0 20px 55px rgba(23,40,102,.12);
+      --radius-xl:34px;
+      --radius-lg:26px;
+      --radius-md:18px;
+      --heading-font:"Cormorant Garamond", serif;
+      --body-font:"Inter", sans-serif;
+      --hero-gradient:linear-gradient(135deg, #fff9dc 0%, #f5f7ff 54%, #ebf0ff 100%);
+      --hero-badge-bg:#ffffff;
+      --product-card-bg:#ffffff;
+      --product-media-bg:linear-gradient(135deg, #fff6bf 0%, #f6f8ff 100%);
+      --header-bg:rgba(255,253,244,.85);
+      --header-border:rgba(22,33,76,.08);
+      --btn-shadow:0 12px 24px rgba(23,40,102,.16);
+      --image-treatment:none;
+    }
+
+    body[data-theme="mercado"]{
+      --bg:#fff9eb;
+      --bg-soft:#fff0b3;
+      --surface:#ffffff;
+      --surface-2:#fff3b8;
+      --text:#1d2760;
+      --muted:#5d6484;
+      --line:rgba(29,39,96,.14);
+      --primary:#1d2f84;
+      --primary-2:#111f59;
+      --accent:#ffd938;
+      --accent-2:#ffc928;
+      --shadow:0 18px 38px rgba(17,31,89,.10);
+      --radius-xl:16px;
+      --radius-lg:14px;
+      --radius-md:12px;
+      --heading-font:"Fraunces", serif;
+      --body-font:"DM Sans", sans-serif;
+      --hero-gradient:linear-gradient(135deg, #fff1af 0%, #fffbee 38%, #eef2ff 100%);
+      --hero-badge-bg:#fff1af;
+      --product-card-bg:#fffdf6;
+      --product-media-bg:linear-gradient(135deg, #fff0a3 0%, #fffdf0 100%);
+      --header-bg:rgba(255,250,235,.92);
+      --header-border:rgba(29,39,96,.12);
+      --btn-shadow:none;
+      --image-treatment:saturate(1.03) contrast(1.01);
+    }
+
+    body[data-theme="moderna"]{
+      --bg:#f6f8ff;
+      --bg-soft:#eef3ff;
+      --surface:#ffffff;
+      --surface-2:#f6faff;
+      --text:#15214a;
+      --muted:#667194;
+      --line:rgba(21,33,74,.10);
+      --primary:#203a96;
+      --primary-2:#132760;
+      --accent:#ffd941;
+      --accent-2:#ffcf1e;
+      --shadow:0 20px 60px rgba(23,40,102,.10);
+      --radius-xl:42px;
+      --radius-lg:28px;
+      --radius-md:22px;
+      --heading-font:"Plus Jakarta Sans", sans-serif;
+      --body-font:"Manrope", sans-serif;
+      --hero-gradient:radial-gradient(circle at top left, #fff7c9 0%, #ffffff 30%, #edf2ff 100%);
+      --hero-badge-bg:#f0f4ff;
+      --product-card-bg:#ffffff;
+      --product-media-bg:linear-gradient(180deg, #f7faff 0%, #edf2ff 100%);
+      --header-bg:rgba(246,248,255,.84);
+      --header-border:rgba(21,33,74,.08);
+      --btn-shadow:0 14px 30px rgba(23,40,102,.12);
+      --image-treatment:contrast(1.03);
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:var(--body-font);
+      color:var(--text);
+      background:var(--bg);
+      line-height:1.5;
+      transition:background .35s ease,color .35s ease;
+    }
+    img{max-width:100%;display:block}
+    a{color:inherit;text-decoration:none}
+    button{font:inherit}
+
+    .container{width:min(var(--container), calc(100% - 28px));margin:0 auto}
+    .header{
+      position:sticky;top:0;z-index:100;
+      backdrop-filter:blur(18px);
+      background:var(--header-bg);
+      border-bottom:1px solid var(--header-border);
+    }
+    .nav{
+      display:flex;align-items:center;justify-content:space-between;gap:20px;
+      min-height:86px;padding:12px 0;
+    }
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand img{width:62px;height:62px;object-fit:contain;border-radius:16px;background:#fff;padding:5px;box-shadow:0 8px 24px rgba(23,40,102,.10)}
+    .brand-copy{font-family:var(--heading-font);font-size:1.4rem;line-height:.9;font-weight:700;letter-spacing:.01em}
+    .nav-links{display:flex;align-items:center;gap:22px;font-weight:600;color:var(--muted)}
+    .nav-links a{position:relative;padding:6px 0}
+    .nav-links a::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
+    .nav-links a:hover::after{transform:scaleX(1)}
+
+    .theme-switcher{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+    .theme-label{font-size:.82rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .theme-buttons{
+      display:inline-flex;align-items:center;gap:6px;padding:6px;border-radius:999px;background:var(--surface);
+      border:1px solid var(--line);box-shadow:0 8px 20px rgba(23,40,102,.06)
+    }
+    .theme-btn{
+      border:0;background:transparent;color:var(--muted);padding:10px 14px;border-radius:999px;font-size:.87rem;font-weight:800;cursor:pointer;
+      transition:all .24s ease;
+    }
+    .theme-btn.active{background:var(--primary);color:#fff;box-shadow:var(--btn-shadow)}
+
+    .hero{padding:calc(var(--hero-offset) - 22px) 0 58px}
+    .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:34px;align-items:center}
+    .hero-copy-wrap{background:var(--hero-gradient);border:1px solid var(--line);border-radius:var(--radius-xl);padding:44px;box-shadow:var(--shadow)}
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:10px;padding:10px 16px;background:var(--hero-badge-bg);border:1px solid var(--line);
+      border-radius:999px;font-size:.82rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--primary)
+    }
+    .eyebrow::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--accent)}
+    h1,h2,h3{margin:0 0 14px;font-family:var(--heading-font);line-height:.97;letter-spacing:-.02em}
+    h1{font-size:clamp(2.6rem, 4vw, 4.85rem)}
+    h1 span{color:var(--primary)}
+    .hero p{margin:0;color:var(--muted);font-size:1.06rem;max-width:620px}
+    .hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin:28px 0 20px}
+    .hero-meta{display:flex;flex-wrap:wrap;gap:12px 16px;margin-top:12px;color:var(--text);font-size:.95rem;font-weight:600}
+    .meta-item{display:flex;align-items:center;gap:10px}
+    .meta-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(255,217,56,.24)}
+
+    .hero-art{position:relative}
+    .hero-card{background:var(--surface);border-radius:var(--radius-xl);padding:26px;border:1px solid var(--line);box-shadow:var(--shadow)}
+    .hero-card img{width:min(100%, 460px);margin:0 auto;aspect-ratio:1/1;object-fit:contain;filter:drop-shadow(0 24px 36px rgba(23,40,102,.10))}
+    .hero-stamp{
+      position:absolute;right:-8px;bottom:18px;background:var(--primary);color:#fff;padding:16px 20px;border-radius:22px;
+      font-family:var(--heading-font);font-size:1.4rem;line-height:.9;box-shadow:var(--btn-shadow);transform:rotate(-4deg)
+    }
+
+    .theme-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px}
+    .preview-card{background:rgba(255,255,255,.64);border:1px solid var(--line);border-radius:18px;padding:14px 14px 12px;min-height:90px}
+    .preview-swatch{display:flex;gap:6px;margin-bottom:10px}
+    .preview-swatch span{width:22px;height:22px;border-radius:999px;border:1px solid rgba(0,0,0,.06)}
+    .preview-card strong{display:block;font-size:.96rem;margin-bottom:4px}
+    .preview-card small{display:block;color:var(--muted);font-size:.79rem;line-height:1.35}
+
+    .marquee{padding:10px 0;border-block:1px solid var(--line);background:var(--surface)}
+    .marquee-track{display:flex;gap:18px;white-space:nowrap;overflow:auto;padding-bottom:2px;scrollbar-width:none}
+    .marquee-track::-webkit-scrollbar{display:none}
+    .marquee-track span{flex:0 0 auto;padding:8px 14px;border-radius:999px;background:var(--surface-2);font-size:.86rem;font-weight:800;color:var(--primary)}
+
+    section{padding:var(--section-gap) 0}
+    .section-head,.products-head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:28px}
+    .section-title{font-size:clamp(2rem, 3vw, 3.25rem)}
+    .section-copy{max-width:720px;color:var(--muted);font-size:1.02rem;margin:0}
+
+    .filters{display:flex;gap:10px;flex-wrap:wrap}
+    .filter-btn{padding:11px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:800;cursor:pointer;transition:.24s ease}
+    .filter-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+    .product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+    .product-card{background:var(--product-card-bg);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
+    .product-media{background:var(--product-media-bg);aspect-ratio:1.16/1;display:flex;align-items:center;justify-content:center;padding:22px}
+    .product-media img{width:100%;height:100%;object-fit:cover;border-radius:18px;filter:var(--image-treatment)}
+    .product-body{padding:22px}
+    .product-tag{display:inline-flex;padding:8px 12px;border-radius:999px;background:var(--surface-2);color:var(--primary);font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+    .product-title{font-size:1.58rem;margin-bottom:8px}
+    .product-desc{color:var(--muted);margin:0 0 18px;font-size:.98rem}
+    .product-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .product-price{font-size:1.18rem;font-weight:900;color:var(--primary)}
+    .product-note{color:var(--muted);font-size:.82rem}
+    .empty-state,.sync-status{color:var(--muted);font-size:.95rem}
+
+    .story-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:34px;align-items:center}
+    .story-visual{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-xl);padding:28px;box-shadow:var(--shadow)}
+    .story-visual img{width:min(100%,520px);margin:0 auto;aspect-ratio:1/1;object-fit:contain}
+    .value-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:26px}
+    .value{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:18px;box-shadow:0 10px 28px rgba(23,40,102,.05)}
+    .value strong{display:block;font-size:1.02rem;margin-bottom:6px}
+    .value span{display:block;color:var(--muted);font-size:.95rem}
+
+    .wholesale-card{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:34px;border-radius:var(--radius-xl);background:linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);color:#fff;box-shadow:var(--shadow)}
+    .wholesale-card h2{font-size:clamp(2rem, 2.8vw, 2.85rem);margin-bottom:10px}
+    .wholesale-card p{margin:0;color:#d8def9;max-width:650px}
+
+    .contact-grid{display:grid;grid-template-columns:1fr .86fr;gap:26px;align-items:start}
+    .contact-list{display:grid;gap:14px;margin-top:24px}
+    .contact-item{display:flex;align-items:flex-start;gap:14px;padding:18px;background:var(--surface);border-radius:var(--radius-md);border:1px solid var(--line)}
+    .contact-item div:first-child{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);color:var(--primary);font-weight:900;flex:0 0 auto}
+    .contact-item b{display:block;font-size:1rem;margin-bottom:4px}
+    .contact-item span{color:var(--muted);display:block}
+    .contact-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-xl);padding:28px;box-shadow:var(--shadow)}
+    .contact-panel h3{font-size:1.7rem;margin-bottom:8px}
+    .contact-panel p{margin:0 0 18px;color:var(--muted)}
+    .contact-map{margin-top:36px;border-radius:var(--radius-xl);overflow:hidden;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
+    .contact-map iframe{display:block;width:100%;height:380px;border:0}
+    .contact-map-bar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;background:var(--surface)}
     .contact-map-bar strong{display:block;font-size:.95rem}
-    .contact-map-bar span{display:block;margin-top:2px;color:#ccd1ed;font-size:.86rem}
-    .contact-map-link{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:999px;padding:10px 15px;background:#ffe637;color:#172362;font-size:.84rem;font-weight:850}
-    @media(max-width:620px){.contact-map{margin-top:30px;border-radius:22px}.contact-map iframe{height:300px}.contact-map-bar{align-items:flex-start;flex-direction:column}.contact-map-link{width:100%}}
+    .contact-map-bar span{display:block;margin-top:2px;color:var(--muted);font-size:.88rem}
+    .contact-map-link{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:999px;padding:10px 16px;background:var(--accent);color:var(--primary-2);font-size:.86rem;font-weight:900}
+
+    .footer{padding:28px 0 42px;border-top:1px solid var(--line)}
+    .footer-row{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:.94rem}
+    .footer-brand{display:flex;align-items:center;gap:12px;color:var(--text);font-weight:800}
+    .footer-brand img{width:40px;height:40px;object-fit:contain;border-radius:10px;background:#fff;padding:3px;border:1px solid var(--line)}
+
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;border-radius:999px;font-weight:900;letter-spacing:.01em;transition:transform .18s ease, box-shadow .18s ease, background .18s ease;color:var(--text)}
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--primary);color:#fff;box-shadow:var(--btn-shadow)}
+    .btn-yellow{background:var(--accent);color:var(--primary-2);box-shadow:var(--btn-shadow)}
+    .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+
+    @media (max-width: 1100px){
+      .nav{flex-wrap:wrap;justify-content:center}
+      .nav-links{order:3;width:100%;justify-content:center}
+      .theme-switcher{width:100%;justify-content:center}
+      .hero-grid,.story-grid,.contact-grid{grid-template-columns:1fr}
+      .wholesale-card,.section-head,.products-head{align-items:flex-start;flex-direction:column}
+    }
+
+    @media (max-width: 760px){
+      :root{--section-gap:74px;--hero-offset:106px}
+      .brand img{width:54px;height:54px}
+      .brand-copy{font-size:1.2rem}
+      .theme-buttons{width:100%;justify-content:center;flex-wrap:wrap;border-radius:22px}
+      .theme-btn{flex:1 1 30%}
+      .hero-copy-wrap,.hero-card,.story-visual,.contact-panel,.wholesale-card{padding:24px}
+      .hero-stamp{position:static;display:inline-block;margin-top:14px;transform:none}
+      .hero-actions{flex-direction:column}
+      .btn{width:100%}
+      .product-grid,.value-list{grid-template-columns:1fr}
+      .contact-map iframe{height:300px}
+      .contact-map-bar{flex-direction:column;align-items:flex-start}
+      .nav-links{gap:16px;font-size:.95rem;overflow:auto;white-space:nowrap;justify-content:flex-start;width:100%;padding-bottom:2px}
+    }
   </style>
-  <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
+<body data-theme="clasica">
   <header class="header">
     <div class="container nav">
       <a class="brand" href="#inicio" aria-label="Abuela Florentina - Inicio">
         <img src="assets/logo-abuela-florentina-512.webp" alt="Abuela Florentina">
         <span class="brand-copy">Abuela<br>Florentina</span>
       </a>
+
       <nav class="nav-links" aria-label="Navegación principal">
         <a href="#productos">Productos</a>
         <a href="#artesanal">Elaboración</a>
         <a href="#contacto">Contacto</a>
       </nav>
+
+      <div class="theme-switcher" aria-label="Cambiar estilo visual">
+        <span class="theme-label">Versiones</span>
+        <div class="theme-buttons" role="tablist" aria-label="Selector de versiones">
+          <button class="theme-btn active" type="button" data-theme-choice="clasica" role="tab" aria-selected="true">V1 Clásica</button>
+          <button class="theme-btn" type="button" data-theme-choice="mercado" role="tab" aria-selected="false">V2 Cálida</button>
+          <button class="theme-btn" type="button" data-theme-choice="moderna" role="tab" aria-selected="false">V3 Moderna</button>
+        </div>
+      </div>
     </div>
   </header>
 
   <main>
     <section class="hero" id="inicio">
       <div class="container hero-grid">
-        <div>
+        <div class="hero-copy-wrap">
           <span class="eyebrow">Fábrica en Lomas del Mirador</span>
           <h1>El sabor de siempre, <span>hecho artesanalmente.</span></h1>
           <p>Tapas para empanadas elaboradas con dedicación, en variedades <strong>criolla</strong> y <strong>hojaldrada</strong>. Producción local en La Matanza, Buenos Aires.</p>
@@ -48,9 +335,28 @@
           <div class="hero-meta">
             <div class="meta-item"><span class="meta-dot"></span> Elaboración artesanal</div>
             <div class="meta-item"><span class="meta-dot"></span> Masa criolla y hojaldrada</div>
-            <div class="meta-item"><span class="meta-dot"></span> Lomas del Mirador</div>
+            <div class="meta-item"><span class="meta-dot"></span> Colón 4055 · Lomas del Mirador</div>
+          </div>
+
+          <div class="theme-preview" aria-hidden="true">
+            <div class="preview-card">
+              <div class="preview-swatch"><span style="background:#24398f"></span><span style="background:#ffe34c"></span><span style="background:#fffdf4"></span></div>
+              <strong>Clásica</strong>
+              <small>Más tradicional, serif elegante y estilo cálido.</small>
+            </div>
+            <div class="preview-card">
+              <div class="preview-swatch"><span style="background:#1d2f84"></span><span style="background:#ffd938"></span><span style="background:#fff9eb"></span></div>
+              <strong>Cálida</strong>
+              <small>Más comercial, compacta y con amarillos más presentes.</small>
+            </div>
+            <div class="preview-card">
+              <div class="preview-swatch"><span style="background:#203a96"></span><span style="background:#ffd941"></span><span style="background:#f6f8ff"></span></div>
+              <strong>Moderna</strong>
+              <small>Más limpia, aireada y con un look actual.</small>
+            </div>
           </div>
         </div>
+
         <div class="hero-art" aria-hidden="true">
           <div class="hero-card">
             <img src="assets/logo-abuela-florentina-512.webp" alt="">
@@ -61,9 +367,14 @@
     </section>
 
     <div class="marquee" aria-hidden="true">
-      <div class="marquee-track">
-        <span>Tapas para empanadas</span><span>Masa criolla</span><span>Masa hojaldrada</span><span>Elaboración artesanal</span><span>Lomas del Mirador</span>
-        <span>Tapas para empanadas</span><span>Masa criolla</span><span>Masa hojaldrada</span><span>Elaboración artesanal</span><span>Lomas del Mirador</span>
+      <div class="container marquee-track">
+        <span>Tapas para empanadas</span>
+        <span>Masa criolla</span>
+        <span>Masa hojaldrada</span>
+        <span>Elaboración artesanal</span>
+        <span>Lomas del Mirador</span>
+        <span>Pedidos directos</span>
+        <span>Producción local</span>
       </div>
     </div>
 
@@ -73,7 +384,7 @@
           <div>
             <span class="eyebrow">Nuestro catálogo</span>
             <h2 class="section-title">Pocas variedades.<br>Bien hechas.</h2>
-            <p class="section-copy">Conocé nuestras variedades de tapas para empanadas artesanales.</p>
+            <p class="section-copy">Conocé nuestras variedades de tapas para empanadas artesanales. La estructura sigue preparada para escalar a un catálogo simple de hasta 10 productos.</p>
           </div>
           <div class="filters" id="filters" aria-label="Filtrar productos"></div>
         </div>
@@ -94,10 +405,10 @@
           <h2 class="section-title">Una fábrica con espíritu de cocina.</h2>
           <p class="section-copy">La propuesta de Abuela Florentina parte de una idea simple: tapas para empanadas de elaboración artesanal, con una identidad cercana y tradicional, producidas en Lomas del Mirador.</p>
           <div class="value-list">
-            <div class="value"><strong>Criolla</strong><span>Una de las dos variedades principales de la casa.</span></div>
-            <div class="value"><strong>Hojaldrada</strong><span>La alternativa para quienes buscan otra textura de masa.</span></div>
+            <div class="value"><strong>Criolla</strong><span>Una de las variedades principales de la casa, de perfil clásico.</span></div>
+            <div class="value"><strong>Hojaldrada</strong><span>La alternativa para quienes buscan una textura más aireada.</span></div>
             <div class="value"><strong>Producción local</strong><span>Lomas del Mirador, La Matanza, Buenos Aires.</span></div>
-            <div class="value"><strong>Atención directa</strong><span>Pedidos y consultas comerciales.</span></div>
+            <div class="value"><strong>Atención directa</strong><span>Pedidos y consultas comerciales por contacto directo.</span></div>
           </div>
         </div>
       </div>
@@ -107,12 +418,12 @@
       <div class="container">
         <div class="wholesale-card">
           <div>
-            <span class="eyebrow">Consultas comerciales</span>
+            <span class="eyebrow" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.14);color:#fff">Consultas comerciales</span>
             <h2>¿Querés comprar para tu comercio?</h2>
-            <p>Consultá presentaciones, disponibilidad y precios vigentes.</p>
+            <p>Consultá presentaciones, disponibilidad y precios vigentes. El catálogo puede seguir actualizándose desde una hoja de cálculo, manteniendo la web ordenada y liviana.</p>
           </div>
           <div class="wholesale-actions">
-            <a class="btn btn-primary" href="#contacto">Ver contacto</a>
+            <a class="btn btn-yellow" href="#contacto">Ver contacto</a>
           </div>
         </div>
       </div>
@@ -133,7 +444,7 @@
         <div class="contact-panel">
           <h3>Pedidos y consultas</h3>
           <p>Escribinos para conocer precios, presentaciones y disponibilidad.</p>
-          <a class="btn btn-yellow" data-wa="Hola, quiero consultar por los productos de Abuela Florentina." target="_blank" rel="noopener">Escribir por WhatsApp</a>
+          <a class="btn btn-yellow" href="https://wa.me/541161264371?text=Hola%2C%20quiero%20consultar%20por%20los%20productos%20de%20Abuela%20Florentina." target="_blank" rel="noopener">Escribir por WhatsApp</a>
         </div>
       </div>
       <div class="container">
@@ -160,11 +471,167 @@
   <footer class="footer">
     <div class="container footer-row">
       <div class="footer-brand"><img src="assets/logo-abuela-florentina-512.webp" alt=""><span>Abuela Florentina</span></div>
-      <div>© <span id="year"></span> · Lomas del Mirador, Buenos Aires</div>
+      <div>© <span id="year"></span> · Colón 4055 · Lomas del Mirador, Buenos Aires</div>
     </div>
   </footer>
 
+  <script>
+    const fallbackProducts = [
+      {
+        id: 1,
+        nombre: 'Tapas de empanadas criollas',
+        variedad: 'Criolla',
+        presentacion: 'Elaboración artesanal',
+        precio: 'Consultar',
+        foto: 'assets/tapas1.wedp',
+        activo: true,
+        destacado: true,
+        orden: 1,
+        descripcion: 'Masa criolla artesanal, ideal para quienes buscan la textura clásica de siempre.'
+      },
+      {
+        id: 2,
+        nombre: 'Tapas de empanadas hojaldradas',
+        variedad: 'Hojaldrada',
+        presentacion: 'Elaboración artesanal',
+        precio: 'Consultar',
+        foto: 'assets/tapas2.wedp',
+        activo: true,
+        destacado: true,
+        orden: 2,
+        descripcion: 'Masa hojaldrada artesanal, de textura más aireada y con un perfil distinto al de la criolla.'
+      }
+    ];
 
-  <script src="js/app.js" defer></script>
+    const filtersEl = document.getElementById('filters');
+    const productGrid = document.getElementById('productGrid');
+    const syncStatus = document.getElementById('syncStatus');
+    const yearEl = document.getElementById('year');
+
+    let allProducts = [];
+    let activeFilter = 'Todos';
+
+    yearEl.textContent = new Date().getFullYear();
+
+    function normalizeProduct(item, index) {
+      const variedad = item.variedad || item.categoria || 'Criolla';
+      const presentacion = item.presentacion || item.subtitulo || 'Elaboración artesanal';
+      const precio = item.precio || 'Consultar';
+      const nombre = item.nombre || item.titulo || `Producto ${index + 1}`;
+      const descripcion = item.descripcion || `Variedad ${variedad.toLowerCase()} de elaboración artesanal.`;
+      const foto = item.foto || item.imagen || item.image || item.img || fallbackProducts[index % fallbackProducts.length].foto;
+      return {
+        id: item.id || index + 1,
+        nombre,
+        variedad,
+        presentacion,
+        precio,
+        foto,
+        activo: item.activo !== false,
+        destacado: !!item.destacado,
+        orden: Number(item.orden || index + 1),
+        descripcion
+      };
+    }
+
+    function buildFilters(products) {
+      const unique = ['Todos', ...new Set(products.map(p => p.variedad).filter(Boolean))];
+      filtersEl.innerHTML = unique.map(name => `\n        <button class="filter-btn ${name === activeFilter ? 'active' : ''}" type="button" data-filter="${name}">${name}</button>\n      `).join('');
+
+      [...filtersEl.querySelectorAll('.filter-btn')].forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeFilter = btn.dataset.filter;
+          buildFilters(allProducts);
+          renderProducts();
+        });
+      });
+    }
+
+    function renderProducts() {
+      const visible = activeFilter === 'Todos'
+        ? [...allProducts]
+        : allProducts.filter(product => product.variedad === activeFilter);
+
+      if (!visible.length) {
+        productGrid.innerHTML = '<div class="empty-state">No hay productos para este filtro.</div>';
+        return;
+      }
+
+      productGrid.innerHTML = visible.map((product, index) => {
+        const productImage = escapeHtml(product.foto || fallbackProducts[index % fallbackProducts.length].foto);
+        const fallbackAlt = productImage.endsWith('.wedp') ? productImage.replace(/\.wedp$/i, '.webp') : productImage;
+        return `
+          <article class="product-card">
+            <div class="product-media">
+              <img src="${productImage}" data-fallback="${escapeHtml(fallbackAlt)}" alt="${escapeHtml(product.nombre)}">
+            </div>
+            <div class="product-body">
+              <span class="product-tag">${escapeHtml(product.variedad)}</span>
+              <h3 class="product-title">${escapeHtml(product.nombre)}</h3>
+              <p class="product-desc">${escapeHtml(product.descripcion || product.presentacion)}</p>
+              <div class="product-meta">
+                <div>
+                  <div class="product-price">${escapeHtml(product.precio)}</div>
+                  <div class="product-note">${escapeHtml(product.presentacion)}</div>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      [...productGrid.querySelectorAll('img[data-fallback]')].forEach(img => {
+        img.addEventListener('error', () => {
+          const fallback = img.getAttribute('data-fallback');
+          if (fallback && img.src !== fallback) img.src = fallback;
+        }, { once: true });
+      });
+    }
+
+    async function loadCatalog() {
+      try {
+        const response = await fetch('data/catalog.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Sin catálogo remoto');
+        const payload = await response.json();
+        const list = Array.isArray(payload) ? payload : (payload.items || payload.products || []);
+        if (!Array.isArray(list) || !list.length) throw new Error('Catálogo vacío');
+        allProducts = list.map(normalizeProduct).filter(item => item.activo).sort((a,b) => a.orden - b.orden);
+        const updatedAt = payload.updatedAt || payload.updated_at || payload.lastSync || payload.synced_at;
+        syncStatus.textContent = updatedAt ? `Última actualización del catálogo: ${updatedAt}` : 'Catálogo actualizado.';
+      } catch (error) {
+        allProducts = fallbackProducts.map(normalizeProduct);
+        syncStatus.textContent = 'Catálogo en modo base. Podés conectarlo luego a la hoja de Google Sheets.';
+      }
+      buildFilters(allProducts);
+      renderProducts();
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    const themeButtons = document.querySelectorAll('[data-theme-choice]');
+    const THEME_KEY = 'abuela-florentina-theme';
+
+    function applyTheme(theme) {
+      const safeTheme = ['clasica','mercado','moderna'].includes(theme) ? theme : 'clasica';
+      document.body.setAttribute('data-theme', safeTheme);
+      themeButtons.forEach(btn => {
+        const isActive = btn.dataset.themeChoice === safeTheme;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', String(isActive));
+      });
+      localStorage.setItem(THEME_KEY, safeTheme);
+    }
+
+    themeButtons.forEach(btn => btn.addEventListener('click', () => applyTheme(btn.dataset.themeChoice)));
+    applyTheme(localStorage.getItem(THEME_KEY) || 'clasica');
+    loadCatalog();
+  </script>
 </body>
 </html>
