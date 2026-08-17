@@ -1,13 +1,34 @@
-FIX DE NOMBRES DE IMÁGENES — LA GENTILEZZA
+FIX IMÁGENES V2 — LA GENTILEZZA
 
-Reemplazar únicamente:
-- assets/app.js
+Reemplazar estos 3 archivos sobre la versión publicada:
+- index.html
 - assets/styles.css
+- assets/app.js
 
-El código ahora busca cada imagen usando:
-1) nombre final .webp en assets/images/
-2) nombre final .webp en assets/
-3) nombre PNG original generado en assets/images/
-4) nombre PNG original generado en assets/
+El nuevo cargador prueba automáticamente cada imagen en:
+1) assets/images/
+2) assets/
+3) images/
+4) raíz del sitio (/Tito/)
 
-IMPORTANTE: las imágenes deben estar físicamente subidas al hosting.
+Además agrega ?v=20260817-4 para evitar caché de archivos/404 antiguos.
+
+Nombres esperados:
+- hero-distribuidora-alimentos.webp
+- institucional-entregas-caba-gba.webp
+- categoria-tapas-empanadas.webp
+- categoria-prepizzas.webp
+- categoria-aceitunas.webp
+- categoria-quesos.webp
+- categoria-fiambres.webp
+- categoria-almacen.webp
+- producto-tapas-criollas.webp
+- producto-tapas-hojaldradas.webp (NO figuraba en el listado recibido; temporalmente usa producto-tapas-criollas.webp si falta)
+- producto-prepizza-clasica.webp
+- producto-prepizza-individual.webp
+- producto-aceitunas-verdes.webp
+- producto-aceitunas-negras.webp
+- producto-muzzarella-barra.webp
+- producto-queso-cremoso.webp
+- producto-jamon-cocido.webp
+- producto-salame.webp
