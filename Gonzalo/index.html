@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#202f86">
+  <meta name="description" content="Abuela Florentina. Fábrica de tapas para empanadas de elaboración artesanal: masa criolla y hojaldrada en Lomas del Mirador, La Matanza, Buenos Aires.">
+  <title>Abuela Florentina | Tapas para empanadas artesanales</title>
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="preload" href="assets/logo-abuela-florentina-512.webp" as="image">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="#inicio" aria-label="Abuela Florentina - Inicio">
+        <img src="assets/logo-abuela-florentina-512.webp" alt="Abuela Florentina">
+        <span class="brand-copy">Abuela<br>Florentina</span>
+      </a>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a href="#productos">Productos</a>
+        <a href="#artesanal">Elaboración</a>
+        <a href="#contacto">Contacto</a>
+        <a class="btn btn-primary" data-wa="Hola, quiero consultar por las tapas Abuela Florentina." target="_blank" rel="noopener">WhatsApp</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Fábrica en Lomas del Mirador</span>
+          <h1>El sabor de siempre, <span>hecho artesanalmente.</span></h1>
+          <p>Tapas para empanadas elaboradas con dedicación, en variedades <strong>criolla</strong> y <strong>hojaldrada</strong>. Producción local en La Matanza, Buenos Aires.</p>
+          <div class="hero-actions">
+            <a class="btn btn-yellow" href="#productos">Ver productos</a>
+            <a class="btn btn-ghost" data-wa="Hola, quiero pedir tapas para empanadas Abuela Florentina." target="_blank" rel="noopener">Hacer un pedido</a>
+          </div>
+          <div class="hero-meta">
+            <div class="meta-item"><span class="meta-dot"></span> Elaboración artesanal</div>
+            <div class="meta-item"><span class="meta-dot"></span> Masa criolla y hojaldrada</div>
+            <div class="meta-item"><span class="meta-dot"></span> Lomas del Mirador</div>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-card">
+            <img src="assets/logo-abuela-florentina-512.webp" alt="">
+          </div>
+          <div class="hero-stamp">Tradición<br>hecha<br>masa</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>Tapas para empanadas</span><span>Masa criolla</span><span>Masa hojaldrada</span><span>Elaboración artesanal</span><span>Lomas del Mirador</span>
+        <span>Tapas para empanadas</span><span>Masa criolla</span><span>Masa hojaldrada</span><span>Elaboración artesanal</span><span>Lomas del Mirador</span>
+      </div>
+    </div>
+
+    <section class="products" id="productos">
+      <div class="container">
+        <div class="products-head">
+          <div>
+            <span class="eyebrow">Nuestro catálogo</span>
+            <h2 class="section-title">Pocas variedades.<br>Bien hechas.</h2>
+            <p class="section-copy">El catálogo se actualiza automáticamente desde una hoja de Google Sheets, pero la web trabaja con una copia local rápida y estable.</p>
+          </div>
+          <div class="filters" id="filters" aria-label="Filtrar productos"></div>
+        </div>
+        <div class="product-grid" id="productGrid" aria-live="polite">
+          <div class="empty-state">Cargando catálogo…</div>
+        </div>
+        <div class="sync-status" id="syncStatus"></div>
+      </div>
+    </section>
+
+    <section class="story" id="artesanal">
+      <div class="container story-grid">
+        <div class="story-visual">
+          <img src="assets/logo-abuela-florentina-512.webp" alt="Logo Abuela Florentina">
+        </div>
+        <div>
+          <span class="eyebrow">Abuela Florentina</span>
+          <h2 class="section-title">Una fábrica con espíritu de cocina.</h2>
+          <p class="section-copy">La propuesta de Abuela Florentina parte de una idea simple: tapas para empanadas de elaboración artesanal, con una identidad cercana y tradicional, producidas en Lomas del Mirador.</p>
+          <div class="value-list">
+            <div class="value"><strong>Criolla</strong><span>Una de las dos variedades principales de la casa.</span></div>
+            <div class="value"><strong>Hojaldrada</strong><span>La alternativa para quienes buscan otra textura de masa.</span></div>
+            <div class="value"><strong>Producción local</strong><span>Lomas del Mirador, La Matanza, Buenos Aires.</span></div>
+            <div class="value"><strong>Atención directa</strong><span>Pedidos y consultas por WhatsApp.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wholesale">
+      <div class="container">
+        <div class="wholesale-card">
+          <div>
+            <span class="eyebrow">Consultas comerciales</span>
+            <h2>¿Querés comprar para tu comercio?</h2>
+            <p>Consultá presentaciones, disponibilidad y precios vigentes directamente por WhatsApp.</p>
+          </div>
+          <div class="wholesale-actions">
+            <a class="btn btn-primary" data-wa="Hola, quiero consultar precios y presentaciones para compra comercial de tapas Abuela Florentina." target="_blank" rel="noopener">Consultar por WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact" id="contacto">
+      <div class="container contact-grid">
+        <div>
+          <span class="eyebrow">Contacto</span>
+          <h2 class="section-title">Hablemos.</h2>
+          <p class="section-copy">Para pedidos, precios, presentaciones y consultas comerciales, escribinos directamente.</p>
+          <div class="contact-list">
+            <div class="contact-item"><div>●</div><div><b>WhatsApp</b><span>11 6126-4371</span></div></div>
+            <div class="contact-item"><div>●</div><div><b>Ubicación</b><span>Lomas del Mirador, La Matanza, Buenos Aires</span></div></div>
+            <div class="contact-item"><div>●</div><div><b>Productos</b><span>Tapas para empanadas · Criolla y Hojaldrada</span></div></div>
+          </div>
+        </div>
+        <div class="contact-panel">
+          <h3>Pedí la lista actualizada</h3>
+          <p>Precios y disponibilidad pueden mantenerse sincronizados con la hoja de Google Sheets.</p>
+          <a class="btn btn-yellow" data-wa="Hola, quiero recibir la lista actualizada de productos de Abuela Florentina." target="_blank" rel="noopener">Abrir WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-row">
+      <div class="footer-brand"><img src="assets/logo-abuela-florentina-512.webp" alt=""><span>Abuela Florentina</span></div>
+      <div>© <span id="year"></span> · Lomas del Mirador, Buenos Aires</div>
+    </div>
+  </footer>
+
+  <a class="whatsapp-float" data-wa="Hola, quiero consultar por Abuela Florentina." target="_blank" rel="noopener" aria-label="Consultar por WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M19.11 17.34c-.28-.14-1.67-.82-1.93-.92-.26-.09-.45-.14-.64.14-.19.28-.73.92-.89 1.11-.16.19-.33.21-.61.07-.28-.14-1.19-.44-2.27-1.4-.84-.75-1.4-1.67-1.57-1.95-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.49.14-.16.19-.28.28-.47.09-.19.05-.35-.02-.49-.07-.14-.64-1.54-.87-2.11-.23-.55-.47-.48-.64-.49h-.54c-.19 0-.49.07-.75.35-.26.28-.98.96-.98 2.34 0 1.38 1.01 2.72 1.15 2.91.14.19 1.98 3.02 4.8 4.24.67.29 1.19.46 1.6.59.67.21 1.28.18 1.76.11.54-.08 1.67-.68 1.9-1.34.23-.66.23-1.22.16-1.34-.07-.12-.26-.19-.54-.33zM16.04 4.8c-6.1 0-11.05 4.95-11.05 11.05 0 1.95.51 3.86 1.48 5.54l-1.57 5.73 5.86-1.54a11 11 0 0 0 5.28 1.34h.01c6.1 0 11.05-4.95 11.05-11.05S22.14 4.8 16.04 4.8zm0 20.25h-.01c-1.65 0-3.27-.44-4.68-1.28l-.34-.2-3.48.91.93-3.39-.22-.35a9.15 9.15 0 0 1-1.4-4.88c0-5.08 4.13-9.21 9.22-9.21 5.08 0 9.21 4.13 9.21 9.21 0 5.08-4.13 9.2-9.22 9.2z"/></svg>
+    <span>WhatsApp</span>
+  </a>
+
+  <script src="js/app.js" defer></script>
+</body>
+</html>

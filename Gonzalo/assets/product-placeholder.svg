@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="Tapas artesanales Abuela Florentina">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#fffdf1"/>
+      <stop offset="1" stop-color="#f5e8a4"/>
+    </radialGradient>
+    <linearGradient id="dough" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff9d7"/>
+      <stop offset="1" stop-color="#f1d989"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <g opacity=".14" fill="#1d2d79">
+    <circle cx="1060" cy="120" r="190"/>
+    <circle cx="150" cy="770" r="250"/>
+  </g>
+  <g transform="translate(600 455)">
+    <ellipse cx="0" cy="195" rx="335" ry="62" fill="#1d2d79" opacity=".12"/>
+    <circle cx="-105" cy="35" r="235" fill="url(#dough)" stroke="#e3c875" stroke-width="7"/>
+    <circle cx="105" cy="-45" r="235" fill="#fffbe7" stroke="#e3c875" stroke-width="7"/>
+    <path d="M-88-153c70 28 134 85 174 150" fill="none" stroke="#f4e6ad" stroke-width="10" stroke-linecap="round" opacity=".85"/>
+    <path d="M126-210c55 25 105 66 140 117" fill="none" stroke="#f5e9bd" stroke-width="9" stroke-linecap="round" opacity=".9"/>
+  </g>
+  <text x="600" y="825" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="42" fill="#1d2d79">ELABORACIÓN ARTESANAL</text>
+</svg>

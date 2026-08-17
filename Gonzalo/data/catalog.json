@@ -1,0 +1,29 @@
+{
+  "updatedAt": null,
+  "products": [
+    {
+      "id": "criolla-clasica",
+      "name": "Tapas para empanadas",
+      "variety": "Masa Criolla",
+      "presentation": "Presentación a confirmar",
+      "price": null,
+      "priceLabel": "Consultar",
+      "image": "assets/product-placeholder.svg",
+      "active": true,
+      "featured": true,
+      "order": 1
+    },
+    {
+      "id": "hojaldrada-clasica",
+      "name": "Tapas para empanadas",
+      "variety": "Masa Hojaldrada",
+      "presentation": "Presentación a confirmar",
+      "price": null,
+      "priceLabel": "Consultar",
+      "image": "assets/product-placeholder.svg",
+      "active": true,
+      "featured": true,
+      "order": 2
+    }
+  ]
+}
