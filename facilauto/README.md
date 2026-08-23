@@ -1,19 +1,19 @@
-# FACIL AUTO v0.05
+# FACIL AUTO v0.06
 
-Versión completa lista para publicar. No depende de archivos de versiones anteriores.
+Actualización incremental sobre FACIL AUTO v0.05.
 
 ## Incluye
 
 - Catálogo unificado: guía mensual + DNRPA.
 - Valuación de mercado y estimación cuando falta un año exacto.
-- Lectura de oportunidad con ajuste comercial de 15 p.p.
+- Lectura de oportunidad con ajuste comercial de 10 p.p.
 - Valuación DNRPA y transferencia estimada.
 - Tasas bancarias y simulación de financiación.
 - Herramientas de actualización de fuentes.
 
 ## Publicación
 
-Subí **todo el contenido de esta carpeta** manteniendo la estructura de directorios.
+Copiá estos archivos sobre FACIL AUTO v0.05, manteniendo la estructura de directorios.
 La página debe servirse por HTTP/HTTPS. No funciona abriendo `index.html` directamente con `file://`, porque los navegadores bloquean la lectura de los JSON locales.
 
 ## Diagnóstico de carga
