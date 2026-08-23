@@ -15,5 +15,6 @@ def main():
     if src.resolve()!=copy.resolve(): shutil.copy2(src,copy)
     cmd=[sys.executable,str(ROOT/'tools/parse_market_pdf.py'),str(copy),'-o',str(ROOT/'data/vehicle_market.json')]
     subprocess.run(cmd,check=True)
-    print('Importación lista. Recargá la web.')
+    subprocess.run([sys.executable,str(ROOT/'tools/build_unified_catalog.py')],check=True)
+    print('Importación lista. Catálogo unificado regenerado. Recargá la web.')
 if __name__=='__main__':main()

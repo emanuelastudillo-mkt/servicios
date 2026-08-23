@@ -13,7 +13,7 @@ RATE_RE=re.compile(r'([0-9]+(?:[.,][0-9]+)?)%\s*CFT\s*TEA\s*desde\s*TNA\s*desde\
 TERM_RE=re.compile(r'(\d+)\s*[–-]\s*(\d+)m')
 
 def parse(url):
-    r=requests.get(url,timeout=30,headers={'User-Agent':'Mozilla/5.0 AutoCierre/0.01'})
+    r=requests.get(url,timeout=30,headers={'User-Agent':'Mozilla/5.0 FACIL AUTO/0.01'})
     r.raise_for_status()
     text=' '.join(BeautifulSoup(r.text,'html.parser').stripped_strings)
     products=[]

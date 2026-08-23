@@ -15,8 +15,9 @@ def main():
     url=f'https://www.dnrpa.gov.ar/valuacion/informacion/01-{args.month:02d}-{args.year}.pdf'
     sources=ROOT/'sources';sources.mkdir(exist_ok=True)
     pdf=sources/f'dnrpa-{args.year}-{args.month:02d}.pdf'
-    r=requests.get(url,timeout=60,headers={'User-Agent':'Mozilla/5.0 AutoCierre/0.01'})
+    r=requests.get(url,timeout=60,headers={'User-Agent':'Mozilla/5.0 FACIL AUTO/0.03'})
     r.raise_for_status();pdf.write_bytes(r.content)
     subprocess.run([sys.executable,str(ROOT/'tools/parse_dnrpa_pdf.py'),str(pdf),'-o',str(ROOT/'data/dnrpa.json')],check=True)
-    print('DNRPA actualizado:',url)
+    subprocess.run([sys.executable,str(ROOT/'tools/build_unified_catalog.py')],check=True)
+    print('DNRPA actualizado y catálogo unificado regenerado:',url)
 if __name__=='__main__':main()

@@ -16,15 +16,54 @@ function weightedAverage(items){let n=0,d=0;for(const i of items){if(Number.isFi
 function similarity(a,b){const A=new Set(tokens(a)),B=new Set(tokens(b));if(!A.size||!B.size)return 0;const inter=[...A].filter(x=>B.has(x)).length;return inter/Math.sqrt(A.size*B.size);}
 function marketKey(brand,model){return `${brand}|${model}`;}
 
+const DATA_SOURCES=[
+  ['data/vehicle_market.json','valores de mercado'],
+  ['data/dnrpa.json','valuaciones DNRPA'],
+  ['data/rates.json','tasas bancarias'],
+  ['data/config.json','configuración'],
+  ['data/unified_catalog.json','catálogo unificado']
+];
+
+async function fetchJson(path,label){
+  let response;
+  try{
+    response=await fetch(new URL(path,document.baseURI),{cache:'no-store',headers:{'Accept':'application/json'}});
+  }catch(err){
+    throw new Error(`No se pudo conectar con ${label} (${path}). ${err.message||''}`.trim());
+  }
+  if(!response.ok)throw new Error(`${label}: ${path} respondió HTTP ${response.status}.`);
+  const type=response.headers.get('content-type')||'';
+  try{
+    const text=await response.text();
+    if(!text.trim())throw new Error('archivo vacío');
+    return JSON.parse(text);
+  }catch(err){
+    throw new Error(`${label}: ${path} no contiene JSON válido. ${err.message||''}`.trim());
+  }
+}
+
+function showLoadError(err){
+  console.error(err);
+  const brand=$('#brand');
+  if(brand){brand.innerHTML='<option value="">Error al cargar marcas</option>';brand.disabled=true;}
+  ['#model','#variant','#year'].forEach(id=>{const el=$(id);if(el)el.disabled=true;});
+  const status=$('#data-status');
+  if(!status)return;
+  const local=location.protocol==='file:';
+  status.dataset.state='error';
+  status.textContent=local
+    ? 'FACIL AUTO necesita ejecutarse desde HTTP/HTTPS. Abrí la carpeta con un servidor local o desde tu hosting.'
+    : `Error de datos: ${err.message||'no se pudieron cargar las fuentes.'}`;
+}
+
 async function loadData(){
-  const [m,d,r,c,u]=await Promise.all([
-    fetch('data/vehicle_market.json').then(x=>x.json()),
-    fetch('data/dnrpa.json').then(x=>x.json()),
-    fetch('data/rates.json').then(x=>x.json()),
-    fetch('data/config.json').then(x=>x.json()),
-    fetch('data/unified_catalog.json').then(x=>x.json())
-  ]);
+  if(location.protocol==='file:')throw new Error('La página fue abierta con file:// y el navegador bloquea los archivos JSON.');
+  const [m,d,r,c,u]=await Promise.all(DATA_SOURCES.map(([path,label])=>fetchJson(path,label)));
   marketData=m;dnrpaData=d;ratesData=r;config=c;catalogData=u;
+  if(!Array.isArray(marketData.rows))throw new Error('data/vehicle_market.json no contiene rows[].');
+  if(!Array.isArray(dnrpaData.rows))throw new Error('data/dnrpa.json no contiene rows[].');
+  if(!Array.isArray(ratesData.products))throw new Error('data/rates.json no contiene products[].');
+  if(!Array.isArray(catalogData.entries))throw new Error('data/unified_catalog.json no contiene entries[].');
 
   for(const row of marketData.rows){
     marketById.set(row.id,row);
@@ -302,4 +341,4 @@ $('#vehicle-form').addEventListener('submit',e=>{
   $('#resultados').hidden=false;$('#resultados').scrollIntoView({behavior:'smooth',block:'start'});
 });
 
-loadData().catch(err=>{console.error(err);$('#data-status').textContent='No se pudieron cargar las fuentes. Abrí la web desde un servidor local (no file://).';});
+loadData().catch(showLoadError);

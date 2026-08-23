@@ -11,7 +11,7 @@ assert len(market['rows'])>5000
 assert len(dnrpa['rows'])>10000
 assert len(rates['products'])>=10
 assert len(catalog['entries'])>len(market['rows'])
-assert config['version']=='0.04'
+assert config['version']=='0.05'
 assert config['opportunity']['market_offset_percent']==15
 # Toda fila de ambas fuentes debe quedar seleccionable en el catálogo, fusionada o individual.
 market_ids={x for e in catalog['entries'] for x in e.get('market_ids',[])}

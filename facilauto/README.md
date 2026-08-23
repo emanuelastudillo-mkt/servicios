@@ -1,16 +1,29 @@
-# AutoCierre v0.04
+# FACIL AUTO v0.05
 
-Actualización incremental sobre v0.03.
+Versión completa lista para publicar. No depende de archivos de versiones anteriores.
 
-## Cambios
+## Incluye
 
-- La valuación de mercado, valor literal del PDF, ajuste por kilometraje, toma y venta no cambian.
-- La **Lectura de oportunidad** incorpora un margen comercial configurable de **15 puntos porcentuales**.
-- Con la configuración por defecto, si el precio ingresado coincide exactamente con la valuación guía, la lectura muestra **15% debajo del mercado ajustado**.
-- El ajuste solo afecta la lectura de oportunidad y su clasificación; no altera transferencia, financiación ni valores fuente.
-- Se muestra también una referencia comercial equivalente a `valor guía × 1,15` para explicar la diferencia monetaria.
-- El porcentaje mostrado es una lectura comercial ajustada, no una modificación del dato original de la guía.
+- Catálogo unificado: guía mensual + DNRPA.
+- Valuación de mercado y estimación cuando falta un año exacto.
+- Lectura de oportunidad con ajuste comercial de 15 p.p.
+- Valuación DNRPA y transferencia estimada.
+- Tasas bancarias y simulación de financiación.
+- Herramientas de actualización de fuentes.
 
-## Configuración
+## Publicación
 
-`data/config.json` → `opportunity.market_offset_percent`
+Subí **todo el contenido de esta carpeta** manteniendo la estructura de directorios.
+La página debe servirse por HTTP/HTTPS. No funciona abriendo `index.html` directamente con `file://`, porque los navegadores bloquean la lectura de los JSON locales.
+
+## Diagnóstico de carga
+
+Desde v0.05 el cargador informa qué archivo falta o devuelve error, en lugar de dejar el selector en “Cargando marcas…”. También evita caché durante la carga de las bases para reducir problemas después de una actualización.
+
+## Prueba local
+
+```bash
+python -m http.server 8000
+```
+
+Luego abrir `http://localhost:8000/`.
