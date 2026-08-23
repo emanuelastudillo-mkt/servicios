@@ -3,163 +3,203 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Calculadora integral de compra, venta, financiación y transferencia de vehículos en Argentina.">
-  <title>AutoCierre | Calculadora de operación automotor</title>
+  <meta name="description" content="Calculadora de valuación, oportunidad, financiación y transferencia de vehículos en Argentina.">
+  <meta name="theme-color" content="#111111">
+  <title>AutoCierre | El número completo de tu auto</title>
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="#top" aria-label="AutoCierre inicio"><span class="brand-mark">A</span><span>AutoCierre</span></a>
-    <nav class="nav" aria-label="Principal">
-      <a href="#calculadora">Calculadora</a>
-      <a href="#como-funciona">Cómo funciona</a>
+  <header class="topbar">
+    <a class="wordmark" href="#top" aria-label="AutoCierre inicio">
+      <strong>AUTO<span>CIERRE</span></strong>
+      <small>OPERACIÓN AUTOMOTOR</small>
+    </a>
+    <nav class="topnav" aria-label="Principal">
+      <a href="#calculadora">Calcular</a>
+      <a href="#metodologia">Metodología</a>
       <a href="#fuentes">Fuentes</a>
     </nav>
-    <a class="button button-small button-dark" href="#calculadora">Calcular ahora</a>
+    <a class="top-cta" href="#calculadora">Empezar cálculo</a>
   </header>
 
   <main id="top">
-    <section class="hero">
-      <div class="hero-copy">
-        <div class="eyebrow"><span></span> Operación automotor, sin cuentas sueltas</div>
-        <h1>Sabé cuánto cuesta <em>cerrar la operación.</em></h1>
-        <p class="hero-lead">Valor de mercado, toma, venta, financiación bancaria, transferencia y costo final del vehículo en una sola consulta.</p>
-        <div class="hero-points">
-          <span>Valores mensuales de vehículos</span><span>Tasas bancarias actualizables</span><span>Valuación oficial DNRPA</span>
-        </div>
+    <section class="hero shell">
+      <div class="hero-main">
+        <div class="hero-index">01 — VALUACIÓN + CIERRE</div>
+        <h1>Antes de comprar un auto,<br><span>mirá todos los números.</span></h1>
+        <p>Precio de referencia, oportunidad de compra, financiación, transferencia y costo final. Una sola ficha para entender si la operación cierra.</p>
+        <a class="hero-link" href="#calculadora">Calcular mi vehículo <span>↘</span></a>
       </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="visual-orbit orbit-a"></div><div class="visual-orbit orbit-b"></div>
-        <div class="visual-card visual-main">
-          <span class="visual-kicker">OPERACIÓN COMPLETA</span>
-          <strong>Un auto.<br>Todos los números.</strong>
-          <div class="visual-car">
-            <svg viewBox="0 0 540 190" role="img"><path d="M81 129h22c8-30 29-46 58-46s51 16 59 46h124c8-30 30-46 59-46 30 0 51 16 59 46h20c19 0 32-12 32-29v-17c0-13-9-24-22-28l-74-22c-14-4-27-6-42-6H216c-20 0-38 6-53 18l-57 45H75c-16 0-29 13-29 29 0 6 2 10 5 10h30Z"/><circle cx="160" cy="131" r="31"/><circle cx="404" cy="131" r="31"/><path class="window" d="M176 52c11-7 24-10 39-10h69v42H135l41-32Zm124-10h74c13 0 24 2 36 5l64 19v18H300V42Z"/></svg>
-          </div>
+      <aside class="hero-data" aria-label="Fuentes activas">
+        <div class="data-line"><span>Mercado</span><b id="hero-market-date">Agosto 2026</b></div>
+        <div class="data-line"><span>Valuación oficial</span><b id="hero-dnrpa-date">DNRPA</b></div>
+        <div class="data-line"><span>Financiación</span><b id="hero-rates-count">— bancos</b></div>
+        <p>Las bases se actualizan por separado. El cálculo conserva la fuente y la página usada para poder auditar cada resultado.</p>
+      </aside>
+    </section>
+
+    <section class="calculator-section" id="calculadora">
+      <div class="shell">
+        <div class="section-title">
+          <span>02</span>
+          <div><p>CALCULADORA</p><h2>Armá la ficha del vehículo.</h2></div>
         </div>
-        <div class="visual-card mini mini-1"><small>Valor guía</small><b>USD</b><span>mercado</span></div>
-        <div class="visual-card mini mini-2"><small>Transferencia</small><b>1%</b><span>registro base</span></div>
-        <div class="visual-card mini mini-3"><small>Financiación</small><b>+10</b><span>alternativas</span></div>
+
+        <form id="vehicle-form" class="calc-layout">
+          <div class="calc-block">
+            <div class="block-head"><b>A</b><div><span>Vehículo</span><small>Elegí la versión exacta disponible en la guía mensual.</small></div></div>
+            <div class="field-grid vehicle-fields">
+              <label><span>Marca</span><select id="brand" required><option value="">Cargando marcas...</option></select></label>
+              <label><span>Modelo</span><select id="model" required disabled><option value="">Primero elegí marca</option></select></label>
+              <label class="field-wide"><span>Versión</span><select id="variant" required disabled><option value="">Primero elegí modelo</option></select></label>
+              <label><span>Año</span><select id="year" required disabled><option value="">Elegí versión</option></select></label>
+              <label><span>Kilometraje</span><div class="input-suffix"><input id="km" type="number" min="0" step="1000" placeholder="90.000"><i>km</i></div></label>
+            </div>
+          </div>
+
+          <div class="calc-block operation-block">
+            <div class="block-head"><b>B</b><div><span>Operación</span><small>El precio pactado permite medir la oportunidad real de compra.</small></div></div>
+            <div class="field-grid operation-fields">
+              <label><span>Precio publicado / pactado</span><div class="input-prefix"><i>$</i><input id="operation-price" type="number" min="0" step="10000" placeholder="Ej. 14.000.000"></div></label>
+              <label><span>Anticipo</span><div class="input-prefix"><i>$</i><input id="down-payment" type="number" min="0" step="10000" placeholder="50% sugerido"></div></label>
+              <label><span>Plazo</span><select id="term"><option>12</option><option>24</option><option selected>36</option><option>48</option><option>60</option><option>72</option></select></label>
+              <label><span>Comprador</span><select id="buyer-type"><option value="particular">Particular</option><option value="habitualist">Agencia habitualista</option></select></label>
+            </div>
+            <details class="settings">
+              <summary>Ajustes y supuestos</summary>
+              <div class="settings-grid">
+                <label><span>Dólar de referencia</span><div class="input-prefix small"><i>$</i><input id="fx-rate" type="number" min="1" step="1"></div></label>
+                <label><span>Jurisdicción</span><select id="jurisdiction"><option value="pba">Provincia de Buenos Aires</option><option value="other">Otra / sin sellos configurados</option></select></label>
+              </div>
+            </details>
+          </div>
+
+          <div class="calc-submit">
+            <p id="data-status">Cargando fuentes...</p>
+            <button type="submit">CALCULAR OPERACIÓN <span>→</span></button>
+          </div>
+        </form>
       </div>
     </section>
 
-    <section class="calculator-wrap" id="calculadora">
-      <div class="section-heading">
-        <div><span class="section-number">01</span><h2>Calculá tu vehículo</h2></div>
-        <p>Elegí la unidad y completá solo los datos que conozcas. Los valores de operación se pueden modificar.</p>
-      </div>
-
-      <form class="calculator-card" id="vehicle-form">
-        <div class="form-grid vehicle-grid">
-          <label><span>Marca</span><select id="brand" required><option value="">Cargando marcas...</option></select></label>
-          <label><span>Modelo</span><select id="model" required disabled><option value="">Primero elegí marca</option></select></label>
-          <label class="span-2"><span>Versión</span><select id="variant" required disabled><option value="">Primero elegí modelo</option></select></label>
-          <label><span>Año</span><select id="year" required disabled><option value="">Elegí versión</option></select></label>
-          <label><span>Kilometraje</span><div class="input-affix"><input id="km" type="number" min="0" step="1000" placeholder="Ej. 90.000"><span>km</span></div></label>
+    <section class="results-section" id="resultados" hidden>
+      <div class="shell">
+        <div class="section-title result-title">
+          <span>03</span>
+          <div><p>RESULTADO</p><h2 id="result-unit">Operación</h2></div>
         </div>
 
-        <div class="form-divider"><span>Datos de la operación</span></div>
-        <div class="form-grid operation-grid">
-          <label><span>Precio pactado / contado</span><div class="input-prefix"><span>$</span><input id="operation-price" inputmode="numeric" type="number" min="0" step="10000" placeholder="Opcional"></div></label>
-          <label><span>Anticipo</span><div class="input-prefix"><span>$</span><input id="down-payment" inputmode="numeric" type="number" min="0" step="10000" placeholder="50% sugerido"></div></label>
-          <label><span>Plazo</span><select id="term"><option>12</option><option>24</option><option selected>36</option><option>48</option><option>60</option><option>72</option></select></label>
-          <label><span>Tipo de operación</span><select id="buyer-type"><option value="particular">Particular</option><option value="habitualist">Agencia habitualista</option></select></label>
+        <div class="opportunity-panel" id="opportunity-panel">
+          <div class="opportunity-label">
+            <small>LECTURA DE OPORTUNIDAD</small>
+            <strong id="opportunity-rating">Ingresá un precio para comparar</strong>
+            <p id="opportunity-text">La referencia se calcula contra la valuación mensual ajustada por kilometraje.</p>
+          </div>
+          <div class="opportunity-number">
+            <span id="opportunity-pct">—</span>
+            <small id="opportunity-direction">vs. mercado</small>
+          </div>
+          <div class="opportunity-bar" aria-hidden="true">
+            <div class="bar-scale"><span>-20%</span><span>-10%</span><span>0</span><span>+10%</span><span>+20%</span></div>
+            <div class="bar-track"><i class="bar-center"></i><b id="opportunity-marker"></b></div>
+          </div>
         </div>
-        <details class="advanced">
-          <summary>Ajustes del cálculo</summary>
-          <div class="advanced-grid">
-            <label><span>Dólar de referencia</span><div class="input-prefix compact"><span>$</span><input id="fx-rate" type="number" min="1" step="1"></div></label>
-            <label><span>Jurisdicción</span><select id="jurisdiction"><option value="pba">Provincia de Buenos Aires</option><option value="other">Otra / sin sellos configurados</option></select></label>
-          </div>
-        </details>
-        <div class="form-actions">
-          <p id="data-status">Cargando fuentes...</p>
-          <button class="button button-primary" type="submit">Ver costo completo <span>→</span></button>
+
+        <div class="result-ledger">
+          <article class="ledger-card valuation-card">
+            <header><span>01</span><div><small>VALUACIÓN</small><h3>Precio de referencia</h3></div></header>
+            <div class="hero-metric">
+              <small>Valor ajustado estimado</small>
+              <strong id="market-value">—</strong>
+              <span id="market-adjustment">—</span>
+            </div>
+            <dl class="data-list">
+              <div><dt>Valor literal del PDF</dt><dd id="market-pdf-value">—</dd></div>
+              <div><dt>Unidad de la fuente</dt><dd id="market-pdf-unit">—</dd></div>
+              <div><dt>Toma orientativa</dt><dd id="buy-value">—</dd></div>
+              <div><dt>Venta orientativa</dt><dd id="sale-value">—</dd></div>
+            </dl>
+            <footer id="market-source">Fuente mensual</footer>
+          </article>
+
+          <article class="ledger-card transfer-card">
+            <header><span>02</span><div><small>TRANSFERENCIA</small><h3>Registro + sellos</h3></div></header>
+            <div class="hero-metric">
+              <small>Transferencia estimada</small>
+              <strong id="transfer-total">—</strong>
+              <span id="dnrpa-match">—</span>
+            </div>
+            <dl class="data-list">
+              <div><dt>Valuación DNRPA</dt><dd id="dnrpa-value">—</dd></div>
+              <div><dt>Arancel registral</dt><dd id="registry-fee">—</dd></div>
+              <div><dt>Sellos</dt><dd id="stamp-fee">—</dd></div>
+              <div><dt>Fijos modelados</dt><dd id="fixed-fees">—</dd></div>
+            </dl>
+            <footer id="dnrpa-source">DNRPA</footer>
+          </article>
+
+          <article class="ledger-card close-card">
+            <header><span>03</span><div><small>CIERRE</small><h3>Cuánto necesitás</h3></div></header>
+            <div class="close-lines">
+              <div><small>Contado + transferencia</small><strong id="cash-close">—</strong></div>
+              <div><small>Anticipo + financiación + transferencia</small><strong id="finance-close">—</strong><span id="finance-close-bank">—</span></div>
+            </div>
+            <div class="close-summary">
+              <span>Precio usado para la operación</span><b id="operation-used">—</b>
+            </div>
+          </article>
         </div>
-      </form>
-    </section>
 
-    <section class="results" id="resultados" hidden>
-      <div class="section-heading results-heading">
-        <div><span class="section-number">02</span><h2>Resultado de la operación</h2></div>
-        <p id="result-unit"></p>
-      </div>
-
-      <div class="summary-strip">
-        <div><small>Valor guía</small><strong id="sum-market">-</strong><span id="sum-market-usd">-</span></div>
-        <div><small>Transferencia estimada</small><strong id="sum-transfer">-</strong><span>Registro + sellos configurados</span></div>
-        <div><small>Financiación</small><strong id="sum-financed">-</strong><span id="sum-financed-detail">-</span></div>
-        <div class="summary-total"><small>Costo final estimado</small><strong id="sum-total">-</strong><span id="sum-total-detail">-</span></div>
-      </div>
-
-      <div class="result-grid">
-        <article class="result-card market-card">
-          <div class="card-head"><div class="card-icon">$</div><div><small>Mercado</small><h3>Valor de compra y venta</h3></div></div>
-          <div class="metric-main"><span>Valor guía de la unidad</span><strong id="market-value">-</strong><small id="market-usd">-</small></div>
-          <div class="metric-pair">
-            <div><span>Toma estimada</span><b id="buy-value">-</b><small id="buy-usd">-</small></div>
-            <div><span>Venta estimada</span><b id="sale-value">-</b><small id="sale-usd">-</small></div>
+        <article class="finance-table-card">
+          <div class="finance-title">
+            <div><small>04 — FINANCIACIÓN</small><h3>Alternativas bancarias</h3></div>
+            <div><span>Monto financiado</span><b id="loan-amount">—</b></div>
           </div>
-          <div class="source-line"><span class="status-dot"></span><span id="market-source">Fuente de mercado</span></div>
-        </article>
-
-        <article class="result-card transfer-card">
-          <div class="card-head"><div class="card-icon">R</div><div><small>Registro</small><h3>Transferencia estimada</h3></div></div>
-          <div class="metric-main"><span>Valuación oficial encontrada</span><strong id="dnrpa-value">-</strong><small id="dnrpa-match">-</small></div>
-          <div class="breakdown">
-            <div><span>Arancel de transferencia DNRPA</span><b id="registry-fee">-</b></div>
-            <div><span>Impuesto de sellos</span><b id="stamp-fee">-</b></div>
-            <div><span>Fijos mínimos modelados</span><b id="fixed-fees">-</b></div>
-            <div class="breakdown-total"><span>Total estimado</span><b id="transfer-total">-</b></div>
-          </div>
-          <div class="source-line"><span class="status-dot"></span><span id="dnrpa-source">DNRPA</span></div>
-        </article>
-
-        <article class="result-card finance-card span-wide">
-          <div class="card-head finance-head"><div class="card-icon">%</div><div><small>Financiación</small><h3>Alternativas bancarias</h3></div><div class="loan-meta"><span>Monto a financiar</span><b id="loan-amount">-</b></div></div>
+          <div class="bank-table-head"><span>Banco / producto</span><span>TNA</span><span>CFT TEA</span><span>Total</span><span>Cuota aprox.</span></div>
           <div class="bank-list" id="bank-list"></div>
-          <div class="finance-note" id="finance-source"></div>
+          <p class="finance-note" id="finance-source"></p>
         </article>
 
-        <article class="result-card closing-card span-wide">
-          <div class="closing-copy"><small>RESUMEN</small><h3>¿Cuánto necesitás para terminar la operación?</h3><p>Compara el costo de cierre al contado con la mejor alternativa financiera disponible en la base cargada.</p></div>
-          <div class="closing-numbers">
-            <div><span>Contado + transferencia</span><strong id="cash-close">-</strong></div>
-            <div><span>Anticipo + financiación + transferencia</span><strong id="finance-close">-</strong><small id="finance-close-bank">-</small></div>
-          </div>
+        <article class="insurance-row">
+          <div><small>PRÓXIMO MÓDULO</small><h3>Seguro automotor estimado</h3></div>
+          <p>La estructura queda preparada para sumar compañía, cobertura, zona de riesgo y perfil del conductor.</p>
+          <span>EN DESARROLLO</span>
         </article>
 
-        <article class="result-card insurance-card span-wide">
-          <div class="insurance-lock">PRÓXIMO MÓDULO</div>
-          <div><small>Seguro automotor</small><h3>Cotización aproximada de seguro</h3><p>La estructura queda preparada para incorporar aseguradoras, coberturas, zona de riesgo y perfil del conductor sin alterar el resto del cálculo.</p></div>
-          <button class="button button-ghost" type="button" disabled>Disponible próximamente</button>
-        </article>
-      </div>
-      <div class="disclaimer">Los resultados son orientativos. Las valuaciones, tasas, impuestos, aranceles y condiciones pueden cambiar. Verificá el importe final con el banco, el Registro Seccional, ARBA y/o el organismo que corresponda antes de cerrar una operación.</div>
-    </section>
-
-    <section class="how" id="como-funciona">
-      <div class="section-heading"><div><span class="section-number">03</span><h2>Una consulta, cuatro capas de datos</h2></div></div>
-      <div class="steps">
-        <div class="step"><b>1</b><h3>Identificamos la unidad</h3><p>Marca, modelo, versión, año y kilometraje sobre la tabla mensual de mercado.</p></div>
-        <div class="step"><b>2</b><h3>Cruzamos valuación oficial</h3><p>Buscamos el vehículo equivalente dentro de la tabla de DNRPA y mostramos la coincidencia utilizada.</p></div>
-        <div class="step"><b>3</b><h3>Simulamos financiación</h3><p>Aplicamos las tasas bancarias cargadas al monto y plazo elegidos mediante sistema francés.</p></div>
-        <div class="step"><b>4</b><h3>Sumamos el cierre</h3><p>Precio, anticipo, costo financiero y transferencia quedan reunidos en un único resultado.</p></div>
+        <p class="legal-note">Los resultados son orientativos. El valor de mercado se toma de la guía mensual cargada; el ajuste por kilometraje y las bandas de toma/venta son reglas internas configurables. Tasas, aranceles, sellos y valuaciones oficiales pueden cambiar antes de cerrar la operación.</p>
       </div>
     </section>
 
-    <section class="sources" id="fuentes">
-      <div class="source-copy"><span class="section-number">04</span><h2>Datos actualizables, no números congelados.</h2><p>La versión 0.01 separa el sitio de sus fuentes. El PDF de mercado se reemplaza mensualmente; DNRPA puede actualizarse por PDF oficial y las tasas de préstamos están preparadas para refrescarse por cron.</p><a href="admin.html" class="text-link">Ver esquema de actualización →</a></div>
-      <div class="source-cards">
-        <div><small>MERCADO</small><b id="source-market-date">Agosto 2026</b><span>PDF mensual cargado</span></div>
-        <div><small>DNRPA</small><b id="source-dnrpa-date">01/08/2026</b><span>Valuación oficial</span></div>
-        <div><small>TASAS</small><b id="source-rates-date">23/08/2026</b><span>ComparaTasas</span></div>
+    <section class="method-section" id="metodologia">
+      <div class="shell method-grid">
+        <div class="section-title"><span>04</span><div><p>METODOLOGÍA</p><h2>Qué está mirando el cálculo.</h2></div></div>
+        <div class="method-list">
+          <article><b>VALOR GUÍA</b><p>El PDF mensual se interpreta en miles de pesos, salvo los casos que la propia publicación identifica en US$.</p></article>
+          <article><b>KILOMETRAJE</b><p>Se aplica un ajuste moderado respecto del kilometraje esperado por antigüedad. La valuación original siempre queda visible.</p></article>
+          <article><b>OPORTUNIDAD</b><p>Compara el precio publicado o pactado contra el valor ajustado y expresa la diferencia porcentual por arriba o por debajo.</p></article>
+          <article><b>CIERRE</b><p>Suma precio, transferencia y financiación para mostrar el costo estimado de completar la operación.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sources-section" id="fuentes">
+      <div class="shell sources-grid">
+        <div><span class="source-kicker">FUENTES ACTIVAS</span><h2>Datos separados.<br>Resultado trazable.</h2></div>
+        <div class="source-list">
+          <div><span>Mercado</span><b>NuestrosAutos — guía mensual</b><small id="source-market-date">—</small></div>
+          <div><span>Valuación registral</span><b>DNRPA</b><small id="source-dnrpa-date">—</small></div>
+          <div><span>Financiación</span><b>ComparaTasas</b><small id="source-rates-date">—</small></div>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer><div class="brand"><span class="brand-mark">A</span><span>AutoCierre</span></div><p>Prototipo v0.01 · Calculadora de servicios automotores</p><a href="#top">Volver arriba ↑</a></footer>
+  <footer class="footer shell">
+    <div class="wordmark compact"><strong>AUTO<span>CIERRE</span></strong></div>
+    <p>Herramienta orientativa para operaciones automotores en Argentina.</p>
+    <a href="admin.html">Administrar fuentes</a>
+  </footer>
 
-  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/app.js"></script>
 </body>
 </html>

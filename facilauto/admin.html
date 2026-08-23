@@ -4,80 +4,34 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>AutoCierre · Actualización de datos</title>
+  <title>AutoCierre · Fuentes</title>
   <link rel="stylesheet" href="assets/css/styles.css">
   <style>
-    .admin-wrap{max-width:1180px;margin:0 auto;padding:24px 22px 80px}.admin-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:28px 0 38px}.admin-head h1{font-size:clamp(2rem,5vw,4.2rem);margin:.25rem 0}.admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.admin-card{background:var(--paper,#fff);border:1px solid var(--line,#d8d6ce);border-radius:26px;padding:24px}.admin-card .tag{display:inline-flex;border:1px solid currentColor;border-radius:999px;padding:5px 9px;font-size:.68rem;letter-spacing:.08em}.admin-card h2{font-size:1.4rem;margin:16px 0 8px}.admin-card p{color:var(--muted,#666);line-height:1.55}.admin-card code,.command code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.command{margin-top:16px;background:#151814;color:#eef1e9;padding:15px;border-radius:14px;overflow:auto;font-size:.78rem;line-height:1.55}.status-list{margin:26px 0;display:grid;gap:10px}.status-row{display:grid;grid-template-columns:140px 1fr auto;gap:18px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line,#ddd)}.status-row small{color:var(--muted,#666)}.status-pill{padding:6px 9px;border-radius:999px;background:#e9eee8;font-size:.72rem}.admin-section{margin-top:50px}.admin-section h2{font-size:2rem}.admin-note{border-left:3px solid var(--accent,#3c6d53);padding:4px 0 4px 18px;color:var(--muted,#666);line-height:1.6}.checklist{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}.check-item{padding:18px;border:1px solid var(--line,#ddd);border-radius:18px;background:rgba(255,255,255,.55)}.check-item b{display:block;margin-bottom:6px}.check-item span{color:var(--muted,#666);font-size:.9rem;line-height:1.45}.backlink{text-decoration:none;color:inherit;border-bottom:1px solid currentColor}@media(max-width:850px){.admin-grid{grid-template-columns:1fr}.checklist{grid-template-columns:1fr}.status-row{grid-template-columns:1fr;gap:5px}.admin-head{align-items:flex-start;flex-direction:column}}
+    .admin{padding:64px 0 100px}.admin-head{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;padding-bottom:32px;border-bottom:1px solid var(--ink)}.admin-head small{font-size:9px;letter-spacing:.15em;color:var(--accent);font-weight:700}.admin-head h1{font-size:clamp(46px,7vw,82px);letter-spacing:-.065em;line-height:.9;margin:14px 0 0}.admin-head a{font-size:10px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--ink);padding-bottom:4px}.admin-grid{display:grid;grid-template-columns:repeat(3,1fr);border-left:1px solid var(--ink);margin-top:32px}.admin-card{border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);border-top:1px solid var(--ink);padding:24px;background:var(--paper)}.admin-card>span{font-size:8px;letter-spacing:.12em;color:var(--accent);font-weight:700}.admin-card h2{font-size:22px;letter-spacing:-.04em;margin:10px 0}.admin-card p{font-family:Georgia,"Times New Roman",serif;color:#55544f;font-size:13px;line-height:1.55}.command{margin-top:18px;background:var(--ink);color:#f5f2eb;padding:16px;overflow:auto;font:10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}.admin-section{margin-top:64px}.admin-section h2{font-size:32px;letter-spacing:-.045em;margin:8px 0 22px}.admin-section>small{font-size:8px;color:var(--accent);letter-spacing:.12em}.status-list{border-top:1px solid var(--ink)}.status-row{display:grid;grid-template-columns:160px 1fr auto;gap:20px;padding:14px 0;border-bottom:1px solid var(--line);align-items:baseline}.status-row b{font-size:11px}.status-row small{color:var(--muted);font-size:10px}.status-row span{font-size:9px}.checklist{display:grid;grid-template-columns:1fr 1fr;border-left:1px solid var(--ink);border-top:1px solid var(--ink)}.check-item{border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);padding:20px;background:var(--paper)}.check-item b{display:block;font-size:11px;margin-bottom:8px}.check-item span{font-family:Georgia,"Times New Roman",serif;color:#55544f;font-size:13px;line-height:1.5}.admin-note{max-width:820px;font-family:Georgia,"Times New Roman",serif;color:#55544f;line-height:1.6}@media(max-width:800px){.admin{padding-top:36px}.admin-head{grid-template-columns:1fr;align-items:start}.admin-grid,.checklist{grid-template-columns:1fr}.status-row{grid-template-columns:1fr;gap:4px}}
   </style>
 </head>
 <body>
-  <div class="admin-wrap">
-    <header class="admin-head">
-      <div><span class="eyebrow">MANTENIMIENTO · V0.01</span><h1>Actualización de fuentes</h1><p class="hero-sub">La calculadora queda separada de los datos. Actualizás los JSON y el sitio usa la nueva información sin tocar el front-end.</p></div>
-      <a class="backlink" href="index.html">← Volver a la calculadora</a>
-    </header>
-
+  <header class="topbar">
+    <a class="wordmark" href="index.html"><strong>AUTO<span>CIERRE</span></strong><small>OPERACIÓN AUTOMOTOR</small></a>
+    <div></div><a class="top-cta" href="index.html">Volver al cálculo</a>
+  </header>
+  <main class="admin shell">
+    <div class="admin-head"><div><small>FUENTES · V0.02</small><h1>Mantenimiento<br>de datos.</h1></div><a href="index.html">← Calculadora</a></div>
     <section class="admin-grid">
-      <article class="admin-card">
-        <span class="tag">MENSUAL · MANUAL</span>
-        <h2>Valores de mercado</h2>
-        <p>Cuando recibís el PDF del nuevo mes, lo importás con un único comando. El parser reconstruye marcas, modelos, versiones, años y valores.</p>
-        <div class="command"><code>python tools/import_market_pdf.py "/ruta/Autos SEPTIEMBRE 2026.pdf"</code></div>
-      </article>
-      <article class="admin-card">
-        <span class="tag">MENSUAL · AUTOMATIZABLE</span>
-        <h2>Valuación DNRPA</h2>
-        <p>Descarga el PDF oficial por fecha y vuelve a generar la base usada para la transferencia.</p>
-        <div class="command"><code>python tools/update_dnrpa.py --year 2026 --month 9</code></div>
-      </article>
-      <article class="admin-card">
-        <span class="tag">SEMANAL · AUTOMATIZABLE</span>
-        <h2>Tasas bancarias</h2>
-        <p>Lee la tabla pública de préstamos personales de ComparaTasas. Si la estructura cambia, el script evita reemplazar una base válida por una extracción incompleta.</p>
-        <div class="command"><code>python tools/update_rates.py</code></div>
-      </article>
+      <article class="admin-card"><span>MENSUAL · MANUAL</span><h2>Valores de mercado</h2><p>El parser identifica marca, modelo, versión y año. Los importes normales se normalizan desde miles de pesos; las excepciones en US$ se toman de las aclaraciones impresas en el PDF.</p><div class="command">python tools/import_market_pdf.py "/ruta/Autos SEPTIEMBRE 2026.pdf"</div></article>
+      <article class="admin-card"><span>MENSUAL · AUTOMATIZABLE</span><h2>Valuación DNRPA</h2><p>Descarga el PDF oficial por fecha y vuelve a generar la base usada para la estimación de transferencia.</p><div class="command">python tools/update_dnrpa.py --year 2026 --month 9</div></article>
+      <article class="admin-card"><span>SEMANAL · AUTOMATIZABLE</span><h2>Tasas bancarias</h2><p>Actualiza la tabla de préstamos personales desde ComparaTasas. Si la extracción falla, conserva la base válida anterior.</p><div class="command">python tools/update_rates.py</div></article>
     </section>
 
-    <section class="admin-section">
-      <span class="section-number">01</span><h2>Estado de la versión incluida</h2>
-      <div class="status-list" id="status-list"><div class="status-row"><b>Cargando…</b></div></div>
-    </section>
-
-    <section class="admin-section">
-      <span class="section-number">02</span><h2>Rutina recomendada</h2>
-      <div class="checklist">
-        <div class="check-item"><b>1. Guardar copia</b><span>Antes de importar una fuente nueva, conservá el JSON anterior para poder volver atrás.</span></div>
-        <div class="check-item"><b>2. Ejecutar actualización</b><span>PDF de mercado mensual; DNRPA mensual; tasas cada 7 días.</span></div>
-        <div class="check-item"><b>3. Verificar tres vehículos</b><span>Controlá una unidad económica, una media y una premium contra la fuente original.</span></div>
-        <div class="check-item"><b>4. Publicar carpeta data/</b><span>En producción alcanza con reemplazar los JSON si no cambió la estructura del sitio.</span></div>
-      </div>
-    </section>
-
-    <section class="admin-section">
-      <span class="section-number">03</span><h2>Automatización con cron</h2>
-      <p class="admin-note">El sitio no necesita que el navegador haga scraping. Lo correcto es actualizar las fuentes del lado del servidor y publicar datos ya normalizados. Así evitamos CORS, lentitud y que una caída externa rompa la calculadora.</p>
-      <div class="command"><code># Cada lunes 04:00 — tasas\n0 4 * * 1 cd /ruta/autocierre && /ruta/venv/bin/python tools/update_rates.py\n\n# Día 2 de cada mes 04:30 — DNRPA\n30 4 2 * * cd /ruta/autocierre && /ruta/venv/bin/python tools/update_dnrpa.py</code></div>
-    </section>
-
-    <section class="admin-section">
-      <span class="section-number">04</span><h2>Qué todavía no está automatizado</h2>
-      <p class="admin-note">El PDF mensual de valores de mercado se carga manualmente porque el origen puede cambiar y porque conviene revisar el documento antes de reemplazar toda la base. El módulo de seguro queda reservado para una siguiente versión.</p>
-    </section>
-  </div>
+    <section class="admin-section"><small>01 — ESTADO</small><h2>Versión incluida</h2><div class="status-list" id="status-list"><div class="status-row"><b>Cargando…</b></div></div></section>
+    <section class="admin-section"><small>02 — CONTROL</small><h2>Rutina al cambiar el PDF</h2><div class="checklist"><div class="check-item"><b>1. Guardar copia</b><span>Conservá el JSON del mes anterior antes de reemplazar la base.</span></div><div class="check-item"><b>2. Importar PDF</b><span>Ejecutá el importador. El archivo nuevo queda normalizado en vehicle_market.json.</span></div><div class="check-item"><b>3. Verificar monedas</b><span>Controlá al menos un usado en pesos, un 0 km marcado en US$ y una marca expresada íntegramente en US$.</span></div><div class="check-item"><b>4. Verificar vehículos</b><span>Compará tres versiones contra el PDF original antes de publicar la carpeta data/.</span></div></div></section>
+    <section class="admin-section"><small>03 — CRON</small><h2>Automatización sugerida</h2><p class="admin-note">La web no scrapea desde el navegador. Las fuentes se actualizan del lado del servidor y luego se publican JSON estáticos. Esto evita CORS, demoras y dependencias externas durante una consulta.</p><div class="command"># Cada lunes 04:00 — tasas<br>0 4 * * 1 cd /ruta/autocierre && /ruta/venv/bin/python tools/update_rates.py<br><br># Día 2 de cada mes 04:30 — DNRPA<br>30 4 2 * * cd /ruta/autocierre && /ruta/venv/bin/python tools/update_dnrpa.py</div></section>
+  </main>
   <script>
-  Promise.all([
-    fetch('data/vehicle_market.json').then(r=>r.json()),
-    fetch('data/dnrpa.json').then(r=>r.json()),
-    fetch('data/rates.json').then(r=>r.json()),
-    fetch('data/config.json').then(r=>r.json())
-  ]).then(([m,d,r,c])=>{
-    const items=[
-      ['Mercado',`${m.report_month||''} ${m.report_year||''}`.trim(),`${(m.rows||[]).length.toLocaleString('es-AR')} versiones`],
-      ['DNRPA',d.valid_from||'sin fecha',`${(d.rows||[]).length.toLocaleString('es-AR')} registros`],
-      ['Tasas',r.updated_at||'sin fecha',`${(r.products||[]).length} productos bancarios`],
-      ['USD/ARS',String(c.exchange_rate_ars_per_usd||'manual'),c.exchange_rate_source||'valor editable']
-    ];
-    document.getElementById('status-list').innerHTML=items.map(x=>`<div class="status-row"><b>${x[0]}</b><small>${x[1]}</small><span class="status-pill">${x[2]}</span></div>`).join('');
+  Promise.all([fetch('data/vehicle_market.json').then(r=>r.json()),fetch('data/dnrpa.json').then(r=>r.json()),fetch('data/rates.json').then(r=>r.json()),fetch('data/config.json').then(r=>r.json())]).then(([m,d,r,c])=>{
+    const cr=m.currency_rules||{};
+    const items=[['Mercado',`${m.report_month||''} ${m.report_year||''}`.trim(),`${(m.rows||[]).length.toLocaleString('es-AR')} versiones`],['Monedas',`${(cr.all_usd_brands||[]).length} marcas íntegramente US$`,`${(cr.zero_km_usd_brands||[]).length} marcas con 0 km US$`],['DNRPA',d.valid_from||'sin fecha',`${(d.rows||[]).length.toLocaleString('es-AR')} registros`],['Tasas',r.updated_at||'sin fecha',`${(r.products||[]).length} productos bancarios`],['USD/ARS',String(c.exchange_rate_ars_per_usd||'manual'),c.exchange_rate_source||'valor editable']];
+    document.getElementById('status-list').innerHTML=items.map(x=>`<div class="status-row"><b>${x[0]}</b><small>${x[1]}</small><span>${x[2]}</span></div>`).join('');
   }).catch(()=>{document.getElementById('status-list').innerHTML='<div class="status-row"><b>Error</b><small>Abrí el proyecto desde un servidor local, no con file://.</small></div>'});
   </script>
 </body>

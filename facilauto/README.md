@@ -1,180 +1,82 @@
-# AutoCierre v0.01
+# AutoCierre v0.02
 
-Prototipo funcional de una calculadora integral para operaciones de vehículos usados en Argentina.
+Calculadora web estática para estimar una operación automotor en Argentina.
 
-## Qué resuelve esta versión
+## Qué cambia en v0.02
 
-El usuario elige **marca, modelo, versión, año y kilometraje**. A partir de eso, la web reúne cuatro capas:
-
-1. **Valor orientativo de mercado** desde el PDF mensual cargado.
-2. **Rango operativo** de toma/compra y publicación/venta, con márgenes configurables.
-3. **Financiación bancaria** usando tasas publicadas por ComparaTasas y sistema francés.
-4. **Transferencia aproximada** usando la valuación oficial de DNRPA y parámetros impositivos configurados.
-
-El bloque de **seguro automotor** ya aparece en la interfaz, pero queda desactivado para la siguiente etapa.
+- Rediseño completo con una estética editorial/automotor más sobria: menos tarjetas redondeadas, sin ilustraciones decorativas y mayor foco en datos.
+- Valuación de mercado basada en el PDF mensual **Autos AGOSTO 2026**.
+- Corrección de unidades del PDF:
+  - por defecto, los importes están expresados en **miles de pesos** y se multiplican por 1.000;
+  - cuando la publicación aclara **0KM EN US$**, el 0 km se conserva en dólares;
+  - cuando una marca está indicada **EN US$**, los usados se interpretan en miles de dólares y el 0 km como importe nominal en dólares;
+  - se contemplan notas especiales visibles en la fuente, como excepciones por modelo.
+- Nueva lectura de **oportunidad**: compara el precio publicado/pactado contra la valuación estimada ajustada por kilometraje y muestra el porcentaje por arriba o debajo del mercado.
+- La valuación literal del PDF siempre queda visible por separado del ajuste interno.
 
 ## Estructura
 
-```text
-index.html                   Calculadora pública
-admin.html                   Estado y guía de actualización
-assets/css/styles.css        Estilos
-assets/js/app.js             Motor de cálculo y matching
-data/vehicle_market.json     Valores del PDF mensual
-data/dnrpa.json              Valuaciones oficiales DNRPA
-data/rates.json              Tasas bancarias
-data/config.json             Reglas editables
-tools/parse_market_pdf.py    Parser del PDF mensual
-tools/import_market_pdf.py   Importación mensual simplificada
-tools/parse_dnrpa_pdf.py     Parser de DNRPA
-tools/update_dnrpa.py        Descarga + actualización DNRPA
-tools/update_rates.py        Scraper de ComparaTasas
-tools/update_all.py          Actualiza tasas + DNRPA
-```
-
-## Fuentes precargadas en v0.01
-
-- Mercado: `Autos AGOSTO 2026.pdf`, procesado en una base de aproximadamente 6.000 variantes.
-- DNRPA: tabla con vigencia `01/08/2026`, convertida a JSON para búsqueda local.
-- Tasas: préstamos personales publicados en `https://comparatasas.ar/prestamos-personales/` al 23/08/2026.
-- Tipo de cambio inicial: referencia editable de ARS 1.525/USD. **No es una fuente estructural del cálculo y puede cambiarse en cada simulación.**
+- `index.html`: calculadora pública.
+- `admin.html`: estado e instrucciones de mantenimiento.
+- `data/vehicle_market.json`: 6.004 versiones extraídas de la guía mensual.
+- `data/dnrpa.json`: valuaciones DNRPA.
+- `data/rates.json`: productos/tasas bancarias.
+- `data/config.json`: supuestos configurables.
+- `tools/import_market_pdf.py`: importa un nuevo PDF mensual.
+- `tools/parse_market_pdf.py`: parser de la guía de mercado y reglas de moneda.
+- `tools/update_dnrpa.py`: actualiza DNRPA.
+- `tools/update_rates.py`: actualiza ComparaTasas.
 
 ## Ejecutar localmente
 
-No abras `index.html` directamente con `file://`, porque los navegadores bloquean los `fetch()` a JSON locales.
+Desde la carpeta del proyecto:
 
 ```bash
-cd autocierre-v.0.01
-python -m http.server 8080
+python -m http.server 8000
 ```
 
-Luego abrir:
+Abrir `http://localhost:8000/`.
 
-```text
-http://localhost:8080/
-```
+No abrir `index.html` directamente con `file://`, porque el navegador bloqueará la carga de los JSON.
 
-Panel de mantenimiento:
-
-```text
-http://localhost:8080/admin.html
-```
-
-## Dependencias para actualizar datos
-
-Python 3.10+ y Poppler (`pdftotext`) instalado en el sistema.
-
-```bash
-pip install -r requirements.txt
-```
-
-## Actualización mensual del PDF de mercado
-
-Cuando llegue el PDF nuevo:
+## Actualizar el PDF mensual
 
 ```bash
 python tools/import_market_pdf.py "/ruta/Autos SEPTIEMBRE 2026.pdf"
 ```
 
-El script guarda una copia en `sources/` y reemplaza `data/vehicle_market.json`.
+El importador copia el PDF a `sources/` y regenera `data/vehicle_market.json`.
 
-El parser se apoya en la estructura visual del PDF: bandas grises para marcas, bandas rosas para modelos y columnas por año. Si el proveedor cambia el diseño del documento, hay que revisar `tools/parse_market_pdf.py` antes de publicar.
+### Control recomendado tras cada importación
 
-## Actualización DNRPA
+1. Revisar un usado normal expresado en miles de pesos.
+2. Revisar un 0 km cuya marca/modelo tenga la nota `0KM EN US$`.
+3. Revisar una marca con la nota completa `EN US$`.
+4. Comparar tres precios finales con las páginas originales del PDF.
 
-Mes actual:
+## Oportunidad de compra
 
-```bash
-python tools/update_dnrpa.py
-```
+El porcentaje se calcula así:
 
-Mes específico:
+`(precio pactado - valor ajustado) / valor ajustado × 100`
 
-```bash
-python tools/update_dnrpa.py --year 2026 --month 9
-```
+Lectura incluida en el front-end:
 
-La URL se construye con el formato:
+- `≤ -15%`: Oportunidad fuerte.
+- `-15% a -7%`: Buena oportunidad.
+- `-7% a +7%`: En precio de mercado.
+- `+7% a +15%`: Precio exigente.
+- `≥ +15%`: Muy por encima del mercado.
 
-```text
-https://www.dnrpa.gov.ar/valuacion/informacion/01-MM-YYYY.pdf
-```
+Estas bandas son una clasificación orientativa. El porcentaje exacto siempre se muestra.
 
-## Actualización semanal de tasas
+## Ajuste por kilometraje
 
-```bash
-python tools/update_rates.py
-```
+La guía mensual se conserva como valor base. El sitio aplica un ajuste moderado según kilometraje esperado por antigüedad usando los parámetros de `data/config.json`. El usuario ve ambos valores: **valor literal de la fuente** y **valor ajustado**.
 
-El scraper tiene una protección básica: si extrae menos de 5 productos, aborta y conserva la base anterior. Esto evita que un cambio de HTML publique datos incompletos silenciosamente.
+## Limitaciones
 
-Cron semanal sugerido:
-
-```cron
-0 4 * * 1 cd /ruta/autocierre && /ruta/venv/bin/python tools/update_rates.py
-```
-
-Cron mensual DNRPA sugerido:
-
-```cron
-30 4 2 * * cd /ruta/autocierre && /ruta/venv/bin/python tools/update_dnrpa.py
-```
-
-## Reglas de cálculo configurables
-
-Todo se concentra en `data/config.json`.
-
-### Mercado
-
-- `purchase_factor`: factor sobre la guía para estimar toma/compra.
-- `sale_factor`: factor sobre la guía para estimar publicación/venta.
-- reglas de ajuste por kilometraje.
-
-Estos porcentajes **no provienen del PDF**. Son reglas comerciales iniciales para el prototipo y deben calibrarse con operaciones reales.
-
-### Financiación
-
-La cuota estimada aplica **sistema francés sobre la TNA publicada**, siguiendo la metodología descripta por ComparaTasas. El **CFT TEA** queda visible como referencia para comparar el costo integral. El cálculo es orientativo: cada entidad puede sumar seguros, impuestos, cargos, condiciones por perfil y redondeos propios.
-
-### Transferencia
-
-La v0.01 modela:
-
-- arancel registral por transferencia configurado en 1% de la valuación oficial DNRPA;
-- impuesto de sellos de Provincia de Buenos Aires según el tipo de operación configurado;
-- un bloque mínimo de aranceles fijos configurables.
-
-No incluye automáticamente multas, patentes, deuda, verificación policial, formularios extraordinarios, gestoría, prenda, cambio de radicación u otros conceptos variables.
-
-Para jurisdicciones distintas de Provincia de Buenos Aires, el impuesto de sellos queda marcado como **no modelado** en esta primera versión.
-
-## Matching DNRPA
-
-El PDF de mercado y DNRPA no usan exactamente las mismas denominaciones. La web hace una coincidencia aproximada por:
-
-- marca;
-- año;
-- tokens del modelo;
-- cilindrada/versión;
-- tipo de carrocería cuando aporta coincidencia.
-
-La interfaz muestra la versión DNRPA utilizada y un porcentaje de coincidencia. Antes de una operación real conviene verificar manualmente unidades con coincidencia baja.
-
-## Datos y mantenimiento
-
-La arquitectura deliberadamente evita hacer scraping desde el navegador. Las fuentes se actualizan del lado del servidor y la calculadora consume archivos JSON locales. Esto mejora estabilidad, velocidad y evita problemas de CORS.
-
-Para una v0.02 conviene agregar:
-
-- backend + panel de administración autenticado para subir el PDF desde la web;
-- histórico mensual de valuaciones;
-- cache y logs de scraping;
-- cotización automática del tipo de cambio elegido;
-- reglas impositivas por provincia;
-- cotizador aproximado de seguros;
-- captación de lead y envío a WhatsApp/agencia;
-- URLs indexables por marca/modelo para SEO.
-
-## Aviso
-
-El resultado es una estimación comercial e informativa. Para cerrar una operación se deben verificar los importes vigentes en las fuentes oficiales y con la entidad financiera correspondiente.
+- No reemplaza una tasación física ni una revisión mecánica.
+- El matching con DNRPA es aproximado por texto y debe verificarse antes de una operación real.
+- La transferencia es una estimación: puede haber deudas, multas, verificaciones, gestoría u otros conceptos.
+- El módulo de seguro todavía no está implementado.
