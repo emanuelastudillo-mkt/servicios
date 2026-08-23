@@ -65,6 +65,7 @@
               <label><span>Anticipo</span><div class="input-prefix"><i>$</i><input id="down-payment" type="number" min="0" step="10000" placeholder="50% sugerido"></div></label>
               <label><span>Plazo</span><select id="term"><option>12</option><option>24</option><option selected>36</option><option>48</option><option>60</option><option>72</option></select></label>
               <label><span>Comprador</span><select id="buyer-type"><option value="particular">Particular</option><option value="habitualist">Agencia habitualista</option></select></label>
+              <label><span>Seguridad de tu zona</span><select id="security-zone"><option value="very-unsafe">Muy inseguro</option><option value="unsafe">Inseguro</option><option value="normal" selected>Normal</option><option value="safe">Seguro</option><option value="very-safe">Muy seguro</option></select></label>
             </div>
             <details class="settings">
               <summary>Ajustes y supuestos</summary>
@@ -186,7 +187,7 @@
               <span class="strip-toggle" aria-hidden="true">+</span>
             </summary>
             <div class="strip-detail insurance-detail">
-              <p class="insurance-intro">Estimación inicial. El valor final dependerá del vehículo, zona, compañía y perfil del asegurado.</p>
+              <p class="insurance-intro">Estimación inicial ajustada según el nivel de seguridad de tu zona. El valor final dependerá también del vehículo, compañía y perfil del asegurado.</p>
               <div class="insurance-options" role="radiogroup" aria-label="Cobertura estimada">
                 <label class="insurance-option">
                   <input type="radio" name="insurance" value="Responsabilidad Civil" data-range="$50.000–$80.000">
@@ -235,7 +236,7 @@
 
   <footer class="footer shell">
     <div class="wordmark compact"><strong>FACIL <span>AUTO</span></strong></div>
-    <p>Herramienta orientativa para operaciones automotores en Argentina. · v0.07</p>
+    <p>Herramienta orientativa para operaciones automotores en Argentina. · v0.08</p>
     <a href="admin.html">Administrar fuentes</a>
   </footer>
 

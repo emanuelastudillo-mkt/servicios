@@ -342,6 +342,38 @@ $('#vehicle-form').addEventListener('submit',e=>{
 });
 
 
+const INSURANCE_BASE_RANGES={
+  'Responsabilidad Civil':[50000,80000],
+  'Terceros completo':[80000,140000],
+  'Todo Riesgo':[130000,200000]
+};
+const SECURITY_ZONE_FACTORS={
+  'very-unsafe':1.30,
+  'unsafe':1.15,
+  'normal':1,
+  'safe':0.90,
+  'very-safe':0.80
+};
+function roundInsurance(n){return Math.round(n/5000)*5000;}
+function insuranceRangeText(min,max){return `${fmtARS(min).replace(/,00$/,'')}–${fmtARS(max).replace(/,00$/,'')}`;}
+function updateInsuranceRanges(){
+  const zone=$('#security-zone')?.value||'normal';
+  const factor=SECURITY_ZONE_FACTORS[zone]||1;
+  document.querySelectorAll('input[name="insurance"]').forEach(input=>{
+    const base=INSURANCE_BASE_RANGES[input.value];if(!base)return;
+    const min=roundInsurance(base[0]*factor),max=roundInsurance(base[1]*factor);
+    const range=insuranceRangeText(min,max);
+    input.dataset.range=range;
+    const small=input.closest('.insurance-option')?.querySelector('small');
+    if(small)small.textContent=`entre ${fmtARS(min)} y ${fmtARS(max)} / mes`;
+    if(input.checked){
+      const name=$('#insurance-primary-name'),value=$('#insurance-primary-value');
+      if(name)name.textContent=input.value;
+      if(value)value.textContent=range;
+    }
+  });
+}
+
 document.querySelectorAll('input[name="insurance"]').forEach(input=>{
   input.addEventListener('change',()=>{
     if(!input.checked)return;
@@ -350,5 +382,7 @@ document.querySelectorAll('input[name="insurance"]').forEach(input=>{
     if(value)value.textContent=input.dataset.range||'—';
   });
 });
+$('#security-zone')?.addEventListener('change',updateInsuranceRanges);
+updateInsuranceRanges();
 
 loadData().catch(showLoadError);
