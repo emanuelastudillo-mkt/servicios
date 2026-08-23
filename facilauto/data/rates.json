@@ -1,0 +1,233 @@
+{
+  "source": "ComparaTasas.ar - Préstamos Personales",
+  "source_url": "https://comparatasas.ar/prestamos-personales/",
+  "updated_at": "2026-08-23",
+  "calculation_note": "La cuota aproximada usa sistema francés sobre la TNA publicada. El CFT TEA se muestra como referencia del costo real e incluye conceptos que no pueden reconstruirse exactamente solo con la tasa. Las condiciones dependen del tramo, perfil y banco.",
+  "products": [
+    {
+      "bank": "Banco Galicia",
+      "product": "Préstamo personal Éminent",
+      "tna": 39.0,
+      "cft_tea": 58.9,
+      "min_months": 6,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Macro",
+      "product": "Préstamo personal Jubilados",
+      "tna": 55.0,
+      "cft_tea": 91.1,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Macro",
+      "product": "Préstamo personal Selecta",
+      "tna": 55.0,
+      "cft_tea": 91.1,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Nación",
+      "product": "Nación Sueldos - Haberes en BNA",
+      "tna": 56.0,
+      "cft_tea": 93.3,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Nación",
+      "product": "Nación Previsional BNA - e@descuento",
+      "tna": 56.0,
+      "cft_tea": 93.3,
+      "min_months": 1,
+      "max_months": 36,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Nación",
+      "product": "Nación Previsional BNA - débito en cuenta",
+      "tna": 56.0,
+      "cft_tea": 93.3,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Galicia",
+      "product": "Préstamo personal PLUS",
+      "tna": 57.0,
+      "cft_tea": 95.8,
+      "min_months": 6,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Macro",
+      "product": "Préstamo personal Plan Sueldo",
+      "tna": 61.0,
+      "cft_tea": 104.7,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Nación",
+      "product": "Nación Sueldos - empleados públicos con haberes",
+      "tna": 64.0,
+      "cft_tea": 111.8,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Ciudad",
+      "product": "Ciudad Veloz - Jubilados y Pensionados ANSES",
+      "tna": 65.0,
+      "cft_tea": 114.2,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Bancor",
+      "product": "Préstamo personal Bancón",
+      "tna": 65.0,
+      "cft_tea": 114.3,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Macro",
+      "product": "Préstamo personal Mercado Abierto y PyN",
+      "tna": 66.0,
+      "cft_tea": 116.7,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": false
+    },
+    {
+      "bank": "Banco Macro",
+      "product": "Préstamo personal AUH",
+      "tna": 66.0,
+      "cft_tea": 116.7,
+      "min_months": 1,
+      "max_months": 12,
+      "requires_client": false
+    },
+    {
+      "bank": "Banco Ciudad",
+      "product": "Ciudad Veloz Plan Sueldo",
+      "tna": 70.0,
+      "cft_tea": 126.7,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Nación",
+      "product": "Nación Sueldos - empleados públicos sin haberes",
+      "tna": 72.0,
+      "cft_tea": 131.9,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": false
+    },
+    {
+      "bank": "Banco del Chubut",
+      "product": "Préstamos personales con descuento de haberes",
+      "tna": 72.5,
+      "cft_tea": 133.3,
+      "min_months": 2,
+      "max_months": 60,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Santander",
+      "product": "Préstamo personal Cartera de consumo",
+      "tna": 79.0,
+      "cft_tea": 150.9,
+      "min_months": 3,
+      "max_months": 72,
+      "requires_client": false
+    },
+    {
+      "bank": "Banco Nación",
+      "product": "Nación Destino Libre - con paquete Cuenta Nación",
+      "tna": 74.0,
+      "cft_tea": 171.8,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Ciudad",
+      "product": "Ciudad Veloz Cliente Fiel",
+      "tna": 87.0,
+      "cft_tea": 174.3,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Galicia",
+      "product": "Préstamo personal MOVE",
+      "tna": 87.0,
+      "cft_tea": 174.9,
+      "min_months": 6,
+      "max_months": 72,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Nación",
+      "product": "Nación Destino Libre - sin paquete Cuenta Nación",
+      "tna": 91.0,
+      "cft_tea": 186.8,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": false
+    },
+    {
+      "bank": "Banco Macro",
+      "product": "Préstamo personal Renta Presunta",
+      "tna": 96.0,
+      "cft_tea": 203.1,
+      "min_months": 1,
+      "max_months": 36,
+      "requires_client": false
+    },
+    {
+      "bank": "Banco Patagonia",
+      "product": "Préstamo personal online",
+      "tna": 98.0,
+      "cft_tea": 209.8,
+      "min_months": 1,
+      "max_months": 60,
+      "requires_client": true
+    },
+    {
+      "bank": "Banco Hipotecario",
+      "product": "Préstamo con destino libre",
+      "tna": 110.4,
+      "cft_tea": 255.2,
+      "min_months": 10,
+      "max_months": 36,
+      "requires_client": false
+    },
+    {
+      "bank": "BBVA",
+      "product": "Préstamo personal - clientes BBVA",
+      "tna": 129.0,
+      "cft_tea": 320.1,
+      "min_months": 1,
+      "max_months": 72,
+      "requires_client": true
+    }
+  ]
+}

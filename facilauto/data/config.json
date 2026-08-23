@@ -1,0 +1,26 @@
+{
+  "site_name": "AutoCierre",
+  "exchange_rate_ars_per_usd": 1525,
+  "market": {
+    "purchase_factor": 0.88,
+    "sale_factor": 1.06,
+    "expected_km_per_year": 15000,
+    "km_penalty_per_10000_over": 0.012,
+    "km_bonus_per_10000_under": 0.006,
+    "max_km_penalty": 0.12,
+    "max_km_bonus": 0.06
+  },
+  "financing": {
+    "default_down_payment_percent": 0.5,
+    "default_term_months": 36
+  },
+  "transfer": {
+    "registry_percent": 0.01,
+    "pba_stamp_particular_percent": 0.03,
+    "pba_stamp_habitualist_percent": 0.01,
+    "fixed_fees_ars": 270,
+    "fixed_fees_note": "Estimación mínima: firmas, cédula y título. No incluye deudas, multas, verificación, gestoría ni trámites extraordinarios."
+  },
+  "exchange_rate_source": "Referencia editable: dólar oficial vendedor al 22/08/2026",
+  "exchange_rate_updated_at": "2026-08-22"
+}
