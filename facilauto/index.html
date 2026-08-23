@@ -106,69 +106,104 @@
           </div>
         </div>
 
-        <div class="result-ledger">
-          <article class="ledger-card valuation-card">
-            <header><span>01</span><div><small>VALUACIÓN</small><h3>Precio de referencia</h3></div></header>
-            <div class="hero-metric">
-              <small>Valor ajustado estimado</small>
-              <strong id="market-value">—</strong>
-              <span id="market-adjustment">—</span>
+        <div class="result-strips">
+          <details class="result-strip valuation-strip">
+            <summary>
+              <span class="strip-index">01</span>
+              <div class="strip-copy"><small>VALUACIÓN</small><strong>Precio de referencia</strong></div>
+              <div class="strip-primary"><strong id="market-value">—</strong><small id="market-confidence-short">Referencia estimada</small></div>
+              <span class="strip-toggle" aria-hidden="true">+</span>
+            </summary>
+            <div class="strip-detail">
+              <div class="detail-lead" id="market-adjustment">—</div>
+              <dl class="data-list compact-list">
+                <div><dt>Valor literal del PDF</dt><dd id="market-pdf-value">—</dd></div>
+                <div><dt>Unidad / estado de fuente</dt><dd id="market-pdf-unit">—</dd></div>
+                <div><dt>Confianza de valuación</dt><dd id="market-confidence">—</dd></div>
+                <div><dt>Método</dt><dd id="market-method">—</dd></div>
+                <div><dt>Toma orientativa</dt><dd id="buy-value">—</dd></div>
+                <div><dt>Venta orientativa</dt><dd id="sale-value">—</dd></div>
+              </dl>
+              <footer id="market-source"></footer>
             </div>
-            <dl class="data-list">
-              <div><dt>Valor literal del PDF</dt><dd id="market-pdf-value">—</dd></div>
-              <div><dt>Unidad / estado de fuente</dt><dd id="market-pdf-unit">—</dd></div>
-              <div><dt>Confianza de valuación</dt><dd id="market-confidence">—</dd></div>
-              <div><dt>Método</dt><dd id="market-method">—</dd></div>
-              <div><dt>Toma orientativa</dt><dd id="buy-value">—</dd></div>
-              <div><dt>Venta orientativa</dt><dd id="sale-value">—</dd></div>
-            </dl>
-            <footer id="market-source">Fuente mensual</footer>
-          </article>
+          </details>
 
-          <article class="ledger-card transfer-card">
-            <header><span>02</span><div><small>TRANSFERENCIA</small><h3>Registro + sellos</h3></div></header>
-            <div class="hero-metric">
-              <small>Transferencia estimada</small>
-              <strong id="transfer-total">—</strong>
-              <span id="dnrpa-match">—</span>
+          <details class="result-strip transfer-strip">
+            <summary>
+              <span class="strip-index">02</span>
+              <div class="strip-copy"><small>TRANSFERENCIA</small><strong>Registro + sellos</strong></div>
+              <div class="strip-primary"><strong id="transfer-total">—</strong><small id="dnrpa-status-short">Estimado</small></div>
+              <span class="strip-toggle" aria-hidden="true">+</span>
+            </summary>
+            <div class="strip-detail">
+              <div class="detail-lead" id="dnrpa-match">—</div>
+              <dl class="data-list compact-list">
+                <div><dt>Valuación DNRPA</dt><dd id="dnrpa-value">—</dd></div>
+                <div><dt>Estado de valuación</dt><dd id="dnrpa-status">—</dd></div>
+                <div><dt>Arancel registral</dt><dd id="registry-fee">—</dd></div>
+                <div><dt>Sellos</dt><dd id="stamp-fee">—</dd></div>
+                <div><dt>Fijos modelados</dt><dd id="fixed-fees">—</dd></div>
+              </dl>
+              <footer id="dnrpa-source">DNRPA</footer>
             </div>
-            <dl class="data-list">
-              <div><dt>Valuación DNRPA</dt><dd id="dnrpa-value">—</dd></div>
-              <div><dt>Estado de valuación</dt><dd id="dnrpa-status">—</dd></div>
-              <div><dt>Arancel registral</dt><dd id="registry-fee">—</dd></div>
-              <div><dt>Sellos</dt><dd id="stamp-fee">—</dd></div>
-              <div><dt>Fijos modelados</dt><dd id="fixed-fees">—</dd></div>
-            </dl>
-            <footer id="dnrpa-source">DNRPA</footer>
-          </article>
+          </details>
 
-          <article class="ledger-card close-card">
-            <header><span>03</span><div><small>CIERRE</small><h3>Cuánto necesitás</h3></div></header>
-            <div class="close-lines">
-              <div><small>Contado + transferencia</small><strong id="cash-close">—</strong></div>
-              <div><small>Anticipo + financiación + transferencia</small><strong id="finance-close">—</strong><span id="finance-close-bank">—</span></div>
+          <details class="result-strip close-strip">
+            <summary>
+              <span class="strip-index">03</span>
+              <div class="strip-copy"><small>CIERRE</small><strong>Cuánto necesitás</strong></div>
+              <div class="strip-primary"><strong id="cash-close">—</strong><small>Contado + transferencia</small></div>
+              <span class="strip-toggle" aria-hidden="true">+</span>
+            </summary>
+            <div class="strip-detail close-detail">
+              <div class="close-lines compact-close-lines">
+                <div><small>Anticipo + financiación + transferencia</small><strong id="finance-close">—</strong><span id="finance-close-bank">—</span></div>
+              </div>
+              <div class="close-summary"><span>Precio usado para la operación</span><b id="operation-used">—</b></div>
             </div>
-            <div class="close-summary">
-              <span>Precio usado para la operación</span><b id="operation-used">—</b>
+          </details>
+
+          <details class="result-strip finance-strip">
+            <summary>
+              <span class="strip-index">04</span>
+              <div class="strip-copy"><small>FINANCIACIÓN</small><strong>Alternativas bancarias</strong></div>
+              <div class="strip-primary"><strong id="finance-primary">—</strong><small id="finance-primary-label">Mejor cuota estimada</small></div>
+              <span class="strip-toggle" aria-hidden="true">+</span>
+            </summary>
+            <div class="strip-detail finance-detail">
+              <div class="finance-meta"><span>Monto financiado</span><b id="loan-amount">—</b></div>
+              <div class="bank-table-head"><span>Banco / producto</span><span>TNA</span><span>CFT TEA</span><span>Total</span><span>Cuota aprox.</span></div>
+              <div class="bank-list" id="bank-list"></div>
+              <p class="finance-note" id="finance-source"></p>
             </div>
-          </article>
+          </details>
+
+          <details class="result-strip insurance-strip">
+            <summary>
+              <span class="strip-index">05</span>
+              <div class="strip-copy"><small>SEGURO</small><strong id="insurance-primary-name">Terceros completo</strong></div>
+              <div class="strip-primary"><strong id="insurance-primary-value">$80.000–$140.000</strong><small>por mes · aproximado</small></div>
+              <span class="strip-toggle" aria-hidden="true">+</span>
+            </summary>
+            <div class="strip-detail insurance-detail">
+              <p class="insurance-intro">Estimación inicial. El valor final dependerá del vehículo, zona, compañía y perfil del asegurado.</p>
+              <div class="insurance-options" role="radiogroup" aria-label="Cobertura estimada">
+                <label class="insurance-option">
+                  <input type="radio" name="insurance" value="Responsabilidad Civil" data-range="$50.000–$80.000">
+                  <span><b>Responsabilidad Civil</b><small>entre $50.000 y $80.000 / mes</small></span>
+                </label>
+                <label class="insurance-option">
+                  <input type="radio" name="insurance" value="Terceros completo" data-range="$80.000–$140.000" checked>
+                  <span><b>Terceros completo</b><small>entre $80.000 y $140.000 / mes</small></span>
+                </label>
+                <label class="insurance-option">
+                  <input type="radio" name="insurance" value="Todo Riesgo" data-range="$130.000–$200.000">
+                  <span><b>Todo Riesgo</b><small>entre $130.000 y $200.000 / mes</small></span>
+                </label>
+              </div>
+            </div>
+          </details>
         </div>
-
-        <article class="finance-table-card">
-          <div class="finance-title">
-            <div><small>04 — FINANCIACIÓN</small><h3>Alternativas bancarias</h3></div>
-            <div><span>Monto financiado</span><b id="loan-amount">—</b></div>
-          </div>
-          <div class="bank-table-head"><span>Banco / producto</span><span>TNA</span><span>CFT TEA</span><span>Total</span><span>Cuota aprox.</span></div>
-          <div class="bank-list" id="bank-list"></div>
-          <p class="finance-note" id="finance-source"></p>
-        </article>
-
-        <article class="insurance-row">
-          <div><small>PRÓXIMO MÓDULO</small><h3>Seguro automotor estimado</h3></div>
-          <p>La estructura queda preparada para sumar compañía, cobertura, zona de riesgo y perfil del conductor.</p>
-          <span>EN DESARROLLO</span>
-        </article>
 
         <p class="legal-note">Los resultados son orientativos. Cuando no existe un valor exacto de mercado o DNRPA, la interfaz lo identifica como estimado e informa el método utilizado. El ajuste por kilometraje, las bandas de toma/venta y el margen comercial de la lectura de oportunidad son reglas internas configurables. Tasas, aranceles, sellos y valuaciones oficiales pueden cambiar antes de cerrar la operación.</p>
       </div>
@@ -200,7 +235,7 @@
 
   <footer class="footer shell">
     <div class="wordmark compact"><strong>FACIL <span>AUTO</span></strong></div>
-    <p>Herramienta orientativa para operaciones automotores en Argentina. · v0.06</p>
+    <p>Herramienta orientativa para operaciones automotores en Argentina. · v0.07</p>
     <a href="admin.html">Administrar fuentes</a>
   </footer>
 

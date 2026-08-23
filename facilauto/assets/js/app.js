@@ -327,18 +327,28 @@ $('#vehicle-form').addEventListener('submit',e=>{
   $('#result-unit').textContent=`${entry.brand} ${entry.model} · ${entry.variant} · ${year==='0km'?'0 km':year}${km?` · ${km.toLocaleString('es-AR')} km`:''}`;
   $('#market-value').textContent=fmtARS(adjustedARS);const factorPct=(factor-1)*100;$('#market-adjustment').textContent=factor===1?`Equivale a ${fmtUSD(adjustedUSD)} al dólar configurado`:`${factorPct>0?'+':''}${factorPct.toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})}% por kilometraje · ${fmtUSD(adjustedUSD)}`;
   if(mestimate.exactPrice){$('#market-pdf-value').textContent=literalMarketValue(mestimate.exactPrice);$('#market-pdf-unit').textContent=sourceUnitText(mestimate.exactPrice);}else{$('#market-pdf-value').textContent='Sin valor exacto';$('#market-pdf-unit').textContent='Se usa una estimación, no una cifra literal del PDF';}
-  $('#market-confidence').textContent=mestimate.confidence;$('#market-method').textContent=mestimate.method;$('#buy-value').textContent=fmtARS(buyARS);$('#sale-value').textContent=fmtARS(saleARS);
+  $('#market-confidence').textContent=mestimate.confidence;$('#market-confidence-short').textContent=`Confianza ${String(mestimate.confidence||'estimada').toLowerCase()}`;$('#market-method').textContent=mestimate.method;$('#buy-value').textContent=fmtARS(buyARS);$('#sale-value').textContent=fmtARS(saleARS);
   const pages=uniqueSorted((mestimate.sourceRows||[]).map(r=>r.page).filter(Boolean));$('#market-source').textContent='';
 
   $('#dnrpa-value').textContent=Number.isFinite(dval)?fmtARS(dval):year==='0km'?'No aplica a 0 km':'Sin referencia';
   const dstate=dmatch?(dmatch.kind==='exact'?'Exacta':dmatch.kind==='interpolated'?'Estimada entre años':dmatch.kind==='extrapolated'?'Proyectada desde año cercano':'Aproximada'):'Sin coincidencia';
-  $('#dnrpa-status').textContent=dstate;
+  $('#dnrpa-status').textContent=dstate;$('#dnrpa-status-short').textContent=dstate;
   $('#dnrpa-match').textContent=drow?`${drow.model} · coincidencia ${Math.max(0,Math.min(99,Math.round(dmatch.score*100)))}%${dmatch.kind!=='exact'?' · valor estimado':''}`:year==='0km'?'Consultar alta / patentamiento':'No se encontró versión oficial equivalente';
   $('#registry-fee').textContent=Number.isFinite(dval)?fmtARS(registryFee):'—';$('#stamp-fee').textContent=stampRate?fmtARS(stampFee):'No modelado';$('#fixed-fees').textContent=fmtARS(fixed);$('#transfer-total').textContent=fmtARS(transferTotal);$('#dnrpa-source').textContent=`DNRPA · vigencia ${dnrpaData.valid_from||'sin fecha'}${drow?` · pág. ${drow.page}`:''}${dmatch&&dmatch.kind!=='exact'?` · ${dstate.toLowerCase()}`:''}`;
 
-  $('#loan-amount').textContent=fmtARS(principal);renderBanks(offers,months);$('#finance-source').textContent=`Actualización ${ratesData.updated_at}`;$('#cash-close').textContent=fmtARS(cashClose);$('#finance-close').textContent=fmtARS(financeClose);$('#finance-close-bank').textContent=bestOffer?`${bestOffer.bank} · ${months} cuotas de ${fmtARS(bestOffer.payment)}`:'Sin financiación seleccionable';$('#operation-used').textContent=hasEnteredPrice?fmtARS(operationPrice):`${fmtARS(operationPrice)} · referencia estimada`;
+  $('#loan-amount').textContent=fmtARS(principal);renderBanks(offers,months);$('#finance-primary').textContent=bestOffer?fmtARS(bestOffer.payment):'—';$('#finance-primary-label').textContent=bestOffer?`${bestOffer.bank} · ${months} cuotas`:'Sin alternativas para este plazo';$('#finance-source').textContent=`Actualización ${ratesData.updated_at}`;$('#cash-close').textContent=fmtARS(cashClose);$('#finance-close').textContent=fmtARS(financeClose);$('#finance-close-bank').textContent=bestOffer?`${bestOffer.bank} · ${months} cuotas de ${fmtARS(bestOffer.payment)}`:'Sin financiación seleccionable';$('#operation-used').textContent=hasEnteredPrice?fmtARS(operationPrice):`${fmtARS(operationPrice)} · referencia estimada`;
 
   $('#resultados').hidden=false;$('#resultados').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+
+document.querySelectorAll('input[name="insurance"]').forEach(input=>{
+  input.addEventListener('change',()=>{
+    if(!input.checked)return;
+    const name=$('#insurance-primary-name'),value=$('#insurance-primary-value');
+    if(name)name.textContent=input.value;
+    if(value)value.textContent=input.dataset.range||'—';
+  });
 });
 
 loadData().catch(showLoadError);
