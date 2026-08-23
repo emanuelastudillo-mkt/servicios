@@ -47,13 +47,14 @@
 
         <form id="vehicle-form" class="calc-layout">
           <div class="calc-block">
-            <div class="block-head"><b>A</b><div><span>Vehículo</span><small>Elegí la versión exacta disponible en la guía mensual.</small></div></div>
+            <div class="block-head"><b>A</b><div><span>Vehículo</span><small>El catálogo combina la guía mensual con DNRPA para ampliar la cobertura.</small></div></div>
             <div class="field-grid vehicle-fields">
               <label><span>Marca</span><select id="brand" required><option value="">Cargando marcas...</option></select></label>
               <label><span>Modelo</span><select id="model" required disabled><option value="">Primero elegí marca</option></select></label>
               <label class="field-wide"><span>Versión</span><select id="variant" required disabled><option value="">Primero elegí modelo</option></select></label>
               <label><span>Año</span><select id="year" required disabled><option value="">Elegí versión</option></select></label>
               <label><span>Kilometraje</span><div class="input-suffix"><input id="km" type="number" min="0" step="1000" placeholder="90.000"><i>km</i></div></label>
+              <p class="coverage-note" id="catalog-coverage" data-tone="neutral">El catálogo combina la guía mensual con DNRPA para ampliar marcas, modelos y versiones.</p>
             </div>
           </div>
 
@@ -93,7 +94,7 @@
           <div class="opportunity-label">
             <small>LECTURA DE OPORTUNIDAD</small>
             <strong id="opportunity-rating">Ingresá un precio para comparar</strong>
-            <p id="opportunity-text">La referencia se calcula contra la valuación mensual ajustada por kilometraje.</p>
+            <p id="opportunity-text">La lectura aplica un margen comercial de 15% sobre la guía sin modificar los valores de valuación.</p>
           </div>
           <div class="opportunity-number">
             <span id="opportunity-pct">—</span>
@@ -115,7 +116,9 @@
             </div>
             <dl class="data-list">
               <div><dt>Valor literal del PDF</dt><dd id="market-pdf-value">—</dd></div>
-              <div><dt>Unidad de la fuente</dt><dd id="market-pdf-unit">—</dd></div>
+              <div><dt>Unidad / estado de fuente</dt><dd id="market-pdf-unit">—</dd></div>
+              <div><dt>Confianza de valuación</dt><dd id="market-confidence">—</dd></div>
+              <div><dt>Método</dt><dd id="market-method">—</dd></div>
               <div><dt>Toma orientativa</dt><dd id="buy-value">—</dd></div>
               <div><dt>Venta orientativa</dt><dd id="sale-value">—</dd></div>
             </dl>
@@ -131,6 +134,7 @@
             </div>
             <dl class="data-list">
               <div><dt>Valuación DNRPA</dt><dd id="dnrpa-value">—</dd></div>
+              <div><dt>Estado de valuación</dt><dd id="dnrpa-status">—</dd></div>
               <div><dt>Arancel registral</dt><dd id="registry-fee">—</dd></div>
               <div><dt>Sellos</dt><dd id="stamp-fee">—</dd></div>
               <div><dt>Fijos modelados</dt><dd id="fixed-fees">—</dd></div>
@@ -166,7 +170,7 @@
           <span>EN DESARROLLO</span>
         </article>
 
-        <p class="legal-note">Los resultados son orientativos. El valor de mercado se toma de la guía mensual cargada; el ajuste por kilometraje y las bandas de toma/venta son reglas internas configurables. Tasas, aranceles, sellos y valuaciones oficiales pueden cambiar antes de cerrar la operación.</p>
+        <p class="legal-note">Los resultados son orientativos. Cuando no existe un valor exacto de mercado o DNRPA, la interfaz lo identifica como estimado e informa el método utilizado. El ajuste por kilometraje, las bandas de toma/venta y el margen comercial de la lectura de oportunidad son reglas internas configurables. Tasas, aranceles, sellos y valuaciones oficiales pueden cambiar antes de cerrar la operación.</p>
       </div>
     </section>
 
@@ -174,9 +178,9 @@
       <div class="shell method-grid">
         <div class="section-title"><span>04</span><div><p>METODOLOGÍA</p><h2>Qué está mirando el cálculo.</h2></div></div>
         <div class="method-list">
-          <article><b>VALOR GUÍA</b><p>El PDF mensual se interpreta en miles de pesos, salvo los casos que la propia publicación identifica en US$.</p></article>
+          <article><b>VALOR GUÍA</b><p>El catálogo une guía mensual + DNRPA. Si falta un precio exacto, busca la misma versión en años cercanos, versiones similares del mismo modelo y, como último recurso, relaciones mercado/valuación registral.</p></article>
           <article><b>KILOMETRAJE</b><p>Se aplica un ajuste moderado respecto del kilometraje esperado por antigüedad. La valuación original siempre queda visible.</p></article>
-          <article><b>OPORTUNIDAD</b><p>Compara el precio publicado o pactado contra el valor ajustado y expresa la diferencia porcentual por arriba o por debajo.</p></article>
+          <article><b>OPORTUNIDAD</b><p>Compara el precio publicado o pactado contra la guía y aplica un ajuste comercial de 15 puntos porcentuales para acercar la lectura al precio publicado habitual. El valor guía original no se modifica.</p></article>
           <article><b>CIERRE</b><p>Suma precio, transferencia y financiación para mostrar el costo estimado de completar la operación.</p></article>
         </div>
       </div>
