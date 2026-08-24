@@ -6,7 +6,7 @@
  * reemplazá PEGAR_AQUI_URL_WORKER por la URL que Cloudflare te muestre,
  * por ejemplo: https://facilauto-auth.usuario.workers.dev
  */
-const API_BASE = 'PEGAR_AQUI_URL_WORKER';
+const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 
 const TOKEN_KEY = 'facilauto_session_v1';
 
