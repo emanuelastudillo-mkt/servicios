@@ -9,8 +9,13 @@
     "km_bonus_per_10000_under": 0.006,
     "max_km_penalty": 0.12,
     "max_km_bonus": 0.06,
-    "valuation_note": "La guía mensual es la referencia principal. Las bandas de toma/venta y el ajuste por kilometraje son reglas internas configurables.",
-    "estimation_note": "Si falta un valor exacto: misma versión en años cercanos → versiones similares del mismo modelo → relación observada entre mercado y DNRPA. Cada resultado informa nivel de confianza."
+    "valuation_note": "La guía mensual es la referencia principal. El kilometraje aplica una curva suave hasta 100.000 km y una depreciación exponencial por encima de ese punto, limitada al 30% a 400.000 km. Las bandas de toma/venta son reglas internas configurables.",
+    "estimation_note": "Si falta un valor exacto: misma versión en años cercanos → versiones similares del mismo modelo → relación observada entre mercado y DNRPA. Cada resultado informa nivel de confianza.",
+    "km_curve_normal_km": 100000,
+    "km_curve_max_km": 400000,
+    "km_curve_low_km_bonus": 0.04,
+    "km_curve_max_penalty": 0.3,
+    "km_curve_exponent": 1.4
   },
   "financing": {
     "default_down_payment_percent": 0.5,
@@ -25,13 +30,13 @@
   },
   "exchange_rate_source": "Referencia editable: dólar oficial vendedor al 22/08/2026",
   "exchange_rate_updated_at": "2026-08-22",
-  "version": "0.06",
+  "version": "0.09",
   "opportunity": {
     "strong_below_percent": -15,
     "good_below_percent": -7,
     "market_band_percent": 7,
     "high_above_percent": 15,
     "market_offset_percent": 10,
-    "market_offset_note": "La lectura de oportunidad resta 10 puntos porcentuales a la diferencia contra la guía. No modifica los valores de valuación mostrados."
+    "market_offset_note": "La lectura de oportunidad resta 10 puntos porcentuales a la diferencia contra la guía para reflejar que los precios publicados suelen ubicarse por encima de la valuación de referencia. No modifica los valores de valuación mostrados."
   }
 }

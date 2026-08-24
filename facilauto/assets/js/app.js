@@ -158,7 +158,27 @@ function updateCoverageNote(){
   else{el.textContent='Versión incorporada desde DNRPA. Si falta precio de mercado exacto, se estimará con referencias cercanas.';el.dataset.tone='estimate';}
 }
 
-function mileageFactor(year,km){if(!km||year==='0km')return 1;const y=Number(year);if(!y)return 1;const age=Math.max(1,nowYear-y),expected=age*config.market.expected_km_per_year,diff=km-expected;if(diff>0)return 1-Math.min(config.market.max_km_penalty,(diff/10000)*config.market.km_penalty_per_10000_over);return 1+Math.min(config.market.max_km_bonus,(Math.abs(diff)/10000)*config.market.km_bonus_per_10000_under);}
+function mileageFactor(year,km){
+  if(!km||year==='0km')return 1;
+  const mileage=Math.max(0,Number(km)||0);
+  const normal=Math.max(1,Number(config.market.km_curve_normal_km)||100000);
+  const maxKm=Math.max(normal+1,Number(config.market.km_curve_max_km)||400000);
+  const lowBonus=Math.max(0,Number(config.market.km_curve_low_km_bonus)??0.04);
+  const maxPenalty=Math.max(0,Math.min(.6,Number(config.market.km_curve_max_penalty)??0.30));
+  const curve=Math.max(.1,Number(config.market.km_curve_exponent)||1.4);
+
+  // 0–100.000 km: conserva el valor normal de usado. Solo reconoce, de forma suave,
+  // unidades excepcionalmente poco caminadas (máximo +4% a kilometraje cero).
+  if(mileage<=normal){
+    const t=1-(mileage/normal);
+    return 1+(lowBonus*t*t);
+  }
+
+  // 100.000–400.000 km: depreciación progresiva/exponencial hasta un máximo del 30%.
+  const t=Math.min(1,(mileage-normal)/(maxKm-normal));
+  const expNorm=(Math.exp(curve*t)-1)/(Math.exp(curve)-1);
+  return 1-(maxPenalty*expNorm);
+}
 function marketPriceToARS(price,fx){return price.currency==='USD'?price.amount*fx:price.amount;}
 function marketPriceToUSD(price,fx){return price.currency==='USD'?price.amount:price.amount/fx;}
 function literalMarketValue(price){return price.currency==='USD'?fmtUSD(price.amount):fmtARS(price.amount);}
@@ -281,10 +301,10 @@ function renderBanks(offers,months){const list=$('#bank-list');if(!offers.length
 
 function opportunityState(price,guide){
   if(!price||!guide)return null;
-  const offset=Number(config.opportunity?.market_offset_percent??10);
+  const offset=Number(config.opportunity?.market_offset_percent??15);
   const rawPct=(price-guide)/guide*100;
   // La lectura de oportunidad usa un corrimiento comercial sobre la guía, sin modificar la valuación mostrada.
-  // Con offset=10, un precio idéntico al valor guía se presenta como -10% en la lectura.
+  // Con offset=15, un precio idéntico al valor guía se presenta como -15% en la lectura.
   const pct=rawPct-offset,abs=Math.abs(pct),commercialReference=guide*(1+offset/100),difference=price-commercialReference;
   const strong=Number(config.opportunity?.strong_below_percent??-15),good=Number(config.opportunity?.good_below_percent??-7),band=Number(config.opportunity?.market_band_percent??7),high=Number(config.opportunity?.high_above_percent??15);
   let rating,klass;
@@ -298,14 +318,14 @@ function opportunityState(price,guide){
 function renderOpportunity(op,hasEnteredPrice){
   const panel=$('#opportunity-panel');panel.classList.remove('is-good','is-bad','is-neutral');
   if(!hasEnteredPrice||!op){
-    const offset=Number(config.opportunity?.market_offset_percent??10);
+    const offset=Number(config.opportunity?.market_offset_percent??15);
     $('#opportunity-rating').textContent='Ingresá un precio para comparar';$('#opportunity-pct').textContent='—';$('#opportunity-direction').textContent='vs. mercado ajustado';
-    $('#opportunity-text').textContent='Ingresá el precio publicado o pactado para compararlo con la referencia de mercado.';
+    $('#opportunity-text').textContent=`La lectura aplica un margen comercial de ${offset.toLocaleString('es-AR')}% sobre la guía sin modificar el valor de valuación.`;
     $('#opportunity-marker').style.left='50%';return;
   }
   panel.classList.add(op.klass);$('#opportunity-rating').textContent=op.rating;$('#opportunity-pct').textContent=`${op.abs.toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})}%`;
   $('#opportunity-direction').textContent=op.pct<0?'debajo del mercado ajustado':op.pct>0?'arriba del mercado ajustado':'en mercado ajustado';
-  $('#opportunity-text').textContent=`Diferencia estimada: ${fmtARS(Math.abs(op.difference))} ${op.difference<=0?'a favor del comprador':'por encima de la referencia de oportunidad'}.`;
+  $('#opportunity-text').textContent=`Lectura ajustada ${op.offset.toLocaleString('es-AR')} p.p. sobre la guía. La referencia comercial equivale a ${fmtARS(op.commercialReference)} y la diferencia monetaria es ${fmtARS(Math.abs(op.difference))} ${op.difference<=0?'a favor del comprador':'por encima de esa referencia'}.`;
   const clamped=Math.max(-20,Math.min(20,op.pct));$('#opportunity-marker').style.left=`${((clamped+20)/40)*100}%`;
 }
 
@@ -327,62 +347,18 @@ $('#vehicle-form').addEventListener('submit',e=>{
   $('#result-unit').textContent=`${entry.brand} ${entry.model} · ${entry.variant} · ${year==='0km'?'0 km':year}${km?` · ${km.toLocaleString('es-AR')} km`:''}`;
   $('#market-value').textContent=fmtARS(adjustedARS);const factorPct=(factor-1)*100;$('#market-adjustment').textContent=factor===1?`Equivale a ${fmtUSD(adjustedUSD)} al dólar configurado`:`${factorPct>0?'+':''}${factorPct.toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})}% por kilometraje · ${fmtUSD(adjustedUSD)}`;
   if(mestimate.exactPrice){$('#market-pdf-value').textContent=literalMarketValue(mestimate.exactPrice);$('#market-pdf-unit').textContent=sourceUnitText(mestimate.exactPrice);}else{$('#market-pdf-value').textContent='Sin valor exacto';$('#market-pdf-unit').textContent='Se usa una estimación, no una cifra literal del PDF';}
-  $('#market-confidence').textContent=mestimate.confidence;$('#market-confidence-short').textContent=`Confianza ${String(mestimate.confidence||'estimada').toLowerCase()}`;$('#market-method').textContent=mestimate.method;$('#buy-value').textContent=fmtARS(buyARS);$('#sale-value').textContent=fmtARS(saleARS);
-  const pages=uniqueSorted((mestimate.sourceRows||[]).map(r=>r.page).filter(Boolean));$('#market-source').textContent='';
+  $('#market-confidence').textContent=mestimate.confidence;$('#market-method').textContent=mestimate.method;$('#buy-value').textContent=fmtARS(buyARS);$('#sale-value').textContent=fmtARS(saleARS);
+  const pages=uniqueSorted((mestimate.sourceRows||[]).map(r=>r.page).filter(Boolean));$('#market-source').textContent=`${marketData.source} · ${marketData.report_month||''} ${marketData.report_year||''}${pages.length?` · pág. ${pages.slice(0,4).join(', ')}${pages.length>4?'…':''}`:''} · Confianza ${mestimate.confidence.toLowerCase()}`;
 
   $('#dnrpa-value').textContent=Number.isFinite(dval)?fmtARS(dval):year==='0km'?'No aplica a 0 km':'Sin referencia';
   const dstate=dmatch?(dmatch.kind==='exact'?'Exacta':dmatch.kind==='interpolated'?'Estimada entre años':dmatch.kind==='extrapolated'?'Proyectada desde año cercano':'Aproximada'):'Sin coincidencia';
-  $('#dnrpa-status').textContent=dstate;$('#dnrpa-status-short').textContent=dstate;
+  $('#dnrpa-status').textContent=dstate;
   $('#dnrpa-match').textContent=drow?`${drow.model} · coincidencia ${Math.max(0,Math.min(99,Math.round(dmatch.score*100)))}%${dmatch.kind!=='exact'?' · valor estimado':''}`:year==='0km'?'Consultar alta / patentamiento':'No se encontró versión oficial equivalente';
   $('#registry-fee').textContent=Number.isFinite(dval)?fmtARS(registryFee):'—';$('#stamp-fee').textContent=stampRate?fmtARS(stampFee):'No modelado';$('#fixed-fees').textContent=fmtARS(fixed);$('#transfer-total').textContent=fmtARS(transferTotal);$('#dnrpa-source').textContent=`DNRPA · vigencia ${dnrpaData.valid_from||'sin fecha'}${drow?` · pág. ${drow.page}`:''}${dmatch&&dmatch.kind!=='exact'?` · ${dstate.toLowerCase()}`:''}`;
 
-  $('#loan-amount').textContent=fmtARS(principal);renderBanks(offers,months);$('#finance-primary').textContent=bestOffer?fmtARS(bestOffer.payment):'—';$('#finance-primary-label').textContent=bestOffer?`${bestOffer.bank} · ${months} cuotas`:'Sin alternativas para este plazo';$('#finance-source').textContent=`Actualización ${ratesData.updated_at}`;$('#cash-close').textContent=fmtARS(cashClose);$('#finance-close').textContent=fmtARS(financeClose);$('#finance-close-bank').textContent=bestOffer?`${bestOffer.bank} · ${months} cuotas de ${fmtARS(bestOffer.payment)}`:'Sin financiación seleccionable';$('#operation-used').textContent=hasEnteredPrice?fmtARS(operationPrice):`${fmtARS(operationPrice)} · referencia estimada`;
+  $('#loan-amount').textContent=fmtARS(principal);renderBanks(offers,months);$('#finance-source').textContent=`${ratesData.source} · actualización ${ratesData.updated_at}. ${ratesData.calculation_note}`;$('#cash-close').textContent=fmtARS(cashClose);$('#finance-close').textContent=fmtARS(financeClose);$('#finance-close-bank').textContent=bestOffer?`${bestOffer.bank} · ${months} cuotas de ${fmtARS(bestOffer.payment)}`:'Sin financiación seleccionable';$('#operation-used').textContent=hasEnteredPrice?fmtARS(operationPrice):`${fmtARS(operationPrice)} · referencia estimada`;
 
   $('#resultados').hidden=false;$('#resultados').scrollIntoView({behavior:'smooth',block:'start'});
 });
-
-
-const INSURANCE_BASE_RANGES={
-  'Responsabilidad Civil':[50000,80000],
-  'Terceros completo':[80000,140000],
-  'Todo Riesgo':[130000,200000]
-};
-const SECURITY_ZONE_FACTORS={
-  'very-unsafe':1.30,
-  'unsafe':1.15,
-  'normal':1,
-  'safe':0.90,
-  'very-safe':0.80
-};
-function roundInsurance(n){return Math.round(n/5000)*5000;}
-function insuranceRangeText(min,max){return `${fmtARS(min).replace(/,00$/,'')}–${fmtARS(max).replace(/,00$/,'')}`;}
-function updateInsuranceRanges(){
-  const zone=$('#security-zone')?.value||'normal';
-  const factor=SECURITY_ZONE_FACTORS[zone]||1;
-  document.querySelectorAll('input[name="insurance"]').forEach(input=>{
-    const base=INSURANCE_BASE_RANGES[input.value];if(!base)return;
-    const min=roundInsurance(base[0]*factor),max=roundInsurance(base[1]*factor);
-    const range=insuranceRangeText(min,max);
-    input.dataset.range=range;
-    const small=input.closest('.insurance-option')?.querySelector('small');
-    if(small)small.textContent=`entre ${fmtARS(min)} y ${fmtARS(max)} / mes`;
-    if(input.checked){
-      const name=$('#insurance-primary-name'),value=$('#insurance-primary-value');
-      if(name)name.textContent=input.value;
-      if(value)value.textContent=range;
-    }
-  });
-}
-
-document.querySelectorAll('input[name="insurance"]').forEach(input=>{
-  input.addEventListener('change',()=>{
-    if(!input.checked)return;
-    const name=$('#insurance-primary-name'),value=$('#insurance-primary-value');
-    if(name)name.textContent=input.value;
-    if(value)value.textContent=input.dataset.range||'—';
-  });
-});
-$('#security-zone')?.addEventListener('change',updateInsuranceRanges);
-updateInsuranceRanges();
 
 loadData().catch(showLoadError);
