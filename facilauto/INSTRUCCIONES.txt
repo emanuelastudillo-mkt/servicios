@@ -1,30 +1,59 @@
-FACIL AUTO — GUÍA VISUAL DE MARCA v1.5.14
+FACIL AUTO — IDENTIDAD DE MARCA EN WEB v1.5.15
 
 PAQUETE INCREMENTAL
-Solo contiene archivos nuevos o modificados.
+Solo incluye archivos nuevos o modificados.
 
-ARCHIVOS NUEVOS
-/assets/brand/facil-auto-isotipo.png
-/assets/brand/facil-auto-logo.png
-/assets/brand/facil-auto-logotipo.png
-/assets/brand/FACIL-AUTO-Guia-Visual.pdf
+APLICACIÓN DE MARCA
 
-ARCHIVO MODIFICADO
-/servicios-auth.js
-- Solo actualiza la versión visible del frontend a v1.5.14.
+HEADER DESKTOP
+- Usa el logotipo horizontal:
+  assets/brand/facil-auto-logotipo.png
 
-NO REQUIERE
-- Cloudflare
-- Worker
-- SQL
-- D1
-- migraciones
+HEADER MOBILE
+- Usa el isotipo:
+  assets/brand/facil-auto-isotipo.png
+
+FOOTERS
+- Usa el logo completo:
+  assets/brand/facil-auto-logo.png
+
+FAVICON
+- Usa el isotipo optimizado.
+- Se incluyen:
+  assets/brand/favicon.ico
+  assets/brand/favicon.png
+  assets/brand/apple-touch-icon.png
+
+La capa global reemplaza los wordmarks de texto existentes sin editar cada HTML.
+
+ARCHIVOS DEL INCREMENTAL
+
+servicios-auth.js
+assets/css/brand.css
+assets/brand/facil-auto-isotipo.png
+assets/brand/facil-auto-logo.png
+assets/brand/facil-auto-logotipo.png
+assets/brand/favicon.ico
+assets/brand/favicon.png
+assets/brand/apple-touch-icon.png
+INSTRUCCIONES.txt
 
 INSTALACIÓN
-Subir el contenido del ZIP dentro de:
+
+Subir TODO el contenido del ZIP dentro de:
 /facilauto/
 
 respetando carpetas.
 
-La guía queda disponible como recurso interno en:
-/facilauto/assets/brand/FACIL-AUTO-Guia-Visual.pdf
+Después:
+Ctrl + F5
+
+NO HACE FALTA
+- modificar Cloudflare
+- Worker
+- SQL
+- D1
+- tocar HTML individualmente
+
+VERSIÓN
+Footer dinámico: v1.5.15

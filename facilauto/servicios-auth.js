@@ -1,12 +1,12 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos v1.5.14
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca v1.5.15
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
-const FRONTEND_VERSION = '1.5.14';
+const FRONTEND_VERSION = '1.5.15';
 const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
@@ -256,6 +256,95 @@ function syncGlobalUi(account = currentAccount) {
   syncPlansMenu(account);
   ensureInstagramLink();
   syncVisibleVersion();
+}
+
+
+
+function brandUrl(path) {
+  return siteUrl(`assets/brand/${path}`);
+}
+
+function ensureBrandStylesheet() {
+  if (document.querySelector('link[data-fa-brand-css]')) return;
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = siteUrl(`assets/css/brand.css?v=${FRONTEND_VERSION}`);
+  link.dataset.faBrandCss = '1';
+  document.head.appendChild(link);
+}
+
+function ensureBrandFavicons() {
+  const faviconHref = brandUrl('favicon.ico');
+  const pngHref = brandUrl('favicon.png');
+  const appleHref = brandUrl('apple-touch-icon.png');
+
+  document.querySelectorAll(
+    'link[rel="icon"],link[rel="shortcut icon"],link[rel="apple-touch-icon"]'
+  ).forEach(link => link.remove());
+
+  const ico = document.createElement('link');
+  ico.rel = 'icon';
+  ico.href = faviconHref;
+  ico.type = 'image/x-icon';
+
+  const png = document.createElement('link');
+  png.rel = 'icon';
+  png.href = pngHref;
+  png.type = 'image/png';
+  png.sizes = '192x192';
+
+  const apple = document.createElement('link');
+  apple.rel = 'apple-touch-icon';
+  apple.href = appleHref;
+  apple.sizes = '180x180';
+
+  document.head.append(ico, png, apple);
+}
+
+function applyBrandToWordmarks() {
+  document.querySelectorAll('.topbar .wordmark').forEach(link => {
+    if (link.dataset.faBrandApplied === 'header') return;
+
+    link.dataset.faBrandApplied = 'header';
+    link.classList.add('fa-brand-header');
+    link.setAttribute('aria-label', 'FACIL AUTO');
+
+    link.innerHTML = `
+      <img
+        class="fa-brand-header-logotipo"
+        src="${brandUrl('facil-auto-logotipo.png')}"
+        alt="FACIL AUTO"
+      >
+      <img
+        class="fa-brand-header-isotipo"
+        src="${brandUrl('facil-auto-isotipo.png')}"
+        alt=""
+        aria-hidden="true"
+      >
+    `;
+  });
+
+  document.querySelectorAll('footer .wordmark').forEach(link => {
+    if (link.dataset.faBrandApplied === 'footer') return;
+
+    link.dataset.faBrandApplied = 'footer';
+    link.classList.add('fa-brand-footer');
+    link.setAttribute('aria-label', 'FACIL AUTO');
+
+    link.innerHTML = `
+      <img
+        src="${brandUrl('facil-auto-logo.png')}"
+        alt="FACIL AUTO"
+      >
+    `;
+  });
+}
+
+function applyBrandIdentity() {
+  ensureBrandStylesheet();
+  ensureBrandFavicons();
+  applyBrandToWordmarks();
 }
 
 
@@ -921,6 +1010,7 @@ function escapeHtml(value='') {
 
 async function init() {
   injectStyles();
+  applyBrandIdentity();
   captureReferralFromUrl();
   syncGlobalUi(null);
   await loadProductSettings();

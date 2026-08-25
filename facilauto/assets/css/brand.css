@@ -1,0 +1,73 @@
+
+/* FACIL AUTO — identidad visual aplicada v1.5.15 */
+
+.fa-brand-header{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:auto!important;
+  line-height:1!important;
+  text-decoration:none!important;
+}
+
+.fa-brand-header img{
+  display:block;
+  object-fit:contain;
+}
+
+.fa-brand-header-logotipo{
+  width:154px;
+  height:auto;
+  max-height:48px;
+}
+
+.fa-brand-header-isotipo{
+  display:none!important;
+  width:42px;
+  height:42px;
+}
+
+.fa-brand-footer{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:auto!important;
+  line-height:1!important;
+  text-decoration:none!important;
+}
+
+.fa-brand-footer img{
+  display:block;
+  width:86px;
+  height:auto;
+  max-height:66px;
+  object-fit:contain;
+}
+
+.footer .fa-brand-footer img,
+.seo-footer .fa-brand-footer img,
+.admin-footer .fa-brand-footer img,
+.migration-footer .fa-brand-footer img{
+  width:82px;
+}
+
+@media(max-width:980px){
+  .fa-brand-header-logotipo{
+    display:none!important;
+  }
+
+  .fa-brand-header-isotipo{
+    display:block!important;
+  }
+}
+
+@media(max-width:520px){
+  .fa-brand-header-isotipo{
+    width:36px;
+    height:36px;
+  }
+
+  .fa-brand-footer img{
+    width:72px;
+  }
+}
