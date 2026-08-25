@@ -1,88 +1,116 @@
-FACIL AUTO — CONSULTA PERSISTENTE v1.5.20
+FACIL AUTO — SEGUROS DINÁMICOS v1.5.21
 
-PAQUETE INCREMENTAL
-Solo contiene archivos nuevos o modificados.
+PAQUETE INCREMENTAL.
+Solo incluye archivos nuevos o modificados.
 
 ARCHIVOS
-- assets/js/form-draft-v1.5.20.js
+- assets/js/insurance-model-v1.5.21.js
 - index.html
 - servicios-auth.js
 - INSTRUCCIONES.txt
 
-QUÉ CAMBIA
+PROBLEMA DETECTADO
 
-Si una persona SIN SESIÓN completa una consulta y luego debe ingresar con Google,
-los datos ya no se pierden.
+El apartado SEGURO tenía tres rangos fijos escritos en el HTML:
 
-Se guarda:
-- Marca
-- Modelo
-- Versión
-- Año
-- Kilometraje
-- Precio publicado / pactado
-- Anticipo
-- Plazo
-- Tipo de comprador
-- Seguridad de zona
-- Jurisdicción
-- Dólar de referencia
+- Responsabilidad Civil
+- Terceros completo
+- Todo Riesgo
 
-AL VOLVER DEL LOGIN
+Por eso un vehículo valuado en $14.000.000 podía mostrar el mismo seguro
+que uno valuado en $50.000.000.
 
-FACIL AUTO reconstruye los selects dependientes correctamente:
+CORRECCIÓN
 
-Marca
-→ Modelo
-→ Versión
-→ Año
+El seguro ahora se calcula DESPUÉS de la valuación del vehículo.
 
-No intenta escribir un modelo o una versión antes de que app.js haya generado
-sus opciones.
+VARIABLES DEL MODELO
+1. Valor estimado del vehículo.
+2. Tipo de cobertura.
+3. Nivel de seguridad de zona.
+4. Antigüedad del vehículo.
 
-PÁGINAS SEO
+COBERTURAS
 
-Funciona también dentro de las calculadoras de páginas satélite.
-Los campos ocultos o predefinidos por el perfil SEO no son forzados por el borrador.
+RESPONSABILIDAD CIVIL
+Tiene una parte fija importante y poca sensibilidad al valor del propio auto,
+porque la cobertura principal está ligada a responsabilidad frente a terceros.
 
-CUÁNDO GUARDA
+TERCEROS COMPLETO
+Tiene mayor sensibilidad al valor del vehículo, porque agrega riesgos
+relacionados con el propio bien.
 
-- al cambiar selects
-- mientras se escriben importes/kilometraje
-- antes de abandonar la página
-- antes del redirect de login iniciado por servicios-auth.js
+TODO RIESGO
+Es la cobertura con mayor sensibilidad al valor asegurado.
+Para vehículos de más de 10 años se agrega una advertencia de que
+la disponibilidad puede depender de la política de la aseguradora.
 
-DURACIÓN
+ZONA
 
-El borrador dura como máximo 24 horas.
+Multiplicadores relativos:
+- Muy inseguro: 1,25
+- Inseguro: 1,12
+- Normal: 1,00
+- Seguro: 0,92
+- Muy seguro: 0,86
 
-CUÁNDO SE BORRA
+ANTIGÜEDAD
 
-Cuando una consulta autenticada genera finalmente el resultado,
-el borrador se elimina automáticamente.
+Se aplica un ajuste moderado.
+No se usa para reemplazar el valor del vehículo.
 
-AVISO
+EJEMPLO APROXIMADO DEL MODELO
+Zona normal, sin considerar pequeños ajustes por antigüedad:
 
-Después de restaurar se muestra brevemente:
+Vehículo de $14 M
+- RC: centro cercano a $50 mil/mes
+- Terceros completo: centro cercano a $108 mil/mes
+- Todo Riesgo: centro cercano a $146 mil/mes
 
-"RECUPERAMOS LOS DATOS DE TU CONSULTA."
+Vehículo de $50 M
+- RC: centro cercano a $75 mil/mes
+- Terceros completo: centro cercano a $270 mil/mes
+- Todo Riesgo: centro cercano a $380 mil/mes
 
-NO MODIFICA
+La interfaz muestra un RANGO alrededor de estos valores centrales,
+no una falsa cotización exacta.
 
+IMPORTANTE
+
+El resultado se presenta explícitamente como ESTIMACIÓN.
+Una cotización real puede cambiar por:
+- compañía
+- modelo específico
+- radicación
+- historial / perfil
+- uso
+- franquicia
+- políticas de suscripción
+- promociones y bonificaciones
+
+INTERACCIÓN
+
+Después de calcular:
+- cambiar cobertura actualiza el valor principal inmediatamente;
+- cambiar Seguridad de tu zona recalcula los tres rangos;
+- volver a calcular otro vehículo actualiza los rangos con su nueva valuación.
+
+NO SE TOCA
 - app.js
-- fórmulas
+- valuación
+- transferencia
+- financiación
+- oportunidad
 - créditos
-- consumo de consultas
 - planes
 - pagos
 - Worker
-- SQL
 - D1
-- Google OAuth
+- SQL
 
 INSTALACIÓN
 
-Subir TODO el ZIP dentro de:
+Subir TODO este ZIP dentro de:
 /facilauto/
 
 respetando carpetas.
@@ -91,4 +119,4 @@ Después:
 Ctrl + F5
 
 VERSIÓN
-v1.5.20
+v1.5.21
