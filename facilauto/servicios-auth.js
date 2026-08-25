@@ -1,12 +1,12 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca + Mobile + Draft + Insurance + Admin Refill + NoFlash v1.5.23
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca + Mobile + Draft + Insurance + Admin Refill + NoFlash + CTA v1.5.24
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
-const FRONTEND_VERSION = '1.5.23';
+const FRONTEND_VERSION = '1.5.24';
 const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
@@ -203,9 +203,9 @@ const authCss = `
   z-index:10020;
   display:flex;
   align-items:stretch;
-  background:#121212;
+  background:#01A5BC;
   color:#fff;
-  border:1px solid #121212;
+  border:1px solid #01A5BC;
   box-shadow:0 10px 28px rgba(0,0,0,.16);
   transform:translateY(18px);
   opacity:0;
@@ -230,10 +230,13 @@ const authCss = `
   text-transform:uppercase;
 }
 .fa-floating-quote>a span{
-  color:#01A5BC;
+  color:#fff;
   font-size:18px;
   font-weight:400;
   transition:transform .2s ease;
+}
+.fa-floating-quote>a:hover{
+  background:rgba(0,0,0,.06);
 }
 .fa-floating-quote>a:hover span{
   transform:translateX(4px);
@@ -242,14 +245,14 @@ const authCss = `
   width:42px;
   min-height:50px;
   border:0;
-  border-left:1px solid rgba(255,255,255,.24);
+  border-left:1px solid rgba(255,255,255,.42);
   background:transparent;
   color:#fff;
   cursor:pointer;
   font:300 19px/1 Arial,sans-serif;
 }
 .fa-floating-quote-close:hover{
-  background:rgba(255,255,255,.08);
+  background:rgba(0,0,0,.08);
 }
 @media(max-width:620px){
   .fa-floating-quote{
@@ -580,12 +583,12 @@ function ensureFloatingQuote() {
   const box = document.createElement('div');
   box.className = 'fa-floating-quote';
   box.setAttribute('role', 'complementary');
-  box.setAttribute('aria-label', 'Cotizar mi auto');
+  box.setAttribute('aria-label', 'Cotizar auto');
 
   const link = document.createElement('a');
   link.href = siteUrl('cuanto-vale-mi-auto/');
-  link.innerHTML = 'COTIZAR MI AUTO <span aria-hidden="true">→</span>';
-  link.setAttribute('aria-label', 'Cotizar mi auto');
+  link.innerHTML = 'COTIZAR AUTO <span aria-hidden="true">→</span>';
+  link.setAttribute('aria-label', 'Cotizar auto');
 
   const close = document.createElement('button');
   close.type = 'button';

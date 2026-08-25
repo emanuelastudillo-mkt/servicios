@@ -1,68 +1,48 @@
-FACIL AUTO — FIX FLASH DE LOGO v1.5.23
+FACIL AUTO — CTA TURQUESA v1.5.24
 
-PROBLEMA
+PAQUETE INCREMENTAL
 
-Al recargar con F5 podía aparecer durante un instante el logo enorme,
-ocupando gran parte de la pantalla.
+ARCHIVOS
+- servicios-auth.js
+- index.html
+- INSTRUCCIONES.txt
 
-CAUSA
+CAMBIOS
 
-servicios-auth.js reemplaza el wordmark de texto por los PNG de marca.
+BOTÓN FLOTANTE
 
-El archivo:
-assets/css/brand.css
+ANTES:
+COTIZAR MI AUTO
 
-se carga dinámicamente.
+AHORA:
+COTIZAR AUTO
 
-En una recarga normal podía existir un frame donde:
-1. el <img> ya estaba insertado;
-2. brand.css todavía no había terminado de aplicar;
-3. el navegador usaba temporalmente el tamaño nativo del PNG.
+COLOR
 
-El logotipo horizontal tiene una resolución nativa grande, por eso el
-destello podía cubrir la pantalla.
+Se reemplaza el fondo negro por el turquesa de marca:
 
-CORRECCIÓN
-
-Se agregan dos protecciones.
-
-1. CSS CRÍTICO
-
-Antes de insertar cualquier imagen de marca se crea en <head> un pequeño
-<style id="fa-brand-critical"> con los tamaños esenciales.
-
-Este CSS es síncrono y existe ANTES del primer frame del logo.
-
-2. DIMENSIONES HTML
-
-Las imágenes ahora nacen con width/height explícitos:
-
-Logotipo desktop:
-154 × 51
-
-Isotipo mobile:
-42 × 42
-
-Logo footer:
-86 × 65
-
-Aunque por cualquier motivo el CSS externo tarde en cargar, el navegador
-ya conoce un tamaño seguro desde el propio elemento HTML.
-
-RESPONSIVE
+#01A5BC
 
 Se mantiene:
-- desktop: logotipo horizontal
-- mobile <= 980 px: isotipo
-- mobile pequeño: isotipo 36 × 36
-- footer: logo completo
+- texto blanco
+- flecha blanca
+- botón X
+- cierre durante la sesión
+- comportamiento responsive
+- ocultamiento durante teclado mobile
+- no mostrar dentro del administrador
+
+HOVER
+
+Se agrega una variación oscura sutil sobre el mismo turquesa,
+sin introducir otro color de marca.
 
 NO SE MODIFICA
 
+- destino del botón
 - cálculos
 - app.js
 - seguros
-- consultas
 - créditos
 - planes
 - pagos
@@ -79,9 +59,8 @@ Subir:
 dentro de:
 /facilauto/
 
-Después hacer Ctrl + F5 una sola vez para tomar v1.5.23.
-
-Las recargas normales posteriores con F5 ya no deben mostrar el flash.
+Después:
+Ctrl + F5
 
 VERSIÓN
-v1.5.23
+v1.5.24
