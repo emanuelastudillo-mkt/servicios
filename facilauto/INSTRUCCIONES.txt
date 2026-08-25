@@ -1,99 +1,87 @@
-FACIL AUTO — AUTORECARGA ADMIN v1.5.22
+FACIL AUTO — FIX FLASH DE LOGO v1.5.23
 
-OBJETIVO
+PROBLEMA
 
-El administrador no necesita una herramienta manual para agregarse créditos.
+Al recargar con F5 podía aparecer durante un instante el logo enorme,
+ocupando gran parte de la pantalla.
 
-COMPORTAMIENTO
+CAUSA
 
-1. El administrador usa consultas normalmente.
-2. Llega a 0 disponibles.
-3. Intenta realizar otra consulta.
-4. Esa consulta FALLA por falta de créditos.
-5. Ese mismo rechazo dispara en el Worker una recarga de +10 bonus_credits.
-6. La interfaz actualiza el saldo a 10.
-7. Muestra:
-   "Llegaste a 0. Se regeneraron 10 consultas de administrador. Volvé a calcular."
-8. La siguiente consulta se ejecuta normalmente y deja 9.
+servicios-auth.js reemplaza el wordmark de texto por los PNG de marca.
 
-IMPORTANTE
+El archivo:
+assets/css/brand.css
 
-La consulta que dispara la recarga NO se ejecuta y NO consume uno de los
-10 créditos nuevos.
+se carga dinámicamente.
 
-SOLO ADMINISTRADOR
+En una recarga normal podía existir un frame donde:
+1. el <img> ya estaba insertado;
+2. brand.css todavía no había terminado de aplicar;
+3. el navegador usaba temporalmente el tamaño nativo del PNG.
 
-La condición se valida SERVER-SIDE mediante isAdminUser(user).
+El logotipo horizontal tiene una resolución nativa grande, por eso el
+destello podía cubrir la pantalla.
 
-Los usuarios normales siguen igual:
-- saldo 0
-- aviso de falta de consultas
-- acceso a Planes
+CORRECCIÓN
 
-PROTECCIÓN CONTRA DOBLE RECARGA
+Se agregan dos protecciones.
 
-El Worker hace un UPDATE condicional:
+1. CSS CRÍTICO
 
-bonus_credits = 0
+Antes de insertar cualquier imagen de marca se crea en <head> un pequeño
+<style id="fa-brand-critical"> con los tamaños esenciales.
 
-Solo el primer request puede cambiar el saldo de 0 a 10.
-Dos intentos simultáneos no generan 20 créditos.
+Este CSS es síncrono y existe ANTES del primer frame del logo.
 
-TIPO DE CRÉDITO
+2. DIMENSIONES HTML
 
-Los 10 créditos se agregan como:
-bonus_credits
+Las imágenes ahora nacen con width/height explícitos:
 
-No:
-- modifican monthly_limit
-- cuentan como compra
-- modifican credit_purchases
-- modifican referidos
+Logotipo desktop:
+154 × 51
 
-ARCHIVOS
+Isotipo mobile:
+42 × 42
 
-WEB / GITHUB
-- servicios-auth.js
-- index.html
+Logo footer:
+86 × 65
 
-CLOUDFLARE
-- cloudflare/worker.js  (archivo completo para reemplazar)
+Aunque por cualquier motivo el CSS externo tarde en cargar, el navegador
+ya conoce un tamaño seguro desde el propio elemento HTML.
 
-NO HAY
+RESPONSIVE
+
+Se mantiene:
+- desktop: logotipo horizontal
+- mobile <= 980 px: isotipo
+- mobile pequeño: isotipo 36 × 36
+- footer: logo completo
+
+NO SE MODIFICA
+
+- cálculos
+- app.js
+- seguros
+- consultas
+- créditos
+- planes
+- pagos
+- Worker
+- D1
 - SQL
-- migración D1
-- cambios de esquema
 
 INSTALACIÓN
 
-1. CLOUDFLARE
-   Reemplazar el Worker actual por:
-   cloudflare/worker.js
+Subir:
+- index.html
+- servicios-auth.js
 
-2. Verificar:
-   /health
-   debe mostrar:
-   "version":"1.5.22"
+dentro de:
+/facilauto/
 
-3. WEB
-   Subir:
-   /servicios-auth.js
-   /index.html
+Después hacer Ctrl + F5 una sola vez para tomar v1.5.23.
 
-   dentro de:
-   /facilauto/
-
-4. Ctrl + F5
-
-PRUEBA
-
-Con la cuenta administradora:
-
-- dejar saldo en 0
-- intentar una consulta
-- debe fallar y mostrar saldo 10
-- volver a pulsar Calcular
-- debe ejecutar la consulta y quedar en 9
+Las recargas normales posteriores con F5 ya no deben mostrar el flash.
 
 VERSIÓN
-v1.5.22
+v1.5.23

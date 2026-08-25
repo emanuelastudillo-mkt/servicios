@@ -1,12 +1,12 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca + Mobile + Draft + Insurance + Admin Refill v1.5.22
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca + Mobile + Draft + Insurance + Admin Refill + NoFlash v1.5.23
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
-const FRONTEND_VERSION = '1.5.22';
+const FRONTEND_VERSION = '1.5.23';
 const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
@@ -416,6 +416,69 @@ function ensureMobilePolishStylesheet() {
   document.head.appendChild(link);
 }
 
+
+function ensureBrandCriticalStyles() {
+  if (document.getElementById('fa-brand-critical')) return;
+
+  const style = document.createElement('style');
+  style.id = 'fa-brand-critical';
+  style.textContent = `
+    .fa-brand-header{
+      display:inline-flex!important;
+      align-items:center!important;
+      width:auto!important;
+      line-height:1!important;
+    }
+    .fa-brand-header img,
+    .fa-brand-footer img{
+      object-fit:contain!important;
+    }
+    .fa-brand-header-logotipo{
+      display:block!important;
+      width:154px!important;
+      height:auto!important;
+      max-height:51px!important;
+    }
+    .fa-brand-header-isotipo{
+      display:none!important;
+      width:42px!important;
+      height:42px!important;
+    }
+    .fa-brand-footer{
+      display:inline-flex!important;
+      align-items:center!important;
+      width:auto!important;
+      line-height:1!important;
+    }
+    .fa-brand-footer img{
+      display:block!important;
+      width:86px!important;
+      height:auto!important;
+      max-height:65px!important;
+    }
+    @media(max-width:980px){
+      .fa-brand-header-logotipo{
+        display:none!important;
+      }
+      .fa-brand-header-isotipo{
+        display:block!important;
+      }
+    }
+    @media(max-width:520px){
+      .fa-brand-header-isotipo{
+        width:36px!important;
+        height:36px!important;
+      }
+      .fa-brand-footer img{
+        width:72px!important;
+        max-height:54px!important;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+}
+
 function ensureBrandStylesheet() {
   if (document.querySelector('link[data-fa-brand-css]')) return;
 
@@ -466,11 +529,15 @@ function applyBrandToWordmarks() {
       <img
         class="fa-brand-header-logotipo"
         src="${brandUrl('facil-auto-logotipo.png')}"
+        width="154"
+        height="51"
         alt="FACIL AUTO"
       >
       <img
         class="fa-brand-header-isotipo"
         src="${brandUrl('facil-auto-isotipo.png')}"
+        width="42"
+        height="42"
         alt=""
         aria-hidden="true"
       >
@@ -487,6 +554,8 @@ function applyBrandToWordmarks() {
     link.innerHTML = `
       <img
         src="${brandUrl('facil-auto-logo.png')}"
+        width="86"
+        height="65"
         alt="FACIL AUTO"
       >
     `;
@@ -494,6 +563,7 @@ function applyBrandToWordmarks() {
 }
 
 function applyBrandIdentity() {
+  ensureBrandCriticalStyles();
   ensureBrandStylesheet();
   ensureMobilePolishStylesheet();
   ensureBrandFavicons();
