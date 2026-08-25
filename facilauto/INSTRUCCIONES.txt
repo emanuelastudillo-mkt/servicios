@@ -1,70 +1,40 @@
-FACIL AUTO — FINANCIACIÓN · VALOR PRINCIPAL v1.5.26
+FACIL AUTO — PULSO ANIMADO v1.5.27
 
 PAQUETE INCREMENTAL
 
 ARCHIVOS
-- assets/js/finance-primary-v1.5.26.js
 - index.html
 - servicios-auth.js
+- assets/css/hero-market.css
+- assets/js/hero-market-animate-v1.5.27.js
 - INSTRUCCIONES.txt
 
-PROBLEMA
+CAMBIOS
 
-El bloque:
+1. ANIMACIÓN DE CIFRAS
+Los 3 números del "Pulso del mercado" ahora:
+- empiezan en 0;
+- incrementan hasta su valor real al entrar en pantalla;
+- se activan una sola vez;
+- respetan prefers-reduced-motion.
 
-04 FINANCIACIÓN
-Alternativas bancarias
+2. VECTORES / FLECHAS
+Se agregan SVG de tendencia:
+- flecha de subida en turquesa #01A5BC;
+- flecha de bajada en naranja #e94f32;
+- microindicadores editoriales dentro de cada estadística;
+- dupla de vectores en el encabezado del bloque.
 
-tenía preparado:
-#finance-primary
-
-pero app.js nunca escribía un valor en ese nodo.
-Por eso el resumen quedaba en "—" aunque debajo sí existieran alternativas.
-
-CORRECCIÓN
-
-El valor principal ahora muestra:
-
-CUOTA MENSUAL DE LA PRIMERA ALTERNATIVA DEL LISTADO
-
-El listado actual de app.js está ordenado por:
-MENOR CFT
-
-Por eso el resumen queda, por ejemplo:
-
-$985.000
-cuota/mes · menor CFT · 36 meses
-
-Al desplegar el bloque siguen apareciendo:
-- banco / producto
-- TNA
-- CFT TEA
-- total
-- cuota aproximada
-- monto financiado
-
-CASOS ESPECIALES
-
-ANTICIPO = 100%
-Se muestra:
-
-SIN FINANCIACIÓN
-operación cubierta por anticipo
-
-SIN PRODUCTOS PARA EL PLAZO
-Se muestra:
-
-SIN ALTERNATIVAS
-para XX meses
+3. AJUSTE VISUAL
+- mejor jerarquía del título del bloque;
+- chips de lectura ("Movimiento mensual", "Acumulado 2026", "Lectura de ranking");
+- pequeñas animaciones visuales al disparar el conteo.
 
 NO SE MODIFICA
-- fórmula financiera
-- orden de bancos
-- tasas
+- calculadora
 - app.js
-- créditos
 - seguros
-- planes
+- créditos
 - pagos
 - Worker
 - D1
@@ -81,4 +51,4 @@ Después:
 Ctrl + F5
 
 VERSIÓN
-v1.5.26
+v1.5.27
