@@ -1,10 +1,11 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin v1.5.11
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos v1.5.12
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
+const REFERRAL_KEY = 'facilauto_referral_v1';
 
 const SITE_ROOT = new URL('./', import.meta.url);
 const siteUrl = (path = '') => new URL(path, SITE_ROOT).toString();
@@ -36,6 +37,10 @@ const PLANS = {
 let currentAccount = null;
 let currentIsAdmin = false;
 let consultationGateInstalled = false;
+let currentProductSettings = {
+  plans:{free:true,standard:false,pro:false},
+  referrals:{enabled:true,reward_credits:20}
+};
 
 const authCss = `
 .fa-auth{display:flex;align-items:center;gap:10px;margin-left:auto;justify-self:end}
@@ -104,6 +109,38 @@ const authCss = `
   letter-spacing:.07em;
 }
 .fa-admin-account-link:hover{background:#2b2b2b}
+
+.fa-plan-disabled{display:none!important}
+.fa-referral-account{
+  margin-top:26px;
+  padding:24px;
+  border:1px solid #111;
+  background:#f7f5ef;
+}
+.fa-referral-account h2{margin:5px 0 8px;font-size:28px;letter-spacing:-.04em}
+.fa-referral-account p{margin:0;color:#6d6b65;font:13px/1.55 Georgia,"Times New Roman",serif}
+.fa-referral-link-row{display:flex;gap:8px;margin-top:18px}
+.fa-referral-link-row input{
+  flex:1;min-width:0;height:42px;border:1px solid #aaa;background:#fff;padding:0 12px;
+  font:600 11px/1 Arial,sans-serif
+}
+.fa-referral-link-row button{
+  min-height:42px;padding:0 14px;border:1px solid #111;background:#111;color:#fff;
+  font:800 9px/1 Arial,sans-serif;letter-spacing:.07em;cursor:pointer
+}
+.fa-referral-stats{display:flex;gap:22px;margin-top:16px}
+.fa-referral-stats span{font-size:9px;color:#777}
+.fa-referral-stats strong{color:#111;font-size:14px}
+.fa-referral-public-card .seo-plan-price{font-size:30px}
+.fa-plan-unavailable-note{
+  margin-top:16px;padding:12px 14px;border:1px solid #111;background:#f4f1e9;
+  font:12px/1.5 Georgia,"Times New Roman",serif
+}
+@media(max-width:600px){
+  .fa-referral-link-row{flex-direction:column}
+  .fa-referral-link-row button{width:100%}
+}
+
 .fa-consult-submit[disabled]{opacity:.62;cursor:wait!important}
 .fa-consult-submit[data-empty="1"]{background:#6d6b65!important}
 @media(max-width:850px){
@@ -169,6 +206,100 @@ async function api(path, options = {}) {
   return data;
 }
 
+
+function captureReferralFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const code = String(url.searchParams.get('ref') || '').trim();
+
+    if (/^[A-Za-z0-9_-]{6,32}$/.test(code)) {
+      localStorage.setItem(REFERRAL_KEY, code);
+      url.searchParams.delete('ref');
+      history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
+    }
+  } catch (_) {}
+}
+
+function storedReferral() {
+  const code = String(localStorage.getItem(REFERRAL_KEY) || '').trim();
+  return /^[A-Za-z0-9_-]{6,32}$/.test(code) ? code : '';
+}
+
+async function loadProductSettings() {
+  try {
+    const data = await api('/api/public/settings');
+    if (data?.settings) currentProductSettings = data.settings;
+  } catch (err) {
+    console.warn('FACIL AUTO settings:', err);
+  }
+
+  applyProductSettingsToStaticPages();
+  return currentProductSettings;
+}
+
+function enabledPaidPlans() {
+  return ['standard','pro'].filter(key => currentProductSettings?.plans?.[key]);
+}
+
+function applyProductSettingsToStaticPages() {
+  const enabled = currentProductSettings?.plans || {};
+
+  document.querySelectorAll('[data-fa-plan]').forEach(el => {
+    const key = el.getAttribute('data-fa-plan');
+    el.classList.toggle('fa-plan-disabled', enabled[key] === false);
+  });
+
+  const paymentMap = {
+    'https://mpago.la/2EqR1ks':'standard',
+    'https://mpago.la/2cQiQ5Z':'pro'
+  };
+
+  document.querySelectorAll('a[href]').forEach(link => {
+    const key = paymentMap[link.href];
+    if (key && enabled[key] === false) {
+      link.classList.add('fa-plan-disabled');
+      link.setAttribute('aria-hidden','true');
+      link.tabIndex = -1;
+    }
+  });
+
+  document.querySelectorAll('.seo-plan').forEach(card => {
+    const title = card.querySelector('h2')?.textContent?.trim().toLowerCase();
+    if ((title === 'standard' || title === 'pro') && enabled[title] === false) {
+      card.classList.add('fa-plan-disabled');
+    }
+  });
+
+  document.querySelectorAll('.seo-fact').forEach(fact => {
+    const title = fact.querySelector('span')?.textContent?.trim().toLowerCase();
+    if ((title === 'standard' || title === 'pro') && enabled[title] === false) {
+      fact.classList.add('fa-plan-disabled');
+    }
+  });
+
+  const plansGrid = document.querySelector('.seo-plans');
+  if (plansGrid && currentProductSettings?.referrals?.enabled) {
+    if (!plansGrid.querySelector('.fa-referral-public-card')) {
+      const reward = Math.max(
+        1,
+        Number(currentProductSettings.referrals.reward_credits) || 20
+      );
+      const article = document.createElement('article');
+      article.className = 'seo-plan fa-referral-public-card';
+      article.innerHTML = `
+        <small>PROGRAMA</small>
+        <h2>REFERIDOS</h2>
+        <div class="seo-plan-price">+${reward}</div>
+        <div class="seo-plan-volume">consultas por invitación</div>
+        <p>Invitá a una persona nueva a FACIL AUTO y recibí ${reward} consultas adicionales.</p>
+        <a href="${siteUrl('mi-cuenta/')}">OBTENER MI LINK</a>
+      `;
+      plansGrid.appendChild(article);
+    }
+  }
+}
+
+
 function cleanReturnUrl() {
   const url = new URL(window.location.href);
   url.searchParams.delete('login_ticket');
@@ -182,8 +313,10 @@ function login() {
     params.get('embed') === '1' ? params.get('share_url') : '';
 
   const returnTo = embeddedReturn || cleanReturnUrl();
+  const referral = storedReferral();
   const authUrl =
-    `${API_BASE.replace(/\/$/,'')}/auth/google?return_to=${encodeURIComponent(returnTo)}`;
+    `${API_BASE.replace(/\/$/,'')}/auth/google?return_to=${encodeURIComponent(returnTo)}` +
+    (referral ? `&ref=${encodeURIComponent(referral)}` : '');
 
   if (window.top !== window.self) {
     window.top.location.href = authUrl;
@@ -289,6 +422,7 @@ async function exchangeLoginTicket() {
 
   if (!data.token) throw new Error('No se recibió una sesión válida.');
   setToken(data.token);
+  localStorage.removeItem(REFERRAL_KEY);
 }
 
 function findHeaderHost() {
@@ -313,11 +447,19 @@ function renderAccountLoggedOut() {
   const root = document.getElementById('account-page-root');
   if (!root) return;
 
+  const paid = enabledPaidPlans();
+  const extra = paid.length
+    ? ` y acceder a ${paid.map(key => PLANS[key].name).join(' / ')}`
+    : '';
+  const referralText = currentProductSettings?.referrals?.enabled
+    ? ' También vas a encontrar tu enlace personal de referidos.'
+    : '';
+
   root.innerHTML = `
     <section class="account-empty">
       <span class="account-eyebrow">CUENTA FACIL AUTO</span>
       <h1>Ingresá para ver tu cuenta.</h1>
-      <p>Desde acá vas a poder consultar tu plan, tus consultas disponibles y acceder a las opciones Standard y PRO.</p>
+      <p>Desde acá podés consultar tu plan y tus consultas disponibles${extra}.${referralText}</p>
       <button type="button" id="account-login-button">INGRESAR CON GOOGLE</button>
     </section>
   `;
@@ -347,6 +489,64 @@ function planCard(key) {
   `;
   return article;
 }
+
+
+async function renderReferralAccount(root) {
+  if (!root || !currentProductSettings?.referrals?.enabled) return;
+
+  const section = document.createElement('section');
+  section.className = 'fa-referral-account';
+  section.innerHTML = `
+    <span class="account-eyebrow">REFERIDOS</span>
+    <h2>Invitá y sumá consultas.</h2>
+    <p>Cada usuario nuevo que se registre desde tu enlace te suma consultas adicionales.</p>
+    <div class="fa-referral-link-row">
+      <input type="text" readonly value="Cargando tu enlace…" aria-label="Enlace de referidos">
+      <button type="button">COPIAR LINK</button>
+    </div>
+    <div class="fa-referral-stats"></div>
+  `;
+
+  root.appendChild(section);
+
+  try {
+    const data = await api('/api/referral');
+    if (!data?.enabled) {
+      section.remove();
+      return;
+    }
+
+    const input = section.querySelector('input');
+    const button = section.querySelector('button');
+    const stats = section.querySelector('.fa-referral-stats');
+    const reward = Math.max(1, Number(data.reward_credits) || 20);
+
+    input.value = data.invite_url || '';
+
+    stats.innerHTML = `
+      <span><strong>+${reward}</strong> por referido</span>
+      <span><strong>${Math.max(0, Number(data.total_referrals) || 0)}</strong> referidos</span>
+      <span><strong>${Math.max(0, Number(data.credits_earned) || 0)}</strong> consultas ganadas</span>
+    `;
+
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(input.value);
+        button.textContent = 'COPIADO';
+        setTimeout(() => { button.textContent = 'COPIAR LINK'; }, 1500);
+      } catch (_) {
+        input.select();
+        document.execCommand('copy');
+        button.textContent = 'COPIADO';
+        setTimeout(() => { button.textContent = 'COPIAR LINK'; }, 1500);
+      }
+    });
+  } catch (err) {
+    console.error('FACIL AUTO referrals:', err);
+    section.remove();
+  }
+}
+
 
 function renderAccount(user, account = currentAccount, isAdmin = currentIsAdmin) {
   const root = document.getElementById('account-page-root');
@@ -405,8 +605,17 @@ function renderAccount(user, account = currentAccount, isAdmin = currentIsAdmin)
 
   const grid = document.createElement('div');
   grid.className = 'account-plans';
-  grid.append(planCard('standard'), planCard('pro'));
-  plans.appendChild(grid);
+
+  const paidPlans = enabledPaidPlans();
+  paidPlans.forEach(key => grid.appendChild(planCard(key)));
+
+  if (paidPlans.length) {
+    plans.appendChild(grid);
+  } else {
+    const onlyFree = document.createElement('p');
+    onlyFree.textContent = 'Por el momento el único plan disponible es Free.';
+    plans.appendChild(onlyFree);
+  }
 
   const actions = document.createElement('section');
   actions.className = 'account-actions';
@@ -431,7 +640,9 @@ function renderAccount(user, account = currentAccount, isAdmin = currentIsAdmin)
 
   actions.append(out);
 
-  root.append(intro, current, plans, actions);
+  root.append(intro, current, plans);
+  renderReferralAccount(root);
+  root.append(actions);
 }
 
 
@@ -616,6 +827,8 @@ function escapeHtml(value='') {
 
 async function init() {
   injectStyles();
+  captureReferralFromUrl();
+  await loadProductSettings();
 
   const host = findHeaderHost();
   if (host) renderLoggedOut(host);

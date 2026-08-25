@@ -1,55 +1,148 @@
-FACIL AUTO — FIX MIGRACIÓN D1 v1.5.11
+FACIL AUTO — PLANES + REFERIDOS v1.5.12
 
-PROBLEMA
-La URL:
-/facilauto/admin/migracion-d1/
+QUÉ AGREGA
+1. Panel de administrador:
+   - FREE siempre activo.
+   - STANDARD activable/desactivable.
+   - PRO activable/desactivable.
+   - REFERIDOS activable/desactivable.
+   - Recompensa configurable; valor inicial 20 consultas.
 
-quedaba en blanco después de subir v1.5.10.
+2. Mi Cuenta:
+   - Solo muestra los planes habilitados.
+   - Si Standard y PRO están desactivados, informa que solo está disponible Free.
+   - Si Referidos está activo, cada usuario ve su enlace personal.
 
-CAUSA EXACTA
-El HTML quedó apuntando a:
-assets/js/migracion-d1-v1.5.10.js
-assets/css/migracion-d1-v1.5.10.css
+3. Referidos:
+   - El usuario que invita recibe 20 consultas adicionales por defecto.
+   - Solo se acredita cuando se registra una cuenta Google NUEVA.
+   - Una cuenta referida solo puede generar una recompensa una vez.
+   - No permite autorreferido.
+   - Los créditos van a bonus_credits.
+   - NO cuentan como consultas compradas.
 
-pero esos archivos no existían.
+4. Páginas públicas de planes:
+   - Standard/PRO se ocultan cuando están desactivados.
+   - Los enlaces de Mercado Pago correspondientes también se ocultan.
+   - Si Referidos está activo aparece una tarjeta de Referidos.
 
-La página empieza oculta con:
-fa-migration-pending
+ESTADO INICIAL TRAS EL SQL
+- FREE: activo
+- STANDARD: desactivado
+- PRO: desactivado
+- REFERIDOS: activo
+- Premio: 20 consultas
 
-y solo se muestra cuando carga el JS y valida al administrador.
-Como el JS no cargaba, la pantalla quedaba completamente blanca.
+Luego podés cambiarlo cuando quieras desde admin.html.
 
-CORRECCIÓN
-A partir de esta versión los archivos físicos usan nombres ESTABLES:
+==================================================
+PASO 1 — D1
+==================================================
 
-/assets/js/migracion-d1.js
-/assets/css/migracion-d1.css
+Cloudflare
+→ Storage & databases
+→ D1
+→ facilauto
+→ Console
 
-La versión se maneja solo como cache-buster:
-?v=1.5.11
+Ejecutar TODO:
+cloudflare/migration-plans-referidos-v1.5.12.sql
 
-Así los próximos cambios de versión no vuelven a romper la página.
+Es idempotente.
 
-NO HACE FALTA
-- repetir la migración
-- ejecutar SQL
-- modificar D1
-- reemplazar el Worker
-- volver a cargar los datasets
+NO hay que repetir la migración de vehículos.
 
-INSTALACIÓN
-Subir TODO este ZIP dentro de:
+==================================================
+PASO 2 — WORKER
+==================================================
+
+Reemplazar el Worker actual por:
+cloudflare/worker.js
+
+Deploy.
+
+Verificar:
+/health
+
+Debe mostrar:
+"version":"1.5.12"
+
+Verificar:
+/health/auth
+
+Además de las tablas anteriores debe mostrar:
+"app_settings":true
+"referral_codes":true
+"referrals":true
+
+y:
+"ok":true
+
+==================================================
+PASO 3 — WEB
+==================================================
+
+Subir TODO el ZIP dentro de:
 /facilauto/
 
 respetando carpetas.
 
-Después:
-Ctrl + F5
+Archivos principales:
+- admin.html
+- servicios-auth.js
+- assets/js/admin.js
+- assets/css/admin.css
+- assets/js/auth-gate-v1.5.2.js
 
-PROBAR
-https://emanuelmkt.com.ar/facilauto/admin/migracion-d1/
+Los HTML incluidos actualizan footer/cache a v1.5.12.
 
-Como la migración ya terminó, debe mostrar los datasets en estado ACTIVO EN D1.
+==================================================
+USO
+==================================================
 
-FOOTER
-Los HTML incluidos quedan en v1.5.11.
+Entrar con la cuenta administradora:
+Mi Cuenta
+→ PANEL DE CONTROL
+
+Nueva sección:
+PLANES Y REFERIDOS
+
+Desde ahí:
+- activar/desactivar Standard
+- activar/desactivar PRO
+- activar/desactivar Referidos
+- cambiar la cantidad de consultas por referido
+- Guardar configuración
+
+Los cambios se leen desde D1 y se aplican sin tener que volver a editar código.
+
+==================================================
+CÓMO FUNCIONA UN REFERIDO
+==================================================
+
+1. Usuario A abre Mi Cuenta.
+2. Copia su link personal:
+   https://emanuelmkt.com.ar/facilauto/?ref=CODIGO
+3. Usuario B, que todavía NO tenía cuenta, entra desde ese link.
+4. Usuario B inicia sesión con Google.
+5. El Worker verifica que sea una cuenta nueva.
+6. Se registra el referido.
+7. Usuario A recibe +20 bonus_credits.
+
+Si Usuario B ya tenía cuenta:
+NO se acredita.
+
+Si se intenta usar el propio código:
+NO se acredita.
+
+Si el mismo Usuario B vuelve a usar el link:
+NO se acredita de nuevo.
+
+==================================================
+NO TOCAR / NO REPETIR
+==================================================
+
+- No repetir migración de vehicle_market/dnrpa/catalog/rates/config.
+- No borrar todavía data/*.json.
+- No cambiar APP_URL.
+- No cambiar URL del Worker.

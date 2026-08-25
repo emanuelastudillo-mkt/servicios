@@ -8,7 +8,7 @@
   <title>Control | FACIL AUTO</title>
   <style>.fa-admin-pending body{visibility:hidden}</style>
   <link rel="stylesheet" href="assets/css/styles.css">
-  <link rel="stylesheet" href="assets/css/admin-v1.5.10.css?v=1.5.10">
+  <link rel="stylesheet" href="assets/css/admin.css?v=1.5.12">
 </head>
 <body class="admin-page">
   <header class="topbar">
@@ -69,6 +69,81 @@
       </div>
     </section>
 
+
+    <section class="admin-users admin-commerce">
+      <div class="admin-section-head">
+        <div>
+          <span class="admin-kicker">DISPONIBILIDAD</span>
+          <h2>Planes y referidos</h2>
+        </div>
+        <p>Los cambios se aplican en Mi Cuenta y en las páginas de planes. Free permanece siempre disponible.</p>
+      </div>
+
+      <div class="admin-settings-grid">
+        <article class="admin-setting-card admin-setting-locked">
+          <div>
+            <small>PLAN</small>
+            <h3>FREE</h3>
+            <p>10 consultas mensuales.</p>
+          </div>
+          <span class="admin-setting-fixed">ACTIVO</span>
+        </article>
+
+        <article class="admin-setting-card">
+          <div>
+            <small>PLAN</small>
+            <h3>STANDARD</h3>
+            <p>100 consultas.</p>
+          </div>
+          <label class="admin-switch">
+            <input type="checkbox" id="setting-standard">
+            <span></span>
+            <b>Disponible</b>
+          </label>
+        </article>
+
+        <article class="admin-setting-card">
+          <div>
+            <small>PLAN</small>
+            <h3>PRO</h3>
+            <p>500 consultas.</p>
+          </div>
+          <label class="admin-switch">
+            <input type="checkbox" id="setting-pro">
+            <span></span>
+            <b>Disponible</b>
+          </label>
+        </article>
+
+        <article class="admin-setting-card admin-setting-referral">
+          <div>
+            <small>PROGRAMA</small>
+            <h3>REFERIDOS</h3>
+            <p>Premia al usuario que invita cuando una cuenta nueva se registra desde su enlace.</p>
+          </div>
+          <label class="admin-switch">
+            <input type="checkbox" id="setting-referrals">
+            <span></span>
+            <b>Activo</b>
+          </label>
+          <label class="admin-reward">
+            <span>Consultas por referido</span>
+            <input type="number" id="setting-referral-reward" min="1" max="10000" value="20">
+          </label>
+        </article>
+      </div>
+
+      <div class="admin-settings-actions">
+        <button type="button" id="save-product-settings">GUARDAR CONFIGURACIÓN</button>
+        <p id="product-settings-message">Cargando configuración…</p>
+      </div>
+
+      <div class="admin-referral-summary">
+        <span><strong id="admin-referrals-total">—</strong> referidos acreditados</span>
+        <span><strong id="admin-referrals-credits">—</strong> consultas regaladas</span>
+      </div>
+    </section>
+
     <section class="admin-users">
       <div class="admin-section-head">
         <div>
@@ -83,10 +158,10 @@
 
   <footer class="admin-footer admin-shell">
     <a class="wordmark compact" href="index.html"><strong>FACIL <span>AUTO</span></strong></a>
-    <p>Control interno de usuarios. · v1.5.11</p>
+    <p>Control interno de usuarios. · v1.5.12</p>
     <a href="mi-cuenta/">Mi cuenta</a>
   </footer>
 
-  <script type="module" src="assets/js/admin-v1.5.10.js?v=1.5.10"></script>
+  <script type="module" src="assets/js/admin.js?v=1.5.12"></script>
 </body>
 </html>

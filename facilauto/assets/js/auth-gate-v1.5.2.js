@@ -1,12 +1,10 @@
 /**
- * FACIL AUTO — Fail-closed consultation gate v1.5.2
- *
+ * FACIL AUTO — Fail-closed consultation gate v1.5.12
  * Se carga ANTES de app.js.
- * Si la capa de autenticación no está lista, la calculadora queda bloqueada.
  */
-
 (() => {
   const TOKEN_KEY = 'facilauto_session_v1';
+  const REFERRAL_KEY = 'facilauto_referral_v1';
   const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 
   const gate = window.FACIL_AUTO_GATE = window.FACIL_AUTO_GATE || {
@@ -28,9 +26,24 @@
     return url.toString();
   }
 
+  function referral() {
+    const params = new URLSearchParams(location.search);
+    const direct = String(params.get('ref') || '').trim();
+
+    if (/^[A-Za-z0-9_-]{6,32}$/.test(direct)) {
+      localStorage.setItem(REFERRAL_KEY, direct);
+      return direct;
+    }
+
+    const stored = String(localStorage.getItem(REFERRAL_KEY) || '').trim();
+    return /^[A-Za-z0-9_-]{6,32}$/.test(stored) ? stored : '';
+  }
+
   function login() {
+    const ref = referral();
     const target =
-      `${API_BASE}/auth/google?return_to=${encodeURIComponent(returnTo())}`;
+      `${API_BASE}/auth/google?return_to=${encodeURIComponent(returnTo())}` +
+      (ref ? `&ref=${encodeURIComponent(ref)}` : '');
 
     if (window.top !== window.self) {
       window.top.location.href = target;
@@ -72,8 +85,6 @@
         return;
       }
 
-      // FAIL CLOSED:
-      // app.js jamás recibe este submit si el gate no lo autorizó.
       event.preventDefault();
       event.stopImmediatePropagation();
 
@@ -82,9 +93,6 @@
         return;
       }
 
-      // Si la capa de autenticación no llegó a registrarse, no dejamos
-      // al usuario en un estado intermedio. Forzamos una autenticación nueva.
-      // Esto también resuelve tokens locales viejos de versiones anteriores.
       show('Ingresá para hacer una consulta.');
       setTimeout(login, 180);
     }, true);
