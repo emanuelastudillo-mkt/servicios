@@ -1,0 +1,61 @@
+FACIL AUTO — FIX PANEL ADMIN v1.5.10
+
+PROBLEMA CORREGIDO
+/admin.html quedaba completamente blanco.
+
+CAUSA
+admin.html intentaba cargar:
+assets/js/admin-v1.5.9.js
+assets/css/admin-v1.5.9.css
+
+pero esos archivos no existían con esos nombres.
+
+Como admin.html arranca con:
+fa-admin-pending
+
+la página permanece invisible hasta que el JS valida al administrador.
+Al no cargar el archivo JS, la clase nunca se quitaba.
+
+CORRECCIÓN
+Ahora existen y se cargan directamente:
+
+/facilauto/assets/js/admin-v1.5.10.js
+/facilauto/assets/css/admin-v1.5.10.css
+
+admin.html apunta exactamente a esos archivos.
+
+NO HACE FALTA
+- modificar Worker
+- hacer Deploy del Worker
+- ejecutar SQL
+- tocar D1
+- repetir la migración
+- tocar app.js
+- tocar data/
+
+INSTALACIÓN
+Subir TODO este ZIP dentro de:
+/facilauto/
+
+respetando carpetas.
+
+Después:
+Ctrl + F5
+
+PROBAR
+https://emanuelmkt.com.ar/facilauto/admin.html
+
+Con la cuenta administradora debe mostrar:
+- Usuarios registrados
+- Consultas disponibles
+- Consultas compradas
+- Uso mensual
+- Acceso a Migración D1
+
+La página:
+https://emanuelmkt.com.ar/facilauto/admin/migracion-d1/
+sigue funcionando normalmente.
+
+FOOTER
+Los HTML incluidos quedan en:
+v1.5.10
