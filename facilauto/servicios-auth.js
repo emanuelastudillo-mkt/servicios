@@ -1,5 +1,5 @@
 /**
- * FACIL AUTO — Auth + Consultas v1.5.2
+ * FACIL AUTO — Auth + Consultas v1.5.3
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
@@ -48,6 +48,47 @@ const authCss = `
 .fa-auth-meta strong{font:700 12px/1.2 Arial,sans-serif;color:#111;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fa-auth-meta small{font:500 10px/1.2 Arial,sans-serif;color:#777;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fa-auth-error{position:fixed;left:20px;right:20px;bottom:20px;z-index:10050;background:#181818;color:#fff;padding:12px 16px;border-radius:4px;font:600 12px/1.4 Arial,sans-serif}
+
+.fa-auth.fa-auth-logged{justify-self:end}
+.fa-account-global{
+  gap:9px!important;
+  padding:4px 12px 4px 5px!important;
+  min-height:44px!important;
+  border-radius:999px!important;
+  background:#111!important;
+  color:#fff!important;
+  border:1px solid #111!important;
+}
+.fa-account-global:hover{background:#2a2a2a!important}
+.fa-account-global .fa-auth-avatar,
+.fa-account-global-avatar{
+  width:34px!important;
+  height:34px!important;
+  border-radius:50%!important;
+  object-fit:cover!important;
+  border:1px solid rgba(255,255,255,.25)!important;
+  background:#eee!important;
+  flex:0 0 34px!important;
+}
+.fa-account-global-label{
+  display:inline-flex;
+  align-items:center;
+  font:800 10px/1 Arial,sans-serif;
+  letter-spacing:.08em;
+  white-space:nowrap;
+}
+.fa-account-global-fallback{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  color:#111;
+  font:800 12px/1 Arial,sans-serif;
+  flex:0 0 34px;
+}
+
 .fa-consult-submit[disabled]{opacity:.62;cursor:wait!important}
 .fa-consult-submit[data-empty="1"]{background:#6d6b65!important}
 @media(max-width:850px){
@@ -57,6 +98,19 @@ const authCss = `
 }
 @media(max-width:520px){
   .fa-auth-user{display:none}
+  .fa-account-global{
+    min-height:40px!important;
+    padding:3px 10px 3px 4px!important;
+    gap:7px!important;
+  }
+  .fa-account-global .fa-auth-avatar,
+  .fa-account-global-avatar,
+  .fa-account-global-fallback{
+    width:32px!important;
+    height:32px!important;
+    flex-basis:32px!important;
+  }
+  .fa-account-global-label{font-size:9px}
 }
 `;
 
@@ -161,6 +215,7 @@ function createAvatar(user) {
 
 function renderLoggedOut(host) {
   host.innerHTML = '';
+  host.classList.remove('fa-auth-logged');
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'fa-login';
@@ -171,33 +226,31 @@ function renderLoggedOut(host) {
 
 function renderLoggedIn(host, user) {
   host.innerHTML = '';
-
-  const userWrap = document.createElement('div');
-  userWrap.className = 'fa-auth-user';
-
-  const avatar = createAvatar(user);
-  if (avatar) userWrap.appendChild(avatar);
-
-  const meta = document.createElement('div');
-  meta.className = 'fa-auth-meta';
-
-  const name = document.createElement('strong');
-  name.textContent = user.name || 'Usuario FACIL AUTO';
-
-  const email = document.createElement('small');
-  email.textContent = user.email || '';
-
-  meta.append(name, email);
-  userWrap.appendChild(meta);
+  host.classList.add('fa-auth-logged');
 
   const accountLink = document.createElement('a');
-  accountLink.className = 'fa-auth-link fa-account-link';
+  accountLink.className = 'fa-auth-link fa-account-link fa-account-global';
   accountLink.href = siteUrl('mi-cuenta/');
-  accountLink.textContent = document.body.dataset.page === 'account' ? 'MI CUENTA' : 'MI CUENTA';
+  accountLink.setAttribute('aria-label', 'Mi cuenta');
 
-  host.append(userWrap, accountLink);
+  const avatar = createAvatar(user);
+  if (avatar) {
+    avatar.classList.add('fa-account-global-avatar');
+    accountLink.appendChild(avatar);
+  } else {
+    const fallback = document.createElement('span');
+    fallback.className = 'fa-account-global-fallback';
+    fallback.textContent = (user?.name || user?.email || 'U').trim().charAt(0).toUpperCase();
+    accountLink.appendChild(fallback);
+  }
+
+  const label = document.createElement('span');
+  label.className = 'fa-account-global-label';
+  label.textContent = 'MI CUENTA';
+
+  accountLink.appendChild(label);
+  host.appendChild(accountLink);
 }
-
 async function exchangeLoginTicket() {
   const url = new URL(window.location.href);
   const ticket = url.searchParams.get('login_ticket');
