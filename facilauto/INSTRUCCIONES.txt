@@ -1,50 +1,57 @@
-FACIL AUTO — CTA TURQUESA v1.5.24
+FACIL AUTO — HERO DATOS REALES v1.5.25
 
 PAQUETE INCREMENTAL
 
 ARCHIVOS
-- servicios-auth.js
 - index.html
+- servicios-auth.js
+- assets/css/hero-market.css
 - INSTRUCCIONES.txt
 
-CAMBIOS
+CAMBIO
 
-BOTÓN FLOTANTE
+Se agrega dentro de la primera pantalla de la HOME un bloque:
 
-ANTES:
-COTIZAR MI AUTO
+PULSO DEL MERCADO · JULIO 2026
+Argentina · vehículos usados
 
-AHORA:
-COTIZAR AUTO
+DATOS
 
-COLOR
+156.810
+usados comercializados en julio
 
-Se reemplaza el fondo negro por el turquesa de marca:
+1.048.438
+operaciones entre enero y julio
 
-#01A5BC
+8.276
+Gol / Trend · líder usado del mes
 
-Se mantiene:
-- texto blanco
-- flecha blanca
-- botón X
-- cierre durante la sesión
-- comportamiento responsive
-- ocultamiento durante teclado mobile
-- no mostrar dentro del administrador
+Los datos corresponden al mercado argentino de vehículos usados
+publicado para julio de 2026.
 
-HOVER
+DISEÑO
 
-Se agrega una variación oscura sutil sobre el mismo turquesa,
-sin introducir otro color de marca.
+- integrado dentro del hero;
+- cifra principal en turquesa #01A5BC;
+- resto de cifras en tinta;
+- estética editorial de FACIL AUTO;
+- sin tarjetas redondeadas;
+- líneas finas;
+- responsive específico para 760 px y 430 px;
+- en mobile las estadísticas se apilan para evitar números comprimidos.
+
+IMPORTANTE
+
+El bloque dice:
+"Datos públicos del mercado automotor argentino. Actualización mensual."
+
+No se presentan estas cifras como estadísticas propias de FACIL AUTO.
 
 NO SE MODIFICA
-
-- destino del botón
-- cálculos
+- calculadora
 - app.js
 - seguros
 - créditos
-- planes
 - pagos
 - Worker
 - D1
@@ -52,15 +59,13 @@ NO SE MODIFICA
 
 INSTALACIÓN
 
-Subir:
-- index.html
-- servicios-auth.js
-
-dentro de:
+Subir TODO dentro de:
 /facilauto/
+
+respetando carpetas.
 
 Después:
 Ctrl + F5
 
 VERSIÓN
-v1.5.24
+v1.5.25

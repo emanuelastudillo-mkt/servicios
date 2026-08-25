@@ -1,0 +1,161 @@
+
+/* FACIL AUTO · Pulso de mercado hero v1.5.25 */
+
+.hero-market-pulse{
+  margin-top:34px;
+  max-width:920px;
+  border-top:1px solid #121212;
+  border-bottom:1px solid #121212;
+}
+
+.hero-market-pulse-head{
+  min-height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border-bottom:1px solid #cbc9c1;
+}
+
+.hero-market-pulse-head span{
+  color:#e94f32;
+  font-size:8px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:.15em;
+}
+
+.hero-market-pulse-head small{
+  color:#696963;
+  font-size:8px;
+  line-height:1;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.hero-market-stats{
+  display:grid;
+  grid-template-columns:1.1fr 1fr 1fr;
+}
+
+.hero-market-stat{
+  min-width:0;
+  padding:16px 18px 16px 0;
+}
+
+.hero-market-stat + .hero-market-stat{
+  padding-left:18px;
+  border-left:1px solid #cbc9c1;
+}
+
+.hero-market-stat strong,
+.hero-market-stat span{
+  display:block;
+}
+
+.hero-market-stat strong{
+  font-size:clamp(24px,2.4vw,35px);
+  line-height:.95;
+  font-weight:600;
+  letter-spacing:-.055em;
+  color:#121212;
+}
+
+.hero-market-stat-main strong{
+  color:#01A5BC;
+}
+
+.hero-market-stat span{
+  margin-top:7px;
+  color:#55544f;
+  font:11px/1.35 Georgia,"Times New Roman",serif;
+}
+
+.hero-market-pulse>p{
+  margin:0!important;
+  padding:9px 0 10px;
+  border-top:1px solid #cbc9c1;
+  color:#7a7973!important;
+  font-size:8px!important;
+  line-height:1.35!important;
+  letter-spacing:.04em;
+}
+
+@media(max-width:980px){
+  .hero-market-pulse{
+    max-width:760px;
+  }
+}
+
+@media(max-width:760px){
+  .hero-market-pulse{
+    margin-top:28px;
+  }
+
+  .hero-market-pulse-head{
+    min-height:40px;
+    align-items:flex-start;
+    flex-direction:column;
+    justify-content:center;
+    gap:3px;
+    padding:7px 0;
+  }
+
+  .hero-market-stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .hero-market-stat{
+    padding:15px 13px 15px 0;
+  }
+
+  .hero-market-stat:nth-child(2){
+    padding-left:13px;
+  }
+
+  .hero-market-stat:nth-child(3){
+    grid-column:1 / -1;
+    padding:13px 0;
+    border-left:0;
+    border-top:1px solid #cbc9c1;
+  }
+
+  .hero-market-stat strong{
+    font-size:27px;
+  }
+
+  .hero-market-stat span{
+    font-size:10px;
+  }
+}
+
+@media(max-width:430px){
+  .hero-market-pulse{
+    margin-top:25px;
+  }
+
+  .hero-market-stats{
+    grid-template-columns:1fr;
+  }
+
+  .hero-market-stat,
+  .hero-market-stat:nth-child(2),
+  .hero-market-stat:nth-child(3){
+    grid-column:1;
+    padding:13px 0;
+    border-left:0;
+    border-top:1px solid #cbc9c1;
+  }
+
+  .hero-market-stat:first-child{
+    border-top:0;
+  }
+
+  .hero-market-stat strong{
+    font-size:28px;
+  }
+
+  .hero-market-pulse>p{
+    font-size:7px!important;
+  }
+}
