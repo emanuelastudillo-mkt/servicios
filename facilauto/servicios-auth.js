@@ -3,10 +3,14 @@
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
-import './assets/js/frontend-v1.3.0.js?v=1.3.1';
+import './assets/js/frontend-v1.4.0.js?v=1.4.0';
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
+
+const SITE_ROOT = new URL('./', import.meta.url);
+const siteUrl = (path = '') => new URL(path, SITE_ROOT).toString();
+
 
 const PLANS = {
   free: {
@@ -112,7 +116,7 @@ async function logout() {
   } catch (_) {}
 
   setToken('');
-  window.location.href = './index.html';
+  window.location.href = siteUrl('index.html');
 }
 
 function injectStyles() {
@@ -175,7 +179,7 @@ function renderLoggedIn(host, user) {
 
   const accountLink = document.createElement('a');
   accountLink.className = 'fa-auth-link fa-account-link';
-  accountLink.href = './cuenta.html';
+  accountLink.href = siteUrl('mi-cuenta/');
   accountLink.textContent = document.body.dataset.page === 'account' ? 'MI CUENTA' : 'MI CUENTA';
 
   host.append(userWrap, accountLink);
@@ -320,7 +324,7 @@ function renderAccount(user) {
   const actions = document.createElement('section');
   actions.className = 'account-actions';
   const back = document.createElement('a');
-  back.href = './index.html';
+  back.href = siteUrl('index.html');
   back.textContent = '← VOLVER A FACIL AUTO';
 
   const out = document.createElement('button');
