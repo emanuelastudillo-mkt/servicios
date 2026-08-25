@@ -1,4 +1,4 @@
-import {api, token} from '../../servicios-auth.js?v=1.5.7';
+import {api, token} from '../../servicios-auth.js?v=1.5.8';
 
 const $ = selector => document.querySelector(selector);
 
