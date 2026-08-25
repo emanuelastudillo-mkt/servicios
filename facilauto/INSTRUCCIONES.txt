@@ -1,148 +1,57 @@
-FACIL AUTO — PLANES + REFERIDOS v1.5.12
+FACIL AUTO — MENÚ PLANES + INSTAGRAM v1.5.13
 
-QUÉ AGREGA
-1. Panel de administrador:
-   - FREE siempre activo.
-   - STANDARD activable/desactivable.
-   - PRO activable/desactivable.
-   - REFERIDOS activable/desactivable.
-   - Recompensa configurable; valor inicial 20 consultas.
+PAQUETE INCREMENTAL
+Este ZIP contiene únicamente archivos modificados.
 
-2. Mi Cuenta:
-   - Solo muestra los planes habilitados.
-   - Si Standard y PRO están desactivados, informa que solo está disponible Free.
-   - Si Referidos está activo, cada usuario ve su enlace personal.
-
-3. Referidos:
-   - El usuario que invita recibe 20 consultas adicionales por defecto.
-   - Solo se acredita cuando se registra una cuenta Google NUEVA.
-   - Una cuenta referida solo puede generar una recompensa una vez.
-   - No permite autorreferido.
-   - Los créditos van a bonus_credits.
-   - NO cuentan como consultas compradas.
-
-4. Páginas públicas de planes:
-   - Standard/PRO se ocultan cuando están desactivados.
-   - Los enlaces de Mercado Pago correspondientes también se ocultan.
-   - Si Referidos está activo aparece una tarjeta de Referidos.
-
-ESTADO INICIAL TRAS EL SQL
-- FREE: activo
-- STANDARD: desactivado
-- PRO: desactivado
-- REFERIDOS: activo
-- Premio: 20 consultas
-
-Luego podés cambiarlo cuando quieras desde admin.html.
-
-==================================================
-PASO 1 — D1
-==================================================
-
-Cloudflare
-→ Storage & databases
-→ D1
-→ facilauto
-→ Console
-
-Ejecutar TODO:
-cloudflare/migration-plans-referidos-v1.5.12.sql
-
-Es idempotente.
-
-NO hay que repetir la migración de vehículos.
-
-==================================================
-PASO 2 — WORKER
-==================================================
-
-Reemplazar el Worker actual por:
-cloudflare/worker.js
-
-Deploy.
-
-Verificar:
-/health
-
-Debe mostrar:
-"version":"1.5.12"
-
-Verificar:
-/health/auth
-
-Además de las tablas anteriores debe mostrar:
-"app_settings":true
-"referral_codes":true
-"referrals":true
-
-y:
-"ok":true
-
-==================================================
-PASO 3 — WEB
-==================================================
-
-Subir TODO el ZIP dentro de:
-/facilauto/
-
-respetando carpetas.
-
-Archivos principales:
-- admin.html
+ARCHIVOS
 - servicios-auth.js
-- assets/js/admin.js
-- assets/css/admin.css
-- assets/js/auth-gate-v1.5.2.js
+- INSTRUCCIONES.txt
 
-Los HTML incluidos actualizan footer/cache a v1.5.12.
+CAMBIOS
 
-==================================================
-USO
-==================================================
+1. PLANES EN EL MENÚ SUPERIOR
+Se agrega automáticamente "Planes" al menú principal.
 
-Entrar con la cuenta administradora:
-Mi Cuenta
-→ PANEL DE CONTROL
+VISIBLE:
+- usuario sin sesión
+- usuario con plan Free
+- usuario con créditos de referidos pero que sigue en Free
 
-Nueva sección:
-PLANES Y REFERIDOS
+OCULTO:
+- usuario con plan Standard
+- usuario con plan PRO
+- cualquier futuro plan cuyo código sea distinto de "free"
 
-Desde ahí:
-- activar/desactivar Standard
-- activar/desactivar PRO
-- activar/desactivar Referidos
-- cambiar la cantidad de consultas por referido
-- Guardar configuración
+La detección se realiza con el plan devuelto por /api/me.
 
-Los cambios se leen desde D1 y se aplican sin tener que volver a editar código.
+2. INSTAGRAM
+Se agrega en los footers públicos:
 
-==================================================
-CÓMO FUNCIONA UN REFERIDO
-==================================================
+https://www.instagram.com/facilauto.ok
 
-1. Usuario A abre Mi Cuenta.
-2. Copia su link personal:
-   https://emanuelmkt.com.ar/facilauto/?ref=CODIGO
-3. Usuario B, que todavía NO tenía cuenta, entra desde ese link.
-4. Usuario B inicia sesión con Google.
-5. El Worker verifica que sea una cuenta nueva.
-6. Se registra el referido.
-7. Usuario A recibe +20 bonus_credits.
+Abre en una pestaña nueva.
 
-Si Usuario B ya tenía cuenta:
-NO se acredita.
+No se agrega dentro del panel de administrador.
 
-Si se intenta usar el propio código:
-NO se acredita.
+3. VERSIÓN
+La capa global actualiza visualmente el footer a:
+v1.5.13
 
-Si el mismo Usuario B vuelve a usar el link:
-NO se acredita de nuevo.
+Esto permite mantener el ZIP realmente incremental sin volver a incluir
+decenas de archivos HTML solamente para cambiar el número de versión.
 
-==================================================
-NO TOCAR / NO REPETIR
-==================================================
+INSTALACIÓN
+Reemplazar únicamente:
 
-- No repetir migración de vehicle_market/dnrpa/catalog/rates/config.
-- No borrar todavía data/*.json.
-- No cambiar APP_URL.
-- No cambiar URL del Worker.
+/facilauto/servicios-auth.js
+
+Luego:
+Ctrl + F5
+
+NO HACE FALTA
+- Cloudflare
+- Worker
+- SQL
+- D1
+- volver a migrar datos
+- modificar los HTML

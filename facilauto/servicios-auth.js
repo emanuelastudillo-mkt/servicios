@@ -1,11 +1,13 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos v1.5.12
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos v1.5.13
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
+const FRONTEND_VERSION = '1.5.13';
+const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
 const siteUrl = (path = '') => new URL(path, SITE_ROOT).toString();
@@ -165,6 +167,97 @@ const authCss = `
   .fa-account-global-label{font-size:9px}
 }
 `;
+
+
+function isAdminArea() {
+  return /\/facilauto\/admin(?:\/|\.html|$)/.test(window.location.pathname);
+}
+
+function plansMenuLink() {
+  const nav = document.querySelector('.topnav');
+  if (!nav || isAdminArea()) return null;
+
+  let link =
+    nav.querySelector('[data-fa-plans-menu]') ||
+    [...nav.querySelectorAll('a')].find(a =>
+      /(^|\/)planes\/?(?:$|[?#])/.test(a.href) ||
+      a.textContent.trim().toUpperCase() === 'PLANES'
+    );
+
+  if (!link) {
+    link = document.createElement('a');
+    link.href = siteUrl('planes/');
+    link.textContent = 'Planes';
+    nav.appendChild(link);
+  }
+
+  link.dataset.faPlansMenu = '1';
+  return link;
+}
+
+function syncPlansMenu(account = currentAccount) {
+  const link = plansMenuLink();
+  if (!link) return;
+
+  const plan = String(account?.plan || 'free').trim().toLowerCase();
+  const hasPaidPlan = Boolean(account) && plan !== 'free';
+
+  link.hidden = hasPaidPlan;
+  link.setAttribute('aria-hidden', hasPaidPlan ? 'true' : 'false');
+
+  if (hasPaidPlan) {
+    link.tabIndex = -1;
+  } else {
+    link.removeAttribute('tabindex');
+  }
+}
+
+function ensureInstagramLink() {
+  if (isAdminArea()) return;
+
+  const footer = document.querySelector('footer');
+  if (!footer) return;
+
+  let link = footer.querySelector('[data-fa-instagram]');
+  if (link) return;
+
+  link = document.createElement('a');
+  link.href = INSTAGRAM_URL;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = 'Instagram';
+  link.dataset.faInstagram = '1';
+
+  const host =
+    footer.querySelector('.seo-footer-links') ||
+    footer.querySelector('.footer-links') ||
+    footer.querySelector('.site-footer-links');
+
+  if (host) {
+    host.appendChild(link);
+  } else {
+    link.style.marginLeft = '14px';
+    footer.appendChild(link);
+  }
+}
+
+function syncVisibleVersion() {
+  document.querySelectorAll('footer p').forEach(el => {
+    if (/v\d+\.\d+\.\d+/.test(el.textContent || '')) {
+      el.textContent = el.textContent.replace(
+        /v\d+\.\d+\.\d+/g,
+        `v${FRONTEND_VERSION}`
+      );
+    }
+  });
+}
+
+function syncGlobalUi(account = currentAccount) {
+  syncPlansMenu(account);
+  ensureInstagramLink();
+  syncVisibleVersion();
+}
+
 
 function configured() {
   return API_BASE.startsWith('https://');
@@ -689,6 +782,7 @@ async function refreshAccount() {
   const data = await api('/api/me');
   currentAccount = data.account || null;
   updateConsultationButton();
+  syncGlobalUi(currentAccount);
   return data;
 }
 
@@ -828,6 +922,7 @@ function escapeHtml(value='') {
 async function init() {
   injectStyles();
   captureReferralFromUrl();
+  syncGlobalUi(null);
   await loadProductSettings();
 
   const host = findHeaderHost();
@@ -846,6 +941,7 @@ async function init() {
     currentAccount = null;
     currentIsAdmin = false;
     updateConsultationButton();
+    syncGlobalUi(null);
     renderAccountLoggedOut();
     return;
   }
@@ -857,6 +953,7 @@ async function init() {
       currentAccount = data.account || null;
       currentIsAdmin = Boolean(data.is_admin);
       updateConsultationButton();
+      syncGlobalUi(currentAccount);
 
       if (host) renderLoggedIn(host, data.user);
       renderAccount(data.user, currentAccount, currentIsAdmin);
@@ -867,6 +964,7 @@ async function init() {
     currentAccount = null;
     currentIsAdmin = false;
     updateConsultationButton();
+    syncGlobalUi(null);
     renderAccountLoggedOut();
   } catch (err) {
     if (err.status === 401) {
@@ -874,6 +972,7 @@ async function init() {
       currentAccount = null;
       currentIsAdmin = false;
       updateConsultationButton();
+      syncGlobalUi(null);
       renderAccountLoggedOut();
     } else {
       console.error('FACIL AUTO auth:', err);
