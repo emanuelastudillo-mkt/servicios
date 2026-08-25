@@ -1,59 +1,96 @@
-FACIL AUTO — IDENTIDAD DE MARCA EN WEB v1.5.15
+FACIL AUTO — INDEX MAGIC v1.5.16
 
-PAQUETE INCREMENTAL
-Solo incluye archivos nuevos o modificados.
+PAQUETE INCREMENTAL.
+Solo contiene archivos nuevos o modificados.
 
-APLICACIÓN DE MARCA
+ARCHIVOS
+- index.html
+- assets/css/index-magic.css
+- assets/js/index-magic.js
+- servicios-auth.js
+- INSTRUCCIONES.txt
 
-HEADER DESKTOP
-- Usa el logotipo horizontal:
-  assets/brand/facil-auto-logotipo.png
+CAMBIOS EN EL INDEX
 
-HEADER MOBILE
-- Usa el isotipo:
-  assets/brand/facil-auto-isotipo.png
+1. QUÉ PODÉS CALCULAR
+Cinco bloques:
+- Valuación
+- Transferencia
+- Cierre
+- Financiación
+- Oportunidad
 
-FOOTERS
-- Usa el logo completo:
-  assets/brand/facil-auto-logo.png
+2. FACIL AUTO EN NÚMEROS
+- 5 módulos
+- Curva hasta 400.000 km
+- 3 capas de información
+- cantidad de alternativas de financiación sincronizada con la calculadora
 
-FAVICON
-- Usa el isotipo optimizado.
-- Se incluyen:
-  assets/brand/favicon.ico
-  assets/brand/favicon.png
-  assets/brand/apple-touch-icon.png
+3. CÓMO FUNCIONA
+Flujo en tres pasos:
+vehículo → operación → decisión.
 
-La capa global reemplaza los wordmarks de texto existentes sin editar cada HTML.
+4. EJEMPLO VISUAL
+Tarjeta demostrativa claramente marcada como:
+"NO ES UNA COTIZACIÓN".
+Sirve solamente para explicar cómo leer un resultado.
 
-ARCHIVOS DEL INCREMENTAL
+5. SEGÚN TU MOMENTO
+Enlaces internos SEO para:
+- comprar
+- vender
+- operación completa
 
-servicios-auth.js
-assets/css/brand.css
-assets/brand/facil-auto-isotipo.png
-assets/brand/facil-auto-logo.png
-assets/brand/facil-auto-logotipo.png
-assets/brand/favicon.ico
-assets/brand/favicon.png
-assets/brand/apple-touch-icon.png
-INSTRUCCIONES.txt
+6. CONFIANZA / METODOLOGÍA
+Explica límites y función de la herramienta sin revelar fuentes internas.
+
+7. FAQ
+Preguntas orientadas a búsquedas frecuentes.
+
+8. INSTAGRAM
+Cierre visual hacia:
+@facilauto.ok
+
+9. MICROINTERACCIONES
+- aparición por scroll
+- contadores animados
+- pulso de estado de datos
+- leve parallax del isotipo
+- inclinación sutil del ejemplo
+- respeta prefers-reduced-motion
+
+SEO
+- nueva meta description
+- canonical
+- Schema.org WebApplication
+- Schema.org FAQPage
+
+IMPORTANTE
+NO se agregó:
+- precio de Standard
+- precio de PRO
+- links de Mercado Pago
+- información de pagos
+- condiciones comerciales
+
+La página /planes/ y Mi Cuenta siguen siendo las áreas comerciales.
 
 INSTALACIÓN
 
-Subir TODO el contenido del ZIP dentro de:
+Subir TODO este ZIP dentro de:
 /facilauto/
 
-respetando carpetas.
+respetando las carpetas.
 
 Después:
 Ctrl + F5
 
-NO HACE FALTA
-- modificar Cloudflare
+NO REQUIERE
+- Cloudflare
 - Worker
 - SQL
 - D1
-- tocar HTML individualmente
+- repetir migraciones
 
 VERSIÓN
-Footer dinámico: v1.5.15
+v1.5.16
