@@ -17,7 +17,7 @@
     <nav class="topnav" aria-label="Principal">
       <a href="#calculadora">Calcular</a>
       <a href="#metodologia">Metodología</a>
-      <a href="#fuentes">Fuentes</a>
+      <a href="#fuentes">Datos</a>
     </nav>
     <a class="top-cta" data-auth-entry href="https://facilauto-auth.emanuelastudillo.workers.dev/auth/google?return_to=https%3A%2F%2Femanuelmkt.com.ar%2Ffacilauto%2F">INGRESAR</a>
   </header>
@@ -30,11 +30,11 @@
         <p>Precio de referencia, oportunidad de compra, financiación, transferencia y costo final. Una sola ficha para entender si la operación cierra.</p>
         <a class="hero-link" href="#calculadora">Calcular mi vehículo <span>↘</span></a>
       </div>
-      <aside class="hero-data" aria-label="Fuentes activas">
-        <div class="data-line"><span>Mercado</span><b id="hero-market-date">Agosto 2026</b></div>
-        <div class="data-line"><span>Valuación oficial</span><b id="hero-dnrpa-date">DNRPA</b></div>
+      <aside class="hero-data" aria-label="Datos utilizados">
+        <div class="data-line"><span>Mercado automotor</span><b id="hero-market-date">Actualizado</b></div>
+        <div class="data-line"><span>Datos oficiales</span><b id="hero-dnrpa-date">Vigentes</b></div>
         <div class="data-line"><span>Financiación</span><b id="hero-rates-count">— bancos</b></div>
-        <p>Las bases se actualizan por separado. El cálculo conserva la fuente y la página usada para poder auditar cada resultado.</p>
+        <p>Las estimaciones combinan datos oficiales, relevamientos del mercado automotor y consultas realizadas a agencias y usuarios.</p>
       </aside>
     </section>
 
@@ -47,14 +47,14 @@
 
         <form id="vehicle-form" class="calc-layout">
           <div class="calc-block">
-            <div class="block-head"><b>A</b><div><span>Vehículo</span><small>El catálogo combina la guía mensual con DNRPA para ampliar la cobertura.</small></div></div>
+            <div class="block-head"><b>A</b><div><span>Vehículo</span><small>El catálogo combina datos oficiales y relevamientos del mercado automotor para ampliar la cobertura.</small></div></div>
             <div class="field-grid vehicle-fields">
               <label><span>Marca</span><select id="brand" required><option value="">Cargando marcas...</option></select></label>
               <label><span>Modelo</span><select id="model" required disabled><option value="">Primero elegí marca</option></select></label>
               <label class="field-wide"><span>Versión</span><select id="variant" required disabled><option value="">Primero elegí modelo</option></select></label>
               <label><span>Año</span><select id="year" required disabled><option value="">Elegí versión</option></select></label>
               <label><span>Kilometraje</span><div class="input-suffix"><input id="km" type="number" min="0" step="1000" placeholder="90.000"><i>km</i></div></label>
-              <p class="coverage-note" id="catalog-coverage" data-tone="neutral">El catálogo combina la guía mensual con DNRPA para ampliar marcas, modelos y versiones.</p>
+              <p class="coverage-note" id="catalog-coverage" data-tone="neutral">El catálogo combina datos oficiales y relevamientos del mercado automotor para ampliar marcas, modelos y versiones.</p>
             </div>
           </div>
 
@@ -118,8 +118,8 @@
             <div class="strip-detail">
               <div class="detail-lead" id="market-adjustment">—</div>
               <dl class="data-list compact-list">
-                <div><dt>Valor literal del PDF</dt><dd id="market-pdf-value">—</dd></div>
-                <div><dt>Unidad / estado de fuente</dt><dd id="market-pdf-unit">—</dd></div>
+                <div><dt>Valor de referencia</dt><dd id="market-pdf-value">—</dd></div>
+                <div><dt>Base utilizada</dt><dd id="market-pdf-unit">—</dd></div>
                 <div><dt>Confianza de valuación</dt><dd id="market-confidence">—</dd></div>
                 <div><dt>Método</dt><dd id="market-method">—</dd></div>
                 <div><dt>Toma orientativa</dt><dd id="buy-value">—</dd></div>
@@ -139,13 +139,13 @@
             <div class="strip-detail">
               <div class="detail-lead" id="dnrpa-match">—</div>
               <dl class="data-list compact-list">
-                <div><dt>Valuación DNRPA</dt><dd id="dnrpa-value">—</dd></div>
+                <div><dt>Valuación oficial</dt><dd id="dnrpa-value">—</dd></div>
                 <div><dt>Estado de valuación</dt><dd id="dnrpa-status">—</dd></div>
                 <div><dt>Arancel registral</dt><dd id="registry-fee">—</dd></div>
                 <div><dt>Sellos</dt><dd id="stamp-fee">—</dd></div>
                 <div><dt>Fijos modelados</dt><dd id="fixed-fees">—</dd></div>
               </dl>
-              <footer id="dnrpa-source">DNRPA</footer>
+              <footer id="dnrpa-source">Datos oficiales vigentes</footer>
             </div>
           </details>
 
@@ -205,7 +205,7 @@
       <div class="shell method-grid">
         <div class="section-title"><span>04</span><div><p>METODOLOGÍA</p><h2>Qué está mirando el cálculo.</h2></div></div>
         <div class="method-list">
-          <article><b>VALOR GUÍA</b><p>El catálogo une guía mensual + DNRPA. Si falta un precio exacto, busca la misma versión en años cercanos, versiones similares del mismo modelo y, como último recurso, relaciones mercado/valuación registral.</p></article>
+          <article><b>REFERENCIA DE VALOR</b><p>La valuación combina datos oficiales, relevamientos de mercado y referencias comparables. Cuando no existe una referencia directa, se aplican métodos estadísticos sobre vehículos equivalentes.</p></article>
           <article><b>KILOMETRAJE</b><p>Hasta 100.000 km el valor se mantiene dentro de una zona normal de usado, con una mejora leve para unidades de muy bajo kilometraje. Desde 100.000 hasta 400.000 km se aplica una depreciación exponencial progresiva, limitada al 30%. La valuación original siempre queda visible.</p></article>
           <article><b>OPORTUNIDAD</b><p>Compara el precio publicado o pactado contra la guía con una corrección de 10 puntos porcentuales en la lectura de oportunidad. El valor guía original no se modifica.</p></article>
           <article><b>CIERRE</b><p>Suma precio, transferencia y financiación para mostrar el costo estimado de completar la operación.</p></article>
@@ -215,11 +215,11 @@
 
     <section class="sources-section" id="fuentes">
       <div class="shell sources-grid">
-        <div><span class="source-kicker">FUENTES ACTIVAS</span><h2>Datos separados.<br>Resultado trazable.</h2></div>
+        <div><span class="source-kicker">DATOS</span><h2>Información para construir<br>una referencia útil.</h2></div>
         <div class="source-list">
-          <div><span>Mercado</span><b>NuestrosAutos — guía mensual</b><small id="source-market-date">—</small></div>
-          <div><span>Valuación registral</span><b>DNRPA</b><small id="source-dnrpa-date">—</small></div>
-          <div><span>Financiación</span><b>ComparaTasas</b><small id="source-rates-date">—</small></div>
+          <div><span>Mercado</span><b>Datos oficiales + relevamientos y encuestas</b><small id="source-market-date">Actualizado</small></div>
+          <div><span>Oficial</span><b>Datos y parámetros oficiales vigentes</b><small id="source-dnrpa-date">Vigente</small></div>
+          <div><span>Financiación</span><b>Tasas y condiciones publicadas</b><small id="source-rates-date">Actualizable</small></div>
         </div>
       </div>
     </section>
@@ -232,8 +232,9 @@
   </footer>
 
   <script src="assets/js/auth-gate-v1.5.2.js?v=1.5.3"></script>
+  <script src="assets/js/privacy-mask-v1.5.4.js?v=1.5.4"></script>
   <script src="assets/js/app.js"></script>
-  <script src="assets/js/frontend-v1.4.0.js?v=1.5.3"></script>
+  <script src="assets/js/frontend-v1.4.0.js?v=1.5.4"></script>
   <script type="module" src="servicios-auth.js?v=1.5.3"></script>
 </body>
 </html>
