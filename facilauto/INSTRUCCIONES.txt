@@ -1,37 +1,41 @@
-FACIL AUTO — FIX PANEL ADMIN v1.5.10
+FACIL AUTO — FIX MIGRACIÓN D1 v1.5.11
 
-PROBLEMA CORREGIDO
-/admin.html quedaba completamente blanco.
+PROBLEMA
+La URL:
+/facilauto/admin/migracion-d1/
 
-CAUSA
-admin.html intentaba cargar:
-assets/js/admin-v1.5.9.js
-assets/css/admin-v1.5.9.css
+quedaba en blanco después de subir v1.5.10.
 
-pero esos archivos no existían con esos nombres.
+CAUSA EXACTA
+El HTML quedó apuntando a:
+assets/js/migracion-d1-v1.5.10.js
+assets/css/migracion-d1-v1.5.10.css
 
-Como admin.html arranca con:
-fa-admin-pending
+pero esos archivos no existían.
 
-la página permanece invisible hasta que el JS valida al administrador.
-Al no cargar el archivo JS, la clase nunca se quitaba.
+La página empieza oculta con:
+fa-migration-pending
+
+y solo se muestra cuando carga el JS y valida al administrador.
+Como el JS no cargaba, la pantalla quedaba completamente blanca.
 
 CORRECCIÓN
-Ahora existen y se cargan directamente:
+A partir de esta versión los archivos físicos usan nombres ESTABLES:
 
-/facilauto/assets/js/admin-v1.5.10.js
-/facilauto/assets/css/admin-v1.5.10.css
+/assets/js/migracion-d1.js
+/assets/css/migracion-d1.css
 
-admin.html apunta exactamente a esos archivos.
+La versión se maneja solo como cache-buster:
+?v=1.5.11
+
+Así los próximos cambios de versión no vuelven a romper la página.
 
 NO HACE FALTA
-- modificar Worker
-- hacer Deploy del Worker
-- ejecutar SQL
-- tocar D1
 - repetir la migración
-- tocar app.js
-- tocar data/
+- ejecutar SQL
+- modificar D1
+- reemplazar el Worker
+- volver a cargar los datasets
 
 INSTALACIÓN
 Subir TODO este ZIP dentro de:
@@ -43,19 +47,9 @@ Después:
 Ctrl + F5
 
 PROBAR
-https://emanuelmkt.com.ar/facilauto/admin.html
-
-Con la cuenta administradora debe mostrar:
-- Usuarios registrados
-- Consultas disponibles
-- Consultas compradas
-- Uso mensual
-- Acceso a Migración D1
-
-La página:
 https://emanuelmkt.com.ar/facilauto/admin/migracion-d1/
-sigue funcionando normalmente.
+
+Como la migración ya terminó, debe mostrar los datasets en estado ACTIVO EN D1.
 
 FOOTER
-Los HTML incluidos quedan en:
-v1.5.10
+Los HTML incluidos quedan en v1.5.11.
