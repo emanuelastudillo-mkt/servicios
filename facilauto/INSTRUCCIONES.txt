@@ -1,74 +1,105 @@
-FACIL AUTO — SEO EMBED + CONTRASTE v1.5.18
+FACIL AUTO — MOBILE POLISH v1.5.19
 
 PAQUETE INCREMENTAL.
-Solo contiene archivos nuevos/modificados.
+Solo incluye archivos nuevos o modificados.
 
 ARCHIVOS
-- index.html
-- assets/css/index-magic.css
-- assets/js/index-magic.js
+- assets/css/mobile-polish.css
 - servicios-auth.js
+- index.html
 - INSTRUCCIONES.txt
 
-CORRECCIÓN 1 — PÁGINAS SATÉLITE SEO
+AUDITORÍA RESPONSIVE APLICADA
 
-Las páginas SEO siguen teniendo SU contenido propio:
-- hero específico
-- explicación específica
-- calculadora contextual
-- FAQ específica
-- herramientas relacionadas
+RANGOS REVISADOS
+- 320–349 px
+- 350–430 px
+- 431–760 px
+- 761–900 px
 
-Pero el iframe de calculadora YA NO muestra los bloques exclusivos de la home:
+CAMBIOS PRINCIPALES
 
-- Qué podés calcular
-- FACIL AUTO en números
-- Cómo funciona
-- Demo de resultado
-- Según tu momento
-- Confianza extra de home
-- FAQ de home
-- Instagram de home
-- Metodología general de home
-- Datos generales de home
-- Header/footer internos del iframe
-- Botón flotante interno
+HEADER
+- Header sticky.
+- Logo/isotipo y cuenta en primera fila.
+- Navegación en segunda fila horizontal deslizable.
+- "Planes" sigue siendo accesible en mobile cuando corresponda.
+- Se evita el menú hamburguesa.
+- Mejor tamaño de targets táctiles.
 
-Dentro del iframe queda solamente:
-CALCULADORA + RESULTADO CONTEXTUAL.
+HOME
+- Hero reescalado para 360–430 px.
+- Márgenes laterales reducidos de forma consistente.
+- Mejor ritmo vertical.
+- Bloques Magic adaptados sin desbordes.
+- Estadísticas, demo y audiencias reorganizadas.
 
-Los perfiles SEO de v1.5.6 siguen controlando qué campos y resultados
-corresponden a cada intención.
+CALCULADORA
+- Tablet: 2 columnas cuando tiene sentido.
+- Mobile: 1 columna real.
+- Inputs de 16 px para evitar zoom automático de iOS.
+- Controles de mínimo 52 px.
+- Botón Calcular full-width.
+- Ajustes y supuestos cómodos para tocar.
 
-Además el iframe comunica su altura real al padre mediante ResizeObserver,
-evitando espacios gigantes luego de ocultar los bloques.
+RESULTADOS
+- Lectura de oportunidad pasa a vertical.
+- Se elimina el número redundante del encabezado de cada bloque en mobile,
+  conservando el SVG y el nombre.
+- Valor principal con mejor jerarquía.
+- Filas de datos sin texto cortado.
+- Financiación deja de depender de tabla horizontal:
+  cada banco se transforma en tarjeta responsive.
+- Opciones de seguro en una columna.
+- Compartir pasa a layout táctil.
 
-CORRECCIÓN 2 — CONTRASTE
+PÁGINAS SEO
+- Hero, CTAs, copy, herramienta, FAQ y relacionados optimizados.
+- CTAs apilados en mobile.
+- Mantiene la corrección anterior: el iframe solo muestra la herramienta contextual.
 
-Se fuerza texto claro en:
-- Calculadora negra
-- Herramienta negra de páginas SEO
-- FACIL AUTO en números
-- Cierre Instagram oscuro
-- Estado oscuro de datos
-- Botón flotante
+MI CUENTA
+- Identidad, saldo, plan y acciones reorganizados.
+- Planes a una columna.
+- Referidos responsive.
+- Botones con targets táctiles correctos.
 
-Los textos secundarios permanecen gris claro y los kickers naranja.
+ADMIN
+- La tabla de usuarios deja de requerir scroll horizontal.
+- Cada usuario se convierte en una tarjeta en mobile.
+- Se agregan labels móviles: Plan, Disponibles, Compradas y Uso/actividad.
+- Configuración de planes/referidos a una columna en pantallas pequeñas.
+
+MIGRACIÓN D1
+- Filas compactas y legibles.
+- Estado y progreso correctamente apilados.
+- Botón principal full-width.
+
+CTA FLOTANTE
+- Full-width con márgenes laterales en mobile.
+- Respeta safe-area de iPhone.
+- Se oculta temporalmente al abrir el teclado / enfocar inputs.
+
+ACCESIBILIDAD / UX
+- text-size-adjust controlado.
+- touch-action en controles.
+- scroll-margin para header sticky.
+- safe-area inferior.
+- Sin scroll horizontal estructural.
 
 NO SE MODIFICA
-- cálculo
 - app.js
+- cálculo
 - créditos
 - planes
 - pagos
-- D1
 - Worker
 - SQL
-- datos migrados
+- D1
+- datos
 
 INSTALACIÓN
-
-Subir TODO este ZIP dentro de:
+Subir TODO el ZIP dentro de:
 /facilauto/
 
 respetando carpetas.
@@ -76,5 +107,8 @@ respetando carpetas.
 Después:
 Ctrl + F5
 
+Las páginas que cargan servicios-auth.js reciben mobile-polish.css globalmente,
+por lo que no hace falta volver a empaquetar decenas de páginas SEO.
+
 VERSIÓN
-v1.5.18
+v1.5.19

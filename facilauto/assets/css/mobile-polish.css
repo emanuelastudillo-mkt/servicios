@@ -1,0 +1,1402 @@
+
+/* ================================================================
+   FACIL AUTO — MOBILE POLISH v1.5.19
+   Capa responsive global.
+   Objetivo: 320–900 px con foco principal en 360–430 px.
+   ================================================================ */
+
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+
+@media(max-width:900px){
+  html,body{
+    max-width:100%;
+    overflow-x:hidden;
+  }
+
+  body{
+    min-width:320px;
+  }
+
+  .shell,
+  .seo-shell,
+  .account-shell,
+  .admin-shell,
+  .migration-shell{
+    width:min(calc(100% - 28px),1320px)!important;
+  }
+
+  .seo-shell{max-width:1180px}
+  .account-shell{max-width:1120px}
+  .migration-shell{max-width:1180px}
+
+  section[id],
+  main[id],
+  [id="calculadora"],
+  [id="resultados"],
+  [id="herramienta"],
+  [id="faq"],
+  [id="metodologia"]{
+    scroll-margin-top:122px;
+  }
+
+  a,button,summary,label,select{
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:rgba(18,18,18,.08);
+  }
+
+  input,
+  select,
+  textarea{
+    font-size:16px!important;
+  }
+
+  /* ------------------------------------------------------------
+     HEADER / NAVEGACIÓN
+     Dos niveles: identidad + cuenta / navegación desplazable.
+     ------------------------------------------------------------ */
+  .topbar{
+    position:sticky!important;
+    top:0!important;
+    z-index:1000!important;
+    height:auto!important;
+    min-height:64px!important;
+    grid-template-columns:auto minmax(0,1fr)!important;
+    grid-template-rows:64px 44px!important;
+    gap:0 10px!important;
+    padding:0 14px!important;
+    background:#f3f1eb!important;
+    border-bottom:1px solid #121212!important;
+  }
+
+  .topbar>.wordmark,
+  .topbar>.fa-brand-header{
+    grid-column:1!important;
+    grid-row:1!important;
+    align-self:center!important;
+    justify-self:start!important;
+  }
+
+  .topbar>.fa-auth,
+  .topbar>.top-cta{
+    grid-column:2!important;
+    grid-row:1!important;
+    align-self:center!important;
+    justify-self:end!important;
+    margin-left:0!important;
+    min-width:0!important;
+  }
+
+  .topbar>.topnav{
+    display:flex!important;
+    grid-column:1 / -1!important;
+    grid-row:2!important;
+    align-items:center!important;
+    width:calc(100% + 28px)!important;
+    height:44px!important;
+    margin:0 -14px!important;
+    padding:0 14px!important;
+    gap:24px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    white-space:nowrap!important;
+    scrollbar-width:none!important;
+    overscroll-behavior-x:contain;
+    border-top:1px solid rgba(18,18,18,.16);
+  }
+
+  .topbar>.topnav::-webkit-scrollbar{
+    display:none;
+  }
+
+  .topbar>.topnav a{
+    flex:0 0 auto!important;
+    display:flex!important;
+    align-items:center!important;
+    height:44px!important;
+    padding:0!important;
+    font-size:10px!important;
+    line-height:1!important;
+    letter-spacing:.075em!important;
+  }
+
+  .fa-brand-header-isotipo{
+    width:38px!important;
+    height:38px!important;
+  }
+
+  .fa-auth button,
+  .fa-auth-link{
+    min-height:42px!important;
+  }
+
+  /* ------------------------------------------------------------
+     HOME · HERO
+     ------------------------------------------------------------ */
+  .hero{
+    min-height:0!important;
+    grid-template-columns:1fr!important;
+  }
+
+  .hero-main{
+    padding:52px 32px 48px!important;
+    border-right:0!important;
+    border-bottom:1px solid #121212!important;
+  }
+
+  .hero h1{
+    max-width:none!important;
+    margin:27px 0 25px!important;
+    font-size:clamp(46px,9.4vw,72px)!important;
+    line-height:.9!important;
+    letter-spacing:-.065em!important;
+  }
+
+  .hero-main>p{
+    max-width:650px!important;
+    font-size:17px!important;
+    line-height:1.48!important;
+  }
+
+  .hero-link{
+    min-height:44px;
+    align-items:center;
+    margin-top:30px!important;
+  }
+
+  .hero-data{
+    padding:28px 32px 30px!important;
+  }
+
+  .hero-data>p{
+    margin-top:24px!important;
+  }
+
+  /* ------------------------------------------------------------
+     CALCULADORA
+     ------------------------------------------------------------ */
+  .calculator-section{
+    padding:64px 0 70px!important;
+  }
+
+  .calculator-section .section-title{
+    gap:13px!important;
+  }
+
+  .calculator-section .section-title>span{
+    width:31px!important;
+    height:31px!important;
+    flex-basis:31px!important;
+  }
+
+  .calculator-section .section-title h2{
+    font-size:clamp(31px,7vw,48px)!important;
+    line-height:1!important;
+  }
+
+  .calc-layout{
+    margin-top:34px!important;
+  }
+
+  .calc-block{
+    grid-template-columns:1fr!important;
+    gap:24px!important;
+    padding:26px 0!important;
+  }
+
+  .block-head{
+    padding-right:0!important;
+    max-width:620px;
+  }
+
+  .block-head>b{
+    flex:0 0 30px!important;
+    width:30px!important;
+    height:30px!important;
+  }
+
+  .block-head span{
+    font-size:16px!important;
+  }
+
+  .block-head small{
+    max-width:520px;
+    font-size:11px!important;
+    line-height:1.52!important;
+  }
+
+  .vehicle-fields,
+  .operation-fields,
+  .settings-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:20px 18px!important;
+  }
+
+  .field-wide{
+    grid-column:span 2!important;
+  }
+
+  .settings{
+    grid-column:1!important;
+    margin-top:0!important;
+  }
+
+  .settings summary{
+    min-height:44px;
+    display:flex;
+    align-items:center;
+  }
+
+  input,
+  select{
+    min-height:52px!important;
+  }
+
+  .coverage-note{
+    grid-column:1 / -1!important;
+    line-height:1.5!important;
+  }
+
+  .calc-submit{
+    gap:22px!important;
+    padding-top:24px!important;
+  }
+
+  .calc-submit p{
+    max-width:50%;
+    line-height:1.45!important;
+  }
+
+  .calc-submit button{
+    min-height:56px!important;
+    height:auto!important;
+    padding:0 20px!important;
+  }
+
+  /* ------------------------------------------------------------
+     RESULTADOS
+     ------------------------------------------------------------ */
+  .results-section{
+    padding:64px 0 74px!important;
+  }
+
+  .result-title{
+    margin-bottom:30px!important;
+  }
+
+  .opportunity-panel{
+    grid-template-columns:1fr 170px!important;
+    min-height:0!important;
+  }
+
+  .opportunity-label{
+    padding:24px!important;
+  }
+
+  .opportunity-number{
+    padding:22px 14px!important;
+  }
+
+  .opportunity-bar{
+    grid-column:1 / -1!important;
+    padding:22px 24px 27px!important;
+    border-top:1px solid #121212;
+  }
+
+  .result-strip summary{
+    min-height:82px;
+  }
+
+  .strip-detail{
+    min-width:0!important;
+  }
+
+  .data-list>div{
+    min-width:0;
+  }
+
+  .data-list dt,
+  .data-list dd{
+    overflow-wrap:anywhere;
+  }
+
+  .close-summary{
+    align-items:flex-start!important;
+  }
+
+  .finance-detail{
+    min-width:0!important;
+  }
+
+  .bank-list{
+    min-width:0!important;
+  }
+
+  .insurance-options{
+    grid-template-columns:1fr!important;
+  }
+
+  .insurance-option{
+    min-height:56px;
+  }
+
+  .fa-share-panel{
+    gap:14px!important;
+  }
+
+  /* ------------------------------------------------------------
+     METODOLOGÍA / DATOS / FOOTER
+     ------------------------------------------------------------ */
+  .method-section,
+  .sources-section{
+    padding:68px 0!important;
+  }
+
+  .method-grid,
+  .sources-grid{
+    grid-template-columns:1fr!important;
+    gap:36px!important;
+  }
+
+  .sources-grid h2{
+    font-size:clamp(36px,8vw,50px)!important;
+  }
+
+  .footer,
+  .seo-footer,
+  .account-footer,
+  .admin-footer,
+  .migration-footer{
+    gap:18px!important;
+  }
+
+  /* ------------------------------------------------------------
+     MAGIC HOME
+     ------------------------------------------------------------ */
+  .magic-capabilities,
+  .magic-process,
+  .magic-audiences,
+  .magic-faq{
+    padding:72px 0!important;
+  }
+
+  .magic-section-head{
+    grid-template-columns:1fr!important;
+    gap:24px!important;
+    margin-bottom:34px!important;
+  }
+
+  .magic-section-head h2,
+  .magic-demo-copy h2,
+  .magic-trust-title h2,
+  .magic-faq-title h2,
+  .magic-instagram h2{
+    font-size:clamp(38px,8.4vw,58px)!important;
+  }
+
+  .magic-capability{
+    padding:20px 0!important;
+  }
+
+  .magic-stats-grid{
+    min-height:0!important;
+  }
+
+  .magic-stat,
+  .magic-stats-brand{
+    min-height:180px;
+  }
+
+  .magic-process-step{
+    min-height:245px!important;
+  }
+
+  .magic-demo-copy{
+    padding:58px 34px!important;
+  }
+
+  .magic-demo-card{
+    margin:32px!important;
+  }
+
+  .magic-audience{
+    min-height:260px!important;
+  }
+
+  .magic-trust{
+    padding:68px 0!important;
+  }
+
+  .magic-trust-grid,
+  .magic-faq-grid{
+    grid-template-columns:1fr!important;
+    gap:34px!important;
+  }
+
+  /* ------------------------------------------------------------
+     SEO SATÉLITES / PLANES
+     ------------------------------------------------------------ */
+  .seo-hero{
+    grid-template-columns:1fr!important;
+  }
+
+  .seo-hero-main{
+    padding:54px 34px 48px!important;
+    border-right:0!important;
+    border-bottom:1px solid var(--seo-ink,#121212)!important;
+  }
+
+  .seo-hero h1{
+    margin:26px 0 24px!important;
+    font-size:clamp(44px,9.2vw,68px)!important;
+    line-height:.92!important;
+  }
+
+  .seo-hero-lead{
+    font-size:17px!important;
+    line-height:1.5!important;
+  }
+
+  .seo-hero-actions{
+    gap:10px!important;
+  }
+
+  .seo-primary,
+  .seo-secondary{
+    min-height:48px!important;
+  }
+
+  .seo-hero-side{
+    padding:30px 34px!important;
+  }
+
+  .seo-copy{
+    padding:64px 0!important;
+  }
+
+  .seo-copy-grid{
+    grid-template-columns:1fr!important;
+    gap:28px!important;
+  }
+
+  .seo-copy-body article{
+    grid-template-columns:120px 1fr!important;
+    gap:24px!important;
+  }
+
+  .seo-tool{
+    padding-top:54px!important;
+  }
+
+  .seo-tool-head{
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:18px!important;
+  }
+
+  .seo-tool-frame{
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  .seo-faq{
+    padding:64px 0!important;
+  }
+
+  .seo-related{
+    padding:48px 0!important;
+  }
+
+  .seo-related-links{
+    gap:7px!important;
+  }
+
+  .seo-related-links a{
+    min-height:42px;
+    display:flex;
+    align-items:center;
+  }
+
+  .seo-plans{
+    grid-template-columns:1fr!important;
+  }
+
+  .seo-plan{
+    min-height:280px!important;
+  }
+
+  /* ------------------------------------------------------------
+     MI CUENTA
+     ------------------------------------------------------------ */
+  .account-main{
+    padding:52px 0 72px!important;
+  }
+
+  .account-intro{
+    align-items:flex-start!important;
+  }
+
+  .account-intro h1,
+  .account-empty h1{
+    font-size:clamp(38px,8.4vw,58px)!important;
+  }
+
+  .account-current{
+    padding:25px 26px!important;
+  }
+
+  .account-section-head{
+    grid-template-columns:1fr!important;
+    gap:16px!important;
+  }
+
+  .account-plans-wrap{
+    margin-top:48px!important;
+  }
+
+  .account-plan{
+    min-height:265px!important;
+  }
+
+  .fa-referral-account{
+    padding:22px!important;
+  }
+
+  .fa-referral-link-row input{
+    min-width:0!important;
+  }
+
+  /* ------------------------------------------------------------
+     ADMIN
+     ------------------------------------------------------------ */
+  .admin-main{
+    padding:52px 0 72px!important;
+  }
+
+  .admin-head{
+    grid-template-columns:1fr!important;
+    gap:25px!important;
+  }
+
+  .admin-head h1{
+    font-size:clamp(44px,9vw,68px)!important;
+  }
+
+  .admin-section-head{
+    align-items:flex-start!important;
+    flex-direction:column!important;
+    gap:12px!important;
+  }
+
+  .admin-settings-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+
+  /* ------------------------------------------------------------
+     MIGRACIÓN D1
+     ------------------------------------------------------------ */
+  .migration-main{
+    padding:52px 0 72px!important;
+  }
+
+  .migration-head{
+    grid-template-columns:1fr!important;
+    gap:25px!important;
+  }
+
+  .migration-head h1{
+    font-size:clamp(44px,9vw,68px)!important;
+  }
+
+  .migration-row{
+    grid-template-columns:42px minmax(0,1fr)!important;
+    gap:12px 14px!important;
+  }
+
+  .migration-state,
+  .migration-meter{
+    grid-column:2!important;
+  }
+
+  .migration-actions{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+
+  .migration-actions button{
+    width:100%;
+  }
+
+  /* ------------------------------------------------------------
+     CTA FLOTANTE
+     ------------------------------------------------------------ */
+  .fa-floating-quote{
+    bottom:calc(14px + env(safe-area-inset-bottom,0px))!important;
+  }
+
+  body.fa-input-active .fa-floating-quote{
+    opacity:0!important;
+    transform:translateY(14px)!important;
+    pointer-events:none!important;
+  }
+}
+
+@media(max-width:760px){
+  .shell,
+  .seo-shell,
+  .account-shell,
+  .admin-shell,
+  .migration-shell{
+    width:calc(100% - 28px)!important;
+  }
+
+  /* HOME HERO */
+  .hero-main{
+    padding:44px 22px 42px!important;
+  }
+
+  .hero h1{
+    font-size:clamp(43px,12.5vw,58px)!important;
+  }
+
+  .hero-main>p{
+    font-size:16px!important;
+  }
+
+  .hero-data{
+    padding:24px 22px 26px!important;
+  }
+
+  .data-line{
+    gap:12px!important;
+  }
+
+  /* CALCULADORA: una columna real */
+  .vehicle-fields,
+  .operation-fields,
+  .settings-grid{
+    grid-template-columns:1fr!important;
+    gap:18px!important;
+  }
+
+  .field-wide,
+  .coverage-note{
+    grid-column:1!important;
+  }
+
+  .calc-submit{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+
+  .calc-submit p{
+    max-width:none!important;
+  }
+
+  .calc-submit button{
+    width:100%!important;
+    justify-content:space-between!important;
+  }
+
+  /* RESULTADO: resumen optimizado para pulgar */
+  .opportunity-panel{
+    grid-template-columns:1fr!important;
+  }
+
+  .opportunity-label{
+    border-right:0!important;
+    border-bottom:1px solid #121212!important;
+  }
+
+  .opportunity-number{
+    align-items:flex-start!important;
+    border-right:0!important;
+    border-bottom:1px solid #121212!important;
+  }
+
+  .opportunity-number span{
+    font-size:38px!important;
+  }
+
+  .opportunity-bar{
+    grid-column:1!important;
+    border-top:0!important;
+  }
+
+  .result-strip summary{
+    grid-template-columns:40px minmax(0,1fr) 30px!important;
+    gap:11px!important;
+    padding:17px 16px!important;
+  }
+
+  .result-strip .strip-index{
+    display:none!important;
+  }
+
+  .result-strip .fa-result-icon{
+    grid-column:1!important;
+    grid-row:1!important;
+    width:38px!important;
+    height:38px!important;
+    align-self:start!important;
+  }
+
+  .result-strip .strip-copy{
+    grid-column:2!important;
+    grid-row:1!important;
+    min-width:0!important;
+  }
+
+  .result-strip .strip-copy strong{
+    display:block;
+    overflow-wrap:anywhere;
+  }
+
+  .result-strip .strip-toggle{
+    grid-column:3!important;
+    grid-row:1!important;
+    align-self:center!important;
+    justify-self:end!important;
+  }
+
+  .result-strip .strip-primary{
+    grid-column:2 / 4!important;
+    grid-row:2!important;
+    justify-self:stretch!important;
+    width:100%!important;
+    margin-top:2px!important;
+  }
+
+  .result-strip .strip-primary strong{
+    font-size:clamp(23px,7vw,30px)!important;
+    line-height:1!important;
+    overflow-wrap:anywhere;
+  }
+
+  .strip-detail{
+    padding-left:16px!important;
+    padding-right:16px!important;
+  }
+
+  .data-list{
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+
+  .data-list>div{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(110px,auto)!important;
+    gap:12px!important;
+    align-items:start!important;
+  }
+
+  .data-list dd{
+    max-width:160px;
+    text-align:right!important;
+  }
+
+  .close-lines{
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+
+  .close-summary{
+    margin-left:0!important;
+    margin-right:0!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:6px!important;
+  }
+
+  /* FINANCIACIÓN como tarjetas; sin scroll horizontal */
+  .bank-table-head{
+    display:none!important;
+  }
+
+  .bank-row{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:13px 16px!important;
+    padding:17px 16px!important;
+    align-items:start!important;
+  }
+
+  .bank-name{
+    grid-column:1 / -1!important;
+    padding-bottom:4px;
+  }
+
+  .bank-cell{
+    min-width:0;
+  }
+
+  .bank-cell small{
+    display:block!important;
+    margin-bottom:4px!important;
+    color:#77746d!important;
+    font-size:7px!important;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+  }
+
+  .bank-payment{
+    text-align:left!important;
+  }
+
+  .bank-payment b{
+    font-size:15px!important;
+  }
+
+  .finance-title{
+    align-items:flex-start!important;
+    flex-direction:column!important;
+    gap:15px!important;
+  }
+
+  .finance-title>div:last-child{
+    text-align:left!important;
+  }
+
+  .insurance-row{
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+
+  .fa-share-panel{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+
+  .fa-share-actions{
+    width:100%!important;
+  }
+
+  .fa-share-button{
+    min-height:44px!important;
+    flex:1 1 140px!important;
+    justify-content:center!important;
+  }
+
+  /* MÉTODO / DATOS */
+  .method-list article{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    padding:18px 0!important;
+  }
+
+  .source-list>div{
+    grid-template-columns:82px minmax(0,1fr)!important;
+    gap:8px 14px!important;
+  }
+
+  .source-list small{
+    grid-column:2!important;
+  }
+
+  /* MAGIC */
+  .magic-stats-grid{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  .magic-stats-brand{
+    grid-column:1 / -1!important;
+    min-height:205px!important;
+  }
+
+  .magic-stat{
+    min-height:155px!important;
+    padding:26px 20px!important;
+  }
+
+  .magic-stat strong{
+    font-size:38px!important;
+  }
+
+  .magic-process-grid,
+  .magic-audience-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  .magic-demo-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  .magic-demo-copy{
+    border-right:0!important;
+    border-bottom:1px solid #121212!important;
+  }
+
+  .magic-instagram-inner{
+    grid-template-columns:1fr!important;
+    gap:28px!important;
+    min-height:300px!important;
+    padding-top:56px;
+    padding-bottom:44px;
+  }
+
+  .magic-instagram-cta{
+    text-align:left!important;
+    padding-bottom:0!important;
+  }
+
+  /* SEO */
+  .seo-hero-main{
+    padding:44px 22px 40px!important;
+  }
+
+  .seo-hero h1{
+    font-size:clamp(42px,11.5vw,56px)!important;
+  }
+
+  .seo-hero-side{
+    padding:26px 22px!important;
+  }
+
+  .seo-hero-actions{
+    flex-direction:column!important;
+  }
+
+  .seo-primary,
+  .seo-secondary{
+    width:100%!important;
+  }
+
+  .seo-copy-body article{
+    grid-template-columns:1fr!important;
+    gap:7px!important;
+  }
+
+  .seo-tool-head{
+    margin-bottom:24px!important;
+  }
+
+  .seo-tool h2{
+    font-size:clamp(34px,9vw,48px)!important;
+  }
+
+  .seo-faq h2{
+    font-size:32px!important;
+  }
+
+  .seo-footer{
+    grid-template-columns:1fr!important;
+    padding:24px 0 calc(24px + env(safe-area-inset-bottom,0px))!important;
+  }
+
+  .seo-footer-links{
+    flex-wrap:wrap;
+  }
+
+  .seo-plan{
+    min-height:0!important;
+    padding:22px!important;
+  }
+
+  /* CUENTA */
+  .account-intro{
+    gap:14px!important;
+  }
+
+  .account-intro .account-avatar{
+    width:54px!important;
+    height:54px!important;
+    flex-basis:54px!important;
+  }
+
+  .account-intro h1{
+    font-size:clamp(34px,9vw,46px)!important;
+    overflow-wrap:anywhere;
+  }
+
+  .account-intro p{
+    overflow-wrap:anywhere;
+  }
+
+  .account-current{
+    grid-template-columns:1fr!important;
+    padding:22px!important;
+    gap:20px!important;
+  }
+
+  .account-current-volume{
+    text-align:left!important;
+    padding-top:18px;
+    border-top:1px solid rgba(255,255,255,.22);
+  }
+
+  .account-current-volume strong{
+    font-size:44px!important;
+  }
+
+  .account-plans{
+    grid-template-columns:1fr!important;
+  }
+
+  .account-plan{
+    min-height:0!important;
+    padding:22px!important;
+  }
+
+  .account-plan-volume{
+    margin-top:34px!important;
+  }
+
+  .account-actions{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+
+  .account-actions>a,
+  .account-actions>button{
+    width:100%!important;
+    min-height:44px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+  }
+
+  .fa-admin-account-link{
+    justify-content:center!important;
+  }
+
+  .fa-referral-link-row{
+    flex-direction:column!important;
+  }
+
+  .fa-referral-link-row button{
+    width:100%!important;
+  }
+
+  .fa-referral-stats{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:14px!important;
+  }
+
+  /* ADMIN: convertir tabla horizontal en tarjetas */
+  .admin-table{
+    border:0!important;
+    background:transparent!important;
+    overflow:visible!important;
+  }
+
+  .admin-row.admin-table-head{
+    display:none!important;
+  }
+
+  #admin-users-list{
+    display:grid!important;
+    gap:10px!important;
+  }
+
+  #admin-users-list .admin-row{
+    min-width:0!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:16px 14px!important;
+    padding:17px!important;
+    border:1px solid var(--admin-ink,#121212)!important;
+    background:var(--admin-paper,#fbfaf7)!important;
+  }
+
+  #admin-users-list .admin-row>.admin-user{
+    grid-column:1 / -1!important;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--admin-line,#cbc9c1);
+  }
+
+  #admin-users-list .admin-row>.admin-cell{
+    min-width:0;
+  }
+
+  #admin-users-list .admin-row>.admin-cell::before{
+    display:block;
+    margin-bottom:4px;
+    color:var(--admin-muted,#696963);
+    font-size:7px;
+    font-weight:800;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+  }
+
+  #admin-users-list .admin-row>.admin-cell:nth-child(2)::before{content:"Plan"}
+  #admin-users-list .admin-row>.admin-cell:nth-child(3)::before{content:"Disponibles"}
+  #admin-users-list .admin-row>.admin-cell:nth-child(4)::before{content:"Compradas"}
+  #admin-users-list .admin-row>.admin-cell:nth-child(5)::before{content:"Uso / actividad"}
+
+  .admin-settings-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  .admin-setting-card{
+    min-height:0!important;
+  }
+
+  .admin-settings-actions{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+
+  .admin-settings-actions button{
+    width:100%!important;
+  }
+
+  /* MIGRACIÓN */
+  .migration-warning{
+    padding:16px!important;
+  }
+
+  .migration-row{
+    padding:17px 0!important;
+  }
+
+  .migration-name strong{
+    font-size:13px!important;
+  }
+
+  .migration-detail{
+    line-height:1.4;
+  }
+
+  .migration-next{
+    margin-top:54px!important;
+  }
+
+  /* CTA flotante: ancho usable y zona segura */
+  .fa-floating-quote{
+    left:12px!important;
+    right:12px!important;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;
+    width:auto!important;
+    max-width:none!important;
+  }
+
+  .fa-floating-quote>a{
+    flex:1 1 auto!important;
+    justify-content:space-between!important;
+    min-width:0!important;
+  }
+
+  .fa-floating-quote-close{
+    flex:0 0 44px!important;
+    width:44px!important;
+  }
+}
+
+@media(max-width:430px){
+  .topbar{
+    grid-template-rows:60px 42px!important;
+  }
+
+  .topbar>.topnav{
+    height:42px!important;
+    gap:21px!important;
+  }
+
+  .topbar>.topnav a{
+    height:42px!important;
+    font-size:9px!important;
+  }
+
+  .fa-brand-header-isotipo{
+    width:35px!important;
+    height:35px!important;
+  }
+
+  .fa-account-global{
+    min-height:38px!important;
+    padding:2px 8px 2px 3px!important;
+  }
+
+  .fa-account-global-label{
+    display:none!important;
+  }
+
+  .fa-account-global .fa-auth-avatar,
+  .fa-account-global-avatar,
+  .fa-account-global-fallback{
+    width:32px!important;
+    height:32px!important;
+    flex-basis:32px!important;
+  }
+
+  .fa-auth .fa-login{
+    min-height:38px!important;
+    padding:0 12px!important;
+    font-size:9px!important;
+  }
+
+  .hero-main{
+    padding:39px 19px 38px!important;
+  }
+
+  .hero h1{
+    font-size:clamp(41px,12vw,51px)!important;
+  }
+
+  .hero-main>p{
+    font-size:15px!important;
+  }
+
+  .hero-data{
+    padding:21px 19px 24px!important;
+  }
+
+  .calculator-section{
+    padding:54px 0 60px!important;
+  }
+
+  .results-section{
+    padding:54px 0 62px!important;
+  }
+
+  .section-title h2{
+    font-size:31px!important;
+  }
+
+  .data-list>div{
+    grid-template-columns:1fr!important;
+    gap:4px!important;
+  }
+
+  .data-list dd{
+    max-width:none!important;
+    text-align:left!important;
+  }
+
+  .bank-row{
+    grid-template-columns:1fr!important;
+  }
+
+  .bank-name{
+    grid-column:1!important;
+  }
+
+  .magic-stats-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  .magic-stats-brand{
+    grid-column:1!important;
+  }
+
+  .magic-demo-card{
+    margin:14px!important;
+    box-shadow:7px 7px 0 rgba(18,18,18,.07)!important;
+  }
+
+  .magic-demo-card header{
+    flex-direction:column!important;
+  }
+
+  .magic-demo-opportunity{
+    align-items:flex-start!important;
+    flex-direction:column!important;
+    gap:10px!important;
+  }
+
+  .magic-demo-meter{
+    grid-template-columns:1fr!important;
+  }
+
+  .magic-demo-meter>span{
+    display:none!important;
+  }
+
+  .magic-audience h3{
+    margin-top:34px!important;
+    font-size:25px!important;
+  }
+
+  .seo-hero-main{
+    padding:39px 19px 36px!important;
+  }
+
+  .seo-hero-side{
+    padding:24px 19px!important;
+  }
+
+  .account-intro{
+    display:grid!important;
+    grid-template-columns:52px minmax(0,1fr)!important;
+  }
+
+  .account-intro .account-avatar{
+    width:48px!important;
+    height:48px!important;
+    flex-basis:48px!important;
+  }
+
+  .account-plan-head{
+    flex-direction:column!important;
+    gap:14px!important;
+  }
+
+  .account-plan-price{
+    text-align:left!important;
+  }
+
+  .fa-referral-stats{
+    grid-template-columns:1fr!important;
+  }
+
+  #admin-users-list .admin-row{
+    grid-template-columns:1fr!important;
+  }
+
+  #admin-users-list .admin-row>.admin-user{
+    grid-column:1!important;
+  }
+
+  .admin-summary{
+    margin-top:24px!important;
+  }
+
+  .admin-users{
+    margin-top:48px!important;
+  }
+
+  .migration-row{
+    grid-template-columns:36px minmax(0,1fr)!important;
+  }
+
+  .migration-index{
+    width:32px!important;
+    height:32px!important;
+  }
+}
+
+@media(max-width:350px){
+  .shell,
+  .seo-shell,
+  .account-shell,
+  .admin-shell,
+  .migration-shell{
+    width:calc(100% - 20px)!important;
+  }
+
+  .topbar{
+    padding-left:10px!important;
+    padding-right:10px!important;
+  }
+
+  .topbar>.topnav{
+    width:calc(100% + 20px)!important;
+    margin-left:-10px!important;
+    margin-right:-10px!important;
+    padding-left:10px!important;
+    padding-right:10px!important;
+  }
+
+  .hero h1{
+    font-size:39px!important;
+  }
+
+  .result-strip summary{
+    padding-left:12px!important;
+    padding-right:12px!important;
+  }
+}

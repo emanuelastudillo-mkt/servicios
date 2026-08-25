@@ -1,12 +1,12 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca v1.5.18
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca + Mobile v1.5.19
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
-const FRONTEND_VERSION = '1.5.18';
+const FRONTEND_VERSION = '1.5.19';
 const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
@@ -405,6 +405,17 @@ function brandUrl(path) {
   return siteUrl(`assets/brand/${path}`);
 }
 
+
+function ensureMobilePolishStylesheet() {
+  if (document.querySelector('link[data-fa-mobile-polish]')) return;
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = siteUrl(`assets/css/mobile-polish.css?v=${FRONTEND_VERSION}`);
+  link.dataset.faMobilePolish = '1';
+  document.head.appendChild(link);
+}
+
 function ensureBrandStylesheet() {
   if (document.querySelector('link[data-fa-brand-css]')) return;
 
@@ -484,6 +495,7 @@ function applyBrandToWordmarks() {
 
 function applyBrandIdentity() {
   ensureBrandStylesheet();
+  ensureMobilePolishStylesheet();
   ensureBrandFavicons();
   applyBrandToWordmarks();
 }
@@ -1187,9 +1199,34 @@ function escapeHtml(value='') {
   })[char]);
 }
 
+
+function installMobileInteractionPolish() {
+  if (window.__faMobilePolishInstalled) return;
+  window.__faMobilePolishInstalled = true;
+
+  const isFormControl = target =>
+    target instanceof Element &&
+    target.matches('input,select,textarea,[contenteditable="true"]');
+
+  document.addEventListener('focusin', event => {
+    if (isFormControl(event.target)) {
+      document.body.classList.add('fa-input-active');
+    }
+  });
+
+  document.addEventListener('focusout', () => {
+    window.setTimeout(() => {
+      if (!isFormControl(document.activeElement)) {
+        document.body.classList.remove('fa-input-active');
+      }
+    }, 80);
+  });
+}
+
 async function init() {
   injectStyles();
   applyBrandIdentity();
+  installMobileInteractionPolish();
   captureReferralFromUrl();
   syncGlobalUi(null);
   await loadProductSettings();
