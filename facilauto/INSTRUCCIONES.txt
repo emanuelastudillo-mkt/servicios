@@ -1,57 +1,70 @@
-FACIL AUTO — HERO DATOS REALES v1.5.25
+FACIL AUTO — FINANCIACIÓN · VALOR PRINCIPAL v1.5.26
 
 PAQUETE INCREMENTAL
 
 ARCHIVOS
+- assets/js/finance-primary-v1.5.26.js
 - index.html
 - servicios-auth.js
-- assets/css/hero-market.css
 - INSTRUCCIONES.txt
 
-CAMBIO
+PROBLEMA
 
-Se agrega dentro de la primera pantalla de la HOME un bloque:
+El bloque:
 
-PULSO DEL MERCADO · JULIO 2026
-Argentina · vehículos usados
+04 FINANCIACIÓN
+Alternativas bancarias
 
-DATOS
+tenía preparado:
+#finance-primary
 
-156.810
-usados comercializados en julio
+pero app.js nunca escribía un valor en ese nodo.
+Por eso el resumen quedaba en "—" aunque debajo sí existieran alternativas.
 
-1.048.438
-operaciones entre enero y julio
+CORRECCIÓN
 
-8.276
-Gol / Trend · líder usado del mes
+El valor principal ahora muestra:
 
-Los datos corresponden al mercado argentino de vehículos usados
-publicado para julio de 2026.
+CUOTA MENSUAL DE LA PRIMERA ALTERNATIVA DEL LISTADO
 
-DISEÑO
+El listado actual de app.js está ordenado por:
+MENOR CFT
 
-- integrado dentro del hero;
-- cifra principal en turquesa #01A5BC;
-- resto de cifras en tinta;
-- estética editorial de FACIL AUTO;
-- sin tarjetas redondeadas;
-- líneas finas;
-- responsive específico para 760 px y 430 px;
-- en mobile las estadísticas se apilan para evitar números comprimidos.
+Por eso el resumen queda, por ejemplo:
 
-IMPORTANTE
+$985.000
+cuota/mes · menor CFT · 36 meses
 
-El bloque dice:
-"Datos públicos del mercado automotor argentino. Actualización mensual."
+Al desplegar el bloque siguen apareciendo:
+- banco / producto
+- TNA
+- CFT TEA
+- total
+- cuota aproximada
+- monto financiado
 
-No se presentan estas cifras como estadísticas propias de FACIL AUTO.
+CASOS ESPECIALES
+
+ANTICIPO = 100%
+Se muestra:
+
+SIN FINANCIACIÓN
+operación cubierta por anticipo
+
+SIN PRODUCTOS PARA EL PLAZO
+Se muestra:
+
+SIN ALTERNATIVAS
+para XX meses
 
 NO SE MODIFICA
-- calculadora
+- fórmula financiera
+- orden de bancos
+- tasas
 - app.js
-- seguros
 - créditos
+- seguros
+- planes
 - pagos
 - Worker
 - D1
@@ -68,4 +81,4 @@ Después:
 Ctrl + F5
 
 VERSIÓN
-v1.5.25
+v1.5.26
