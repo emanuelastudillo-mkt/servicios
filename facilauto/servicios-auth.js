@@ -1,5 +1,5 @@
 /**
- * FACIL AUTO — Auth frontend v1.3.0
+ * FACIL AUTO — Auth + Consultas v1.5.0
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
@@ -35,6 +35,10 @@ const PLANS = {
   }
 };
 
+let currentAccount = null;
+let bypassNextConsultationGate = false;
+let consultationGateInstalled = false;
+
 const authCss = `
 .fa-auth{display:flex;align-items:center;gap:10px;margin-left:auto;justify-self:end}
 .fa-auth button,.fa-auth-link{appearance:none;border:1px solid #2b2b2b;background:#fff;color:#111;min-height:42px;padding:0 16px;border-radius:3px;font:700 11px/1 Arial,sans-serif;letter-spacing:.05em;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
@@ -47,6 +51,8 @@ const authCss = `
 .fa-auth-meta strong{font:700 12px/1.2 Arial,sans-serif;color:#111;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fa-auth-meta small{font:500 10px/1.2 Arial,sans-serif;color:#777;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fa-auth-error{position:fixed;left:20px;right:20px;bottom:20px;z-index:10050;background:#181818;color:#fff;padding:12px 16px;border-radius:4px;font:600 12px/1.4 Arial,sans-serif}
+.fa-consult-submit[disabled]{opacity:.62;cursor:wait!important}
+.fa-consult-submit[data-empty="1"]{background:#6d6b65!important}
 @media(max-width:850px){
   .fa-auth-meta{display:none}
   .fa-auth{gap:6px}
@@ -105,9 +111,19 @@ function cleanReturnUrl() {
 }
 
 function login() {
-  const returnTo = cleanReturnUrl();
-  window.location.href =
+  const params = new URLSearchParams(window.location.search);
+  const embeddedReturn =
+    params.get('embed') === '1' ? params.get('share_url') : '';
+
+  const returnTo = embeddedReturn || cleanReturnUrl();
+  const authUrl =
     `${API_BASE.replace(/\/$/,'')}/auth/google?return_to=${encodeURIComponent(returnTo)}`;
+
+  if (window.top !== window.self) {
+    window.top.location.href = authUrl;
+  } else {
+    window.location.href = authUrl;
+  }
 }
 
 async function logout() {
@@ -267,7 +283,7 @@ function planCard(key) {
   return article;
 }
 
-function renderAccount(user) {
+function renderAccount(user, account = currentAccount) {
   const root = document.getElementById('account-page-root');
   if (!root) return;
 
@@ -290,17 +306,23 @@ function renderAccount(user) {
   `;
   intro.appendChild(identity);
 
+  const planName = String(account?.plan || 'free').toUpperCase();
+  const available = Math.max(0, Number(account?.available ?? 0));
+  const monthlyLimit = Math.max(0, Number(account?.monthly_limit ?? 10));
+  const used = Math.max(0, Number(account?.used ?? 0));
+  const bonus = Math.max(0, Number(account?.bonus_credits ?? 0));
+
   const current = document.createElement('section');
   current.className = 'account-current';
   current.innerHTML = `
     <div>
       <small>PLAN ACTUAL</small>
-      <strong>FREE</strong>
-      <p>Acceso inicial para consultas ocasionales.</p>
+      <strong>${escapeHtml(planName)}</strong>
+      <p>${used} usadas de ${monthlyLimit} este mes${bonus ? ` · ${bonus} adicionales` : ''}.</p>
     </div>
     <div class="account-current-volume">
-      <strong>10</strong>
-      <span>consultas / mes</span>
+      <strong>${available}</strong>
+      <span>consultas disponibles</span>
     </div>
   `;
 
@@ -337,6 +359,158 @@ function renderAccount(user) {
   root.append(intro, current, plans, actions);
 }
 
+
+function consultationButton() {
+  return document.querySelector('#vehicle-form .calc-submit button[type="submit"]');
+}
+
+function updateConsultationButton() {
+  const button = consultationButton();
+  if (!button) return;
+
+  button.classList.add('fa-consult-submit');
+
+  if (!token()) {
+    button.dataset.empty = '0';
+    button.innerHTML = 'CALCULAR OPERACIÓN <span>INGRESAR →</span>';
+    button.setAttribute('aria-label', 'Ingresar para hacer una consulta');
+    return;
+  }
+
+  if (!currentAccount) {
+    button.dataset.empty = '0';
+    button.innerHTML = 'CALCULAR OPERACIÓN <span>… →</span>';
+    button.setAttribute('aria-label', 'Cargando consultas disponibles');
+    return;
+  }
+
+  const available = Math.max(0, Number(currentAccount.available) || 0);
+  button.dataset.empty = available <= 0 ? '1' : '0';
+  button.innerHTML = `CALCULAR OPERACIÓN <span>(${available}) →</span>`;
+  button.setAttribute(
+    'aria-label',
+    `Calcular operación. ${available} consultas disponibles`
+  );
+}
+
+async function refreshAccount() {
+  if (!token()) {
+    currentAccount = null;
+    updateConsultationButton();
+    return null;
+  }
+
+  const data = await api('/api/me');
+  currentAccount = data.account || null;
+  updateConsultationButton();
+  return data;
+}
+
+async function consultationGate(event) {
+  if (bypassNextConsultationGate) {
+    bypassNextConsultationGate = false;
+    return;
+  }
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+
+  const form = event.currentTarget;
+  const button = consultationButton();
+
+  if (!token()) {
+    showError('Tenés que iniciar sesión para hacer una consulta.');
+    login();
+    return;
+  }
+
+  if (!currentAccount) {
+    try {
+      await refreshAccount();
+    } catch (err) {
+      if (err.status === 401) {
+        setToken('');
+        currentAccount = null;
+        updateConsultationButton();
+        login();
+        return;
+      }
+
+      showError('No se pudo comprobar tus consultas disponibles.');
+      return;
+    }
+  }
+
+  const available = Math.max(0, Number(currentAccount?.available) || 0);
+
+  if (available <= 0) {
+    showError('No te quedan consultas disponibles. Podés ampliar tu plan desde Planes.');
+
+    setTimeout(() => {
+      const destination = siteUrl('planes/');
+      if (window.top !== window.self) window.top.location.href = destination;
+      else window.location.href = destination;
+    }, 700);
+
+    return;
+  }
+
+  if (button) button.disabled = true;
+
+  try {
+    const data = await api('/api/consultations/use', {method:'POST'});
+    currentAccount = data.account || currentAccount;
+    updateConsultationButton();
+
+    // La consulta ya quedó debitada en D1.
+    // Reemitimos el submit una única vez para que app.js haga el cálculo.
+    bypassNextConsultationGate = true;
+    form.dispatchEvent(new Event('submit', {
+      bubbles:true,
+      cancelable:true
+    }));
+  } catch (err) {
+    if (err.status === 401) {
+      setToken('');
+      currentAccount = null;
+      updateConsultationButton();
+      showError('Tu sesión venció. Volvé a ingresar.');
+      setTimeout(login, 450);
+      return;
+    }
+
+    if (err.status === 402 || err.message === 'no_consultations_left') {
+      try {
+        const data = await api('/api/me');
+        currentAccount = data.account || currentAccount;
+      } catch (_) {}
+
+      updateConsultationButton();
+      showError('No te quedan consultas disponibles.');
+      return;
+    }
+
+    showError('No se pudo registrar la consulta. Intentá nuevamente.');
+    console.error('FACIL AUTO credits:', err);
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+function installConsultationGate() {
+  if (consultationGateInstalled) return;
+
+  const form = document.getElementById('vehicle-form');
+  if (!form) return;
+
+  // Captura el submit ANTES del listener de app.js.
+  // Sin login / crédito válido, el cálculo no se ejecuta.
+  form.addEventListener('submit', consultationGate, true);
+  consultationGateInstalled = true;
+
+  updateConsultationButton();
+}
+
 function escapeHtml(value='') {
   return String(value).replace(/[&<>"']/g, char => ({
     '&':'&amp;',
@@ -353,6 +527,8 @@ async function init() {
   const host = findHeaderHost();
   if (host) renderLoggedOut(host);
 
+  installConsultationGate();
+
   try {
     await exchangeLoginTicket();
   } catch (err) {
@@ -361,6 +537,8 @@ async function init() {
   }
 
   if (!token()) {
+    currentAccount = null;
+    updateConsultationButton();
     renderAccountLoggedOut();
     return;
   }
@@ -369,16 +547,23 @@ async function init() {
     const data = await api('/api/me');
 
     if (data.authenticated && data.user) {
+      currentAccount = data.account || null;
+      updateConsultationButton();
+
       if (host) renderLoggedIn(host, data.user);
-      renderAccount(data.user);
+      renderAccount(data.user, currentAccount);
       return;
     }
 
     setToken('');
+    currentAccount = null;
+    updateConsultationButton();
     renderAccountLoggedOut();
   } catch (err) {
     if (err.status === 401) {
       setToken('');
+      currentAccount = null;
+      updateConsultationButton();
       renderAccountLoggedOut();
     } else {
       console.error('FACIL AUTO auth:', err);
@@ -391,4 +576,4 @@ document.readyState === 'loading'
   ? document.addEventListener('DOMContentLoaded', init)
   : init();
 
-export { api, login, logout, token, PLANS };
+export { api, login, logout, token, PLANS, refreshAccount };
