@@ -1,57 +1,30 @@
-FACIL AUTO — MENÚ PLANES + INSTAGRAM v1.5.13
+FACIL AUTO — GUÍA VISUAL DE MARCA v1.5.14
 
 PAQUETE INCREMENTAL
-Este ZIP contiene únicamente archivos modificados.
+Solo contiene archivos nuevos o modificados.
 
-ARCHIVOS
-- servicios-auth.js
-- INSTRUCCIONES.txt
+ARCHIVOS NUEVOS
+/assets/brand/facil-auto-isotipo.png
+/assets/brand/facil-auto-logo.png
+/assets/brand/facil-auto-logotipo.png
+/assets/brand/FACIL-AUTO-Guia-Visual.pdf
 
-CAMBIOS
+ARCHIVO MODIFICADO
+/servicios-auth.js
+- Solo actualiza la versión visible del frontend a v1.5.14.
 
-1. PLANES EN EL MENÚ SUPERIOR
-Se agrega automáticamente "Planes" al menú principal.
-
-VISIBLE:
-- usuario sin sesión
-- usuario con plan Free
-- usuario con créditos de referidos pero que sigue en Free
-
-OCULTO:
-- usuario con plan Standard
-- usuario con plan PRO
-- cualquier futuro plan cuyo código sea distinto de "free"
-
-La detección se realiza con el plan devuelto por /api/me.
-
-2. INSTAGRAM
-Se agrega en los footers públicos:
-
-https://www.instagram.com/facilauto.ok
-
-Abre en una pestaña nueva.
-
-No se agrega dentro del panel de administrador.
-
-3. VERSIÓN
-La capa global actualiza visualmente el footer a:
-v1.5.13
-
-Esto permite mantener el ZIP realmente incremental sin volver a incluir
-decenas de archivos HTML solamente para cambiar el número de versión.
-
-INSTALACIÓN
-Reemplazar únicamente:
-
-/facilauto/servicios-auth.js
-
-Luego:
-Ctrl + F5
-
-NO HACE FALTA
+NO REQUIERE
 - Cloudflare
 - Worker
 - SQL
 - D1
-- volver a migrar datos
-- modificar los HTML
+- migraciones
+
+INSTALACIÓN
+Subir el contenido del ZIP dentro de:
+/facilauto/
+
+respetando carpetas.
+
+La guía queda disponible como recurso interno en:
+/facilauto/assets/brand/FACIL-AUTO-Guia-Visual.pdf

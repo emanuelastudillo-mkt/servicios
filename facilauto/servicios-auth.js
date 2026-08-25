@@ -1,12 +1,12 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos v1.5.13
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos v1.5.14
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
-const FRONTEND_VERSION = '1.5.13';
+const FRONTEND_VERSION = '1.5.14';
 const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
