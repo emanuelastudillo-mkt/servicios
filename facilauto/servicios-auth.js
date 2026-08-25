@@ -1,5 +1,5 @@
 /**
- * FACIL AUTO — Auth + Consultas v1.5.3
+ * FACIL AUTO — Auth + Consultas + Admin v1.5.7
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
@@ -34,6 +34,7 @@ const PLANS = {
 };
 
 let currentAccount = null;
+let currentIsAdmin = false;
 let consultationGateInstalled = false;
 
 const authCss = `
@@ -89,6 +90,20 @@ const authCss = `
   flex:0 0 34px;
 }
 
+.fa-admin-account-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:0 16px;
+  border:1px solid #111;
+  background:#111;
+  color:#fff!important;
+  text-decoration:none!important;
+  font:800 10px/1 Arial,sans-serif;
+  letter-spacing:.07em;
+}
+.fa-admin-account-link:hover{background:#2b2b2b}
 .fa-consult-submit[disabled]{opacity:.62;cursor:wait!important}
 .fa-consult-submit[data-empty="1"]{background:#6d6b65!important}
 @media(max-width:850px){
@@ -333,7 +348,7 @@ function planCard(key) {
   return article;
 }
 
-function renderAccount(user, account = currentAccount) {
+function renderAccount(user, account = currentAccount, isAdmin = currentIsAdmin) {
   const root = document.getElementById('account-page-root');
   if (!root) return;
 
@@ -404,7 +419,17 @@ function renderAccount(user, account = currentAccount) {
   out.textContent = 'CERRAR SESIÓN';
   out.addEventListener('click', logout);
 
-  actions.append(back, out);
+  actions.append(back);
+
+  if (isAdmin) {
+    const admin = document.createElement('a');
+    admin.href = siteUrl('admin.html');
+    admin.className = 'fa-admin-account-link';
+    admin.textContent = 'PANEL DE CONTROL';
+    actions.appendChild(admin);
+  }
+
+  actions.append(out);
 
   root.append(intro, current, plans, actions);
 }
@@ -606,6 +631,7 @@ async function init() {
 
   if (!token()) {
     currentAccount = null;
+    currentIsAdmin = false;
     updateConsultationButton();
     renderAccountLoggedOut();
     return;
@@ -616,21 +642,24 @@ async function init() {
 
     if (data.authenticated && data.user) {
       currentAccount = data.account || null;
+      currentIsAdmin = Boolean(data.is_admin);
       updateConsultationButton();
 
       if (host) renderLoggedIn(host, data.user);
-      renderAccount(data.user, currentAccount);
+      renderAccount(data.user, currentAccount, currentIsAdmin);
       return;
     }
 
     setToken('');
     currentAccount = null;
+    currentIsAdmin = false;
     updateConsultationButton();
     renderAccountLoggedOut();
   } catch (err) {
     if (err.status === 401) {
       setToken('');
       currentAccount = null;
+      currentIsAdmin = false;
       updateConsultationButton();
       renderAccountLoggedOut();
     } else {
