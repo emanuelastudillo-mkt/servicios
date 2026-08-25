@@ -1,9 +1,9 @@
 /**
- * FACIL AUTO — Auth + Consultas v1.5.0
+ * FACIL AUTO — Auth + Consultas v1.5.1
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
-import './assets/js/frontend-v1.4.0.js?v=1.4.0';
+import './assets/js/frontend-v1.4.0.js?v=1.5.1';
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
@@ -36,7 +36,6 @@ const PLANS = {
 };
 
 let currentAccount = null;
-let bypassNextConsultationGate = false;
 let consultationGateInstalled = false;
 
 const authCss = `
@@ -406,21 +405,17 @@ async function refreshAccount() {
   return data;
 }
 
-async function consultationGate(event) {
-  if (bypassNextConsultationGate) {
-    bypassNextConsultationGate = false;
-    return;
-  }
-
-  event.preventDefault();
-  event.stopImmediatePropagation();
-
-  const form = event.currentTarget;
+async function consultationGate(form) {
   const button = consultationButton();
 
   if (!token()) {
     showError('Tenés que iniciar sesión para hacer una consulta.');
-    login();
+
+    if (window.FACIL_AUTO_GATE?.login) {
+      window.FACIL_AUTO_GATE.login();
+    } else {
+      login();
+    }
     return;
   }
 
@@ -432,7 +427,12 @@ async function consultationGate(event) {
         setToken('');
         currentAccount = null;
         updateConsultationButton();
-        login();
+
+        if (window.FACIL_AUTO_GATE?.login) {
+          window.FACIL_AUTO_GATE.login();
+        } else {
+          login();
+        }
         return;
       }
 
@@ -462,20 +462,33 @@ async function consultationGate(event) {
     currentAccount = data.account || currentAccount;
     updateConsultationButton();
 
-    // La consulta ya quedó debitada en D1.
-    // Reemitimos el submit una única vez para que app.js haga el cálculo.
-    bypassNextConsultationGate = true;
-    form.dispatchEvent(new Event('submit', {
-      bubbles:true,
-      cancelable:true
-    }));
+    // Solamente después de que el Worker debitó la consulta,
+    // autorizamos UN submit para app.js.
+    if (!window.FACIL_AUTO_GATE) {
+      throw new Error('consultation_gate_missing');
+    }
+
+    window.FACIL_AUTO_GATE.allowOnce = true;
+
+    if (typeof form.requestSubmit === 'function') {
+      form.requestSubmit();
+    } else {
+      form.dispatchEvent(new Event('submit', {
+        bubbles:true,
+        cancelable:true
+      }));
+    }
   } catch (err) {
     if (err.status === 401) {
       setToken('');
       currentAccount = null;
       updateConsultationButton();
       showError('Tu sesión venció. Volvé a ingresar.');
-      setTimeout(login, 450);
+
+      setTimeout(() => {
+        if (window.FACIL_AUTO_GATE?.login) window.FACIL_AUTO_GATE.login();
+        else login();
+      }, 450);
       return;
     }
 
@@ -503,9 +516,12 @@ function installConsultationGate() {
   const form = document.getElementById('vehicle-form');
   if (!form) return;
 
-  // Captura el submit ANTES del listener de app.js.
-  // Sin login / crédito válido, el cálculo no se ejecuta.
-  form.addEventListener('submit', consultationGate, true);
+  if (!window.FACIL_AUTO_GATE) {
+    showError('No se pudo inicializar el control de consultas.');
+    return;
+  }
+
+  window.FACIL_AUTO_GATE.handler = consultationGate;
   consultationGateInstalled = true;
 
   updateConsultationButton();

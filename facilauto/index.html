@@ -19,7 +19,7 @@
       <a href="#metodologia">Metodología</a>
       <a href="#fuentes">Fuentes</a>
     </nav>
-    <a class="top-cta" href="#calculadora">Empezar cálculo</a>
+    <a class="top-cta" data-auth-entry href="https://facilauto-auth.emanuelastudillo.workers.dev/auth/google?return_to=https%3A%2F%2Femanuelmkt.com.ar%2Ffacilauto%2F">INGRESAR</a>
   </header>
 
   <main id="top">
@@ -78,7 +78,7 @@
 
           <div class="calc-submit">
             <p id="data-status">Cargando fuentes...</p>
-            <button type="submit">CALCULAR OPERACIÓN <span>→</span></button>
+            <button type="submit">CALCULAR OPERACIÓN <span>INGRESAR →</span></button>
           </div>
         </form>
       </div>
@@ -189,18 +189,9 @@
             <div class="strip-detail insurance-detail">
               <p class="insurance-intro">Estimación inicial ajustada según el nivel de seguridad de tu zona. El valor final dependerá también del vehículo, compañía y perfil del asegurado.</p>
               <div class="insurance-options" role="radiogroup" aria-label="Cobertura estimada">
-                <label class="insurance-option">
-                  <input type="radio" name="insurance" value="Responsabilidad Civil" data-range="$50.000–$80.000">
-                  <span><b>Responsabilidad Civil</b><small>entre $50.000 y $80.000 / mes</small></span>
-                </label>
-                <label class="insurance-option">
-                  <input type="radio" name="insurance" value="Terceros completo" data-range="$80.000–$140.000" checked>
-                  <span><b>Terceros completo</b><small>entre $80.000 y $140.000 / mes</small></span>
-                </label>
-                <label class="insurance-option">
-                  <input type="radio" name="insurance" value="Todo Riesgo" data-range="$130.000–$200.000">
-                  <span><b>Todo Riesgo</b><small>entre $130.000 y $200.000 / mes</small></span>
-                </label>
+                <label class="insurance-option"><input type="radio" name="insurance" value="Responsabilidad Civil" data-range="$50.000–$80.000"><span><b>Responsabilidad Civil</b><small>entre $50.000 y $80.000 / mes</small></span></label>
+                <label class="insurance-option"><input type="radio" name="insurance" value="Terceros completo" data-range="$80.000–$140.000" checked><span><b>Terceros completo</b><small>entre $80.000 y $140.000 / mes</small></span></label>
+                <label class="insurance-option"><input type="radio" name="insurance" value="Todo Riesgo" data-range="$130.000–$200.000"><span><b>Todo Riesgo</b><small>entre $130.000 y $200.000 / mes</small></span></label>
               </div>
             </div>
           </details>
@@ -240,7 +231,8 @@
     <a href="admin.html">Administrar fuentes</a>
   </footer>
 
+  <script src="assets/js/auth-gate-v1.5.1.js?v=1.5.1"></script>
   <script src="assets/js/app.js"></script>
-  <script type="module" src="servicios-auth.js?v=1.1.0"></script>
+  <script type="module" src="servicios-auth.js?v=1.5.1"></script>
 </body>
 </html>
