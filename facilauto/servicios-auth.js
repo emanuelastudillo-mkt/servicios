@@ -1,9 +1,9 @@
 /**
  * FACIL AUTO — Auth frontend v1.3.0
- * Login Google + acceso a /cuenta.html
+ * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
-import './assets/js/frontend-v1.3.0.js';
+import './assets/js/frontend-v1.3.0.js?v=1.3.1';
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';

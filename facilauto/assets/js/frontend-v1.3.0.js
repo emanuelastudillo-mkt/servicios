@@ -1,5 +1,5 @@
 /**
- * FACIL AUTO — Frontend presentation v1.3.0
+ * FACIL AUTO — Frontend presentation v1.3.1
  * Capa pública: privacidad de fuentes, SVGs y compartir resultados.
  */
 
@@ -136,38 +136,28 @@ function rewriteSourcesSection() {
   const heading = section.querySelector('h2');
   if (heading) heading.textContent = 'Información que alimenta las estimaciones.';
 
-  const list = section.querySelector('.source-list');
-  if (!list) return;
+  // IMPORTANTE:
+  // No reemplazar el innerHTML de .source-list.
+  // app.js necesita los IDs source-market-date, source-dnrpa-date y
+  // source-rates-date mientras termina de cargar los JSON.
+  const rows = section.querySelectorAll('.source-list > div');
 
-  list.innerHTML = `
-    <div><span>Oficial</span><b>Datos y parámetros oficiales vigentes</b><small>Actualizable</small></div>
-    <div><span>Mercado</span><b>Relevamientos y consultas a agencias</b><small>Periódico</small></div>
-    <div><span>Usuarios</span><b>Datos consultados y comportamiento de operaciones</b><small>Agregado</small></div>
-    <div><span>Financiación</span><b>Tasas y condiciones publicadas</b><small>Actualizable</small></div>
-  `;
-}
-
-function addResultIcons() {
-  const defs = [
-    ['.valuation-strip', 'valuation'],
-    ['.transfer-strip', 'transfer'],
-    ['.close-strip', 'close'],
-    ['.finance-strip', 'finance'],
-    ['.insurance-strip', 'insurance']
+  const publicRows = [
+    ['Mercado', 'Datos oficiales + relevamientos y encuestas'],
+    ['Oficial', 'Datos y parámetros oficiales vigentes'],
+    ['Financiación', 'Tasas y condiciones publicadas']
   ];
 
-  defs.forEach(([selector, icon]) => {
-    const summary = document.querySelector(`${selector} summary`);
-    if (!summary || summary.querySelector('.fa-result-icon')) return;
-    const index = summary.querySelector('.strip-index');
-    const holder = document.createElement('span');
-    holder.className = 'fa-result-icon';
-    holder.innerHTML = ICONS[icon];
-    if (index) index.insertAdjacentElement('afterend', holder);
-    else summary.prepend(holder);
+  rows.forEach((row, index) => {
+    const label = row.querySelector('span');
+    const name = row.querySelector('b');
+
+    if (publicRows[index]) {
+      if (label) label.textContent = publicRows[index][0];
+      if (name) name.textContent = publicRows[index][1];
+    }
   });
 }
-
 function genericMethod(original='') {
   const value = String(original).toLowerCase();
   if (!value || value === '—') return 'Según datos oficiales y encuestas.';
@@ -393,6 +383,26 @@ function watchResults() {
   });
 }
 
+function watchPublicSourceDetails() {
+  const sourceIds = ['source-market-date', 'source-dnrpa-date', 'source-rates-date'];
+
+  sourceIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    // We keep the node/ID because app.js depends on it.
+    // Dates may remain visible; specific provider/file/page names stay hidden.
+    const observer = new MutationObserver(() => {
+      const txt = el.textContent || '';
+      if (/nuestrosautos|dnrpa|comparatasas|pdf|pág|pagina/i.test(txt)) {
+        el.textContent = 'Actualizable';
+      }
+    });
+
+    observer.observe(el, {childList:true, characterData:true, subtree:true});
+  });
+}
+
 function watchStatusAndCoverage() {
   const ids = ['data-status', 'catalog-coverage'];
   ids.forEach(id => {
@@ -427,6 +437,7 @@ function init() {
   sanitizeDynamicResult();
   watchResults();
   watchStatusAndCoverage();
+  watchPublicSourceDetails();
 }
 
 document.readyState === 'loading'
