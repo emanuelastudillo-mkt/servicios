@@ -1,12 +1,12 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca v1.5.16
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca v1.5.17
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
-const FRONTEND_VERSION = '1.5.16';
+const FRONTEND_VERSION = '1.5.17';
 const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
@@ -143,6 +143,85 @@ const authCss = `
   .fa-referral-link-row button{width:100%}
 }
 
+
+.fa-floating-quote{
+  position:fixed;
+  right:22px;
+  bottom:22px;
+  z-index:10020;
+  display:flex;
+  align-items:stretch;
+  background:#121212;
+  color:#fff;
+  border:1px solid #121212;
+  box-shadow:0 10px 28px rgba(0,0,0,.16);
+  transform:translateY(18px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .28s ease,transform .28s ease;
+}
+.fa-floating-quote.is-visible{
+  transform:none;
+  opacity:1;
+  pointer-events:auto;
+}
+.fa-floating-quote>a{
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:0 18px;
+  color:#fff!important;
+  text-decoration:none!important;
+  font:800 10px/1 Arial,sans-serif;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+.fa-floating-quote>a span{
+  color:#01A5BC;
+  font-size:18px;
+  font-weight:400;
+  transition:transform .2s ease;
+}
+.fa-floating-quote>a:hover span{
+  transform:translateX(4px);
+}
+.fa-floating-quote-close{
+  width:42px;
+  min-height:50px;
+  border:0;
+  border-left:1px solid rgba(255,255,255,.24);
+  background:transparent;
+  color:#fff;
+  cursor:pointer;
+  font:300 19px/1 Arial,sans-serif;
+}
+.fa-floating-quote-close:hover{
+  background:rgba(255,255,255,.08);
+}
+@media(max-width:620px){
+  .fa-floating-quote{
+    right:14px;
+    bottom:14px;
+    max-width:calc(100vw - 28px);
+  }
+  .fa-floating-quote>a{
+    min-height:46px;
+    padding:0 14px;
+    gap:12px;
+    font-size:9px;
+  }
+  .fa-floating-quote-close{
+    width:40px;
+    min-height:46px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .fa-floating-quote{
+    transition:none;
+  }
+}
+
 .fa-consult-submit[disabled]{opacity:.62;cursor:wait!important}
 .fa-consult-submit[data-empty="1"]{background:#6d6b65!important}
 @media(max-width:850px){
@@ -255,6 +334,7 @@ function syncVisibleVersion() {
 function syncGlobalUi(account = currentAccount) {
   syncPlansMenu(account);
   ensureInstagramLink();
+  ensureFloatingQuote();
   syncVisibleVersion();
 }
 
@@ -345,6 +425,44 @@ function applyBrandIdentity() {
   ensureBrandStylesheet();
   ensureBrandFavicons();
   applyBrandToWordmarks();
+}
+
+
+
+function ensureFloatingQuote() {
+  if (isAdminArea()) return;
+  if (sessionStorage.getItem('facilauto_quote_closed_v1') === '1') return;
+  if (document.querySelector('.fa-floating-quote')) return;
+
+  const box = document.createElement('div');
+  box.className = 'fa-floating-quote';
+  box.setAttribute('role', 'complementary');
+  box.setAttribute('aria-label', 'Cotizar mi auto');
+
+  const link = document.createElement('a');
+  link.href = siteUrl('cuanto-vale-mi-auto/');
+  link.innerHTML = 'COTIZAR MI AUTO <span aria-hidden="true">→</span>';
+  link.setAttribute('aria-label', 'Cotizar mi auto');
+
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'fa-floating-quote-close';
+  close.innerHTML = '×';
+  close.setAttribute('aria-label', 'Cerrar acceso rápido');
+
+  close.addEventListener('click', () => {
+    box.classList.remove('is-visible');
+    sessionStorage.setItem('facilauto_quote_closed_v1', '1');
+
+    window.setTimeout(() => box.remove(), 280);
+  });
+
+  box.append(link, close);
+  document.body.appendChild(box);
+
+  window.setTimeout(() => {
+    box.classList.add('is-visible');
+  }, 650);
 }
 
 

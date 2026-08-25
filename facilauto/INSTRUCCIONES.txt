@@ -1,96 +1,41 @@
-FACIL AUTO — INDEX MAGIC v1.5.16
+FACIL AUTO — BOTÓN FLOTANTE "COTIZAR MI AUTO" v1.5.17
 
-PAQUETE INCREMENTAL.
-Solo contiene archivos nuevos o modificados.
+PAQUETE INCREMENTAL
+Solo contiene archivos modificados.
 
 ARCHIVOS
-- index.html
-- assets/css/index-magic.css
-- assets/js/index-magic.js
 - servicios-auth.js
 - INSTRUCCIONES.txt
 
-CAMBIOS EN EL INDEX
+CAMBIO
+Se agrega un botón flotante:
+COTIZAR MI AUTO →
 
-1. QUÉ PODÉS CALCULAR
-Cinco bloques:
-- Valuación
-- Transferencia
-- Cierre
-- Financiación
-- Oportunidad
+DESTINO
+/facilauto/cuanto-vale-mi-auto/
 
-2. FACIL AUTO EN NÚMEROS
-- 5 módulos
-- Curva hasta 400.000 km
-- 3 capas de información
-- cantidad de alternativas de financiación sincronizada con la calculadora
-
-3. CÓMO FUNCIONA
-Flujo en tres pasos:
-vehículo → operación → decisión.
-
-4. EJEMPLO VISUAL
-Tarjeta demostrativa claramente marcada como:
-"NO ES UNA COTIZACIÓN".
-Sirve solamente para explicar cómo leer un resultado.
-
-5. SEGÚN TU MOMENTO
-Enlaces internos SEO para:
-- comprar
-- vender
-- operación completa
-
-6. CONFIANZA / METODOLOGÍA
-Explica límites y función de la herramienta sin revelar fuentes internas.
-
-7. FAQ
-Preguntas orientadas a búsquedas frecuentes.
-
-8. INSTAGRAM
-Cierre visual hacia:
-@facilauto.ok
-
-9. MICROINTERACCIONES
-- aparición por scroll
-- contadores animados
-- pulso de estado de datos
-- leve parallax del isotipo
-- inclinación sutil del ejemplo
+COMPORTAMIENTO
+- aparece abajo a la derecha
+- se adapta a mobile
+- tiene botón X para cerrarlo
+- si el usuario lo cierra, no vuelve a aparecer durante esa sesión
+- vuelve a estar disponible en una nueva sesión del navegador
+- no se muestra dentro del administrador
 - respeta prefers-reduced-motion
-
-SEO
-- nueva meta description
-- canonical
-- Schema.org WebApplication
-- Schema.org FAQPage
-
-IMPORTANTE
-NO se agregó:
-- precio de Standard
-- precio de PRO
-- links de Mercado Pago
-- información de pagos
-- condiciones comerciales
-
-La página /planes/ y Mi Cuenta siguen siendo las áreas comerciales.
-
-INSTALACIÓN
-
-Subir TODO este ZIP dentro de:
-/facilauto/
-
-respetando las carpetas.
-
-Después:
-Ctrl + F5
 
 NO REQUIERE
 - Cloudflare
 - Worker
 - SQL
 - D1
-- repetir migraciones
+- modificar HTML
+
+INSTALACIÓN
+Reemplazar únicamente:
+/facilauto/servicios-auth.js
+
+Después:
+Ctrl + F5
 
 VERSIÓN
-v1.5.16
+v1.5.17
