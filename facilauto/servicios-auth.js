@@ -1,12 +1,12 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca + Mobile v1.5.19
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca + Mobile + Draft v1.5.20
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
-const FRONTEND_VERSION = '1.5.19';
+const FRONTEND_VERSION = '1.5.20';
 const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
@@ -681,6 +681,8 @@ function cleanReturnUrl() {
 }
 
 function login() {
+  window.FACIL_AUTO_DRAFT?.save?.();
+
   const params = new URLSearchParams(window.location.search);
   const embeddedReturn =
     params.get('embed') === '1' ? params.get('share_url') : '';

@@ -1,104 +1,87 @@
-FACIL AUTO — MOBILE POLISH v1.5.19
+FACIL AUTO — CONSULTA PERSISTENTE v1.5.20
 
-PAQUETE INCREMENTAL.
-Solo incluye archivos nuevos o modificados.
+PAQUETE INCREMENTAL
+Solo contiene archivos nuevos o modificados.
 
 ARCHIVOS
-- assets/css/mobile-polish.css
-- servicios-auth.js
+- assets/js/form-draft-v1.5.20.js
 - index.html
+- servicios-auth.js
 - INSTRUCCIONES.txt
 
-AUDITORÍA RESPONSIVE APLICADA
+QUÉ CAMBIA
 
-RANGOS REVISADOS
-- 320–349 px
-- 350–430 px
-- 431–760 px
-- 761–900 px
+Si una persona SIN SESIÓN completa una consulta y luego debe ingresar con Google,
+los datos ya no se pierden.
 
-CAMBIOS PRINCIPALES
+Se guarda:
+- Marca
+- Modelo
+- Versión
+- Año
+- Kilometraje
+- Precio publicado / pactado
+- Anticipo
+- Plazo
+- Tipo de comprador
+- Seguridad de zona
+- Jurisdicción
+- Dólar de referencia
 
-HEADER
-- Header sticky.
-- Logo/isotipo y cuenta en primera fila.
-- Navegación en segunda fila horizontal deslizable.
-- "Planes" sigue siendo accesible en mobile cuando corresponda.
-- Se evita el menú hamburguesa.
-- Mejor tamaño de targets táctiles.
+AL VOLVER DEL LOGIN
 
-HOME
-- Hero reescalado para 360–430 px.
-- Márgenes laterales reducidos de forma consistente.
-- Mejor ritmo vertical.
-- Bloques Magic adaptados sin desbordes.
-- Estadísticas, demo y audiencias reorganizadas.
+FACIL AUTO reconstruye los selects dependientes correctamente:
 
-CALCULADORA
-- Tablet: 2 columnas cuando tiene sentido.
-- Mobile: 1 columna real.
-- Inputs de 16 px para evitar zoom automático de iOS.
-- Controles de mínimo 52 px.
-- Botón Calcular full-width.
-- Ajustes y supuestos cómodos para tocar.
+Marca
+→ Modelo
+→ Versión
+→ Año
 
-RESULTADOS
-- Lectura de oportunidad pasa a vertical.
-- Se elimina el número redundante del encabezado de cada bloque en mobile,
-  conservando el SVG y el nombre.
-- Valor principal con mejor jerarquía.
-- Filas de datos sin texto cortado.
-- Financiación deja de depender de tabla horizontal:
-  cada banco se transforma en tarjeta responsive.
-- Opciones de seguro en una columna.
-- Compartir pasa a layout táctil.
+No intenta escribir un modelo o una versión antes de que app.js haya generado
+sus opciones.
 
 PÁGINAS SEO
-- Hero, CTAs, copy, herramienta, FAQ y relacionados optimizados.
-- CTAs apilados en mobile.
-- Mantiene la corrección anterior: el iframe solo muestra la herramienta contextual.
 
-MI CUENTA
-- Identidad, saldo, plan y acciones reorganizados.
-- Planes a una columna.
-- Referidos responsive.
-- Botones con targets táctiles correctos.
+Funciona también dentro de las calculadoras de páginas satélite.
+Los campos ocultos o predefinidos por el perfil SEO no son forzados por el borrador.
 
-ADMIN
-- La tabla de usuarios deja de requerir scroll horizontal.
-- Cada usuario se convierte en una tarjeta en mobile.
-- Se agregan labels móviles: Plan, Disponibles, Compradas y Uso/actividad.
-- Configuración de planes/referidos a una columna en pantallas pequeñas.
+CUÁNDO GUARDA
 
-MIGRACIÓN D1
-- Filas compactas y legibles.
-- Estado y progreso correctamente apilados.
-- Botón principal full-width.
+- al cambiar selects
+- mientras se escriben importes/kilometraje
+- antes de abandonar la página
+- antes del redirect de login iniciado por servicios-auth.js
 
-CTA FLOTANTE
-- Full-width con márgenes laterales en mobile.
-- Respeta safe-area de iPhone.
-- Se oculta temporalmente al abrir el teclado / enfocar inputs.
+DURACIÓN
 
-ACCESIBILIDAD / UX
-- text-size-adjust controlado.
-- touch-action en controles.
-- scroll-margin para header sticky.
-- safe-area inferior.
-- Sin scroll horizontal estructural.
+El borrador dura como máximo 24 horas.
 
-NO SE MODIFICA
+CUÁNDO SE BORRA
+
+Cuando una consulta autenticada genera finalmente el resultado,
+el borrador se elimina automáticamente.
+
+AVISO
+
+Después de restaurar se muestra brevemente:
+
+"RECUPERAMOS LOS DATOS DE TU CONSULTA."
+
+NO MODIFICA
+
 - app.js
-- cálculo
+- fórmulas
 - créditos
+- consumo de consultas
 - planes
 - pagos
 - Worker
 - SQL
 - D1
-- datos
+- Google OAuth
 
 INSTALACIÓN
+
 Subir TODO el ZIP dentro de:
 /facilauto/
 
@@ -107,8 +90,5 @@ respetando carpetas.
 Después:
 Ctrl + F5
 
-Las páginas que cargan servicios-auth.js reciben mobile-polish.css globalmente,
-por lo que no hace falta volver a empaquetar decenas de páginas SEO.
-
 VERSIÓN
-v1.5.19
+v1.5.20
