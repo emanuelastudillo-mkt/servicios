@@ -1,12 +1,12 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca + Mobile + Draft + Insurance v1.5.21
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca + Mobile + Draft + Insurance + Admin Refill v1.5.22
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
-const FRONTEND_VERSION = '1.5.21';
+const FRONTEND_VERSION = '1.5.22';
 const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
@@ -1063,6 +1063,7 @@ async function refreshAccount() {
 
   const data = await api('/api/me');
   currentAccount = data.account || null;
+  currentIsAdmin = Boolean(data.is_admin);
   updateConsultationButton();
   syncGlobalUi(currentAccount);
   return data;
@@ -1106,7 +1107,7 @@ async function consultationGate(form) {
 
   const available = Math.max(0, Number(currentAccount?.available) || 0);
 
-  if (available <= 0) {
+  if (available <= 0 && !currentIsAdmin) {
     showError('No te quedan consultas disponibles. Podés ampliar tu plan desde Planes.');
 
     setTimeout(() => {
@@ -1118,6 +1119,8 @@ async function consultationGate(form) {
     return;
   }
 
+  // Para el administrador, un intento con saldo 0 debe llegar al Worker:
+  // ese intento falla y dispara una recarga automática de 10 bonus.
   if (button) button.disabled = true;
 
   try {
@@ -1159,9 +1162,23 @@ async function consultationGate(form) {
       try {
         const data = await api('/api/me');
         currentAccount = data.account || currentAccount;
+        currentIsAdmin = Boolean(data.is_admin);
       } catch (_) {}
 
       updateConsultationButton();
+
+      const refreshedAvailable = Math.max(
+        0,
+        Number(currentAccount?.available) || 0
+      );
+
+      if (currentIsAdmin && refreshedAvailable > 0) {
+        showError(
+          `Llegaste a 0. Se regeneraron ${refreshedAvailable} consultas de administrador. Volvé a calcular.`
+        );
+        return;
+      }
+
       showError('No te quedan consultas disponibles.');
       return;
     }
