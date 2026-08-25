@@ -1,9 +1,7 @@
 /**
- * FACIL AUTO — Auth + Consultas v1.5.1
+ * FACIL AUTO — Auth + Consultas v1.5.2
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
-
-import './assets/js/frontend-v1.4.0.js?v=1.5.1';
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
@@ -522,6 +520,7 @@ function installConsultationGate() {
   }
 
   window.FACIL_AUTO_GATE.handler = consultationGate;
+  window.FACIL_AUTO_GATE.authReady = true;
   consultationGateInstalled = true;
 
   updateConsultationButton();
