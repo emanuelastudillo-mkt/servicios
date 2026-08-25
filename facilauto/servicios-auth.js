@@ -1,12 +1,12 @@
 /**
- * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca v1.5.17
+ * FACIL AUTO — Auth + Consultas + Admin + Planes + Referidos + Marca v1.5.18
  * Login Google + acceso a /cuenta.html · v1.3.1
  */
 
 const API_BASE = 'https://facilauto-auth.emanuelastudillo.workers.dev';
 const TOKEN_KEY = 'facilauto_session_v1';
 const REFERRAL_KEY = 'facilauto_referral_v1';
-const FRONTEND_VERSION = '1.5.17';
+const FRONTEND_VERSION = '1.5.18';
 const INSTAGRAM_URL = 'https://www.instagram.com/facilauto.ok';
 
 const SITE_ROOT = new URL('./', import.meta.url);
@@ -144,6 +144,58 @@ const authCss = `
 }
 
 
+
+/* Contraste global FACIL AUTO */
+.calculator-section{
+  color:#fbfaf7!important;
+}
+.calculator-section .section-title h2,
+.calculator-section .block-head span,
+.calculator-section .calc-submit button,
+.calculator-section input,
+.calculator-section select{
+  color:#fff!important;
+}
+.calculator-section .block-head small,
+.calculator-section label>span,
+.calculator-section .settings summary,
+.calculator-section .calc-submit p{
+  color:#aaa89f!important;
+}
+.calculator-section .section-title p{
+  color:#e94f32!important;
+}
+
+.seo-tool{
+  color:#fbfaf7!important;
+}
+.seo-tool h1,
+.seo-tool h2,
+.seo-tool h3,
+.seo-tool strong{
+  color:#fff!important;
+}
+.seo-tool .seo-kicker{
+  color:#e94f32!important;
+}
+.seo-tool .seo-tool-head>p{
+  color:#aaa89f!important;
+}
+
+.magic-stats,
+.magic-instagram,
+.magic-data-pulse,
+.fa-floating-quote{
+  color:#fff!important;
+}
+.magic-stats strong,
+.magic-instagram h2,
+.magic-instagram strong,
+.magic-instagram a,
+.magic-data-pulse b{
+  color:#fff!important;
+}
+
 .fa-floating-quote{
   position:fixed;
   right:22px;
@@ -248,13 +300,22 @@ const authCss = `
 `;
 
 
+
+function isEmbeddedTool() {
+  try {
+    return new URLSearchParams(window.location.search).get('embed') === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
 function isAdminArea() {
   return /\/facilauto\/admin(?:\/|\.html|$)/.test(window.location.pathname);
 }
 
 function plansMenuLink() {
   const nav = document.querySelector('.topnav');
-  if (!nav || isAdminArea()) return null;
+  if (!nav || isAdminArea() || isEmbeddedTool()) return null;
 
   let link =
     nav.querySelector('[data-fa-plans-menu]') ||
@@ -292,7 +353,7 @@ function syncPlansMenu(account = currentAccount) {
 }
 
 function ensureInstagramLink() {
-  if (isAdminArea()) return;
+  if (isAdminArea() || isEmbeddedTool()) return;
 
   const footer = document.querySelector('footer');
   if (!footer) return;
@@ -430,7 +491,7 @@ function applyBrandIdentity() {
 
 
 function ensureFloatingQuote() {
-  if (isAdminArea()) return;
+  if (isAdminArea() || isEmbeddedTool()) return;
   if (sessionStorage.getItem('facilauto_quote_closed_v1') === '1') return;
   if (document.querySelector('.fa-floating-quote')) return;
 

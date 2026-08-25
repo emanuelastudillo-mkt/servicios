@@ -1,6 +1,49 @@
 
 (() => {
+  const params = new URLSearchParams(location.search);
+  const embedded = params.get('embed') === '1';
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function initEmbedHeight() {
+    if (!embedded || window.parent === window) return;
+
+    const sendHeight = () => {
+      const height = Math.max(
+        document.body?.scrollHeight || 0,
+        document.documentElement?.scrollHeight || 0
+      );
+
+      window.parent.postMessage({
+        type:'facilauto:embed-height',
+        height
+      }, '*');
+    };
+
+    sendHeight();
+    window.setTimeout(sendHeight, 250);
+    window.setTimeout(sendHeight, 900);
+
+    if ('ResizeObserver' in window) {
+      const observer = new ResizeObserver(() => {
+        requestAnimationFrame(sendHeight);
+      });
+      observer.observe(document.body);
+    } else {
+      window.addEventListener('resize', sendHeight);
+    }
+
+    const results = document.getElementById('resultados');
+    if (results) {
+      new MutationObserver(() => {
+        requestAnimationFrame(sendHeight);
+      }).observe(results, {
+        subtree:true,
+        childList:true,
+        attributes:true,
+        attributeFilter:['hidden','class','open']
+      });
+    }
+  }
 
   function reveal() {
     const items = [...document.querySelectorAll('.magic-reveal')];
@@ -168,6 +211,11 @@
   }
 
   function init() {
+    if (embedded) {
+      initEmbedHeight();
+      return;
+    }
+
     reveal();
     counters();
     mirrorLiveData();

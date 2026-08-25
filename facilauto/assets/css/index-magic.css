@@ -696,3 +696,72 @@
 
   .magic-instagram-inner{min-height:330px}
 }
+
+
+/* ------------------------------------------------------------
+   EMBED SEO — la "magia" pertenece exclusivamente a la home.
+   Las páginas satélite ya tienen hero, copy, FAQ y relacionados propios.
+   Dentro del iframe queda solamente calculadora + resultado contextual.
+   ------------------------------------------------------------ */
+
+html.fa-embedded-tool .topbar,
+html.fa-embedded-tool .hero,
+html.fa-embedded-tool .magic-capabilities,
+html.fa-embedded-tool .magic-stats,
+html.fa-embedded-tool .magic-process,
+html.fa-embedded-tool .magic-demo,
+html.fa-embedded-tool .magic-audiences,
+html.fa-embedded-tool .magic-trust,
+html.fa-embedded-tool .magic-faq,
+html.fa-embedded-tool .magic-instagram,
+html.fa-embedded-tool .method-section,
+html.fa-embedded-tool .sources-section,
+html.fa-embedded-tool body > .footer,
+html.fa-embedded-tool .fa-floating-quote{
+  display:none!important;
+}
+
+html.fa-embedded-tool body{
+  background:#121212!important;
+}
+
+html.fa-embedded-tool main{
+  display:block!important;
+}
+
+html.fa-embedded-tool .calculator-section{
+  padding-top:48px!important;
+  padding-bottom:58px!important;
+}
+
+html.fa-embedded-tool .results-section{
+  background:#f3f1eb!important;
+}
+
+/* Contraste explícito: los elementos oscuros no dependen de herencias
+   que puedan ser sobrescritas por otras capas. */
+.magic-stats,
+.magic-stats .magic-stat,
+.magic-stats .magic-stats-brand,
+.magic-instagram,
+.magic-instagram a{
+  color:#fbfaf7!important;
+}
+
+.magic-stats .magic-stat strong,
+.magic-stats .magic-stats-brand strong,
+.magic-instagram h2,
+.magic-instagram strong{
+  color:#fff!important;
+}
+
+.magic-instagram h2 span{
+  color:#aaa79f!important;
+}
+
+.magic-stats .magic-stat small,
+.magic-stats .magic-stat span,
+.magic-stats .magic-stats-brand>span,
+.magic-stats .magic-stats-brand p{
+  color:#aaa79f!important;
+}
