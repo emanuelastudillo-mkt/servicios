@@ -1,19 +1,12 @@
 {
-  "updatedAt": "2026-06-11T21:30:50-03:00",
+  "updatedAt": "2026-09-06T16:17:01.561Z",
+  "checkedAt": "2026-09-06T16:17:01.561Z",
+  "source": {
+    "spreadsheetId": "1W57cUM6iFoMkjhzJeTsCp3AKWBc46k7Xesxh5mUihZs",
+    "servicesSheet": "Servicios_Web",
+    "codesSheet": "Codigos_Web"
+  },
   "services": [
-    {
-      "id": "crear-cuenta-publicitaria-y-portfolio-metodo-de-pago-y-verificacion-de-negocio-digital",
-      "title": "Crear cuenta publicitaria y portfolio + metodo de pago y verificacion de negocio digital.",
-      "description": "Configurar cuenta de meta para publicidad (Plazo de 30 días, al menos 2 llamadas para sincronizar informacion importante)",
-      "category": "Meta Ads",
-      "costo": 85000,
-      "presupuestoMinimo": 30000,
-      "presupuestoMaximo": 0,
-      "details": [
-        "Requisitos: Tener cuenta de facebook e instagram"
-      ],
-      "kind": "normal"
-    },
     {
       "id": "campana-de-alcance",
       "title": "Campaña de Alcance",
@@ -33,8 +26,8 @@
       "description": "Configurar y segmentar contenidos para un grupo o producto, orientado a ventas",
       "category": "Meta Ads",
       "costo": 30000,
-      "presupuestoMinimo": 70000,
-      "presupuestoMaximo": 300000,
+      "presupuestoMinimo": 100000,
+      "presupuestoMaximo": 1000000,
       "details": [
         "Requisitos: Plataforma de meta ads configurada con metodo de pago // Tener una campaña activa // Tener contenidos aptos de productos o servicios"
       ],
@@ -45,11 +38,52 @@
       "title": "Auditoria Puntos de mejora o indispensables",
       "description": "Revisar redes, mensaje, campañas activas y resultados",
       "category": "Meta Ads",
-      "costo": 29000,
+      "costo": 40000,
       "presupuestoMinimo": 0,
       "presupuestoMaximo": 0,
       "details": [],
       "kind": "auditoria"
+    },
+    {
+      "id": "dashboard-con-informacion-clave-de-campanas",
+      "title": "Dashboard con información clave de campañas",
+      "description": "Panel de informacion general de las campañas sin necesidad de ingresar en la plataforma de meta",
+      "category": "Meta Ads",
+      "costo": 30000,
+      "presupuestoMinimo": 30000,
+      "presupuestoMaximo": 0,
+      "details": [
+        "Requisitos: Tener una campaña activa"
+      ],
+      "kind": "dashboard"
+    },
+    {
+      "id": "crear-campana-integral-de-meta-por-unica-vez-embudo-completo",
+      "title": "Crear campaña integral de meta por unica vez, embudo completo.",
+      "description": "Configurar y segmentar contenidos para un grupo o producto, orientado a ventas",
+      "category": "Meta Ads",
+      "costo": 500000,
+      "presupuestoMinimo": 300000,
+      "presupuestoMaximo": 2000000,
+      "details": [
+        "Requisitos: Plataforma de meta ads configurada con metodo de pago // Tener una campaña activa // Tener contenidos aptos de productos o servicios"
+      ],
+      "kind": "normal"
+    }
+  ],
+  "inactiveServices": [
+    {
+      "id": "crear-cuenta-publicitaria-y-portfolio-metodo-de-pago-y-verificacion-de-negocio-digital",
+      "title": "Crear cuenta publicitaria y portfolio + metodo de pago y verificacion de negocio digital.",
+      "description": "Configurar cuenta de meta para publicidad (Plazo de 30 días, al menos 2 llamadas para sincronizar informacion importante)",
+      "category": "Meta Ads",
+      "costo": 100000,
+      "presupuestoMinimo": 50000,
+      "presupuestoMaximo": 0,
+      "details": [
+        "Requisitos: Tener cuenta de facebook e instagram"
+      ],
+      "kind": "normal"
     },
     {
       "id": "actividad-diaria-con-contenidos-anteriores",
@@ -69,26 +103,13 @@
       "title": "Pack de 10 contenidos (edición minima para emergencia)",
       "description": "Subir reels con contenido de valor (grabado por el cliente), respuestas a preguntas frecuentes, datos importantes de tu sector, informacion importante para tus clientes potenciales. Edicion simple, musica de fondo, logo, solo para adaptar a la identidad de marca, subtitulos si es necesario y copy para redes.",
       "category": "Meta Ads",
-      "costo": 100000,
+      "costo": 120000,
       "presupuestoMinimo": 50000,
       "presupuestoMaximo": 0,
       "details": [
         "Requisitos: Plataforma de meta ads configurada con metodo de pago // Tener una campaña activa // Tener contenidos aptos de productos o servicios"
       ],
       "kind": "normal"
-    },
-    {
-      "id": "dashboard-con-informacion-clave-de-campanas",
-      "title": "Dashboard con información clave de campañas",
-      "description": "Panel de informacion general de las campañas sin necesidad de ingresar en la plataforma de meta",
-      "category": "Meta Ads",
-      "costo": 30000,
-      "presupuestoMinimo": 30000,
-      "presupuestoMaximo": 0,
-      "details": [
-        "Requisitos: Tener una campaña activa"
-      ],
-      "kind": "dashboard"
     }
   ],
   "codes": [
