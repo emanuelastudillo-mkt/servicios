@@ -4,6 +4,8 @@ La versión estática rediseñada está lista en esta carpeta. No se publicó au
 
 ARCHIVOS NECESARIOS
 - index.html
+- robots.txt
+- sitemap.xml
 - assets/styles.css
 - assets/app.js
 - assets/data-core.js
@@ -12,7 +14,10 @@ ARCHIVOS NECESARIOS
 - data.json (sin cambios)
 - favicon.ico y CNAME (sin cambios)
 
-Para actualizar el hosting existente, subí el index.html y toda la carpeta assets, conservando el resto de los archivos y carpetas del sitio. Esta versión necesita assets además de index.html y data.json.
+Para actualizar el hosting existente, subí index.html, robots.txt, sitemap.xml y toda la carpeta assets, conservando el resto de los archivos y carpetas del sitio. Esta versión necesita assets además de index.html y data.json.
+
+REGISTRO EN BUSCADORES
+La guía ../REGISTRAR-WEB-GOOGLE-BING.md explica cómo publicar los archivos, verificar la propiedad en Google Search Console y Bing Webmaster Tools y enviar el sitemap. La preparación local no registra ni publica el sitio automáticamente. Las carpetas de ejemplo se excluyen del sitemap y su rastreo se bloquea en robots.txt; esto por sí solo no garantiza su exclusión de los resultados de búsqueda.
 
 No borres ni reemplaces las carpetas Diego, Gonzalo, Sabrina y Tito. No se modificaron y no están enlazadas desde la web principal; continúan accesibles por sus rutas directas. Estar fuera de la navegación no equivale a protección con contraseña.
 

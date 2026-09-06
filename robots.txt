@@ -1,0 +1,17 @@
+# Emanuel Astudillo - https://emanuelmkt.com.ar/
+User-agent: *
+Allow: /assets/
+Allow: /data.json
+
+# Examples: block each folder prefix, including URLs without a trailing slash.
+Disallow: /Diego
+Disallow: /Gonzalo
+Disallow: /Sabrina
+Disallow: /Tito
+
+# Maintenance files. Keep /assets/ and /data.json crawlable for rendering.
+Disallow: /convertir-csv-a-data-json.html
+Disallow: /data-ejemplo.json
+Disallow: /README.txt
+
+Sitemap: https://emanuelmkt.com.ar/sitemap.xml
