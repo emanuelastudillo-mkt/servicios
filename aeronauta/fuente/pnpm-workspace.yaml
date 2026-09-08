@@ -1,0 +1,5 @@
+# Native executables are supplied by platform packages; no dependency install scripts are required.
+allowBuilds:
+  esbuild: false
+  sharp: false
+  workerd: false
