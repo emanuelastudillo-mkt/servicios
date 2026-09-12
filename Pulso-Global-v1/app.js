@@ -110,6 +110,7 @@
     return new Intl.NumberFormat("es-AR", { minimumFractionDigits: digits == null ? 1 : digits, maximumFractionDigits: digits == null ? 1 : digits }).format(Number(value) || 0);
   }
   function money(value) { return `US$ ${fmt(value, Math.abs(value) < 100 ? 2 : 0)} mil M`; }
+  function resourceMoney(value) { return `US$ ${fmt(value, Math.abs(value) < 0.1 ? 4 : 3)} mil M`; }
   function signed(value, suffix) { return `${value > 0 ? "+" : ""}${fmt(value, 1)}${suffix || ""}`; }
   function playerCountry() { return game.countries[game.playerCountryId]; }
   function playerLeader() { return Engine.getLeaderDefinition(game.playerCountryId, game.playerLeaderId); }
@@ -145,7 +146,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. Cada mes transforma la economía y la población.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v4</span><b>16 países · cadenas productivas · eventos mundiales automáticos</b></div>
+        <div class="start-badge"><span>Motor económico v4.1</span><b>16 países · cadenas productivas · mercado mundial de recursos</b></div>
         <div class="country-grid" aria-label="Países disponibles">
           ${DATA.countries.map((country) => `
             <button class="country-card ${country.id === selectedCountryId ? "selected" : ""}" type="button" data-action="select-country" data-country="${country.id}" aria-pressed="${country.id === selectedCountryId}">
@@ -468,9 +469,11 @@
           const stock = country.materialStocks[item.id]; const capacity = country.materialCapacity[item.id]; const pct = Math.min(100, stock / capacity * 100);
           const locked = item.unlock && !(country.buildings[item.unlock] > 0);
           const inputs = item.inputs ? Object.entries(item.inputs).map(([id, amount]) => `${materialById(id).label} ${amount}`).join(" + ") : "Producción primaria";
-          return `<article class="resource-node ${pct < 18 ? "low" : ""} ${locked ? "locked" : ""}"><div class="resource-node-title"><span>${e(item.icon)}</span><div><strong>${e(item.label)}</strong><small>${e(inputs)}</small></div></div><b>${fmt(stock, 2)} / ${fmt(capacity, 0)}</b><div class="stock-track"><i style="width:${pct}%"></i></div><small>${locked ? `Bloqueado: requiere ${e(constructionById(item.unlock).label)}` : `Producción ${signed(country.materialProduction[item.id], "/mes")} · Uso ${fmt(country.materialConsumption[item.id], 2)}`}</small><button class="button button-quiet compact" type="button" data-action="import-resource" data-material="${item.id}" ${pct >= 99 ? "disabled" : ""}>Importar lote</button></article>`;
+          const price = game.market.resourcePrices[item.id]; const previous = game.market.previousResourcePrices[item.id] || price;
+          const priceChange = previous ? (price / previous - 1) * 100 : 0; const defaultAmount = Math.max(0.1, Math.min(capacity * 0.1, stock || capacity * 0.1));
+          return `<article class="resource-node ${pct < 18 ? "low" : ""} ${locked ? "locked" : ""}"><div class="resource-node-title"><span>${e(item.icon)}</span><div><strong>${e(item.label)}</strong><small>${e(inputs)}</small></div></div><b>${fmt(stock, 2)} / ${fmt(capacity, 0)}</b><div class="stock-track"><i style="width:${pct}%"></i></div><small>${locked ? `Bloqueado: requiere ${e(constructionById(item.unlock).label)}` : `Producción ${signed(country.materialProduction[item.id], "/mes")} · Uso ${fmt(country.materialConsumption[item.id], 2)}`}</small><div class="resource-quote"><span>Cotización</span><strong>${resourceMoney(price)}</strong><b class="${priceChange < 0 ? "negative" : "positive"}">${signed(priceChange, "%")}</b></div><div class="resource-trade"><label><span>Cantidad</span><input type="number" min="0.01" max="${fmt(capacity, 2).replace(/\./g, "").replace(",", ".")}" step="0.1" value="${defaultAmount.toFixed(2)}" data-resource-amount="${item.id}" /></label><button class="button button-quiet compact" type="button" data-action="import-resource" data-material="${item.id}" ${pct >= 99 ? "disabled" : ""}>Comprar</button><button class="button compact sell" type="button" data-action="sell-resource" data-material="${item.id}" ${stock < 0.001 ? "disabled" : ""}>Vender</button></div></article>`;
         }).join("")}</div></section>`).join("")}
-      </div><footer class="panel-footer"><span>Los bienes intermedios consumen recursos básicos; los finales requieren fábricas habilitantes.</span><b>Precios de importación incluyen aranceles</b></footer></section>`;
+      </div><footer class="panel-footer"><span>La cotización fluctúa mensualmente según existencias, producción y consumo mundial.</span><b>Compras con arancel de importación · ventas con derecho de exportación</b></footer></section>`;
   }
 
   function renderProjectList(projects, compact) {
@@ -890,8 +893,15 @@
       } catch (error) { showToast(error.message, "error"); }
     } else if (action === "import-resource") {
       try {
-        const result = Engine.importResource(game, target.dataset.material); await saveGame("autosave", false); renderGame();
-        showToast(`Lote importado por ${money(result.cost)}`, "success");
+        const field = document.querySelector(`[data-resource-amount="${target.dataset.material}"]`);
+        const result = Engine.importResource(game, target.dataset.material, field ? field.value : undefined); await saveGame("autosave", false); renderGame();
+        showToast(`Compra realizada: ${fmt(result.quantity, 2)} unidades por ${money(result.cost)}`, "success");
+      } catch (error) { showToast(error.message, "error"); }
+    } else if (action === "sell-resource") {
+      try {
+        const field = document.querySelector(`[data-resource-amount="${target.dataset.material}"]`);
+        const result = Engine.sellResource(game, target.dataset.material, field ? field.value : undefined); await saveGame("autosave", false); renderGame();
+        showToast(`Venta realizada: ${fmt(result.quantity, 2)} unidades; ingreso neto ${money(result.revenue)}`, "success");
       } catch (error) { showToast(error.message, "error"); }
     } else if (action === "save") { await saveGame("manual", true); renderGame(); }
     else if (action === "toggle-menu") {

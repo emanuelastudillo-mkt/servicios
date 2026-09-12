@@ -148,7 +148,9 @@
       tick: 0, globalDemand: 1, globalGrowthShock: 0, monthsSinceWorldEvent: 0,
       market: {
         prices: Object.fromEntries(DATA.commodities.map((item) => [item.id, item.basePrice])),
-        previousPrices: Object.fromEntries(DATA.commodities.map((item) => [item.id, item.basePrice])), trades: []
+        previousPrices: Object.fromEntries(DATA.commodities.map((item) => [item.id, item.basePrice])),
+        resourcePrices: Object.fromEntries(DATA.materials.map((item) => [item.id, item.value])),
+        previousResourcePrices: Object.fromEntries(DATA.materials.map((item) => [item.id, item.value])), trades: []
       },
       countries, eventsEnabled: true, openEnded: true, activity: [], worldEvents: [], eventHistory: [], history: [], gameOver: null
     };
@@ -280,6 +282,27 @@
       country.tradeBalance = round(country.tradeBalance, 2);
     });
     state.market.trades = trades.sort((a, b) => b.value - a.value).slice(0, 120);
+  }
+
+  function simulateResourcePrices(state) {
+    state.market.previousResourcePrices = { ...state.market.resourcePrices };
+    DATA.materials.forEach((material) => {
+      let stock = 0; let capacity = 0; let production = 0; let consumption = 0;
+      Object.values(state.countries).forEach((country) => {
+        stock += country.materialStocks[material.id] || 0;
+        capacity += country.materialCapacity[material.id] || 0;
+        production += country.materialProduction[material.id] || 0;
+        consumption += country.materialConsumption[material.id] || 0;
+      });
+      const current = state.market.resourcePrices[material.id] || material.value;
+      const stockRatio = stock / Math.max(1, capacity);
+      const flowPressure = (consumption - production) / Math.max(1, consumption + production);
+      const scarcity = (0.48 - stockRatio) * 0.08 + flowPressure * 0.055;
+      const reversion = (material.value / current - 1) * 0.045;
+      const noise = (random(state) - 0.5) * 0.028;
+      const change = clamp(scarcity + reversion + noise, -0.09, 0.09);
+      state.market.resourcePrices[material.id] = round(clamp(current * (1 + change), material.value * 0.35, material.value * 4), 5);
+    });
   }
 
   function calculateTaxBreakdown(country, rates) {
@@ -471,6 +494,7 @@
         const used = (project.requirements[id] || 0) * actual / 100;
         country.materialStocks[id] = round(Math.max(0, country.materialStocks[id] - used), 2);
         project.consumed[id] = round((project.consumed[id] || 0) + used, 2);
+        country.materialConsumption[id] = round((country.materialConsumption[id] || 0) + used, 3);
       });
       project.progress = round(Math.min(100, project.progress + actual), 2);
       project.monthsActive += 1;
@@ -661,7 +685,6 @@
   function evaluateGame(state) {
     const country = state.countries[state.playerCountryId];
     if (country.lowPopularityMonths >= 4) state.gameOver = { won: false, title: "Gobierno sin respaldo", detail: "Cuatro meses bajo 18% de apoyo terminaron con tu mandato." };
-    else if (country.stability < 15) state.gameOver = { won: false, title: "Crisis institucional", detail: "La estabilidad cayó por debajo del umbral de gobernabilidad." };
     else if (country.debt > 205 && country.reserves <= 0) state.gameOver = { won: false, title: "Cesación de pagos", detail: "La deuda y la falta de reservas bloquearon el funcionamiento del Estado." };
   }
 
@@ -678,6 +701,7 @@
       simulateCountry(country, state);
       simulateAI(country, state);
     });
+    simulateResourcePrices(state);
     advanceDate(state);
     captureHistory(state);
     evaluateGame(state);
@@ -750,20 +774,45 @@
     return project;
   }
 
-  function importResource(state, materialId) {
+  function tradeResource(state, materialId, direction, requestedQuantity) {
     const material = DATA.materials.find((item) => item.id === materialId);
     if (!material) throw new Error("Recurso no válido.");
+    if (!['buy', 'sell'].includes(direction)) throw new Error("Operación de recursos no válida.");
+    if (state.gameOver) throw new Error("La partida terminó.");
     const country = state.countries[state.playerCountryId];
-    const free = Math.max(0, country.materialCapacity[material.id] - country.materialStocks[material.id]);
-    if (free < 0.01) throw new Error("El depósito de este recurso está lleno.");
-    const quantity = Math.min(free, Math.max(2, country.materialCapacity[material.id] * 0.1));
-    const cost = quantity * material.value * (1 + country.taxes.imports / 100);
-    country.materialStocks[material.id] = round(country.materialStocks[material.id] + quantity, 3);
-    country.grossImports += cost; country.tradeBalance -= cost;
-    country.reserves = round(country.reserves - cost, 2);
-    if (country.reserves < 0) country.debt = clamp(country.debt + cost / Math.max(country.gdp, 0.05) * 100, 0, 260);
-    addActivity(state, "trade", `${country.name} importa ${round(quantity, 1)} unidades de ${material.label.toLowerCase()}.`, country.id);
-    return { quantity: round(quantity, 2), cost: round(cost, 3) };
+    const limit = direction === 'buy' ? Math.max(0, country.materialCapacity[material.id] - country.materialStocks[material.id]) : country.materialStocks[material.id];
+    if (limit < 0.001) throw new Error(direction === 'buy' ? "El depósito de este recurso está lleno." : "No hay existencias para vender.");
+    const fallback = Math.max(0.1, country.materialCapacity[material.id] * 0.1);
+    const numeric = requestedQuantity === undefined ? fallback : Number(requestedQuantity);
+    if (!Number.isFinite(numeric) || numeric <= 0) throw new Error("La cantidad debe ser un número mayor que cero.");
+    const quantity = Math.min(limit, numeric);
+    const price = state.market.resourcePrices[material.id] || material.value;
+    const taxRate = direction === 'buy' ? country.taxes.imports : country.taxes.exports;
+    const grossValue = quantity * price;
+    const netValue = direction === 'buy' ? grossValue * (1 + taxRate / 100) : grossValue * (1 - taxRate / 100);
+    if (direction === 'buy') {
+      country.materialStocks[material.id] = round(country.materialStocks[material.id] + quantity, 3);
+      country.grossImports = round(country.grossImports + netValue, 3); country.tradeBalance = round(country.tradeBalance - netValue, 3);
+      country.reserves = round(country.reserves - netValue, 3);
+      if (country.reserves < 0) country.debt = clamp(country.debt + netValue / Math.max(country.gdp, 0.05) * 100, 0, 260);
+    } else {
+      country.materialStocks[material.id] = round(country.materialStocks[material.id] - quantity, 3);
+      country.grossExports = round(country.grossExports + grossValue, 3); country.tradeBalance = round(country.tradeBalance + grossValue, 3);
+      country.reserves = round(country.reserves + netValue, 3);
+    }
+    const verb = direction === 'buy' ? 'compra' : 'vende';
+    addActivity(state, "trade", `${country.name} ${verb} ${round(quantity, 2)} unidades de ${material.label.toLowerCase()} a precio de mercado.`, country.id);
+    return { direction, quantity: round(quantity, 3), unitPrice: round(price, 5), grossValue: round(grossValue, 3), netValue: round(netValue, 3), taxRate };
+  }
+
+  function importResource(state, materialId, quantity) {
+    const result = tradeResource(state, materialId, 'buy', quantity);
+    return { ...result, cost: result.netValue };
+  }
+
+  function sellResource(state, materialId, quantity) {
+    const result = tradeResource(state, materialId, 'sell', quantity);
+    return { ...result, revenue: result.netValue };
   }
 
   function ensureCountryV4(country, definition) {
@@ -804,9 +853,15 @@
     state.eventHistory = Array.isArray(state.eventHistory) ? state.eventHistory : [];
     state.monthsSinceWorldEvent = Number.isFinite(state.monthsSinceWorldEvent) ? state.monthsSinceWorldEvent : 0;
     state.globalGrowthShock = Number.isFinite(state.globalGrowthShock) ? state.globalGrowthShock : 0;
+    state.market = state.market || {};
+    state.market.prices = { ...Object.fromEntries(DATA.commodities.map((item) => [item.id, item.basePrice])), ...(state.market.prices || {}) };
+    state.market.previousPrices = { ...state.market.prices, ...(state.market.previousPrices || {}) };
+    state.market.resourcePrices = { ...Object.fromEntries(DATA.materials.map((item) => [item.id, item.value])), ...(state.market.resourcePrices || {}) };
+    state.market.previousResourcePrices = { ...state.market.resourcePrices, ...(state.market.previousResourcePrices || {}) };
+    state.market.trades = Array.isArray(state.market.trades) ? state.market.trades : [];
     state.openEnded = true;
     state.version = SAVE_VERSION;
-    state.gameOver = state.gameOver && !state.gameOver.won ? state.gameOver : null;
+    state.gameOver = state.gameOver && !state.gameOver.won && state.gameOver.title !== "Crisis institucional" ? state.gameOver : null;
     state.history = Array.isArray(state.history) ? state.history : [];
     delete state.pendingDecision; delete state.monthsWithoutEvent; delete state.events;
     return state;
@@ -843,7 +898,7 @@
   function hydrate(candidate) { validateSave(candidate); return migrate(candidate); }
 
   return {
-    SAVE_VERSION, ENDLESS, createGame, advanceTick, applyAllocations, applyTaxes, estimateTaxes, demographicSnapshot, queueConstruction, importResource,
+    SAVE_VERSION, ENDLESS, createGame, advanceTick, applyAllocations, applyTaxes, estimateTaxes, demographicSnapshot, queueConstruction, importResource, sellResource, tradeResource,
     constructionPreview, calculateScore, validateSave, hydrate, getCountryDefinition,
     getLeaderDefinition, getConstructionDefinition, normalizeAllocation, monthLabel,
     clone, clamp, sumValues

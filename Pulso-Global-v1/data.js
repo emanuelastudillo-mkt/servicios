@@ -538,7 +538,7 @@
 
   return {
     version: 4,
-    release: "4.0.0",
+    release: "4.1.0",
     disclaimer: "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
     sectors: SECTORS,
     commodities: COMMODITIES,
