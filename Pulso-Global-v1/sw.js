@@ -1,5 +1,5 @@
-const CACHE_NAME = "pulso-global-v1.0.2";
-const ASSETS = ["./", "./index.html", "./styles.css", "./data.js", "./engine.js", "./app.js", "./manifest.webmanifest"];
+const CACHE_NAME = "pulso-global-v2.0.0";
+const ASSETS = ["./", "./index.html", "./styles.css", "./data.js", "./engine.js", "./app.js", "./world.geojson", "./manifest.webmanifest", "./README.md", "./VERSION.txt"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));

@@ -6,15 +6,55 @@
   "use strict";
 
   const SECTORS = [
-    { id: "agriculture", label: "Agro y alimentos", short: "Agro", commodity: "food" },
-    { id: "industry", label: "Industria", short: "Industria", commodity: "manufactures" },
-    { id: "services", label: "Servicios", short: "Servicios", commodity: null },
-    { id: "education", label: "Educación", short: "Educación", commodity: "technology" },
-    { id: "health", label: "Salud", short: "Salud", commodity: null },
-    { id: "infrastructure", label: "Obra pública", short: "Obra pública", commodity: null },
-    { id: "security", label: "Seguridad y defensa", short: "Seguridad", commodity: null },
-    { id: "energy", label: "Energía", short: "Energía", commodity: "energy" }
+    { id: "infrastructure", label: "Vivienda y transporte", short: "Infraestructura", icon: "▰", commodity: null },
+    { id: "agriculture", label: "Agro y alimentos", short: "Agro", icon: "◆", commodity: "food" },
+    { id: "industry", label: "Industria", short: "Industria", icon: "▥", commodity: "manufactures" },
+    { id: "services", label: "Servicios", short: "Servicios", icon: "●", commodity: null },
+    { id: "education", label: "Educación", short: "Educación", icon: "▤", commodity: "technology" },
+    { id: "health", label: "Salud", short: "Salud", icon: "+", commodity: null },
+    { id: "security", label: "Seguridad y defensa", short: "Seguridad", icon: "◇", commodity: null },
+    { id: "energy", label: "Energía", short: "Energía", icon: "ϟ", commodity: "energy" }
   ];
+
+  const MATERIALS = [
+    { id: "cement", label: "Cemento", icon: "CE" },
+    { id: "steel", label: "Acero", icon: "AC" },
+    { id: "timber", label: "Madera", icon: "MA" },
+    { id: "fuel", label: "Combustible", icon: "CO" },
+    { id: "machinery", label: "Maquinaria", icon: "MQ" },
+    { id: "electronics", label: "Electrónica", icon: "EL" }
+  ];
+
+  function construction(id, sector, label, icon, months, costShare, requirements, effects, description) {
+    return { id, sector, label, icon, months, costShare, requirements, effects, description };
+  }
+
+  const CONSTRUCTIONS = [
+    construction("housing", "infrastructure", "Plan de viviendas", "⌂", 10, 0.13, { cement: 38, steel: 14, timber: 24, fuel: 8, machinery: 8 }, { housing: 3.2, happiness: 1.8, immigration: 0.35 }, "Amplía la oferta habitacional y reduce la presión urbana."),
+    construction("streets", "infrastructure", "Calles urbanas", "▦", 7, 0.08, { cement: 28, steel: 7, fuel: 13, machinery: 6 }, { infrastructure: 1.1, happiness: 0.8, tourism: 0.15 }, "Pavimento, iluminación y mantenimiento de la red urbana."),
+    construction("highways", "infrastructure", "Rutas nacionales", "═", 14, 0.22, { cement: 52, steel: 24, fuel: 24, machinery: 16 }, { infrastructure: 2.1, tradeCapacity: 2.5, tourism: 0.3 }, "Conecta regiones productivas y reduce los costos logísticos."),
+    construction("airport", "infrastructure", "Aeropuerto internacional", "✈", 22, 0.42, { cement: 70, steel: 52, fuel: 25, machinery: 28, electronics: 22 }, { infrastructure: 2.6, tradeCapacity: 4.5, tourism: 1.1, happiness: 0.4 }, "Aumenta conectividad, turismo y capacidad de carga."),
+    construction("rail", "infrastructure", "Red ferroviaria", "▣", 28, 0.58, { cement: 76, steel: 92, fuel: 28, machinery: 35, electronics: 16 }, { infrastructure: 3.8, tradeCapacity: 6, happiness: 1.2 }, "Transporte masivo de pasajeros y mercadería a escala nacional."),
+    construction("irrigation", "agriculture", "Distrito de riego", "≈", 9, 0.1, { cement: 22, steel: 8, fuel: 7, machinery: 12 }, { foodCapacity: 4, infrastructure: 0.5 }, "Estabiliza rendimientos y eleva la producción de alimentos."),
+    construction("silos", "agriculture", "Red de silos", "◫", 7, 0.07, { cement: 16, steel: 19, fuel: 5, machinery: 7 }, { foodCapacity: 2.5, tradeCapacity: 1 }, "Reduce pérdidas y mejora la salida exportadora."),
+    construction("industrial_park", "industry", "Parque industrial", "▥", 15, 0.24, { cement: 48, steel: 46, fuel: 15, machinery: 28, electronics: 8 }, { industryCapacity: 4, productivity: 0.8, jobs: 0.35 }, "Concentra proveedores, plantas y empleo formal."),
+    construction("machine_plant", "industry", "Planta de maquinaria", "⚙", 18, 0.31, { cement: 35, steel: 58, fuel: 18, machinery: 22, electronics: 12 }, { industryCapacity: 5, materialMachinery: 0.8, jobs: 0.45 }, "Sustituye importaciones de equipos y amplía la base industrial."),
+    construction("logistics_hub", "services", "Centro logístico", "↔", 11, 0.14, { cement: 28, steel: 23, fuel: 15, machinery: 13, electronics: 8 }, { tradeCapacity: 3, productivity: 0.6, jobs: 0.25 }, "Coordina almacenamiento, distribución y comercio interno."),
+    construction("tourism_district", "services", "Distrito turístico", "★", 12, 0.16, { cement: 25, steel: 9, timber: 22, fuel: 7, machinery: 7 }, { tourism: 0.9, happiness: 1.2, jobs: 0.3 }, "Mejora servicios urbanos y la experiencia de visitantes."),
+    construction("technical_school", "education", "Institutos técnicos", "⌁", 10, 0.11, { cement: 24, steel: 11, timber: 14, machinery: 5, electronics: 13 }, { education: 1.1, productivity: 0.65 }, "Forma perfiles para industria, energía y construcción."),
+    construction("university", "education", "Universidad pública", "▤", 18, 0.28, { cement: 46, steel: 22, timber: 18, machinery: 9, electronics: 28 }, { education: 2.2, productivity: 1.3, immigration: 0.2 }, "Amplía capital humano, investigación y atracción de talento."),
+    construction("clinics", "health", "Red de centros de salud", "+", 9, 0.12, { cement: 27, steel: 12, timber: 8, machinery: 7, electronics: 12 }, { health: 2.2, happiness: 1.2, mortality: -0.15 }, "Extiende la atención primaria y la prevención."),
+    construction("hospital", "health", "Hospital regional", "✚", 17, 0.3, { cement: 49, steel: 32, timber: 8, machinery: 20, electronics: 31 }, { health: 3.5, happiness: 1.7, mortality: -0.25 }, "Suma capacidad de alta complejidad y empleo sanitario."),
+    construction("civil_defense", "security", "Base de defensa civil", "◇", 10, 0.1, { cement: 21, steel: 17, fuel: 10, machinery: 9, electronics: 10 }, { stability: 1.2, happiness: 0.5 }, "Coordina emergencias, rescate y protección territorial."),
+    construction("police_network", "security", "Red de seguridad urbana", "⬡", 8, 0.09, { cement: 17, steel: 10, fuel: 9, machinery: 5, electronics: 17 }, { stability: 1.4, happiness: 0.35 }, "Mejora presencia territorial y tiempos de respuesta."),
+    construction("renewable_park", "energy", "Parque renovable", "☼", 14, 0.21, { cement: 34, steel: 31, fuel: 8, machinery: 20, electronics: 22 }, { energyCapacity: 4, happiness: 0.5 }, "Aumenta la oferta eléctrica con menor exposición a combustibles."),
+    construction("power_grid", "energy", "Red eléctrica inteligente", "ϟ", 18, 0.3, { cement: 25, steel: 44, fuel: 9, machinery: 18, electronics: 37 }, { energyCapacity: 3, infrastructure: 1.4, productivity: 0.7 }, "Reduce cortes y conecta nueva capacidad productiva.")
+  ];
+
+  const COUNTRY_CENTERS = {
+    ARG: [-64, -35], USA: [-99, 38], ECU: [-78.2, -1.4], BRA: [-52, -10], MEX: [-102, 23],
+    CHN: [104, 35], RUS: [88, 60], DEU: [10.5, 51], IND: [79, 22], ZAF: [24, -29]
+  };
 
   const COMMODITIES = [
     { id: "food", label: "Alimentos", icon: "A", basePrice: 1.0 },
@@ -294,12 +334,17 @@
     }
   ];
 
+  COUNTRIES.forEach((item) => { item.center = COUNTRY_CENTERS[item.id]; });
+
   return {
-    version: 1,
+    version: 2,
     disclaimer: "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
     sectors: SECTORS,
     commodities: COMMODITIES,
+    materials: MATERIALS,
+    constructions: CONSTRUCTIONS,
     countries: COUNTRIES,
-    events: EVENTS
+    events: [],
+    eventsEnabled: false
   };
 });
