@@ -25,6 +25,14 @@
     { id: "electronics", label: "Electrónica", icon: "EL" }
   ];
 
+  const TAXES = [
+    { id: "vat", label: "IVA / consumo", short: "IVA", min: 0, max: 35, description: "Recauda sobre el consumo; tasas altas enfrían demanda y presionan precios." },
+    { id: "income", label: "Ganancias", short: "Ganancias", min: 0, max: 50, description: "Grava ingresos y utilidades; sostiene la recaudación, con costo sobre inversión." },
+    { id: "inheritance", label: "Herencias", short: "Herencias", min: 0, max: 30, description: "Aporta poco volumen fiscal y mejora moderadamente la percepción distributiva." },
+    { id: "imports", label: "Derechos de importación", short: "Importación", min: 0, max: 40, description: "Protege oferta local y recauda, pero encarece insumos y reduce intercambios." },
+    { id: "exports", label: "Derechos de exportación", short: "Exportación", min: 0, max: 30, description: "Captura renta exportadora, aunque desalienta parte de la oferta externa." }
+  ];
+
   function construction(id, sector, label, icon, months, costShare, requirements, effects, description) {
     return { id, sector, label, icon, months, costShare, requirements, effects, description };
   }
@@ -54,6 +62,27 @@
   const COUNTRY_CENTERS = {
     ARG: [-64, -35], USA: [-99, 38], ECU: [-78.2, -1.4], BRA: [-52, -10], MEX: [-102, 23],
     CHN: [104, 35], RUS: [88, 60], DEU: [10.5, 51], IND: [79, 22], ZAF: [24, -29]
+  };
+
+  const COUNTRY_DEMOGRAPHICS = {
+    ARG: { children: 23, workers: 65, retired: 12 }, USA: { children: 21, workers: 62, retired: 17 },
+    ECU: { children: 27, workers: 65, retired: 8 }, BRA: { children: 22, workers: 68, retired: 10 },
+    MEX: { children: 26, workers: 66, retired: 8 }, CHN: { children: 17, workers: 68, retired: 15 },
+    RUS: { children: 18, workers: 66, retired: 16 }, DEU: { children: 18, workers: 59, retired: 23 },
+    IND: { children: 29, workers: 64, retired: 7 }, ZAF: { children: 28, workers: 66, retired: 6 }
+  };
+
+  const COUNTRY_TAXES = {
+    ARG: { vat: 21, income: 35, inheritance: 0, imports: 12, exports: 12 },
+    USA: { vat: 7, income: 21, inheritance: 20, imports: 4, exports: 0 },
+    ECU: { vat: 15, income: 25, inheritance: 20, imports: 10, exports: 4 },
+    BRA: { vat: 20, income: 34, inheritance: 8, imports: 12, exports: 5 },
+    MEX: { vat: 16, income: 30, inheritance: 20, imports: 8, exports: 0 },
+    CHN: { vat: 13, income: 25, inheritance: 10, imports: 8, exports: 2 },
+    RUS: { vat: 20, income: 25, inheritance: 10, imports: 10, exports: 3 },
+    DEU: { vat: 19, income: 30, inheritance: 30, imports: 5, exports: 0 },
+    IND: { vat: 18, income: 25, inheritance: 10, imports: 8, exports: 2 },
+    ZAF: { vat: 15, income: 27, inheritance: 20, imports: 9, exports: 1 }
   };
 
   const COMMODITIES = [
@@ -334,14 +363,19 @@
     }
   ];
 
-  COUNTRIES.forEach((item) => { item.center = COUNTRY_CENTERS[item.id]; });
+  COUNTRIES.forEach((item) => {
+    item.center = COUNTRY_CENTERS[item.id];
+    item.demographics = COUNTRY_DEMOGRAPHICS[item.id];
+    item.taxes = COUNTRY_TAXES[item.id];
+  });
 
   return {
-    version: 2,
+    version: 3,
     disclaimer: "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
     sectors: SECTORS,
     commodities: COMMODITIES,
     materials: MATERIALS,
+    taxes: TAXES,
     constructions: CONSTRUCTIONS,
     countries: COUNTRIES,
     events: [],

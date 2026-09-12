@@ -8,7 +8,9 @@
   const mapViews = [
     { id: "map", label: "Mapa mundial", icon: "◎" },
     ...DATA.sectors,
+    { id: "taxes", label: "Impuestos", icon: "$" },
     { id: "trade", label: "Comercio exterior", icon: "↔" },
+    { id: "demographics", label: "Demografía", icon: "◒" },
     { id: "indicators", label: "Indicadores", icon: "▧" }
   ];
   const sectorHelp = {
@@ -39,8 +41,12 @@
   let speed = 0;
   let draft = null;
   let draftDirty = false;
+  let taxDraft = null;
+  let taxDraftDirty = false;
+  let demographicCountryId = null;
   let toastTimer = null;
   let lastSaveLabel = "Sin guardar";
+  let lastPanelKey = null;
   let worldData = null;
   let worldPromise = null;
 
@@ -136,14 +142,14 @@
         </header>
         <div class="briefing">
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
-          <p>Planificá presupuesto, trabajo, subsidios y obras. Cada mes consume materiales y transforma la economía, la felicidad y los movimientos de población.</p>
+          <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. Cada mes transforma la economía y la población.</p>
         </div>
-        <div class="start-badge"><span>Motor base v2</span><b>Eventos aleatorios desactivados para pruebas</b></div>
+        <div class="start-badge"><span>Motor base v3</span><b>Simulación abierta · eventos aleatorios desactivados</b></div>
         <div class="country-grid" aria-label="Países disponibles">
           ${DATA.countries.map((country) => `
             <button class="country-card ${country.id === selectedCountryId ? "selected" : ""}" type="button" data-action="select-country" data-country="${country.id}" aria-pressed="${country.id === selectedCountryId}">
               <span class="flag">${country.flag}</span><span class="country-name">${e(country.name)}</span>
-              <span class="country-meta">${e(country.region)} · PBI ${money(country.gdp)}</span>
+              <span class="country-meta">${fmt(country.population, 2)} M habitantes · PBI ${money(country.gdp)}</span>
             </button>`).join("")}
         </div>
         <section id="leader-panel" class="leader-panel" aria-live="polite">${renderLeaderPanel(selectedCountryId)}</section>
@@ -170,6 +176,8 @@
     game = Engine.createGame(countryId, leaderId, Date.now());
     selectedCountryId = countryId;
     focusedCountryId = countryId;
+    demographicCountryId = countryId;
+    taxDraftDirty = false;
     currentView = "map";
     panelTab = "overview";
     lastSaveLabel = "Partida nueva";
@@ -188,9 +196,14 @@
       spendingTarget: country.spendingTarget
     };
     draftDirty = false;
+    if (!taxDraftDirty) taxDraft = Engine.clone(country.taxes);
   }
 
   function renderGame() {
+    const panelKey = [game.gameId, currentView, isSector(currentView) ? panelTab : "", currentView === "demographics" ? demographicCountryId : ""].join(":");
+    const samePanel = panelKey === lastPanelKey;
+    const previousScroll = { page: window.scrollY, panel: document.querySelector(".panel-body")?.scrollTop || 0,
+      table: document.querySelector(".population-world .table-wrap")?.scrollLeft || 0 };
     const country = playerCountry();
     const leader = playerLeader();
     const lowStock = DATA.materials.filter((item) => country.materialStocks[item.id] / country.materialCapacity[item.id] < 0.18).length;
@@ -205,7 +218,7 @@
                 <span>${e(item.icon || item.short.slice(0, 1))}</span><b>${e(item.short || item.label)}</b>
               </button>`).join("")}
           </nav>
-          <div class="mandate-card"><span class="mini-flag">${country.flag}</span><strong>${e(leader.name)}</strong><small>${e(country.name)}</small><span class="mandate-time">Mes ${game.tick} de ${Engine.MONTHS_LIMIT}</span></div>
+          <div class="mandate-card"><span class="mini-flag">${country.flag}</span><strong>${e(leader.name)}</strong><small>${e(country.name)}</small><span class="mandate-time">Mes ${game.tick} · Sin límite</span></div>
         </aside>
 
         <section class="workspace">
@@ -213,6 +226,7 @@
             <div class="mobile-brand"><div class="brand-mark small"><span></span></div><strong>Pulso Global</strong></div>
             <div class="date-block"><span>Fecha de gobierno</span><strong>${e(Engine.monthLabel(game.date))}</strong></div>
             <div class="hud-stats">
+              <div class="hud-population"><span>Población</span><strong>${fmt(country.population, 2)} M</strong><small>${e(country.name)}</small></div>
               <div><span>PBI</span><strong>${money(country.gdp)}</strong><small class="${country.growth < 0 ? "negative" : "positive"}">${signed(country.growth, "%")}</small></div>
               <div><span>Felicidad</span><strong>${fmt(country.happiness)}%</strong><small>${fmt(country.popularity)}% apoyo</small></div>
               <div><span>Empleo</span><strong>${fmt(100 - country.unemployment)}%</strong><small>${fmt(country.unemployment)}% desocupación</small></div>
@@ -257,6 +271,17 @@
         </section>
       </div>
       ${renderGameOverModal()}`;
+    if (samePanel) {
+      const body = document.querySelector(".panel-body");
+      const table = document.querySelector(".population-world .table-wrap");
+      if (body) body.scrollTop = previousScroll.panel;
+      if (table) table.scrollLeft = previousScroll.table;
+    }
+    const mobileNav = document.querySelector(".mobile-nav");
+    const activeNav = mobileNav.querySelector(".active");
+    if (activeNav) mobileNav.scrollLeft = activeNav.offsetLeft - (mobileNav.clientWidth - activeNav.offsetWidth) / 2;
+    if (window.matchMedia("(max-width: 820px)").matches) window.scrollTo(0, samePanel ? previousScroll.page : 0);
+    lastPanelKey = panelKey;
     drawWorldMap();
   }
 
@@ -269,6 +294,8 @@
 
   function renderCurrentPanel() {
     if (currentView === "map") return renderMapPanel();
+    if (currentView === "taxes") return renderTaxesPanel();
+    if (currentView === "demographics") return renderDemographicsPanel();
     if (currentView === "trade") return renderTradePanel();
     if (currentView === "indicators") return renderIndicatorsPanel();
     return renderSectorPanel(currentView);
@@ -293,7 +320,7 @@
         <div class="dashboard-bottom">
           <div class="focus-country">
             <span class="focus-flag">${focus.flag}</span><div><small>País seleccionado en el mapa</small><strong>${e(focus.name)}</strong><span>${e(focusLeader ? focusLeader.name : "Gobierno")}</span></div>
-            <div class="focus-numbers"><b>${signed(focus.growth, "%")}</b><small>Crecimiento</small></div>
+            <div class="focus-numbers"><b>${fmt(focus.population, 2)} M</b><small>Habitantes</small><small>${signed(focus.growth, "%")} PBI</small></div>
           </div>
           <div class="project-summary">
             <strong>${activeProjects(country).length}</strong><span>obras en ejecución</span>
@@ -431,6 +458,103 @@
         <span class="project-icon">${e(definition.icon)}</span><div class="project-copy"><strong>${e(definition.label)}</strong><small>${project.progress >= 100 ? `Completada ${e(project.completedAt)}` : blocked.length ? `Falta: ${blocked.map((id) => materialById(id).label).join(", ")}` : `En obra · ${project.monthsActive} meses`}</small><div class="project-track"><i style="width:${project.progress}%"></i></div></div><b>${fmt(project.progress, 0)}%</b>
       </article>`;
     }).join("")}</div>`;
+  }
+
+  function renderTaxesPanel() {
+    const country = playerCountry();
+    return `
+      <section class="management-panel system-panel policy-system">
+        <header class="management-heading"><div class="section-symbol">$</div><div><p class="panel-kicker">Tesoro nacional · ${e(country.name)}</p><h2>Impuestos</h2></div><button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar impuestos">×</button></header>
+        <div class="panel-body fiscal-body">
+          <p class="module-intro">Ajustá las alícuotas. La proyección cambia al mover los controles; el nuevo esquema entra en la simulación cuando lo aplicás.</p>
+          <div class="fiscal-layout">
+            <section class="tax-controls" aria-label="Alícuotas nacionales">
+              ${DATA.taxes.map((tax) => `<div class="tax-control">
+                <label for="tax-${tax.id}">${e(tax.label)}</label>
+                <span class="tax-current">Vigente ${fmt(country.taxes[tax.id])}%</span>
+                <p id="tax-help-${tax.id}">${e(tax.description)}</p>
+                <input id="tax-${tax.id}" type="range" min="${tax.min}" max="${tax.max}" step="0.5" value="${taxDraft[tax.id]}" data-kind="tax" data-tax="${tax.id}" aria-describedby="tax-help-${tax.id}" />
+                <label class="tax-number"><span class="sr-only">${e(tax.short)} en porcentaje</span><input type="number" min="${tax.min}" max="${tax.max}" step="0.5" value="${taxDraft[tax.id]}" data-kind="tax" data-tax="${tax.id}" />%</label>
+              </div>`).join("")}
+              <div class="control-actions"><button class="button button-quiet" data-action="reset-taxes" type="button" ${taxDraftDirty ? "" : "disabled"}>Restablecer</button><button class="button" data-action="apply-taxes" type="button" ${taxDraftDirty ? "" : "disabled"}>Aplicar impuestos</button></div>
+            </section>
+            <aside id="tax-preview" class="tax-preview" aria-live="polite">${renderTaxPreview()}</aside>
+          </div>
+        </div>
+        <footer class="panel-footer">Alícuotas iniciales y bases simplificadas para el juego. “Otros ingresos” agrupa tributos y aportes no gestionados aquí.</footer>
+      </section>`;
+  }
+
+  function renderTaxPreview() {
+    const c = playerCountry();
+    const preview = Engine.estimateTaxes(game, taxDraft);
+    const current = Engine.estimateTaxes(game, c.taxes);
+    const delta = preview.breakdown.total - current.breakdown.total;
+    const subsidies = DATA.sectors.reduce((sum, s) => sum + c.budget[s.id] * c.subsidies[s.id] / 1000, 0);
+    const bonus = (playerLeader().bonuses.efficiency || 0) * 0.12;
+    const balance = Math.max(0, preview.breakdown.total + bonus) - c.spendingTarget - subsidies;
+    return `
+      <p class="panel-kicker">Proyección anual</p><h3>Recaudación estimada</h3>
+      <div class="tax-total">${fmt(preview.breakdown.total, 2)}<span>% del PBI</span></div>
+      <p class="tax-change ${delta < 0 ? "negative" : "positive"}">${signed(delta, " puntos")} frente al esquema vigente</p>
+      <dl class="revenue-lines">
+        ${DATA.taxes.map((tax) => `<div><dt>${e(tax.short)}</dt><dd>${fmt(preview.breakdown[tax.id], 2)}%</dd></div>`).join("")}
+        <div><dt>Otros ingresos</dt><dd>${fmt(preview.breakdown.other, 2)}%</dd></div>
+        <div><dt>Ajuste de gestión</dt><dd>${signed(bonus, " pts")}</dd></div>
+        <div class="revenue-balance"><dt>Balance fiscal proyectado</dt><dd class="${balance < 0 ? "negative" : "positive"}">${signed(balance, "%")}</dd></div>
+      </dl>
+      <div class="tax-effects"><strong>Efecto directo del cambio</strong>
+        <span>Crecimiento anual <b>${signed(preview.growthEffect - current.growthEffect, " pts")}</b></span>
+        <span>Presión sobre precios <b>${signed(preview.inflationEffect - current.inflationEffect, " pts")}</b></span>
+      </div>
+      <p class="tax-footnote">Estimación con la economía actual. La recaudación final cambia con el empleo, el PBI y los flujos comerciales. Los derechos aduaneros se calculan sobre comercio mensual anualizado.</p>`;
+  }
+
+  function renderDemographicsPanel() {
+    const id = demographicCountryId || game.playerCountryId;
+    const c = game.countries[id];
+    const d = Engine.demographicSnapshot(c);
+    const flows = c.demographicFlows;
+    const groups = [
+      { key: "children", label: "Menores", count: d.children, share: c.demographics.children, detail: "0 a 17 años" },
+      { key: "workers", label: "Edad laboral", count: d.workingAge, share: c.demographics.workers, detail: "18 a 64 años" },
+      { key: "retired", label: "Jubilados", count: d.retired, share: c.demographics.retired, detail: "65 años o más en este modelo" }
+    ];
+    const countries = Object.values(game.countries).sort((a, b) => b.population - a.population);
+    return `
+      <section class="management-panel system-panel policy-system">
+        <header class="management-heading"><div class="section-symbol">◒</div><div><p class="panel-kicker">Población y trabajo</p><h2>Demografía</h2></div><button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar demografía">×</button></header>
+        <div class="panel-body demographic-body">
+          <div class="population-heading"><div><label for="demographic-country">Consultar país</label><select id="demographic-country">${DATA.countries.map((item) => `<option value="${item.id}" ${item.id === id ? "selected" : ""}>${e(item.name)}${item.id === game.playerCountryId ? " · Tu país" : ""}</option>`).join("")}</select></div>
+            <div class="population-total"><span>Población total de ${e(c.name)}</span><strong>${fmt(c.population, 2)} <small>millones</small></strong><span>${fmt(c.population * 1000000, 0)} habitantes · ${e(Engine.monthLabel(game.date))}</span></div>
+          </div>
+          <div class="population-stack" role="img" aria-label="${groups.map((g) => g.label + ': ' + fmt(g.share) + '%').join(', ')}">${groups.map((g) => `<span class="${g.key}" style="width:${g.share}%"></span>`).join("")}</div>
+          <div class="demographic-cards">${groups.map((g) => `<article class="${g.key}"><span>${g.label}</span><strong>${fmt(g.count, 2)} M</strong><b>${fmt(g.share)}% de la población</b><small>${g.detail}</small></article>`).join("")}</div>
+          <div class="population-detail-grid">
+            <section class="population-detail"><h3>Trabajadores y empleo</h3><dl>
+              <div><dt>Ocupados</dt><dd>${fmt(d.employed, 2)} M</dd></div>
+              <div><dt>Desocupados</dt><dd>${fmt(d.unemployed, 2)} M</dd></div>
+              <div><dt>Inactivos en edad laboral</dt><dd>${fmt(d.inactive, 2)} M</dd></div>
+              <div><dt>Tasa de desocupación</dt><dd>${fmt(c.unemployment)}%</dd></div>
+            </dl><p>Participación laboral del modelo: 72% de los adultos de 18–64 años. La desocupación se mide sobre esa fuerza laboral.</p></section>
+            <section class="population-detail"><h3>Movimientos del último mes</h3><dl>
+              <div><dt>Nacimientos</dt><dd>+${fmt(flows.births * 1000000, 0)}</dd></div>
+              <div><dt>Fallecimientos</dt><dd>−${fmt(flows.deaths * 1000000, 0)}</dd></div>
+              <div><dt>Migración neta</dt><dd>${flows.migration >= 0 ? "+" : ""}${fmt(flows.migration * 1000000, 0)}</dd></div>
+              <div><dt>Dependencia demográfica</dt><dd>${fmt(d.dependency)} por 100</dd></div>
+            </dl><p>Menores y jubilados por cada 100 adultos en edad laboral. Los grupos evolucionan por nacimientos, envejecimiento, fallecimientos y migración.</p></section>
+          </div>
+          <section class="population-world"><div><h3>Población de los países simulados</h3><p>Elegí un país para ver su desglose. Todos evolucionan con el tiempo.</p></div>
+            <div class="table-wrap"><table><caption class="sr-only">Comparación de población por país; valores en millones de habitantes</caption><thead><tr><th>País</th><th>Población</th><th>Menores</th><th>Edad laboral</th><th>Jubilados</th></tr></thead><tbody>
+              ${countries.map((other) => {
+                const s = Engine.demographicSnapshot(other);
+                return `<tr class="${other.id === id ? "selected" : ""}" data-demographic-row="${other.id}"><th scope="row"><button type="button" data-action="inspect-demographic" data-country="${other.id}">${e(other.name)}${other.id === game.playerCountryId ? ' <small>Tu país</small>' : ""}</button></th><td>${fmt(s.total, 2)} M</td><td>${fmt(s.children, 2)} M</td><td>${fmt(s.workingAge, 2)} M</td><td>${fmt(s.retired, 2)} M</td></tr>`;
+              }).join("")}
+            </tbody></table></div>
+          </section>
+        </div>
+        <footer class="panel-footer">Distribuciones iniciales de juego. La edad de jubilación se aproxima a 65 años para todos los países.</footer>
+      </section>`;
   }
 
   function renderTradePanel() {
@@ -626,6 +750,7 @@
     if (!latest) return showToast("No se encontró una partida guardada", "error");
     try {
       game = Engine.hydrate(latest.state); selectedCountryId = game.playerCountryId; focusedCountryId = game.playerCountryId;
+      demographicCountryId = game.playerCountryId; taxDraftDirty = false;
       currentView = "map"; panelTab = "overview"; lastSaveLabel = "Partida recuperada"; draftFromGame(); renderGame();
     } catch (error) { showToast(error.message, "error"); }
   }
@@ -641,7 +766,10 @@
   async function importGame(file) {
     if (!file) return;
     try {
-      game = Engine.hydrate(JSON.parse(await file.text())); selectedCountryId = game.playerCountryId; focusedCountryId = game.playerCountryId;
+      const imported = Engine.hydrate(JSON.parse(await file.text()));
+      clearInterval(timer); timer = null;
+      game = imported; selectedCountryId = game.playerCountryId; focusedCountryId = game.playerCountryId;
+      demographicCountryId = game.playerCountryId; taxDraftDirty = false;
       currentView = "map"; panelTab = "overview"; speed = 0; draftFromGame(); await saveGame("manual", false); renderGame();
       showToast("Partida importada correctamente", "success");
     } catch (error) { showToast(`No se pudo importar: ${error.message}`, "error"); }
@@ -659,7 +787,7 @@
       execute() {
         if (!game) return { active: false };
         const c = playerCountry();
-        return { active: true, date: Engine.monthLabel(game.date), country: c.name, leader: playerLeader().name, happiness: c.happiness, gdp: c.gdp, growth: c.growth, unemployment: c.unemployment, tourism: c.tourism, migration: c.migration, activeProjects: activeProjects(c).length, materialStocks: c.materialStocks };
+        return { active: true, date: Engine.monthLabel(game.date), month: game.tick, openEnded: game.openEnded, country: c.name, leader: playerLeader().name, population: c.population, demographics: Engine.demographicSnapshot(c), taxes: c.taxes, revenueRate: c.revenueRate, happiness: c.happiness, gdp: c.gdp, growth: c.growth, unemployment: c.unemployment, tourism: c.tourism, migration: c.migration, activeProjects: activeProjects(c).length, materialStocks: c.materialStocks };
       }
     });
     register({
@@ -706,6 +834,7 @@
     else if (action === "view") {
       currentView = target.dataset.view; panelTab = isSector(currentView) ? "overview" : panelTab; renderGame();
     } else if (action === "panel-tab") { panelTab = target.dataset.tab; renderGame(); }
+    else if (action === "inspect-demographic") { demographicCountryId = target.dataset.country; renderGame(); }
     else if (action === "inspect-country") { focusedCountryId = target.dataset.country; if (currentView !== "map") currentView = "map"; renderGame(); }
     else if (action === "speed") setSpeed(Number(target.dataset.speed));
     else if (action === "step") await stepGame();
@@ -713,6 +842,14 @@
       Engine.applyAllocations(game, draft); draftFromGame(); await saveGame("autosave", false); renderGame();
       showToast("Política aplicada: el efecto se calcula mes a mes", "success");
     } else if (action === "reset-draft") { draftFromGame(); renderGame(); }
+    else if (action === "apply-taxes") {
+      Engine.applyTaxes(game, taxDraft);
+      taxDraftDirty = false; taxDraft = Engine.clone(playerCountry().taxes);
+      await saveGame("autosave", false); renderGame();
+      showToast("Impuestos aplicados. El próximo mes reflejará su efecto.", "success");
+    } else if (action === "reset-taxes") {
+      taxDraftDirty = false; taxDraft = Engine.clone(playerCountry().taxes); renderGame();
+    }
     else if (action === "build") {
       try {
         const definition = constructionById(target.dataset.building);
@@ -734,6 +871,16 @@
 
   app.addEventListener("input", (event) => {
     const input = event.target;
+    if (input.dataset.kind === "tax" && game) {
+      if (input.value === "" || !Number.isFinite(Number(input.value))) return;
+      const tax = DATA.taxes.find((t) => t.id === input.dataset.tax);
+      taxDraft[tax.id] = Engine.clamp(Number(input.value), tax.min, tax.max);
+      taxDraftDirty = DATA.taxes.some((t) => taxDraft[t.id] !== playerCountry().taxes[t.id]);
+      document.querySelectorAll(`input[data-kind="tax"][data-tax="${tax.id}"]`).forEach((field) => { if (field !== input) field.value = taxDraft[tax.id]; });
+      document.querySelector("#tax-preview").innerHTML = renderTaxPreview();
+      document.querySelectorAll('[data-action="apply-taxes"],[data-action="reset-taxes"]').forEach((button) => { button.disabled = !taxDraftDirty; });
+      return;
+    }
     if (!draft || input.type !== "range") return;
     if (input.dataset.kind === "spending") {
       draft.spendingTarget = Number(input.value); draftDirty = true;
@@ -746,7 +893,11 @@
     }
   });
 
-  app.addEventListener("change", (event) => { if (event.target.id === "import-file") importGame(event.target.files[0]); });
+  app.addEventListener("change", (event) => {
+    if (event.target.id === "import-file") importGame(event.target.files[0]);
+    if (event.target.id === "demographic-country") { demographicCountryId = event.target.value; renderGame(); }
+    if (event.target.dataset.kind === "tax") event.target.value = taxDraft[event.target.dataset.tax];
+  });
   document.addEventListener("click", (event) => {
     const menu = document.querySelector("#save-menu");
     if (menu && !menu.hidden && !event.target.closest(".save-cluster")) menu.hidden = true;

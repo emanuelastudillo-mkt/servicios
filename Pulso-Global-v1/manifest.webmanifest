@@ -1,7 +1,7 @@
 {
   "name": "Pulso Global",
   "short_name": "Pulso Global",
-  "description": "Simulador geopolítico local de gobierno, economía, comercio y construcción nacional.",
+  "description": "Simulador geopolítico local sin límite temporal: gobierno, impuestos, demografía, comercio y construcción nacional.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#050b13",
