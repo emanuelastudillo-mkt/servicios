@@ -5,7 +5,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (DATA) {
   "use strict";
 
-  const SAVE_VERSION = 3;
+  const SAVE_VERSION = 4;
   const START_YEAR = 2026;
   const START_MONTH = 1;
   const ENDLESS = true;
@@ -58,15 +58,19 @@
   }
 
   function initialMaterialCapacity(definition) {
-    const scale = clamp(Math.pow(definition.gdp, 0.22), 3, 9);
-    return {
-      cement: round(75 + definition.infrastructure * 0.75 + scale * 5, 1),
-      steel: round(62 + definition.resources.manufactures * 38 + scale * 4, 1),
-      timber: round(70 + definition.resources.food * 30 + scale * 3, 1),
-      fuel: round(60 + definition.resources.energy * 48 + scale * 3, 1),
-      machinery: round(48 + definition.resources.manufactures * 34 + definition.productivity * 0.25, 1),
-      electronics: round(38 + definition.resources.technology * 38 + definition.education * 0.25, 1)
-    };
+    const scale = clamp(Math.pow(Math.max(definition.gdp, 0.05), 0.18), 0.6, 5.5);
+    return Object.fromEntries(DATA.materials.map((material) => {
+      const tierBase = material.tier === "basic" ? 165 : material.tier === "intermediate" ? 210 : 115;
+      const strategic = material.strategic ? 8 : 0;
+      const capacity = strategic || tierBase + definition.infrastructure * 0.55 + scale * 18;
+      return [material.id, round(capacity, 1)];
+    }));
+  }
+
+  function initialHousing(definition) {
+    const needed = definition.population / 3.2;
+    const repairShare = clamp((78 - definition.infrastructure) / 100, 0.08, 0.34);
+    return { new: round(needed * 0.06, 4), normal: round(needed * (0.94 - repairShare), 4), repair: round(needed * repairShare, 4) };
   }
 
   function initialSubsidies() {
@@ -87,6 +91,7 @@
 
   function toCountryState(definition) {
     const capacity = initialMaterialCapacity(definition);
+    const housingStock = initialHousing(definition);
     const happiness = clamp(45 + definition.popularity * 0.18 + definition.infrastructure * 0.08 - definition.unemployment * 0.25 - definition.inflation * 0.08, 30, 82);
     const taxes = clone(definition.taxes);
     const demographics = clone(definition.demographics);
@@ -98,7 +103,7 @@
       center: clone(definition.center), politicalSystem: definition.politicalSystem, currency: definition.currency,
       population: definition.population, gdp: definition.gdp, education: definition.education,
       health: clamp(58 + definition.education * 0.18, 45, 88), unemployment: definition.unemployment,
-      infrastructure: definition.infrastructure, housing: clamp(definition.infrastructure - 3, 35, 90),
+      infrastructure: definition.infrastructure, housing: clamp((housingStock.new + housingStock.normal) / (definition.population / 3.2) * 100, 20, 100),
       happiness: round(happiness, 2), tourism: round(Math.max(0.15, definition.population * 0.022 * definition.infrastructure / 70), 2),
       tourismPotential: 0, tradeCapacity: 0, foodCapacity: 0, industryCapacity: 0,
       energyCapacity: 0, materialMachinery: 0, debt: definition.debt, inflation: definition.inflation,
@@ -119,8 +124,12 @@
       sectorSupply: { food: 0, energy: 0, manufactures: 0, technology: 0 },
       sectorDemand: { food: 0, energy: 0, manufactures: 0, technology: 0 },
       relations: initialRelations(definition),
-      materialStocks: Object.fromEntries(MATERIAL_IDS.map((id) => [id, round(capacity[id] * 0.62, 1)])),
-      materialCapacity: capacity, materialProduction: blankByMaterial(0), buildings: blankByConstruction(0),
+      deposits: clone(definition.deposits),
+      materialStocks: Object.fromEntries(DATA.materials.map((material) => [material.id, round(capacity[material.id] * (material.tier === "final" ? (material.strategic ? 0 : 0.16) : 0.58), 1)])),
+      materialCapacity: capacity, materialProduction: blankByMaterial(0), materialConsumption: blankByMaterial(0), buildings: blankByConstruction(0),
+      housingStock, electricityDemandTWh: definition.electricityDemandTWh,
+      electricityGenerationTWh: definition.electricityGenerationTWh, cycleShock: 0, eventMigrationPush: 0,
+      finalGoodsRevenue: 0,
       projects: [], nextProjectId: 1, lowPopularityMonths: 0, policyShock: 0
     };
   }
@@ -136,14 +145,14 @@
       version: SAVE_VERSION, gameId: `pg-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
       createdAt: new Date().toISOString(), savedAt: null, rngState: (Number(seed) || Date.now()) >>> 0,
       playerCountryId: countryId, playerLeaderId: leaderId, date: { year: START_YEAR, month: START_MONTH },
-      tick: 0, globalDemand: 1,
+      tick: 0, globalDemand: 1, globalGrowthShock: 0, monthsSinceWorldEvent: 0,
       market: {
         prices: Object.fromEntries(DATA.commodities.map((item) => [item.id, item.basePrice])),
         previousPrices: Object.fromEntries(DATA.commodities.map((item) => [item.id, item.basePrice])), trades: []
       },
-      countries, eventsEnabled: false, openEnded: true, activity: [], history: [], gameOver: null
+      countries, eventsEnabled: true, openEnded: true, activity: [], worldEvents: [], eventHistory: [], history: [], gameOver: null
     };
-    addActivity(game, "briefing", `${leaderDef.name} asume la conducción de ${countryDef.name}. El motor base opera sin eventos aleatorios.`);
+    addActivity(game, "briefing", `${leaderDef.name} asume la conducción de ${countryDef.name}. La economía mundial y los eventos pasivos ya están en marcha.`);
     captureHistory(game);
     return game;
   }
@@ -212,6 +221,7 @@
       country.tradeBalance = 0;
       country.grossImports = 0;
       country.grossExports = 0;
+      country.finalGoodsRevenue = 0;
     });
     state.market.previousPrices = { ...state.market.prices };
     DATA.commodities.forEach((commodity) => {
@@ -312,12 +322,23 @@
     };
   }
 
-  function simulateDemographics(country) {
+  function activeEventEffects(country, state) {
+    const total = { growth: 0, mortality: 0, demand: 0, food: 0, migrationPush: 0 };
+    (state.worldEvents || []).forEach((event) => {
+      const applies = event.scope === "global" || (event.scope === "region" && event.region === country.region) || (event.scope === "country" && event.countryId === country.id);
+      if (!applies) return;
+      Object.keys(total).forEach((key) => { total[key] += Number(event.impact[key] || 0); });
+    });
+    return total;
+  }
+
+  function simulateDemographics(country, state) {
     const pop = country.population;
+    const eventEffects = activeEventEffects(country, state);
     const cohorts = Object.fromEntries(Object.entries(country.demographics).map(([key, share]) => [key, pop * share / 100]));
     const births = pop * country.birthRate / 12000;
-    const deaths = pop * country.mortality / 12000;
-    const netMigration = pop * country.migration / 12000;
+    const deaths = pop * (country.mortality + eventEffects.mortality) / 12000;
+    const netMigration = pop * (country.migration - eventEffects.migrationPush) / 12000;
     const enteringWorkAge = cohorts.children / (18 * 12);
     const retiring = cohorts.workers / (47 * 12);
     const deathWeights = { children: 0.15, workers: 0.45, retired: 4.5 };
@@ -350,27 +371,63 @@
       dependency: (children + retired) / Math.max(workingAge, 0.000001) * 100 };
   }
 
-  function produceMaterials(country) {
-    const industry = sectorEffect(country, "industry");
-    const infrastructure = sectorEffect(country, "infrastructure");
-    const energy = sectorEffect(country, "energy");
-    const agriculture = sectorEffect(country, "agriculture");
-    const education = sectorEffect(country, "education");
-    const production = {
-      cement: 2.4 + industry * 1.8 + infrastructure * 0.9, steel: 1.5 + industry * 2.1,
-      timber: 2.2 + agriculture * 1.7, fuel: 1.4 + energy * 2.4,
-      machinery: 0.9 + industry * 1.35 + country.materialMachinery,
-      electronics: 0.55 + education * 0.85 + country.resources.technology * 0.75
-    };
+  function produceMaterials(country, state) {
+    country.materialProduction = blankByMaterial(0);
+    country.materialConsumption = blankByMaterial(0);
+    const scale = clamp(Math.pow(Math.max(country.gdp, 0.05) / 500, 0.25), 0.18, 2.7);
+    const eventEffects = activeEventEffects(country, state);
+    for (const tier of ["basic", "intermediate", "final"]) {
+      DATA.materials.filter((item) => item.tier === tier).forEach((material) => {
+        if (material.unlock && !(country.buildings[material.unlock] > 0)) return;
+        const deposit = material.tier === "basic" ? (country.deposits[material.id] || 0.02) : 1;
+        const sector = sectorEffect(country, material.sector || "industry");
+        let potential = material.baseOutput * scale * deposit * sector * (material.id === "grains" || material.id === "food_products" ? 1 + eventEffects.food : 1);
+        potential = Math.max(0, potential);
+        if (material.inputs) {
+          Object.entries(material.inputs).forEach(([inputId, ratio]) => { potential = Math.min(potential, country.materialStocks[inputId] / ratio); });
+        }
+        const free = Math.max(0, country.materialCapacity[material.id] - country.materialStocks[material.id]);
+        const output = Math.min(potential, free);
+        if (material.inputs && output > 0) Object.entries(material.inputs).forEach(([inputId, ratio]) => {
+          const used = output * ratio;
+          country.materialStocks[inputId] = Math.max(0, country.materialStocks[inputId] - used);
+          country.materialConsumption[inputId] += used;
+        });
+        country.materialStocks[material.id] += output;
+        country.materialProduction[material.id] = round(output, 3);
+        if (material.tier === "final" && output > 0) {
+          const sold = output * (material.strategic ? 0.55 : 0.3);
+          const revenue = sold * material.value;
+          country.materialStocks[material.id] = Math.max(0, country.materialStocks[material.id] - sold);
+          country.tradeBalance += revenue; country.grossExports += revenue; country.finalGoodsRevenue += revenue;
+        }
+      });
+    }
     MATERIAL_IDS.forEach((id) => {
-      country.materialProduction[id] = round(production[id], 2);
-      country.materialStocks[id] = round(Math.min(country.materialCapacity[id], country.materialStocks[id] + production[id]), 2);
+      country.materialStocks[id] = round(country.materialStocks[id], 3);
+      country.materialConsumption[id] = round(country.materialConsumption[id], 3);
     });
+    country.tradeBalance = round(country.tradeBalance, 3);
+    country.grossExports = round(country.grossExports, 3);
+    country.finalGoodsRevenue = round(country.finalGoodsRevenue, 3);
+  }
+
+  function constructionLaborProfile(country, definition) {
+    const workers = demographicSnapshot(country);
+    const unemployedK = workers.unemployed * 1000;
+    const availableK = unemployedK + workers.employed * 2.2;
+    const availability = clamp(0.66 + availableK / Math.max(1, definition.laborNeed) * 0.035, 0.66, 1.35);
+    const skillMatch = clamp(0.58 + country.education / Math.max(45, definition.skillNeed * 1.35), 0.62, 1.34);
+    const wageIndex = clamp(Math.sqrt((country.gdp * 1000 / Math.max(country.population, 0.001)) / 20), 0.28, 2.5);
+    const skillPremium = 0.78 + definition.skillNeed / 180;
+    const monthlyCost = definition.laborNeed * 0.000035 * wageIndex * skillPremium;
+    return { availableK, availability, skillMatch, wageIndex, monthlyCost, speedMultiplier: availability * skillMatch };
   }
 
   function projectSpeed(country, definition) {
     const sameSector = Math.max(1, country.projects.filter((project) => project.sector === definition.sector && project.progress < 100).length);
-    return clamp((100 / definition.months) * sectorEffect(country, definition.sector) / sameSector, 0.25, 24);
+    const labor = constructionLaborProfile(country, definition);
+    return clamp((100 / definition.months) * sectorEffect(country, definition.sector) * labor.speedMultiplier / sameSector, 0.18, 24);
   }
 
   function applyConstructionEffects(country, effects) {
@@ -417,20 +474,84 @@
       });
       project.progress = round(Math.min(100, project.progress + actual), 2);
       project.monthsActive += 1;
-      const monthlyCost = project.totalCost * actual / 100;
+      const labor = constructionLaborProfile(country, definition);
+      const baseCost = project.baseCost === undefined ? project.totalCost : project.baseCost;
+      const monthlyCost = baseCost * actual / 100 + labor.monthlyCost * actual / Math.max(desired, 0.01);
       project.spent = round(project.spent + monthlyCost, 3);
+      project.laborSpent = round((project.laborSpent || 0) + labor.monthlyCost * actual / Math.max(desired, 0.01), 3);
       country.debt = clamp(country.debt + monthlyCost / Math.max(1, country.gdp) * 100, 0, 260);
       if (project.progress >= 99.999) {
         project.progress = 100;
         project.completedAt = monthLabel(state.date);
         country.buildings[definition.id] = (country.buildings[definition.id] || 0) + 1;
         applyConstructionEffects(country, definition.effects);
+        if (definition.housingUnits) country.housingStock.new += definition.housingUnits;
+        if (definition.housingRepairUnits) {
+          const repaired = Math.min(country.housingStock.repair, definition.housingRepairUnits);
+          country.housingStock.repair -= repaired; country.housingStock.normal += repaired;
+        }
+        if (definition.energyOutput) country.electricityGenerationTWh += definition.energyOutput;
         addActivity(state, "construction", `${country.name} completa ${definition.label.toLowerCase()}.`, country.id);
       }
     });
     // Conservar todas las obras activas, incluso tras décadas de construcción.
     const recentCompleted = country.projects.filter((project) => project.progress >= 100).slice(-40);
     country.projects = country.projects.filter((project) => project.progress < 100 || recentCompleted.includes(project));
+  }
+
+  function simulateHousing(country) {
+    const stock = country.housingStock;
+    const ageing = stock.new / 60;
+    const deteriorationRate = clamp(0.00055 - (country.infrastructure - 55) * 0.0000035 - (sectorEffect(country, "infrastructure") - 1.4) * 0.000045, 0.00012, 0.0008);
+    const deteriorated = stock.normal * deteriorationRate;
+    stock.new = Math.max(0, stock.new - ageing);
+    stock.normal = Math.max(0, stock.normal + ageing - deteriorated);
+    stock.repair = Math.max(0, stock.repair + deteriorated);
+    const needed = country.population / 3.2;
+    country.housing = clamp((stock.new + stock.normal) / Math.max(needed, 0.00001) * 100, 20, 100);
+    Object.keys(stock).forEach((key) => { stock[key] = round(stock[key], 4); });
+  }
+
+  function weightedEvent(state) {
+    const total = DATA.events.reduce((sum, item) => sum + item.weight, 0);
+    let roll = random(state) * total;
+    for (const item of DATA.events) { roll -= item.weight; if (roll <= 0) return item; }
+    return DATA.events[DATA.events.length - 1];
+  }
+
+  function updateWorldEvents(state) {
+    state.worldEvents = (state.worldEvents || []).map((item) => ({ ...item, remaining: item.remaining - 1 })).filter((item) => item.remaining > 0);
+    Object.values(state.countries).forEach((country) => {
+      country.cycleShock = clamp(country.cycleShock * 0.76 + (random(state) - 0.5) * 1.65, -4.5, 4.5);
+      country.eventMigrationPush = 0;
+    });
+    state.globalGrowthShock = clamp(state.globalGrowthShock * 0.82 + (random(state) - 0.5) * 1.05, -2.8, 2.8);
+    state.monthsSinceWorldEvent = (state.monthsSinceWorldEvent || 0) + 1;
+    if (state.worldEvents.length < 3 && state.monthsSinceWorldEvent >= 4 && random(state) < 0.085) {
+      const definition = weightedEvent(state);
+      const candidates = DATA.countries.filter((country) => !(definition.exclude || []).includes(country.id));
+      const target = pick(state, candidates);
+      const duration = definition.duration[0] + Math.floor(random(state) * (definition.duration[1] - definition.duration[0] + 1));
+      const event = { id: `event-${state.tick}-${definition.id}`, type: definition.type, definitionId: definition.id,
+        title: definition.title, summary: definition.summary, scope: definition.scope, region: definition.scope === "region" ? target.region : null,
+        countryId: definition.scope === "country" ? target.id : null, impact: clone(definition.impact), remaining: duration, startedAt: monthLabel(state.date) };
+      state.worldEvents.push(event); state.eventHistory.unshift(clone(event)); state.eventHistory = state.eventHistory.slice(0, 60);
+      const affected = Object.values(state.countries).filter((country) => event.scope === "global" || (event.scope === "region" && country.region === event.region) || country.id === event.countryId);
+      affected.forEach((country) => {
+        if (event.impact.infrastructure) country.infrastructure = clamp(country.infrastructure + event.impact.infrastructure, 20, 100);
+        if (event.impact.populationLoss) country.population *= 1 - event.impact.populationLoss;
+        if (event.impact.housingDamage) {
+          const damage = country.housingStock.normal * event.impact.housingDamage;
+          country.housingStock.normal -= damage; country.housingStock.repair += damage;
+        }
+      });
+      const location = event.scope === "global" ? "el mundo" : event.scope === "region" ? event.region : target.name;
+      addActivity(state, definition.type, `${definition.title} en ${location}: ${definition.summary}`, target.id);
+      state.monthsSinceWorldEvent = 0;
+    }
+    const displaced = state.worldEvents.reduce((sum, event) => sum + Number(event.impact.migrationPush || 0), 0);
+    Object.values(state.countries).sort((a, b) => (b.happiness + b.stability - b.unemployment) - (a.happiness + a.stability - a.unemployment)).slice(0, 3)
+      .forEach((country, index) => { country.eventMigrationPush = displaced * (0.28 - index * 0.06); });
   }
 
   function simulateCountry(country, state) {
@@ -449,14 +570,15 @@
     const taxGrowthEffect = -(country.taxes.vat - 18) * 0.012 - (country.taxes.income - 28) * 0.01 - country.taxes.exports * 0.012 + country.taxes.imports * 0.004;
     const inflationDrag = Math.max(0, country.inflation - 5) * 0.022;
     const unemploymentDrag = Math.max(0, country.unemployment - 6) * 0.07;
-    const growth = clamp(country.baseGrowth + educationDrive + industryDrive + infrastructureDrive + tradeImpulse + taxGrowthEffect - inflationDrag - unemploymentDrag, -12, 14);
+    const eventEffects = activeEventEffects(country, state);
+    const growth = clamp(country.baseGrowth + state.globalGrowthShock + country.cycleShock + eventEffects.growth + educationDrive + industryDrive + infrastructureDrive + tradeImpulse + taxGrowthEffect - inflationDrag - unemploymentDrag, -12, 14);
     country.growth = round(growth, 2);
     country.gdp = Math.max(0.05, country.gdp * (1 + growth / 1200));
     const employmentPulse = (2.5 - growth) * 0.012 - (sectorEffect(country, "infrastructure") - 1.5) * 0.018 - country.projects.filter((project) => project.progress < 100).length * 0.012;
     country.unemployment = clamp(country.unemployment + employmentPulse, 1.2, 42);
     const energyMove = (state.market.prices.energy / state.market.previousPrices.energy - 1) * 6;
     const taxPricePressure = (country.taxes.vat - 18) * 0.012 + country.taxes.imports * 0.018;
-    const structuralInflation = clamp(2.4 + Math.max(0, country.spendingTarget + subsidyBurden - revenueRate) * 0.34 - Math.max(0, country.productivity - 80) * 0.008 + taxPricePressure, 1, 35);
+    const structuralInflation = clamp(2.4 + Math.max(0, country.spendingTarget + subsidyBurden - revenueRate) * 0.34 - Math.max(0, country.productivity - 80) * 0.008 + taxPricePressure - eventEffects.food * 4, 1, 35);
     country.inflation = clamp(country.inflation + (structuralInflation - country.inflation) * 0.035 + energyMove, 0.2, 250);
     country.education = clamp(country.education + (sectorEffect(country, "education") - 1.5) * 0.04 + (bonuses.education || 0) * 0.006, 25, 100);
     country.health = clamp(country.health + (sectorEffect(country, "health") - 1.45) * 0.035, 25, 100);
@@ -468,9 +590,11 @@
     country.happiness = clamp(country.happiness + (happinessTarget - country.happiness) * 0.055, 0, 100);
     const tourismTarget = Math.max(0.05, country.population * 0.018 * (0.5 + country.infrastructure / 130) * (0.5 + country.stability / 140) + country.tourismPotential);
     country.tourism = Math.max(0, country.tourism + (tourismTarget - country.tourism) * 0.08);
-    const migrationPull = (country.happiness - 52) * 0.055 + (country.housing - 55) * 0.035 + (8 - country.unemployment) * 0.06 + country.migrationAttraction;
+    const migrationPull = (country.happiness - 52) * 0.055 + (country.housing - 55) * 0.035 + (8 - country.unemployment) * 0.06 + country.migrationAttraction + country.eventMigrationPush;
     country.migration = clamp(country.migration + (country.baseMigration + migrationPull - country.migration) * 0.07, -12, 16);
-    simulateDemographics(country);
+    simulateDemographics(country, state);
+    simulateHousing(country);
+    country.electricityDemandTWh = Math.max(0.01, country.electricityDemandTWh * (1 + Math.max(-5, growth) / 24000 + country.demographicFlows.births / Math.max(country.population, 0.001) * 0.08));
     country.fiscalBalance = round(fiscalBalance, 2);
     country.debt = clamp(country.debt + (-fiscalBalance) / 12 - growth * country.debt / 1200 + (bonuses.debtPressure || 0) / 24, 0, 260);
     country.reserves = Math.max(-20, country.reserves + country.tradeBalance * 0.08);
@@ -484,7 +608,7 @@
     country.stability = clamp(country.stability + growth * 0.015 - Math.max(0, country.unemployment - 12) * 0.018 - Math.max(0, country.inflation - 12) * 0.008 + (bonuses.stability || 0) * 0.008, 0, 100);
     if (country.popularity < 18) country.lowPopularityMonths += 1;
     else country.lowPopularityMonths = Math.max(0, country.lowPopularityMonths - 1);
-    ["gdp", "population", "education", "health", "unemployment", "infrastructure", "housing", "happiness", "tourism", "migration", "debt", "inflation", "popularity", "stability", "productivity", "reserves"].forEach((key) => { country[key] = round(country[key], key === "population" ? 3 : 2); });
+    ["gdp", "population", "education", "health", "unemployment", "infrastructure", "housing", "happiness", "tourism", "migration", "debt", "inflation", "popularity", "stability", "productivity", "reserves", "electricityDemandTWh", "electricityGenerationTWh", "cycleShock"].forEach((key) => { country[key] = round(country[key], key === "population" ? 3 : 2); });
     country.lastGdpDelta = round(country.gdp - previousGdp, 3);
   }
 
@@ -544,10 +668,12 @@
   function advanceTick(state) {
     if (state.gameOver) return state;
     state.tick += 1;
-    state.globalDemand = clamp(state.globalDemand * 0.84 + (0.96 + random(state) * 0.09) * 0.16, 0.82, 1.18);
+    updateWorldEvents(state);
+    const demandShock = (state.worldEvents || []).reduce((sum, event) => sum + (event.scope === "global" ? Number(event.impact.demand || 0) : Number(event.impact.demand || 0) * 0.18), 0);
+    state.globalDemand = clamp(state.globalDemand * 0.84 + (0.96 + random(state) * 0.09 + demandShock) * 0.16, 0.72, 1.22);
     simulateMarkets(state);
     Object.values(state.countries).forEach((country) => {
-      produceMaterials(country);
+      produceMaterials(country, state);
       advanceProjects(country, state);
       simulateCountry(country, state);
       simulateAI(country, state);
@@ -598,8 +724,14 @@
     const definition = getConstructionDefinition(constructionId);
     if (!definition) throw new Error("Construcción no válida.");
     const country = state.countries[state.playerCountryId];
-    return { totalCost: round(Math.max(0.08, country.gdp * definition.costShare / 100), 2),
-      speed: round(projectSpeed(country, definition), 2), requirements: clone(definition.requirements) };
+    const labor = constructionLaborProfile(country, definition);
+    const estimatedMonths = definition.months / Math.max(0.2, sectorEffect(country, definition.sector) * labor.speedMultiplier);
+    const laborCost = labor.monthlyCost * estimatedMonths;
+    return { baseCost: definition.fixedCost, laborCost: round(laborCost, 3), totalCost: round(definition.fixedCost + laborCost, 3),
+      speed: round(projectSpeed(country, definition), 2), estimatedMonths: round(estimatedMonths, 1), laborNeed: definition.laborNeed,
+      laborAvailability: round(labor.availability * 100, 0), skillMatch: round(labor.skillMatch * 100, 0), wageIndex: round(labor.wageIndex, 2),
+      energyShare: definition.energyOutput ? round(definition.energyOutput / Math.max(country.electricityDemandTWh, 0.001) * 100, 2) : null,
+      requirements: clone(definition.requirements), unlocks: clone(definition.unlocks || []) };
   }
 
   function queueConstruction(state, constructionId) {
@@ -610,40 +742,68 @@
     if (country.projects.filter((project) => project.progress < 100).length >= 8) throw new Error("La cartera admite hasta ocho obras activas.");
     const preview = constructionPreview(state, constructionId);
     const project = { id: `project-${country.nextProjectId++}`, typeId: definition.id, sector: definition.sector,
-      startedAt: monthLabel(state.date), progress: 0, monthsActive: 0, totalCost: preview.totalCost,
-      spent: 0, requirements: clone(definition.requirements), consumed: blankByMaterial(0),
+      startedAt: monthLabel(state.date), progress: 0, monthsActive: 0, baseCost: preview.baseCost, estimatedLaborCost: preview.laborCost, totalCost: preview.totalCost,
+      spent: 0, laborSpent: 0, requirements: clone(definition.requirements), consumed: blankByMaterial(0),
       blockedBy: [], completedAt: null };
     country.projects.push(project);
     addActivity(state, "construction", `${country.name} inicia ${definition.label.toLowerCase()}.`, country.id);
     return project;
   }
 
-  function ensureCountryV3(country, definition) {
+  function importResource(state, materialId) {
+    const material = DATA.materials.find((item) => item.id === materialId);
+    if (!material) throw new Error("Recurso no válido.");
+    const country = state.countries[state.playerCountryId];
+    const free = Math.max(0, country.materialCapacity[material.id] - country.materialStocks[material.id]);
+    if (free < 0.01) throw new Error("El depósito de este recurso está lleno.");
+    const quantity = Math.min(free, Math.max(2, country.materialCapacity[material.id] * 0.1));
+    const cost = quantity * material.value * (1 + country.taxes.imports / 100);
+    country.materialStocks[material.id] = round(country.materialStocks[material.id] + quantity, 3);
+    country.grossImports += cost; country.tradeBalance -= cost;
+    country.reserves = round(country.reserves - cost, 2);
+    if (country.reserves < 0) country.debt = clamp(country.debt + cost / Math.max(country.gdp, 0.05) * 100, 0, 260);
+    addActivity(state, "trade", `${country.name} importa ${round(quantity, 1)} unidades de ${material.label.toLowerCase()}.`, country.id);
+    return { quantity: round(quantity, 2), cost: round(cost, 3) };
+  }
+
+  function ensureCountryV4(country, definition) {
     const fresh = toCountryState(definition);
     Object.keys(fresh).forEach((key) => { if (country[key] === undefined || country[key] === null) country[key] = clone(fresh[key]); });
     country.subsidies = { ...fresh.subsidies, ...(country.subsidies || {}) };
     country.materialStocks = { ...fresh.materialStocks, ...(country.materialStocks || {}) };
     country.materialCapacity = { ...fresh.materialCapacity, ...(country.materialCapacity || {}) };
     country.materialProduction = { ...fresh.materialProduction, ...(country.materialProduction || {}) };
+    country.materialConsumption = { ...fresh.materialConsumption, ...(country.materialConsumption || {}) };
     country.buildings = { ...fresh.buildings, ...(country.buildings || {}) };
     country.taxes = { ...fresh.taxes, ...(country.taxes || {}) };
     country.demographics = { ...fresh.demographics, ...(country.demographics || {}) };
     country.taxRevenueBreakdown = { ...fresh.taxRevenueBreakdown, ...(country.taxRevenueBreakdown || {}) };
     country.projects = Array.isArray(country.projects) ? country.projects : [];
+    country.projects.forEach((project) => {
+      const construction = getConstructionDefinition(project.typeId);
+      if (construction && project.baseCost === undefined) project.baseCost = construction.fixedCost;
+      if (project.laborSpent === undefined) project.laborSpent = 0;
+      project.consumed = { ...blankByMaterial(0), ...(project.consumed || {}) };
+      project.requirements = { ...(construction ? construction.requirements : {}), ...(project.requirements || {}) };
+    });
     delete country.modifiers;
     return country;
   }
 
   function migrate(candidate) {
     const state = clone(candidate);
-    if (![1, 2, SAVE_VERSION].includes(state.version)) throw new Error("La versión de la partida no es compatible.");
+    if (![1, 2, 3, SAVE_VERSION].includes(state.version)) throw new Error("La versión de la partida no es compatible.");
     if (!state.playerCountryId || !state.countries || !state.countries[state.playerCountryId]) throw new Error("La partida está incompleta.");
     DATA.countries.forEach((definition) => {
       if (!state.countries[definition.id]) state.countries[definition.id] = toCountryState(definition);
-      else ensureCountryV3(state.countries[definition.id], definition);
+      else ensureCountryV4(state.countries[definition.id], definition);
     });
     state.activity = Array.isArray(state.activity) ? state.activity : (Array.isArray(state.events) ? state.events.filter((item) => ["briefing", "policy", "election"].includes(item.type)) : []);
-    state.eventsEnabled = false;
+    state.eventsEnabled = true;
+    state.worldEvents = Array.isArray(state.worldEvents) ? state.worldEvents : [];
+    state.eventHistory = Array.isArray(state.eventHistory) ? state.eventHistory : [];
+    state.monthsSinceWorldEvent = Number.isFinite(state.monthsSinceWorldEvent) ? state.monthsSinceWorldEvent : 0;
+    state.globalGrowthShock = Number.isFinite(state.globalGrowthShock) ? state.globalGrowthShock : 0;
     state.openEnded = true;
     state.version = SAVE_VERSION;
     state.gameOver = state.gameOver && !state.gameOver.won ? state.gameOver : null;
@@ -654,7 +814,7 @@
 
   function validateSave(candidate) {
     if (!candidate || typeof candidate !== "object") throw new Error("El archivo no contiene una partida.");
-    if (![1, 2, SAVE_VERSION].includes(candidate.version)) throw new Error("La versión de la partida no es compatible.");
+    if (![1, 2, 3, SAVE_VERSION].includes(candidate.version)) throw new Error("La versión de la partida no es compatible.");
     if (!candidate.playerCountryId || !candidate.countries || !candidate.countries[candidate.playerCountryId]) throw new Error("La partida está incompleta.");
     if (!candidate.date || !Number.isSafeInteger(candidate.tick) || candidate.tick < 0 ||
       !Number.isSafeInteger(candidate.date.year) || candidate.date.year < START_YEAR ||
@@ -683,7 +843,7 @@
   function hydrate(candidate) { validateSave(candidate); return migrate(candidate); }
 
   return {
-    SAVE_VERSION, ENDLESS, createGame, advanceTick, applyAllocations, applyTaxes, estimateTaxes, demographicSnapshot, queueConstruction,
+    SAVE_VERSION, ENDLESS, createGame, advanceTick, applyAllocations, applyTaxes, estimateTaxes, demographicSnapshot, queueConstruction, importResource,
     constructionPreview, calculateScore, validateSave, hydrate, getCountryDefinition,
     getLeaderDefinition, getConstructionDefinition, normalizeAllocation, monthLabel,
     clone, clamp, sumValues

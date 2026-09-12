@@ -8,6 +8,7 @@
   const mapViews = [
     { id: "map", label: "Mapa mundial", icon: "◎" },
     ...DATA.sectors,
+    { id: "resources", label: "Recursos y producción", icon: "▦" },
     { id: "taxes", label: "Impuestos", icon: "$" },
     { id: "trade", label: "Comercio exterior", icon: "↔" },
     { id: "demographics", label: "Demografía", icon: "◒" },
@@ -144,7 +145,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. Cada mes transforma la economía y la población.</p>
         </div>
-        <div class="start-badge"><span>Motor base v3.1</span><b>16 países · simulación abierta · eventos aleatorios desactivados</b></div>
+        <div class="start-badge"><span>Motor económico v4</span><b>16 países · cadenas productivas · eventos mundiales automáticos</b></div>
         <div class="country-grid" aria-label="Países disponibles">
           ${DATA.countries.map((country) => `
             <button class="country-card ${country.id === selectedCountryId ? "selected" : ""}" type="button" data-action="select-country" data-country="${country.id}" aria-pressed="${country.id === selectedCountryId}">
@@ -294,6 +295,7 @@
 
   function renderCurrentPanel() {
     if (currentView === "map") return renderMapPanel();
+    if (currentView === "resources") return renderResourcesPanel();
     if (currentView === "taxes") return renderTaxesPanel();
     if (currentView === "demographics") return renderDemographicsPanel();
     if (currentView === "trade") return renderTradePanel();
@@ -309,10 +311,10 @@
       <section class="map-dashboard">
         <div class="dashboard-heading">
           <div><p class="panel-kicker">Sala de situación</p><h2>${country.flag} ${e(country.name)}</h2></div>
-          <span class="events-off">Eventos: desactivados</span>
+          <span class="events-on">Eventos pasivos: activos</span>
         </div>
         <div class="dashboard-kpis">
-          <article><span>Infraestructura</span><strong>${fmt(country.infrastructure)}/100</strong><small>Vivienda ${fmt(country.housing)}</small></article>
+          <article><span>Infraestructura</span><strong>${fmt(country.infrastructure)}/100</strong><small>Vivienda adecuada ${fmt(country.housing)}%</small></article>
           <article><span>Turismo anual</span><strong>${fmt(country.tourism, 2)} M</strong><small>Capacidad +${fmt(country.tourismPotential, 1)}</small></article>
           <article><span>Migración neta</span><strong class="${country.migration < 0 ? "negative" : "positive"}">${signed(country.migration, "‰")}</strong><small>Natalidad ${fmt(country.birthRate)}‰</small></article>
           <article><span>Balance fiscal</span><strong class="${country.fiscalBalance < 0 ? "negative" : "positive"}">${signed(country.fiscalBalance, "%")}</strong><small>Deuda ${fmt(country.debt)}% PBI</small></article>
@@ -327,6 +329,10 @@
             <button type="button" data-action="view" data-view="infrastructure">Abrir obra pública →</button>
           </div>
         </div>
+        <div class="world-pulse">
+          <div><small>Ciclo económico mundial</small><strong class="${game.globalGrowthShock < 0 ? "negative" : "positive"}">${signed(game.globalGrowthShock, " pts")}</strong></div>
+          <div class="event-ribbon">${game.worldEvents.length ? game.worldEvents.map((event) => `<span><b>${e(event.title)}</b> · ${e(event.scope === "global" ? "Mundial" : event.scope === "region" ? event.region : game.countries[event.countryId].name)} · ${event.remaining} meses</span>`).join("") : "<span><b>Sin emergencias activas</b> · las economías igualmente atraviesan ciclos propios.</span>"}</div>
+        </div>
       </section>`;
   }
 
@@ -335,14 +341,14 @@
     const industryBalance = country.sectorBalances.manufactures || 0;
     const energyBalance = country.sectorBalances.energy || 0;
     const metrics = {
-      infrastructure: [["Infraestructura", `${fmt(country.infrastructure)}/100`, "Red nacional"], ["Vivienda", `${fmt(country.housing)}/100`, "Capacidad urbana"], ["Turismo", `${fmt(country.tourism, 2)} M`, "Visitantes anuales"], ["Migración", signed(country.migration, "‰"), "Saldo por mil"]],
+      infrastructure: [["Infraestructura", `${fmt(country.infrastructure)}/100`, "Red nacional"], ["Vivienda adecuada", `${fmt(country.housing)}%`, "Nueva + normal"], ["A refaccionar", `${fmt(country.housingStock.repair, 3)} M`, "Unidades"], ["Migración", signed(country.migration, "‰"), "Saldo por mil"]],
       agriculture: [["Oferta propia", fmt(country.sectorSupply.food, 2), "Unidades de mercado"], ["Consumo", fmt(country.sectorDemand.food, 2), "Demanda interna"], ["Balance", signed(foodBalance), foodBalance < 0 ? "Déficit" : "Superávit"], ["Madera", fmt(country.materialStocks.timber, 1), `+${fmt(country.materialProduction.timber, 1)}/mes`]],
       industry: [["Oferta industrial", fmt(country.sectorSupply.manufactures, 2), "Manufacturas"], ["Balance", signed(industryBalance), industryBalance < 0 ? "Importador" : "Exportador"], ["Productividad", `${fmt(country.productivity)}/150`, "Capacidad laboral"], ["Acero", fmt(country.materialStocks.steel, 1), `+${fmt(country.materialProduction.steel, 1)}/mes`]],
       services: [["Crecimiento", signed(country.growth, "%"), "Ritmo anualizado"], ["Turismo", `${fmt(country.tourism, 2)} M`, "Visitantes anuales"], ["Felicidad", `${fmt(country.happiness)}%`, "Bienestar percibido"], ["Logística", `+${fmt(country.tradeCapacity, 1)}`, "Capacidad adicional"]],
       education: [["Educación", `${fmt(country.education)}/100`, "Capital humano"], ["Productividad", `${fmt(country.productivity)}/150`, "Efecto acumulado"], ["Tecnología", fmt(country.sectorSupply.technology, 2), "Oferta propia"], ["Electrónica", fmt(country.materialStocks.electronics, 1), `+${fmt(country.materialProduction.electronics, 1)}/mes`]],
       health: [["Salud", `${fmt(country.health)}/100`, "Cobertura y calidad"], ["Mortalidad", `${fmt(country.mortality)}‰`, "Por mil habitantes"], ["Felicidad", `${fmt(country.happiness)}%`, "Bienestar percibido"], ["Población", `${fmt(country.population, 2)} M`, "Habitantes"]],
       security: [["Estabilidad", `${fmt(country.stability)}/100`, "Gobernabilidad"], ["Popularidad", `${fmt(country.popularity)}%`, "Apoyo al gobierno"], ["Felicidad", `${fmt(country.happiness)}%`, "Confianza social"], ["Empleo", `${fmt(100 - country.unemployment)}%`, "Población activa"]],
-      energy: [["Oferta propia", fmt(country.sectorSupply.energy, 2), "Unidades de mercado"], ["Consumo", fmt(country.sectorDemand.energy, 2), "Demanda interna"], ["Balance", signed(energyBalance), energyBalance < 0 ? "Déficit" : "Superávit"], ["Combustible", fmt(country.materialStocks.fuel, 1), `+${fmt(country.materialProduction.fuel, 1)}/mes`]]
+      energy: [["Generación", `${fmt(country.electricityGenerationTWh, 1)} TWh`, "Capacidad anual"], ["Demanda", `${fmt(country.electricityDemandTWh, 1)} TWh`, "Consumo anual"], ["Cobertura", `${fmt(country.electricityGenerationTWh / country.electricityDemandTWh * 100, 1)}%`, "Oferta / demanda"], ["Combustible", fmt(country.materialStocks.fuel, 1), `+${fmt(country.materialProduction.fuel, 1)}/mes`]]
     };
     return metrics[id] || [];
   }
@@ -361,7 +367,7 @@
           ${[["overview", "Informe"], ["management", "Gestión"], ["build", "Construcciones"], ["stocks", "Recursos"]].map(([id, label]) => `<button class="${panelTab === id ? "active" : ""}" type="button" data-action="panel-tab" data-tab="${id}">${label}</button>`).join("")}
         </nav>
         <div class="panel-body">${renderSectorTab(sector, country)}</div>
-        <footer class="panel-footer"><span>El motor actualiza producción, consumo, población y obras una vez por mes.</span><b>Eventos aleatorios pausados</b></footer>
+        <footer class="panel-footer"><span>El motor actualiza producción, consumo, población y obras una vez por mes.</span><b>Eventos pasivos activos</b></footer>
       </section>`;
   }
 
@@ -425,9 +431,12 @@
           return `<article class="construction-card">
             <div class="construction-title"><span>${e(item.icon)}</span><div><small>${count} completadas</small><h3>${e(item.label)}</h3></div></div>
             <p>${e(item.description)}</p>
-            <div class="construction-meta"><span><small>Plazo base</small><b>${item.months} meses</b></span><span><small>Costo estimado</small><b>${money(preview.totalCost)}</b></span></div>
+            <div class="construction-meta"><span><small>Plazo estimado</small><b>${fmt(preview.estimatedMonths, 1)} meses</b></span><span><small>Costo fijo + trabajo</small><b>${money(preview.totalCost)}</b></span></div>
+            <div class="labor-readout"><span>${fmt(item.laborNeed, 0)} mil empleos</span><span>Disponibilidad ${fmt(preview.laborAvailability, 0)}%</span><span>Aptitud ${fmt(preview.skillMatch, 0)}%</span></div>
             <div class="requirements">${Object.entries(item.requirements).map(([id, amount]) => `<span title="${e(materialById(id).label)}"><b>${e(materialById(id).icon)}</b>${fmt(amount, 0)}</span>`).join("")}</div>
             <div class="effects">${Object.entries(item.effects).slice(0, 3).map(([id, amount]) => `<span>+${fmt(Math.abs(amount), amount % 1 ? 1 : 0)} ${e(effectNames[id] || id)}</span>`).join("")}</div>
+            ${preview.energyShare != null ? `<p class="unlock-note">Genera ${fmt(item.energyOutput, 1)} TWh: hoy cubriría ${fmt(preview.energyShare, 2)}% de la demanda de ${e(country.name)}.</p>` : ""}
+            ${preview.unlocks.length ? `<p class="unlock-note">Desbloquea: ${preview.unlocks.map((id) => e(materialById(id).label)).join(", ")}.</p>` : ""}
             <button class="button" type="button" data-action="build" data-building="${item.id}" ${activeCount >= 8 ? "disabled" : ""}>Iniciar construcción</button>
           </article>`;
         }).join("")}
@@ -443,10 +452,25 @@
           const stock = country.materialStocks[item.id];
           const capacity = country.materialCapacity[item.id];
           const pct = Math.min(100, stock / capacity * 100);
-          return `<article class="${pct < 18 ? "low" : ""}"><div><span>${e(item.icon)}</span><strong>${e(item.label)}</strong></div><b>${fmt(stock, 1)} <small>/ ${fmt(capacity, 0)}</small></b><div class="stock-track"><i style="width:${pct}%"></i></div><small>Producción +${fmt(country.materialProduction[item.id], 2)} por mes</small></article>`;
+          return `<article class="${pct < 18 ? "low" : ""}"><div><span>${e(item.icon)}</span><strong>${e(item.label)}</strong></div><b>${fmt(stock, 1)} <small>/ ${fmt(capacity, 0)}</small></b><div class="stock-track"><i style="width:${pct}%"></i></div><small>+${fmt(country.materialProduction[item.id], 2)} / −${fmt(country.materialConsumption[item.id], 2)} por mes</small></article>`;
         }).join("")}
       </div>
       <section class="queue-card"><div class="inner-heading"><div><small>Ejecución</small><h3>Cola del ministerio</h3></div><strong>${activeProjects(country, sector.id).length} activas</strong></div>${renderProjectList(projects, false)}</section>`;
+  }
+
+  function renderResourcesPanel() {
+    const country = playerCountry();
+    return `<section class="management-panel system-panel resource-system">
+      <header class="management-heading"><div class="section-symbol">▦</div><div><p class="panel-kicker">Cadena productiva · ${e(country.name)}</p><h2>Recursos y producción</h2></div><button class="panel-close" type="button" data-action="view" data-view="map">×</button></header>
+      <div class="panel-body resource-body">
+        <div class="resource-summary"><article><span>Electricidad</span><strong>${fmt(country.electricityGenerationTWh, 1)} / ${fmt(country.electricityDemandTWh, 1)} TWh</strong><small>${fmt(country.electricityGenerationTWh / country.electricityDemandTWh * 100, 1)}% de cobertura</small></article><article><span>Viviendas nuevas</span><strong>${fmt(country.housingStock.new, 3)} M</strong><small>${fmt(country.housingStock.normal, 3)} M normales</small></article><article><span>A refaccionar</span><strong>${fmt(country.housingStock.repair, 3)} M</strong><small>Se deterioran mes a mes</small></article><article><span>Ventas finales / mes</span><strong>${money(country.finalGoodsRevenue)}</strong><small>Incluye exportaciones de alto valor</small></article></div>
+        ${DATA.resourceTiers.map((tier) => `<section class="resource-tier"><div class="stock-heading"><div><p class="panel-kicker">${e(tier.label)}</p><h3>${e(tier.description)}</h3></div></div><div class="resource-tree">${DATA.materials.filter((item) => item.tier === tier.id).map((item) => {
+          const stock = country.materialStocks[item.id]; const capacity = country.materialCapacity[item.id]; const pct = Math.min(100, stock / capacity * 100);
+          const locked = item.unlock && !(country.buildings[item.unlock] > 0);
+          const inputs = item.inputs ? Object.entries(item.inputs).map(([id, amount]) => `${materialById(id).label} ${amount}`).join(" + ") : "Producción primaria";
+          return `<article class="resource-node ${pct < 18 ? "low" : ""} ${locked ? "locked" : ""}"><div class="resource-node-title"><span>${e(item.icon)}</span><div><strong>${e(item.label)}</strong><small>${e(inputs)}</small></div></div><b>${fmt(stock, 2)} / ${fmt(capacity, 0)}</b><div class="stock-track"><i style="width:${pct}%"></i></div><small>${locked ? `Bloqueado: requiere ${e(constructionById(item.unlock).label)}` : `Producción ${signed(country.materialProduction[item.id], "/mes")} · Uso ${fmt(country.materialConsumption[item.id], 2)}`}</small><button class="button button-quiet compact" type="button" data-action="import-resource" data-material="${item.id}" ${pct >= 99 ? "disabled" : ""}>Importar lote</button></article>`;
+        }).join("")}</div></section>`).join("")}
+      </div><footer class="panel-footer"><span>Los bienes intermedios consumen recursos básicos; los finales requieren fábricas habilitantes.</span><b>Precios de importación incluyen aranceles</b></footer></section>`;
   }
 
   function renderProjectList(projects, compact) {
@@ -800,7 +824,7 @@
     });
     register({
       name: "advance_simulation_months", title: "Avanzar simulación",
-      description: "Avanza entre uno y doce meses del motor base, sin eventos aleatorios.",
+      description: "Avanza entre uno y doce meses del motor económico con ciclos y eventos pasivos.",
       inputSchema: { type: "object", properties: { months: { type: "integer", minimum: 1, maximum: 12 } }, required: ["months"], additionalProperties: false },
       annotations: { readOnlyHint: false, untrustedContentHint: false },
       async execute(input) {
@@ -863,6 +887,11 @@
         const definition = constructionById(target.dataset.building);
         Engine.queueConstruction(game, target.dataset.building); panelTab = "stocks"; await saveGame("autosave", false); renderGame();
         showToast(`${definition.label}: obra iniciada`, "success");
+      } catch (error) { showToast(error.message, "error"); }
+    } else if (action === "import-resource") {
+      try {
+        const result = Engine.importResource(game, target.dataset.material); await saveGame("autosave", false); renderGame();
+        showToast(`Lote importado por ${money(result.cost)}`, "success");
       } catch (error) { showToast(error.message, "error"); }
     } else if (action === "save") { await saveGame("manual", true); renderGame(); }
     else if (action === "toggle-menu") {

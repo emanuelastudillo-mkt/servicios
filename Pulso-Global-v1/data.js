@@ -16,13 +16,30 @@
     { id: "energy", label: "Energía", short: "Energía", icon: "ϟ", commodity: "energy" }
   ];
 
+  const RESOURCE_TIERS = [
+    { id: "basic", label: "Materias básicas", description: "Extracción y producción primaria nacional." },
+    { id: "intermediate", label: "Bienes intermedios", description: "Transforman recursos básicos y abastecen obras y fábricas." },
+    { id: "final", label: "Productos finales", description: "Bienes de consumo y capital que requieren instalaciones habilitantes." }
+  ];
+
   const MATERIALS = [
-    { id: "cement", label: "Cemento", icon: "CE" },
-    { id: "steel", label: "Acero", icon: "AC" },
-    { id: "timber", label: "Madera", icon: "MA" },
-    { id: "fuel", label: "Combustible", icon: "CO" },
-    { id: "machinery", label: "Maquinaria", icon: "MQ" },
-    { id: "electronics", label: "Electrónica", icon: "EL" }
+    { id: "grains", label: "Granos", icon: "GR", tier: "basic", value: 0.006, baseOutput: 6, sector: "agriculture" },
+    { id: "timber", label: "Madera", icon: "MA", tier: "basic", value: 0.012, baseOutput: 4.2, sector: "agriculture" },
+    { id: "crude_oil", label: "Petróleo crudo", icon: "PC", tier: "basic", value: 0.025, baseOutput: 3.4, sector: "energy" },
+    { id: "iron_ore", label: "Mineral de hierro", icon: "HI", tier: "basic", value: 0.014, baseOutput: 4, sector: "industry" },
+    { id: "copper", label: "Cobre", icon: "CU", tier: "basic", value: 0.03, baseOutput: 2.6, sector: "industry" },
+    { id: "uranium", label: "Uranio", icon: "UR", tier: "basic", value: 0.12, baseOutput: 0.45, sector: "energy" },
+    { id: "minerals", label: "Minerales industriales", icon: "MI", tier: "basic", value: 0.01, baseOutput: 4.8, sector: "industry" },
+    { id: "cement", label: "Cemento", icon: "CE", tier: "intermediate", value: 0.018, baseOutput: 3.8, sector: "industry", inputs: { minerals: 1.2, fuel: 0.1 } },
+    { id: "steel", label: "Acero", icon: "AC", tier: "intermediate", value: 0.045, baseOutput: 3.2, sector: "industry", inputs: { iron_ore: 1.2, fuel: 0.25 } },
+    { id: "fuel", label: "Combustible refinado", icon: "CO", tier: "intermediate", value: 0.04, baseOutput: 3.5, sector: "energy", inputs: { crude_oil: 1.3 } },
+    { id: "chemicals", label: "Químicos", icon: "QU", tier: "intermediate", value: 0.07, baseOutput: 2, sector: "industry", inputs: { crude_oil: 0.4, fuel: 0.1 } },
+    { id: "components", label: "Componentes", icon: "CP", tier: "intermediate", value: 0.11, baseOutput: 1.7, sector: "industry", inputs: { copper: 0.6, chemicals: 0.3 } },
+    { id: "food_products", label: "Alimentos elaborados", icon: "AL", tier: "final", value: 0.055, baseOutput: 2.8, sector: "agriculture", inputs: { grains: 1.2, fuel: 0.1 }, unlock: "food_plant" },
+    { id: "automobiles", label: "Automóviles", icon: "AU", tier: "final", value: 0.18, baseOutput: 1.4, sector: "industry", inputs: { steel: 1.2, components: 0.5 }, unlock: "vehicle_factory" },
+    { id: "machinery", label: "Maquinaria industrial", icon: "MQ", tier: "final", value: 0.28, baseOutput: 1.1, sector: "industry", inputs: { steel: 1.4, components: 0.6, fuel: 0.2 }, unlock: "industrial_vehicle_factory" },
+    { id: "electronics", label: "Equipos electrónicos", icon: "EL", tier: "final", value: 0.24, baseOutput: 1.25, sector: "industry", inputs: { components: 1.2, chemicals: 0.3 }, unlock: "electronics_factory" },
+    { id: "plutonium", label: "Plutonio procesado", icon: "PU", tier: "final", value: 1.5, baseOutput: 0.025, sector: "industry", inputs: { uranium: 1, electronics: 0.5, fuel: 0.5 }, unlock: "nuclear_lab", strategic: true }
   ];
 
   const TAXES = [
@@ -56,14 +73,56 @@
     construction("civil_defense", "security", "Base de defensa civil", "◇", 10, 0.1, { cement: 21, steel: 17, fuel: 10, machinery: 9, electronics: 10 }, { stability: 1.2, happiness: 0.5 }, "Coordina emergencias, rescate y protección territorial."),
     construction("police_network", "security", "Red de seguridad urbana", "⬡", 8, 0.09, { cement: 17, steel: 10, fuel: 9, machinery: 5, electronics: 17 }, { stability: 1.4, happiness: 0.35 }, "Mejora presencia territorial y tiempos de respuesta."),
     construction("renewable_park", "energy", "Parque renovable", "☼", 14, 0.21, { cement: 34, steel: 31, fuel: 8, machinery: 20, electronics: 22 }, { energyCapacity: 4, happiness: 0.5 }, "Aumenta la oferta eléctrica con menor exposición a combustibles."),
-    construction("power_grid", "energy", "Red eléctrica inteligente", "ϟ", 18, 0.3, { cement: 25, steel: 44, fuel: 9, machinery: 18, electronics: 37 }, { energyCapacity: 3, infrastructure: 1.4, productivity: 0.7 }, "Reduce cortes y conecta nueva capacidad productiva.")
+    construction("power_grid", "energy", "Red eléctrica inteligente", "ϟ", 18, 0.3, { cement: 25, steel: 44, fuel: 9, machinery: 18, electronics: 37 }, { infrastructure: 1.4, productivity: 0.7 }, "Reduce cortes y conecta nueva capacidad productiva."),
+    construction("housing_maintenance", "infrastructure", "Mantenimiento habitacional", "⌂", 8, 0, { cement: 18, steel: 5, timber: 12, fuel: 5 }, { housing: 0.8, happiness: 0.5 }, "Repara un lote fijo de viviendas deterioradas y evita pérdida de calidad urbana."),
+    construction("nuclear_plant", "energy", "Central nuclear", "⚛", 48, 0, { cement: 120, steel: 160, fuel: 20, machinery: 60, electronics: 50, uranium: 10 }, { stability: 1, happiness: 0.7 }, "Aporta 12 TWh anuales en cualquier país; su peso depende del consumo nacional."),
+    construction("nuclear_lab", "industry", "Laboratorio nuclear", "☢", 36, 0, { cement: 80, steel: 120, fuel: 25, machinery: 80, electronics: 100, uranium: 15 }, { industryCapacity: 2, productivity: 0.8 }, "Habilita la producción estratégica de plutonio procesado."),
+    construction("vehicle_factory", "industry", "Fábrica de automóviles", "▱", 24, 0, { cement: 60, steel: 80, fuel: 24, machinery: 40, electronics: 30 }, { industryCapacity: 3, productivity: 0.5 }, "Habilita automóviles para el mercado interno y la exportación."),
+    construction("industrial_vehicle_factory", "industry", "Fábrica de vehículos industriales", "▰", 28, 0, { cement: 70, steel: 100, fuel: 30, machinery: 45, electronics: 40 }, { industryCapacity: 4, productivity: 0.7 }, "Habilita maquinaria productiva, logística y de transporte."),
+    construction("electronics_factory", "industry", "Fábrica de electrónica", "▦", 24, 0, { cement: 45, steel: 55, fuel: 16, machinery: 35, components: 60 }, { industryCapacity: 3, productivity: 0.8 }, "Habilita equipos electrónicos de alto valor agregado."),
+    construction("food_plant", "agriculture", "Planta alimentaria", "◆", 18, 0, { cement: 34, steel: 25, fuel: 15, machinery: 22, electronics: 10 }, { foodCapacity: 3, productivity: 0.3 }, "Habilita alimentos elaborados y agrega valor a los granos.")
   ];
+
+  const CONSTRUCTION_META = {
+    housing: { fixedCost: 2.4, laborNeed: 14, skillNeed: 45, housingUnits: 0.12 },
+    streets: { fixedCost: 1.2, laborNeed: 9, skillNeed: 42 }, highways: { fixedCost: 6.5, laborNeed: 22, skillNeed: 55 },
+    airport: { fixedCost: 8, laborNeed: 16, skillNeed: 68 }, rail: { fixedCost: 12, laborNeed: 28, skillNeed: 65 },
+    irrigation: { fixedCost: 1.5, laborNeed: 8, skillNeed: 48 }, silos: { fixedCost: 0.8, laborNeed: 5, skillNeed: 40 },
+    industrial_park: { fixedCost: 4, laborNeed: 14, skillNeed: 62 }, machine_plant: { fixedCost: 2.8, laborNeed: 11, skillNeed: 58 },
+    logistics_hub: { fixedCost: 3.5, laborNeed: 12, skillNeed: 60 }, tourism_district: { fixedCost: 2, laborNeed: 8, skillNeed: 55 },
+    technical_school: { fixedCost: 0.7, laborNeed: 4, skillNeed: 60 }, university: { fixedCost: 1.8, laborNeed: 7, skillNeed: 80 },
+    clinics: { fixedCost: 0.5, laborNeed: 3, skillNeed: 58 }, hospital: { fixedCost: 2.2, laborNeed: 9, skillNeed: 72 },
+    civil_defense: { fixedCost: 0.9, laborNeed: 5, skillNeed: 52 },
+    police_network: { fixedCost: 0.8, laborNeed: 6, skillNeed: 48 }, renewable_park: { fixedCost: 2.5, laborNeed: 8, skillNeed: 68, energyOutput: 2.5 },
+    power_grid: { fixedCost: 5, laborNeed: 15, skillNeed: 70 }, housing_maintenance: { fixedCost: 0.6, laborNeed: 10, skillNeed: 42, housingRepairUnits: 0.08 },
+    nuclear_plant: { fixedCost: 18, laborNeed: 8, skillNeed: 88, energyOutput: 12 },
+    nuclear_lab: { fixedCost: 25, laborNeed: 6, skillNeed: 92, unlocks: ["plutonium"] },
+    vehicle_factory: { fixedCost: 4.5, laborNeed: 12, skillNeed: 72, unlocks: ["automobiles"] },
+    industrial_vehicle_factory: { fixedCost: 6.5, laborNeed: 14, skillNeed: 76, unlocks: ["machinery"] },
+    electronics_factory: { fixedCost: 4.2, laborNeed: 10, skillNeed: 82, unlocks: ["electronics"] },
+    food_plant: { fixedCost: 2.2, laborNeed: 9, skillNeed: 55, unlocks: ["food_products"] }
+  };
+  CONSTRUCTIONS.forEach((item) => Object.assign(item, CONSTRUCTION_META[item.id] || { fixedCost: 1, laborNeed: 6, skillNeed: 50 }));
 
   const COUNTRY_CENTERS = {
     ARG: [-64, -35], USA: [-99, 38], ECU: [-78.2, -1.4], BRA: [-52, -10], MEX: [-102, 23],
     CHN: [104, 35], RUS: [88, 60], DEU: [10.5, 51], IND: [79, 22], ZAF: [24, -29],
     CUB: [-79.5, 21.5], ZMB: [27.8, -13.1], NGA: [8.7, 9.1], URY: [-55.8, -32.8],
     HTI: [-72.3, 19], NRU: [166.9, -0.5]
+  };
+
+  const COUNTRY_ELECTRICITY = {
+    ARG: 130, USA: 4000, ECU: 32, BRA: 700, MEX: 350, CHN: 9200, RUS: 1100, DEU: 500,
+    IND: 1900, ZAF: 220, CUB: 15, ZMB: 18, NGA: 35, URY: 13, HTI: 2.5, NRU: 0.05
+  };
+
+  const COUNTRY_DEPOSIT_OVERRIDES = {
+    CUB: { grains: 0.55, timber: 0.7, crude_oil: 0.12, iron_ore: 0.18, copper: 0.2, uranium: 0.04, minerals: 1.25 },
+    ZMB: { grains: 0.95, timber: 0.8, crude_oil: 0.04, iron_ore: 0.45, copper: 1.8, uranium: 0.2, minerals: 1.25 },
+    NGA: { grains: 1, timber: 0.85, crude_oil: 1.8, iron_ore: 0.42, copper: 0.18, uranium: 0.06, minerals: 0.75 },
+    URY: { grains: 1.7, timber: 1.3, crude_oil: 0.03, iron_ore: 0.16, copper: 0.08, uranium: 0.03, minerals: 0.65 },
+    HTI: { grains: 0.45, timber: 0.3, crude_oil: 0.01, iron_ore: 0.08, copper: 0.18, uranium: 0.01, minerals: 0.32 },
+    NRU: { grains: 0.04, timber: 0.01, crude_oil: 0.01, iron_ore: 0.01, copper: 0.01, uranium: 0.01, minerals: 1.7 }
   };
 
   const COUNTRY_DEMOGRAPHICS = {
@@ -452,23 +511,43 @@
     }
   ];
 
+  const PASSIVE_EVENTS = [
+    { id: "pandemic", type: "health", title: "Pandemia mundial", scope: "global", weight: 0.35, duration: [12, 20], impact: { growth: -3.2, mortality: 2.4, demand: -0.12, migrationPush: 0.5 }, summary: "Una enfermedad de alcance mundial reduce actividad, movilidad y esperanza de vida." },
+    { id: "epidemic", type: "health", title: "Epidemia regional", scope: "region", weight: 1.1, duration: [5, 10], impact: { growth: -1.2, mortality: 1.5, demand: -0.03, migrationPush: 0.8 }, summary: "Un brote sanitario presiona hospitales y altera la producción regional." },
+    { id: "earthquake", type: "natural", title: "Terremoto", scope: "country", weight: 1.15, duration: [4, 8], impact: { growth: -2.1, infrastructure: -3, housingDamage: 0.08, populationLoss: 0.0003, migrationPush: 3 }, summary: "Daños estructurales interrumpen transporte, vivienda y actividad económica." },
+    { id: "tsunami", type: "natural", title: "Tsunami", scope: "country", weight: 0.45, duration: [6, 10], exclude: ["ZMB"], impact: { growth: -2.8, infrastructure: -4, housingDamage: 0.12, populationLoss: 0.0007, migrationPush: 5 }, summary: "Una ola destructiva afecta ciudades costeras, puertos y población." },
+    { id: "tornado", type: "natural", title: "Tornados severos", scope: "country", weight: 0.95, duration: [2, 5], impact: { growth: -0.9, infrastructure: -1, housingDamage: 0.03, populationLoss: 0.00005, migrationPush: 1 }, summary: "Una serie de tornados daña viviendas y redes locales." },
+    { id: "storms", type: "natural", title: "Temporada de tormentas", scope: "region", weight: 1.35, duration: [3, 7], impact: { growth: -0.7, infrastructure: -0.7, housingDamage: 0.02, migrationPush: 0.5 }, summary: "Lluvias y vientos intensos provocan pérdidas en varios países de la región." },
+    { id: "drought", type: "climate", title: "Sequía prolongada", scope: "region", weight: 1.45, duration: [7, 14], impact: { growth: -1.3, food: -0.28, demand: -0.02, migrationPush: 2 }, summary: "La escasez de agua reduce cosechas, energía y actividad rural." }
+  ];
+
   COUNTRIES.forEach((item) => {
     item.center = COUNTRY_CENTERS[item.id];
     item.demographics = COUNTRY_DEMOGRAPHICS[item.id];
     item.taxes = COUNTRY_TAXES[item.id];
+    item.electricityDemandTWh = COUNTRY_ELECTRICITY[item.id];
+    item.electricityGenerationTWh = Math.max(0.01, item.electricityDemandTWh * Math.min(1.08, 0.62 + item.resources.energy * 0.22));
+    const inferred = {
+      grains: Math.max(0.05, item.resources.food), timber: Math.max(0.03, item.resources.food * 0.7),
+      crude_oil: Math.max(0.01, item.resources.energy), iron_ore: Math.max(0.03, item.resources.manufactures * 0.75),
+      copper: Math.max(0.02, item.resources.manufactures * 0.55), uranium: Math.max(0.01, item.resources.energy * 0.16),
+      minerals: Math.max(0.05, (item.resources.manufactures + item.resources.food) * 0.55)
+    };
+    item.deposits = { ...inferred, ...(COUNTRY_DEPOSIT_OVERRIDES[item.id] || {}) };
   });
 
   return {
-    version: 3,
-    release: "3.1.0",
+    version: 4,
+    release: "4.0.0",
     disclaimer: "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
     sectors: SECTORS,
     commodities: COMMODITIES,
+    resourceTiers: RESOURCE_TIERS,
     materials: MATERIALS,
     taxes: TAXES,
     constructions: CONSTRUCTIONS,
     countries: COUNTRIES,
-    events: [],
-    eventsEnabled: false
+    events: PASSIVE_EVENTS,
+    eventsEnabled: true
   };
 });

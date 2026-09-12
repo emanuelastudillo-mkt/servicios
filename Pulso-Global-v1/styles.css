@@ -681,6 +681,48 @@ th { color: var(--muted); font-size: 0.53rem; letter-spacing: 0.05em; text-trans
   .toast { right: 10px; bottom: 70px; left: 10px; }
 }
 
+/* Motor productivo y sucesos pasivos v4 */
+.events-on { padding: 5px 8px; border: 1px solid rgba(244,184,96,.35); border-radius: 7px; background: rgba(244,184,96,.08); color: var(--gold); font-size: .65rem; font-weight: 800; }
+.world-pulse { display: grid; grid-template-columns: 170px 1fr; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.world-pulse > div:first-child small, .world-pulse > div:first-child strong { display: block; }
+.world-pulse small { color: var(--muted); font-size: .68rem; }
+.event-ribbon { display: flex; gap: 7px; overflow-x: auto; }
+.event-ribbon span { min-width: max-content; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: rgba(7,24,36,.7); color: var(--muted); font-size: .65rem; }
+.event-ribbon b { color: var(--ink); }
+.labor-readout { display: flex; flex-wrap: wrap; gap: 5px; }
+.labor-readout span, .unlock-note { padding: 4px 6px; border-radius: 5px; background: rgba(72,215,197,.07); color: var(--muted); font-size: .58rem; }
+.unlock-note { margin: 0; line-height: 1.45; color: var(--aqua); }
+.resource-system { grid-template-rows: auto minmax(0,1fr) auto; }
+.resource-body { padding: 18px; }
+.resource-summary { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px; }
+.resource-summary article { padding: 13px; border: 1px solid var(--line); border-radius: 9px; background: rgba(20,42,57,.72); }
+.resource-summary span, .resource-summary small, .resource-summary strong { display: block; }
+.resource-summary span, .resource-summary small { color: var(--muted); font-size: .7rem; }
+.resource-summary strong { margin: 5px 0; color: var(--aqua); font-size: 1rem; }
+.resource-tier { margin-bottom: 20px; }
+.resource-tier .stock-heading h3 { max-width: 760px; color: var(--muted); font-size: .75rem; font-weight: 500; }
+.resource-tree { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+.resource-node { display: grid; gap: 7px; padding: 11px; border: 1px solid var(--line); border-radius: 9px; background: rgba(17,39,54,.68); }
+.resource-node.low { border-color: rgba(255,113,109,.42); }
+.resource-node.locked { opacity: .65; }
+.resource-node-title { display: flex; gap: 8px; align-items: center; }
+.resource-node-title > span { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; background: rgba(72,215,197,.1); color: var(--aqua); font-size: .56rem; font-weight: 900; }
+.resource-node-title strong, .resource-node-title small { display: block; }
+.resource-node-title strong { font-size: .72rem; }
+.resource-node-title small, .resource-node > small { color: var(--muted); font-size: .58rem; line-height: 1.35; }
+.resource-node > b { font-size: .8rem; }
+.resource-node .button { width: 100%; min-height: 30px; font-size: .62rem; }
+@media (max-width: 820px) {
+  .world-pulse { grid-template-columns: 1fr; }
+  .resource-tree { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .resource-summary { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .events-on { display: inline-block; margin-top: 8px; }
+  .resource-body { padding: 13px; }
+  .resource-tree { grid-template-columns: 1fr; }
+}
+
 /* Política fiscal y demografía */
 .system-panel { grid-template-rows: auto minmax(0, 1fr); }
 .policy-system { grid-template-rows: auto minmax(0, 1fr) auto; }

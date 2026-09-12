@@ -1,4 +1,4 @@
-# Pulso Global v3.1 - paquete para GitHub Pages
+# Pulso Global v4 - paquete para GitHub Pages
 
 Subí todos los archivos de esta carpeta a la raíz de un repositorio. Después activá GitHub Pages desde **Settings > Pages > Deploy from a branch**, seleccionando `main` y `/ (root)`.
 
@@ -10,12 +10,16 @@ Desde la carpeta descomprimida, con Python instalado, ejecutá `python -m http.s
 
 Después de una primera carga completa por localhost o HTTPS, los recursos quedan disponibles offline en ese navegador. No hay progreso mientras la pestaña está cerrada. Borrar los datos del sitio o usar navegación privada puede eliminar las partidas; exportá una copia importante antes de actualizar o cambiar de dirección.
 
-## Qué cambia en v3.1
+## Qué cambia en v4
 
 - Se agregan Cuba, Zambia, Nigeria, Uruguay, Haití y Nauru. Los seis pueden elegirse en la pantalla inicial y tienen tres figuras, parámetros nacionales, impuestos, demografía, recursos, producción y comercio propios.
 - El mapa, la comparación demográfica y el mercado mundial ahora integran dieciséis países. Las partidas existentes reciben los seis nuevos países al cargarse, sin perder el país jugado ni sus avances.
+- Hay 17 recursos en tres niveles: básicos, intermedios y productos finales. Cada transformación consume existencias reales; los productos finales exigen una fábrica o laboratorio.
+- Las 26 construcciones tienen el mismo costo fijo y requerimiento material en cualquier país. El desempleo, el nivel educativo y el salario relativo modifican costo laboral y plazo. Una central nuclear siempre suma 12 TWh, por lo que su peso cambia según la demanda nacional.
+- Las viviendas se dividen en nuevas, normales y a refaccionar. Envejecen y se deterioran cada mes; los proyectos de mantenimiento reparan un lote fijo.
+- Los países atraviesan ciclos diferentes. Pandemias, epidemias, terremotos, tsunamis, tornados, tormentas y sequías aparecen como shocks pasivos: no abren decisiones, pero alteran producción, PBI, población, vivienda y migración.
 
-## Base de la versión 3
+## Sistemas conservados y ampliados
 
 - No hay fecha final, límite de mandatos ni victoria automática a los ocho años. Cada tick sigue representando un mes. Se mantienen las derrotas económicas y sociales: cuatro meses de bajo respaldo, crisis institucional o deuda extrema sin reservas.
 - Impuestos editables: IVA, ganancias, herencias, derechos de importación y derechos de exportación. Podés mover los deslizadores o escribir la alícuota; una vista previa muestra el efecto estimado. Solo cambian al pulsar **Aplicar impuestos** y sus resultados se calculan al avanzar el mes. **Restablecer** descarta el borrador, sin alterar la política vigente.
@@ -23,7 +27,7 @@ Después de una primera carga completa por localhost o HTTPS, los recursos queda
 - Menores, población en edad laboral y jubilados evolucionan mensualmente, con nacimientos, envejecimiento, fallecimientos y migración.
 - Los guardados v1 y v2 se migran automáticamente. Una partida que ganó por alcanzar el antiguo límite temporal vuelve a estar activa. Las derrotas previas se conservan. Las obras, existencias e indicadores se mantienen y los campos nuevos se inicializan.
 
-Se conservan el mapa mundial, ocho ministerios, presupuestos, mano de obra, subsidios, materias primas y diecinueve construcciones. Los eventos naturales y políticos siguen desactivados para probar el motor base.
+Se conservan el mapa mundial, ocho ministerios, presupuestos, mano de obra, subsidios e impuestos. Los eventos son automáticos y no detienen el tiempo.
 
 ## Impuestos y economía
 
@@ -44,11 +48,11 @@ La fuerza laboral es el 72% de quienes están en edad laboral. Se reparte en ocu
 
 Cada mes se agregan nacimientos, se descuentan muertes y se aplica migración neta; parte de los menores pasa a edad laboral y parte de los adultos se jubila. Los movimientos se calculan como población × tasa anual por mil / 12.000. Las cohortes se expresan internamente en millones y se actualizan para todos los países. Las diferencias mínimas entre cifras mostradas corresponden al redondeo.
 
-La proporción de adultos modifica la capacidad productiva y la base de ganancias. Esta versión no implementa todavía un sistema previsional individual, pirámide por edad, presupuesto jubilatorio separado ni migración bilateral conservada entre países.
+La proporción de adultos modifica la capacidad productiva y la base de ganancias. Esta versión no implementa todavía un sistema previsional individual, pirámide por edad ni presupuesto jubilatorio separado.
 
 ## Alcance del prototipo
 
-Es un motor agregado para experimentar, no una predicción económica. Los mercados de alimentos, energía, manufacturas y tecnología usan oferta, consumo y precios dinámicos, con el resto del mundo como contraparte simplificada. Los seis materiales de obra utilizan un inventario nacional separado. No hay eventos aleatorios, elecciones ni un plazo automático de salida del cargo.
+Es un motor agregado para experimentar, no una predicción económica. Los mercados de alimentos, energía, manufacturas y tecnología usan oferta, consumo y precios dinámicos, con el resto del mundo como contraparte simplificada. Los 17 recursos usan inventarios y recetas nacionales. Hay eventos pasivos, pero no elecciones ni un plazo automático de salida del cargo.
 
 Se guardan los últimos 120 meses de gráficos y 80 avisos, sin limitar la duración total. Las obras activas se conservan; el listado histórico mantiene las 40 completadas más recientes, mientras el total construido sigue acumulado.
 

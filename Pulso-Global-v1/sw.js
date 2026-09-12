@@ -1,4 +1,4 @@
-const CACHE_NAME = "pulso-global-v3.1.0";
+const CACHE_NAME = "pulso-global-v4.0.0-final";
 const ASSETS = ["./", "./index.html", "./styles.css", "./data.js", "./engine.js", "./app.js", "./world.geojson", "./manifest.webmanifest", "./README.md", "./FUENTES.md", "./VERSION.txt"];
 
 self.addEventListener("install", (event) => {
