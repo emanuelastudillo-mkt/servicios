@@ -168,8 +168,9 @@
   }
 
   function productionAndDemand(country, state) {
-    const gdpScale = Math.max(0.08, country.gdp / 1000);
-    const popScale = Math.max(0.05, country.population / 100);
+    // Pisos pequeños para que los microestados mantengan su escala real.
+    const gdpScale = Math.max(0.00005, country.gdp / 1000);
+    const popScale = Math.max(0.00005, country.population / 100);
     const gdpPerCapita = country.gdp * 1000 / country.population;
     const productivityFactor = 0.62 + country.productivity / 170;
     const infrastructureFactor = 0.62 + country.infrastructure / 170 + country.tradeCapacity / 240;
@@ -190,7 +191,7 @@
       manufactures: gdpScale * (0.55 + gdpPerCapita / 85000) * demandCycle * Math.pow(prices.manufactures / 1.1, -0.24),
       technology: gdpScale * (0.28 + country.education / 145) * demandCycle * Math.pow(prices.technology / 1.7, -0.28)
     };
-    Object.keys(supply).forEach((key) => { supply[key] = Math.max(0.01, supply[key] * workforceFactor); demand[key] = Math.max(0.01, demand[key]); });
+    Object.keys(supply).forEach((key) => { supply[key] = Math.max(0.00001, supply[key] * workforceFactor); demand[key] = Math.max(0.00001, demand[key]); });
     return { supply, demand };
   }
 
@@ -450,7 +451,7 @@
     const unemploymentDrag = Math.max(0, country.unemployment - 6) * 0.07;
     const growth = clamp(country.baseGrowth + educationDrive + industryDrive + infrastructureDrive + tradeImpulse + taxGrowthEffect - inflationDrag - unemploymentDrag, -12, 14);
     country.growth = round(growth, 2);
-    country.gdp = Math.max(5, country.gdp * (1 + growth / 1200));
+    country.gdp = Math.max(0.05, country.gdp * (1 + growth / 1200));
     const employmentPulse = (2.5 - growth) * 0.012 - (sectorEffect(country, "infrastructure") - 1.5) * 0.018 - country.projects.filter((project) => project.progress < 100).length * 0.012;
     country.unemployment = clamp(country.unemployment + employmentPulse, 1.2, 42);
     const energyMove = (state.market.prices.energy / state.market.previousPrices.energy - 1) * 6;

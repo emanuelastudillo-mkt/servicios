@@ -61,7 +61,9 @@
 
   const COUNTRY_CENTERS = {
     ARG: [-64, -35], USA: [-99, 38], ECU: [-78.2, -1.4], BRA: [-52, -10], MEX: [-102, 23],
-    CHN: [104, 35], RUS: [88, 60], DEU: [10.5, 51], IND: [79, 22], ZAF: [24, -29]
+    CHN: [104, 35], RUS: [88, 60], DEU: [10.5, 51], IND: [79, 22], ZAF: [24, -29],
+    CUB: [-79.5, 21.5], ZMB: [27.8, -13.1], NGA: [8.7, 9.1], URY: [-55.8, -32.8],
+    HTI: [-72.3, 19], NRU: [166.9, -0.5]
   };
 
   const COUNTRY_DEMOGRAPHICS = {
@@ -69,7 +71,10 @@
     ECU: { children: 27, workers: 65, retired: 8 }, BRA: { children: 22, workers: 68, retired: 10 },
     MEX: { children: 26, workers: 66, retired: 8 }, CHN: { children: 17, workers: 68, retired: 15 },
     RUS: { children: 18, workers: 66, retired: 16 }, DEU: { children: 18, workers: 59, retired: 23 },
-    IND: { children: 29, workers: 64, retired: 7 }, ZAF: { children: 28, workers: 66, retired: 6 }
+    IND: { children: 29, workers: 64, retired: 7 }, ZAF: { children: 28, workers: 66, retired: 6 },
+    CUB: { children: 17, workers: 66, retired: 17 }, ZMB: { children: 47, workers: 51, retired: 2 },
+    NGA: { children: 47, workers: 50, retired: 3 }, URY: { children: 21, workers: 63, retired: 16 },
+    HTI: { children: 37, workers: 58, retired: 5 }, NRU: { children: 43, workers: 54, retired: 3 }
   };
 
   const COUNTRY_TAXES = {
@@ -82,7 +87,13 @@
     RUS: { vat: 20, income: 25, inheritance: 10, imports: 10, exports: 3 },
     DEU: { vat: 19, income: 30, inheritance: 30, imports: 5, exports: 0 },
     IND: { vat: 18, income: 25, inheritance: 10, imports: 8, exports: 2 },
-    ZAF: { vat: 15, income: 27, inheritance: 20, imports: 9, exports: 1 }
+    ZAF: { vat: 15, income: 27, inheritance: 20, imports: 9, exports: 1 },
+    CUB: { vat: 10, income: 30, inheritance: 0, imports: 12, exports: 5 },
+    ZMB: { vat: 16, income: 30, inheritance: 0, imports: 15, exports: 5 },
+    NGA: { vat: 7.5, income: 30, inheritance: 10, imports: 12, exports: 2 },
+    URY: { vat: 22, income: 25, inheritance: 15, imports: 10, exports: 1 },
+    HTI: { vat: 10, income: 30, inheritance: 5, imports: 12, exports: 1 },
+    NRU: { vat: 10, income: 20, inheritance: 0, imports: 10, exports: 0 }
   };
 
   const COMMODITIES = [
@@ -249,6 +260,84 @@
         leader("steenhuisen", "John Steenhuisen", "JS", "Reforma administrativa", "Eficiencia estatal, inversión privada e infraestructura.", { efficiency: 6, infrastructure: 3, industry: 2, welfare: -1 }),
         leader("malema", "Julius Malema", "JM", "Redistribución acelerada", "Empleo público, redistribución y nacionalización estratégica.", { welfare: 7, industry: 2, efficiency: -3, volatility: 5 })
       ]
+    }),
+    country({
+      id: "CUB", name: "Cuba", flag: "🇨🇺", region: "Caribe", currency: "CUP", politicalSystem: "Estado socialista de partido único",
+      population: 10.94, gdp: 107, education: 79, unemployment: 1.7, infrastructure: 61,
+      debt: 47, inflation: 24, popularity: 48, stability: 64, birthRate: 8.6,
+      mortality: 10.4, migration: -10, productivity: 58, reserves: 9, baseGrowth: 0.5,
+      spendingTarget: 45, revenueRate: 38, taxEfficiency: 0.71,
+      resources: { food: 0.58, energy: 0.22, manufactures: 0.56, technology: 0.48 },
+      leaders: [
+        leader("diaz_canel", "Miguel Díaz-Canel", "MDC", "Continuidad socialista", "Planificación estatal, estabilidad institucional y servicios públicos.", { stability: 6, welfare: 4, education: 3, efficiency: -1 }),
+        leader("marrero", "Manuel Marrero Cruz", "MMC", "Gestión ejecutiva", "Administración central, turismo y coordinación productiva.", { efficiency: 4, infrastructure: 3, industry: 2, stability: 1 }),
+        leader("bruno_rodriguez", "Bruno Rodríguez Parrilla", "BRP", "Diplomacia soberana", "Relaciones exteriores, alianzas estratégicas y negociación comercial.", { stability: 4, education: 2, efficiency: 1, industry: 1 })
+      ]
+    }),
+    country({
+      id: "ZMB", name: "Zambia", flag: "🇿🇲", region: "África Austral", currency: "ZMW", politicalSystem: "República presidencial",
+      population: 21.91, gdp: 28.9, education: 56, unemployment: 5.9, infrastructure: 45,
+      debt: 112, inflation: 13.5, popularity: 53, stability: 57, birthRate: 32.7,
+      mortality: 5.2, migration: -0.2, productivity: 45, reserves: 4, baseGrowth: 5,
+      spendingTarget: 31, revenueRate: 25, taxEfficiency: 0.52,
+      resources: { food: 1.05, energy: 0.86, manufactures: 0.76, technology: 0.25 },
+      leaders: [
+        leader("hichilema", "Hakainde Hichilema", "HH", "Reforma e inversión", "Disciplina económica, inversión privada e integración comercial.", { efficiency: 5, diplomacy: 4, industry: 3, welfare: -1 }),
+        leader("mundubile", "Brian Mundubile", "BM", "Reconstrucción opositora", "Infraestructura, producción minera y control del costo de vida.", { infrastructure: 4, industry: 4, stability: 1, volatility: 2 }),
+        leader("mmembe", "Fred M’membe", "FM", "Socialismo panafricano", "Redistribución, servicios públicos y soberanía sobre recursos.", { welfare: 6, education: 3, diplomacy: 2, efficiency: -2 })
+      ]
+    }),
+    country({
+      id: "NGA", name: "Nigeria", flag: "🇳🇬", region: "África Occidental", currency: "NGN", politicalSystem: "República federal presidencial",
+      population: 237.53, gdp: 290.8, education: 52, unemployment: 3.1, infrastructure: 43,
+      debt: 53, inflation: 23, popularity: 45, stability: 43, birthRate: 32.5,
+      mortality: 11.6, migration: -0.3, productivity: 52, reserves: 40, baseGrowth: 3.4,
+      spendingTarget: 20, revenueRate: 16, taxEfficiency: 0.45,
+      resources: { food: 1.02, energy: 1.68, manufactures: 0.57, technology: 0.48 },
+      leaders: [
+        leader("tinubu", "Bola Tinubu", "BT", "Reformas de mercado", "Inversión, infraestructura y eliminación gradual de distorsiones fiscales.", { efficiency: 3, infrastructure: 4, industry: 3, volatility: 3 }),
+        leader("peter_obi", "Peter Obi", "PO", "Austeridad productiva", "Disciplina fiscal, educación y movilización del empleo joven.", { efficiency: 6, education: 4, debtPressure: -2, welfare: -1 }),
+        leader("atiku", "Atiku Abubakar", "AA", "Federalismo económico", "Descentralización, apertura comercial y alianzas territoriales.", { industry: 4, stability: 3, efficiency: 2, infrastructure: 2 })
+      ]
+    }),
+    country({
+      id: "URY", name: "Uruguay", flag: "🇺🇾", region: "América del Sur", currency: "UYU", politicalSystem: "República presidencial",
+      population: 3.38, gdp: 85.35, education: 83, unemployment: 7.5, infrastructure: 82,
+      debt: 66, inflation: 4.7, popularity: 58, stability: 88, birthRate: 9.8,
+      mortality: 9.9, migration: 2.1, productivity: 92, reserves: 18, baseGrowth: 2.5,
+      spendingTarget: 49, revenueRate: 42, taxEfficiency: 0.9,
+      resources: { food: 1.68, energy: 0.82, manufactures: 0.66, technology: 0.76 },
+      leaders: [
+        leader("orsi", "Yamandú Orsi", "YO", "Desarrollo con acuerdos", "Producción, cohesión social y construcción de consensos.", { welfare: 4, industry: 3, stability: 4, efficiency: 1 }),
+        leader("lacalle_pou", "Luis Lacalle Pou", "LLP", "Apertura competitiva", "Comercio, modernización estatal y equilibrio entre coaliciones.", { efficiency: 5, industry: 3, infrastructure: 2, welfare: -1 }),
+        leader("cosse", "Carolina Cosse", "CC", "Innovación pública", "Tecnología, infraestructura urbana y empresas estatales estratégicas.", { education: 5, infrastructure: 4, industry: 2, debtPressure: 1 })
+      ]
+    }),
+    country({
+      id: "HTI", name: "Haití", flag: "🇭🇹", region: "Caribe", currency: "HTG", politicalSystem: "Gobierno transitorio",
+      population: 11.91, gdp: 32.08, education: 40, unemployment: 14.9, infrastructure: 24,
+      debt: 18, inflation: 25, popularity: 36, stability: 19, birthRate: 21.9,
+      mortality: 7.8, migration: -2, productivity: 30, reserves: 2, baseGrowth: -1.2,
+      spendingTarget: 18, revenueRate: 9, taxEfficiency: 0.25,
+      resources: { food: 0.55, energy: 0.08, manufactures: 0.25, technology: 0.12 },
+      leaders: [
+        leader("fils_aime", "Alix Didier Fils-Aimé", "ADFA", "Reconstrucción administrativa", "Seguridad pública, reactivación económica y recuperación institucional.", { security: 5, efficiency: 3, infrastructure: 2, volatility: 4 }),
+        leader("lesly_voltaire", "Lesly Voltaire", "LV", "Transición y diálogo", "Acuerdos políticos, reconstrucción urbana y cooperación internacional.", { stability: 4, infrastructure: 4, welfare: 2, efficiency: -1 }),
+        leader("fritz_jean", "Fritz Alphonse Jean", "FAJ", "Estabilización económica", "Gestión monetaria, transparencia y fortalecimiento productivo.", { efficiency: 5, industry: 3, stability: 2, welfare: -1 })
+      ]
+    }),
+    country({
+      id: "NRU", name: "Nauru", flag: "🇳🇷", region: "Pacífico", currency: "AUD", politicalSystem: "República parlamentaria",
+      population: 0.012, gdp: 0.176, education: 71, unemployment: 18, infrastructure: 57,
+      debt: 32, inflation: 4.2, popularity: 51, stability: 69, birthRate: 24.6,
+      mortality: 7.6, migration: 0, productivity: 50, reserves: 0.15, baseGrowth: 2.3,
+      spendingTarget: 80, revenueRate: 70, taxEfficiency: 0.68,
+      resources: { food: 0.08, energy: 0.05, manufactures: 0.05, technology: 0.25 },
+      leaders: [
+        leader("adeang", "David Adeang", "DA", "Continuidad insular", "Estabilidad gubernamental, acuerdos externos y administración de recursos.", { stability: 6, efficiency: 3, industry: 2, infrastructure: 1 }),
+        leader("aingimea", "Lionel Aingimea", "LA", "Diplomacia del Pacífico", "Relaciones regionales, justicia y servicios públicos insulares.", { welfare: 3, stability: 3, education: 2, efficiency: 1 }),
+        leader("russ_kun", "Russ Kun", "RK", "Gestión comunitaria", "Administración pública, turismo de nicho y desarrollo local.", { efficiency: 4, infrastructure: 3, welfare: 2, stability: 1 })
+      ]
     })
   ];
 
@@ -371,6 +460,7 @@
 
   return {
     version: 3,
+    release: "3.1.0",
     disclaimer: "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
     sectors: SECTORS,
     commodities: COMMODITIES,

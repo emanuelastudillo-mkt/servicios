@@ -1,4 +1,4 @@
-# Pulso Global v3 - paquete para GitHub Pages
+# Pulso Global v3.1 - paquete para GitHub Pages
 
 Subí todos los archivos de esta carpeta a la raíz de un repositorio. Después activá GitHub Pages desde **Settings > Pages > Deploy from a branch**, seleccionando `main` y `/ (root)`.
 
@@ -10,11 +10,16 @@ Desde la carpeta descomprimida, con Python instalado, ejecutá `python -m http.s
 
 Después de una primera carga completa por localhost o HTTPS, los recursos quedan disponibles offline en ese navegador. No hay progreso mientras la pestaña está cerrada. Borrar los datos del sitio o usar navegación privada puede eliminar las partidas; exportá una copia importante antes de actualizar o cambiar de dirección.
 
-## Qué cambia en v3
+## Qué cambia en v3.1
+
+- Se agregan Cuba, Zambia, Nigeria, Uruguay, Haití y Nauru. Los seis pueden elegirse en la pantalla inicial y tienen tres figuras, parámetros nacionales, impuestos, demografía, recursos, producción y comercio propios.
+- El mapa, la comparación demográfica y el mercado mundial ahora integran dieciséis países. Las partidas existentes reciben los seis nuevos países al cargarse, sin perder el país jugado ni sus avances.
+
+## Base de la versión 3
 
 - No hay fecha final, límite de mandatos ni victoria automática a los ocho años. Cada tick sigue representando un mes. Se mantienen las derrotas económicas y sociales: cuatro meses de bajo respaldo, crisis institucional o deuda extrema sin reservas.
 - Impuestos editables: IVA, ganancias, herencias, derechos de importación y derechos de exportación. Podés mover los deslizadores o escribir la alícuota; una vista previa muestra el efecto estimado. Solo cambian al pulsar **Aplicar impuestos** y sus resultados se calculan al avanzar el mes. **Restablecer** descarta el borrador, sin alterar la política vigente.
-- Población del país propio siempre visible en la barra superior. Al seleccionar países en el mapa se muestra su población; Demografía permite consultar y comparar los diez países.
+- Población del país propio siempre visible en la barra superior. Al seleccionar países en el mapa se muestra su población; Demografía permite consultar y comparar los dieciséis países.
 - Menores, población en edad laboral y jubilados evolucionan mensualmente, con nacimientos, envejecimiento, fallecimientos y migración.
 - Los guardados v1 y v2 se migran automáticamente. Una partida que ganó por alcanzar el antiguo límite temporal vuelve a estar activa. Las derrotas previas se conservan. Las obras, existencias e indicadores se mantienen y los campos nuevos se inicializan.
 
@@ -48,3 +53,5 @@ Es un motor agregado para experimentar, no una predicción económica. Los merca
 Se guardan los últimos 120 meses de gráficos y 80 avisos, sin limitar la duración total. Las obras activas se conservan; el listado histórico mantiene las 40 completadas más recientes, mientras el total construido sigue acumulado.
 
 Los perfiles de figuras públicas y los valores iniciales son abstracciones para una simulación hipotética, no evaluaciones ni estadísticas oficiales.
+
+Las referencias públicas consultadas para los seis países nuevos están detalladas en `FUENTES.md`. Los valores se redondearon y algunos indicadores se ajustaron deliberadamente para equilibrar el juego.

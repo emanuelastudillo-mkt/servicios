@@ -144,7 +144,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. Cada mes transforma la economía y la población.</p>
         </div>
-        <div class="start-badge"><span>Motor base v3</span><b>Simulación abierta · eventos aleatorios desactivados</b></div>
+        <div class="start-badge"><span>Motor base v3.1</span><b>16 países · simulación abierta · eventos aleatorios desactivados</b></div>
         <div class="country-grid" aria-label="Países disponibles">
           ${DATA.countries.map((country) => `
             <button class="country-card ${country.id === selectedCountryId ? "selected" : ""}" type="button" data-action="select-country" data-country="${country.id}" aria-pressed="${country.id === selectedCountryId}">
@@ -627,6 +627,13 @@
   }
 
   function projectPoint(center) { return [(center[0] + 180) / 360 * 1000, (90 - center[1]) / 180 * 520]; }
+  function markerLabel(countryId) {
+    const offsets = {
+      CUB: { x: 5, y: 18, anchor: "end" }, HTI: { x: 10, y: 13, anchor: "start" },
+      ARG: { x: -10, y: -8, anchor: "end" }, URY: { x: 10, y: -8, anchor: "start" }
+    };
+    return offsets[countryId] || { x: 10, y: -8, anchor: "start" };
+  }
   function ringPath(ring) {
     let path = ""; let previousX = null;
     ring.forEach((point, index) => {
@@ -667,9 +674,10 @@
       const markers = Object.values(game.countries).map((country) => {
         const [x, y] = projectPoint(country.center);
         const player = country.id === game.playerCountryId;
+        const label = markerLabel(country.id);
         return `<g class="country-marker ${player ? "player" : ""} ${focusedCountryId === country.id ? "focused" : ""}" transform="translate(${x} ${y})" data-action="inspect-country" data-country="${country.id}" tabindex="0" role="button" aria-label="${e(country.name)}">
           ${player ? '<circle class="pulse-ring" r="15"></circle>' : ""}<circle class="marker-core" r="${player ? 6.5 : 4.5}"></circle>
-          <text x="10" y="-8">${e(country.id)}</text><title>${e(country.name)} · PBI ${money(country.gdp)} · ${signed(country.growth, "%")}</title>
+          <text x="${label.x}" y="${label.y}" text-anchor="${label.anchor}">${e(country.id)}</text><title>${e(country.name)} · ${fmt(country.population, 2)} M habitantes · PBI ${money(country.gdp)} · ${signed(country.growth, "%")}</title>
         </g>`;
       }).join("");
       document.querySelector("#map-content").innerHTML = `<g class="land-layer">${land}</g><g class="trade-layer">${flows}</g><g class="marker-layer">${markers}</g>`;
