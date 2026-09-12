@@ -1,0 +1,10 @@
+{
+  "name": "Pulso Global",
+  "short_name": "Pulso Global",
+  "description": "Simulador geopolítico local de economía, gobierno y crisis internacionales.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#050b13",
+  "theme_color": "#07111f",
+  "lang": "es"
+}
