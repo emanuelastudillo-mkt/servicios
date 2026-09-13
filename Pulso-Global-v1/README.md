@@ -1,4 +1,4 @@
-# Pulso Global v5.1 - paquete para GitHub Pages
+# Pulso Global v5.2 - paquete para GitHub Pages
 
 Subí todos los archivos de esta carpeta a la raíz de un repositorio. Después activá GitHub Pages desde **Settings > Pages > Deploy from a branch**, seleccionando `main` y `/ (root)`.
 
@@ -10,7 +10,9 @@ Desde la carpeta descomprimida, con Python instalado, ejecutá `python -m http.s
 
 Después de una primera carga completa por localhost o HTTPS, los recursos quedan disponibles offline en ese navegador. No hay progreso mientras la pestaña está cerrada. Borrar los datos del sitio o usar navegación privada puede eliminar las partidas; exportá una copia importante antes de actualizar o cambiar de dirección.
 
-## Qué cambia en v5.1
+## Qué cambia en v5.2
+
+- Se incorpora **Cómo jugar**, una guía de ocho pasos que se abre desde la pantalla inicial o desde el menú ••• durante la partida. Incluye navegación por botones, indicadores de progreso, Escape y flechas izquierda/derecha.
 
 - Se integran 128 banderas nacionales SVG y 17 iconos SVG de recursos. Cada archivo tiene lienzo de 100 × 100 px, funciona sin conexión y está listado en `assets/icons-manifest.json`.
 - Las banderas se muestran en la selección de país, paneles de gobierno y comercio. Los recursos reemplazan las abreviaturas del inventario por iconos reconocibles.

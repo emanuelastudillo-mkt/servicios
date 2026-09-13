@@ -1,4 +1,4 @@
-const CACHE_NAME = "pulso-global-v5.1.0";
+const CACHE_NAME = "pulso-global-v5.2.0";
 const ASSETS = ["./", "./index.html", "./styles.css", "./countries-extra.js", "./data.js", "./engine.js", "./app.js", "./world.geojson", "./manifest.webmanifest", "./README.md", "./FUENTES.md", "./VERSION.txt", "./assets/icons-manifest.json", "./assets/ATTRIBUTION.md"];
 
 async function assetList() {

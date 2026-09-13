@@ -542,7 +542,7 @@
 
   return {
     version: 5,
-    release: "5.0.0",
+    release: "5.2.0",
     disclaimer: "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
     sectors: SECTORS,
     commodities: COMMODITIES,

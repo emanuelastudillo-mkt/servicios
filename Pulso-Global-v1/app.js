@@ -33,6 +33,16 @@
     productivity: "Productividad", jobs: "Empleo", education: "Educación",
     health: "Salud", mortality: "Mortalidad", stability: "Estabilidad"
   };
+  const TUTORIAL_STEPS = [
+    { icon: "◎", label: "Elegí tu punto de partida", title: "País y figura de conducción", text: "Cada país arranca con población, PBI, empleo, recursos e impuestos propios. La figura elegida modifica el punto de partida, pero la evolución depende de tus decisiones mensuales." },
+    { icon: "+1", label: "El reloj no tiene final", title: "Avanzá mes a mes", text: "Usá pausa, 1×, 3×, 6× o +1 mes. No existe un mandato con fecha límite: el mundo continúa evolucionando mientras la partida esté abierta." },
+    { icon: "▰", label: "Definí prioridades", title: "Presupuesto, empleo y subsidios", text: "Cada ministerio permite repartir presupuesto, mano de obra y subsidios. Los cambios no son instantáneos: educación, salud e infraestructura construyen efectos graduales." },
+    { icon: "⌂", label: "Convertí planes en obras", title: "Construcciones", text: "Viviendas, rutas, aeropuertos, trenes, fábricas y centrales consumen recursos y mano de obra. Revisá plazo, costo y materiales antes de iniciar hasta ocho obras activas." },
+    { icon: "▦", label: "Cadenas productivas", title: "Recursos y producción", text: "Los 17 recursos se ordenan en materias básicas, bienes intermedios y productos finales. Algunas fábricas o laboratorios desbloquean productos de mayor valor." },
+    { icon: "$", label: "Cuidá las cuentas", title: "Impuestos, comercio y deuda", text: "Configurá IVA, ganancias, herencias e impuestos aduaneros. En Economía y deuda podés pedir préstamos, pero cada cuota sale de reservas y aumenta el riesgo de cesación de pagos." },
+    { icon: "◒", label: "Leé a la población", title: "Demografía y mundo", text: "Menores, trabajadores y jubilados cambian con natalidad, mortalidad y migraciones. Los demás países también crecen o se contraen y los eventos pasivos alteran el equilibrio mundial." },
+    { icon: "▣", label: "Conservá tu gobierno", title: "Guardá y experimentá", text: "El guardado queda en este dispositivo. Usá Guardar o el menú ••• para exportar un JSON. No hay victoria por tiempo; probá estrategias y observá sus consecuencias." }
+  ];
 
   let game = null;
   let currentView = "map";
@@ -52,6 +62,8 @@
   let lastPanelKey = null;
   let worldData = null;
   let worldPromise = null;
+  let tutorialOpen = false;
+  let tutorialStep = 0;
 
   const SaveStore = {
     dbPromise: null,
@@ -152,7 +164,7 @@
         <header class="start-header">
           <div class="brand-mark" aria-hidden="true"><span></span></div>
           <div><p class="eyebrow">Simulador de gobierno</p><h1 id="game-title">Pulso Global</h1></div>
-          <button class="button button-quiet" type="button" data-action="continue-game" ${saved ? "" : "hidden"}>Continuar partida</button>
+          <div class="start-actions"><button class="button button-quiet" type="button" data-action="open-tutorial">Cómo jugar</button><button class="button button-quiet" type="button" data-action="continue-game" ${saved ? "" : "hidden"}>Continuar partida</button></div>
         </header>
         <div class="briefing">
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
@@ -165,7 +177,7 @@
         </div>
         <section id="leader-panel" class="leader-panel" aria-live="polite">${renderLeaderPanel(selectedCountryId)}</section>
         <p class="simulation-note">${e(DATA.disclaimer)} Las figuras representan escenarios hipotéticos de conducción.</p>
-      </section>`;
+      </section>${renderTutorialModal()}`;
     updateCountryCount();
   }
 
@@ -277,6 +289,7 @@
               <button class="menu-button" type="button" data-action="toggle-menu" aria-label="Más opciones">•••</button>
               <div id="save-menu" class="save-menu" hidden>
                 <button type="button" data-action="export">Exportar JSON</button><button type="button" data-action="import">Importar JSON</button>
+                <button type="button" data-action="open-tutorial">Tutorial</button>
                 <button type="button" data-action="new-game">Nueva partida</button>
               </div>
               <input id="import-file" type="file" accept="application/json" hidden />
@@ -303,7 +316,7 @@
           </nav>
         </section>
       </div>
-      ${renderGameOverModal()}`;
+      ${renderGameOverModal()}${renderTutorialModal()}`;
     if (samePanel) {
       const body = document.querySelector(".panel-body");
       const table = document.querySelector(".population-world .table-wrap");
@@ -804,6 +817,29 @@
     return `<div class="modal-backdrop"><section class="game-over-modal" role="dialog" aria-modal="true"><span>${game.gameOver.won ? "Mandato completado" : "Fin del gobierno"}</span><h2>${e(game.gameOver.title)}</h2><p>${e(game.gameOver.detail)}</p><div><button class="button" type="button" data-action="export">Exportar resultado</button><button class="button button-quiet" type="button" data-action="new-game">Nueva partida</button></div></section></div>`;
   }
 
+  function renderTutorialModal() {
+    if (!tutorialOpen) return "";
+    const step = TUTORIAL_STEPS[tutorialStep];
+    const isFirst = tutorialStep === 0;
+    const isLast = tutorialStep === TUTORIAL_STEPS.length - 1;
+    return `<div class="modal-backdrop tutorial-backdrop" role="presentation">
+      <section class="tutorial-modal" role="dialog" aria-modal="true" aria-labelledby="tutorial-title" aria-describedby="tutorial-copy">
+        <header><div class="tutorial-step"><span>${e(step.icon)}</span><div><small>Guía de gobierno · ${tutorialStep + 1}/${TUTORIAL_STEPS.length}</small><strong>${e(step.label)}</strong></div></div><button class="panel-close" type="button" data-action="close-tutorial" aria-label="Cerrar tutorial">×</button></header>
+        <div class="tutorial-content"><div class="tutorial-icon" aria-hidden="true">${e(step.icon)}</div><div><p class="panel-kicker">Tutorial interactivo</p><h2 id="tutorial-title">${e(step.title)}</h2><p id="tutorial-copy">${e(step.text)}</p></div></div>
+        <div class="tutorial-progress" aria-label="Progreso del tutorial">${TUTORIAL_STEPS.map((item, index) => `<button type="button" data-action="tutorial-jump" data-step="${index}" class="${index === tutorialStep ? "active" : index < tutorialStep ? "complete" : ""}" aria-label="Ir al paso ${index + 1}"></button>`).join("")}</div>
+        <footer><button class="button button-quiet" type="button" data-action="tutorial-back" ${isFirst ? "disabled" : ""}>← Anterior</button><div><button class="button button-quiet" type="button" data-action="close-tutorial">Saltar guía</button><button class="button" type="button" data-action="${isLast ? "close-tutorial" : "tutorial-next"}">${isLast ? "Empezar a gobernar" : "Siguiente →"}</button></div></footer>
+      </section>
+    </div>`;
+  }
+
+  async function setTutorial(open, step) {
+    tutorialOpen = open;
+    if (Number.isInteger(step)) tutorialStep = Engine.clamp(step, 0, TUTORIAL_STEPS.length - 1);
+    if (game) renderGame();
+    else await renderStart();
+    if (tutorialOpen) requestAnimationFrame(() => document.querySelector(".tutorial-modal .panel-close")?.focus());
+  }
+
   function rebalanceDraft(kind, sectorId, requestedValue) {
     const allocation = draft[kind];
     const oldValue = allocation[sectorId];
@@ -942,6 +978,11 @@
     const target = event.target.closest("[data-action]");
     if (!target) return;
     const action = target.dataset.action;
+    if (action === "open-tutorial") { await setTutorial(true, tutorialStep); return; }
+    if (action === "close-tutorial") { await setTutorial(false); return; }
+    if (action === "tutorial-next") { await setTutorial(true, tutorialStep + 1); return; }
+    if (action === "tutorial-back") { await setTutorial(true, tutorialStep - 1); return; }
+    if (action === "tutorial-jump") { await setTutorial(true, Number(target.dataset.step)); return; }
     if (action === "select-country") {
       selectedCountryId = target.dataset.country;
       document.querySelector("#leader-panel").innerHTML = renderLeaderPanel(selectedCountryId);
@@ -1002,6 +1043,11 @@
   });
 
   app.addEventListener("keydown", (event) => {
+    if (tutorialOpen) {
+      if (event.key === "Escape") { event.preventDefault(); setTutorial(false); return; }
+      if (event.key === "ArrowRight" && tutorialStep < TUTORIAL_STEPS.length - 1) { event.preventDefault(); setTutorial(true, tutorialStep + 1); return; }
+      if (event.key === "ArrowLeft" && tutorialStep > 0) { event.preventDefault(); setTutorial(true, tutorialStep - 1); return; }
+    }
     const target = event.target.closest("[data-action='inspect-country']");
     if (target && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
   });
