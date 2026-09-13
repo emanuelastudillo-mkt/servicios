@@ -126,6 +126,8 @@
   function playerLeader() { return Engine.getLeaderDefinition(game.playerCountryId, game.playerLeaderId); }
   function materialById(id) { return DATA.materials.find((item) => item.id === id); }
   function constructionById(id) { return DATA.constructions.find((item) => item.id === id); }
+  function flagImage(country, className) { return `<img class="${className || "flag-image"}" src="./assets/flags/${country.id}.svg" width="100" height="100" alt="Bandera de ${e(country.name)}" loading="lazy" />`; }
+  function resourceImage(material) { return `<img class="resource-icon" src="./assets/resources/${material.id}.svg" width="100" height="100" alt="${e(material.label)}" loading="lazy" />`; }
   function isSector(id) { return DATA.sectors.some((sector) => sector.id === id); }
   function activeProjects(country, sector) { return country.projects.filter((project) => project.progress < 100 && (!sector || project.sector === sector)); }
 
@@ -178,7 +180,7 @@
     if (!countries.length) return '<p class="empty-country-search">No hay países que coincidan con la búsqueda.</p>';
     return countries.map((country) => `
             <button class="country-card ${country.id === selectedCountryId ? "selected" : ""}" type="button" data-action="select-country" data-country="${country.id}" aria-pressed="${country.id === selectedCountryId}">
-              <span class="flag">${country.flag}</span><span class="country-name">${e(country.name)}</span>
+              <span class="flag">${flagImage(country, "flag-image card-flag")}</span><span class="country-name">${e(country.name)}</span>
               <span class="country-meta">${people(country.population)} habitantes · PBI ${money(country.gdp)}</span>
             </button>`).join("");
   }
@@ -192,7 +194,7 @@
     const country = DATA.countries.find((item) => item.id === countryId);
     if (!country) return "";
     return `
-      <div class="leader-heading"><div><p class="briefing-label">02 · Elegí una figura</p><h3>${country.flag} Conducción de ${e(country.name)}</h3></div><p>Sus rasgos modifican el punto de partida del motor.</p></div>
+      <div class="leader-heading"><div><p class="briefing-label">02 · Elegí una figura</p><h3>${flagImage(country, "flag-image title-flag")} Conducción de ${e(country.name)}</h3></div><p>Sus rasgos modifican el punto de partida del motor.</p></div>
       <div class="leader-grid">
         ${country.leaders.map((leader) => `
           <article class="leader-card">
@@ -249,7 +251,7 @@
                 <span>${e(item.icon || item.short.slice(0, 1))}</span><b>${e(item.short || item.label)}</b>
               </button>`).join("")}
           </nav>
-          <div class="mandate-card"><span class="mini-flag">${country.flag}</span><strong>${e(leader.name)}</strong><small>${e(country.name)}</small><span class="mandate-time">Mes ${game.tick} · Sin límite</span></div>
+          <div class="mandate-card"><span class="mini-flag">${flagImage(country, "flag-image mini-flag-image")}</span><strong>${e(leader.name)}</strong><small>${e(country.name)}</small><span class="mandate-time">Mes ${game.tick} · Sin límite</span></div>
         </aside>
 
         <section class="workspace">
@@ -341,7 +343,7 @@
     return `
       <section class="map-dashboard">
         <div class="dashboard-heading">
-          <div><p class="panel-kicker">Sala de situación</p><h2>${country.flag} ${e(country.name)}</h2></div>
+          <div><p class="panel-kicker">Sala de situación</p><h2>${flagImage(country, "flag-image title-flag")} ${e(country.name)}</h2></div>
           <span class="events-on">Eventos pasivos: activos</span>
         </div>
         <div class="dashboard-kpis">
@@ -352,7 +354,7 @@
         </div>
         <div class="dashboard-bottom">
           <div class="focus-country">
-            <span class="focus-flag">${focus.flag}</span><div><small>País seleccionado en el mapa</small><strong>${e(focus.name)}</strong><span>${e(focusLeader ? focusLeader.name : "Gobierno")}</span></div>
+            <span class="focus-flag">${flagImage(focus, "flag-image focus-flag-image")}</span><div><small>País seleccionado en el mapa</small><strong>${e(focus.name)}</strong><span>${e(focusLeader ? focusLeader.name : "Gobierno")}</span></div>
             <div class="focus-numbers"><b>${people(focus.population)}</b><small>Habitantes</small><small>${signed(focus.growth, "%")} PBI</small></div>
           </div>
           <div class="project-summary">
@@ -391,7 +393,7 @@
       <section class="management-panel">
         <header class="management-heading">
           <div class="section-symbol">${e(sector.icon)}</div>
-          <div><p class="panel-kicker">Ministerio · ${country.flag} ${e(country.name)}</p><h2>${e(sector.label)}</h2></div>
+          <div><p class="panel-kicker">Ministerio · ${flagImage(country, "flag-image inline-flag")} ${e(country.name)}</p><h2>${e(sector.label)}</h2></div>
           <button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar panel">×</button>
         </header>
         <nav class="panel-tabs" aria-label="Submenú de ${e(sector.label)}">
@@ -501,7 +503,7 @@
           const inputs = item.inputs ? Object.entries(item.inputs).map(([id, amount]) => `${materialById(id).label} ${amount}`).join(" + ") : "Producción primaria";
           const price = game.market.resourcePrices[item.id]; const previous = game.market.previousResourcePrices[item.id] || price;
           const priceChange = previous ? (price / previous - 1) * 100 : 0; const defaultAmount = Math.max(0.1, Math.min(capacity * 0.1, stock || capacity * 0.1));
-          return `<article class="resource-node ${pct < 18 ? "low" : ""} ${locked ? "locked" : ""}"><div class="resource-node-title"><span>${e(item.icon)}</span><div><strong>${e(item.label)}</strong><small>${e(inputs)}</small></div></div><b>${fmt(stock, 2)} / ${fmt(capacity, 0)}</b><div class="stock-track"><i style="width:${pct}%"></i></div><small>${locked ? `Bloqueado: requiere ${e(constructionById(item.unlock).label)}` : `Producción ${signed(country.materialProduction[item.id], "/mes")} · Uso ${fmt(country.materialConsumption[item.id], 2)}`}</small><div class="resource-quote"><span>Cotización</span><strong>${resourceMoney(price)}</strong><b class="${priceChange < 0 ? "negative" : "positive"}">${signed(priceChange, "%")}</b></div><div class="resource-trade"><label><span>Cantidad</span><input type="number" min="0.01" max="${fmt(capacity, 2).replace(/\./g, "").replace(",", ".")}" step="0.1" value="${defaultAmount.toFixed(2)}" data-resource-amount="${item.id}" /></label><button class="button button-quiet compact" type="button" data-action="import-resource" data-material="${item.id}" ${pct >= 99 ? "disabled" : ""}>Comprar</button><button class="button compact sell" type="button" data-action="sell-resource" data-material="${item.id}" ${stock < 0.001 ? "disabled" : ""}>Vender</button></div></article>`;
+          return `<article class="resource-node ${pct < 18 ? "low" : ""} ${locked ? "locked" : ""}"><div class="resource-node-title">${resourceImage(item)}<div><strong>${e(item.label)}</strong><small>${e(inputs)}</small></div></div><b>${fmt(stock, 2)} / ${fmt(capacity, 0)}</b><div class="stock-track"><i style="width:${pct}%"></i></div><small>${locked ? `Bloqueado: requiere ${e(constructionById(item.unlock).label)}` : `Producción ${signed(country.materialProduction[item.id], "/mes")} · Uso ${fmt(country.materialConsumption[item.id], 2)}`}</small><div class="resource-quote"><span>Cotización</span><strong>${resourceMoney(price)}</strong><b class="${priceChange < 0 ? "negative" : "positive"}">${signed(priceChange, "%")}</b></div><div class="resource-trade"><label><span>Cantidad</span><input type="number" min="0.01" max="${fmt(capacity, 2).replace(/\./g, "").replace(",", ".")}" step="0.1" value="${defaultAmount.toFixed(2)}" data-resource-amount="${item.id}" /></label><button class="button button-quiet compact" type="button" data-action="import-resource" data-material="${item.id}" ${pct >= 99 ? "disabled" : ""}>Comprar</button><button class="button compact sell" type="button" data-action="sell-resource" data-material="${item.id}" ${stock < 0.001 ? "disabled" : ""}>Vender</button></div></article>`;
         }).join("")}</div></section>`).join("")}
       </div><footer class="panel-footer"><span>La cotización fluctúa mensualmente según existencias, producción y consumo mundial.</span><b>Compras con arancel de importación · ventas con derecho de exportación</b></footer></section>`;
   }
@@ -692,7 +694,7 @@
                 const exporting = flow.from === country.id;
                 const otherId = exporting ? flow.to : flow.from;
                 const other = game.countries[otherId];
-                return `<article><span class="${exporting ? "out" : "in"}">${exporting ? "EXP" : "IMP"}</span><div><strong>${e(DATA.commodities.find((item) => item.id === flow.commodity).label)}</strong><small>${exporting ? "hacia" : "desde"} ${other ? `${other.flag} ${e(other.name)}` : "resto del mundo"}</small></div><b>${money(flow.value)}</b></article>`;
+                return `<article><span class="${exporting ? "out" : "in"}">${exporting ? "EXP" : "IMP"}</span><div><strong>${e(DATA.commodities.find((item) => item.id === flow.commodity).label)}</strong><small>${exporting ? "hacia" : "desde"} ${other ? `${flagImage(other, "flag-image inline-flag")} ${e(other.name)}` : "resto del mundo"}</small></div><b>${money(flow.value)}</b></article>`;
               }).join("")}</div>` : '<div class="empty-state"><strong>Mercado en apertura</strong><p>Avanzá un mes para calcular los primeros flujos.</p></div>'}
             </section>
           </div>
