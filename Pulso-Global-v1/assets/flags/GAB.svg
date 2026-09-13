@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100" viewBox="0 0 100 100" role="img" aria-label="Bandera de Gabón">
+  <rect width="100" height="100" rx="20" fill="#0b1e2d"/><rect x="5" y="15.5" width="90" height="69" rx="7" fill="#091722"/>
+  <g transform="translate(6 17) scale(.1375)">
+  <g fill-rule="evenodd">
+    <path fill="#ffe700" d="M640 480H0V0h640z"/>
+    <path fill="#36a100" d="M640 160H0V0h640z"/>
+    <path fill="#006dbc" d="M640 480H0V320h640z"/>
+  </g>
+</g><rect x="5" y="15.5" width="90" height="69" rx="7" fill="none" stroke="#9db6c1" stroke-opacity=".55" stroke-width="2"/>
+  <title>Bandera de Gabón</title></svg>

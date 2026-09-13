@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100" viewBox="0 0 100 100" role="img" aria-label="Bandera de Argelia">
+  <rect width="100" height="100" rx="20" fill="#0b1e2d"/><rect x="5" y="15.5" width="90" height="69" rx="7" fill="#091722"/>
+  <g transform="translate(6 17) scale(.1375)">
+  <path fill="#fff" d="M320 0h320v480H320z"/>
+  <path fill="#006233" d="M0 0h320v480H0z"/>
+  <path fill="#d21034" d="M424 180a120 120 0 1 0 0 120 96 96 0 1 1 0-120m4 60-108-35.2 67.2 92V183.2l-67.2 92z"/>
+</g><rect x="5" y="15.5" width="90" height="69" rx="7" fill="none" stroke="#9db6c1" stroke-opacity=".55" stroke-width="2"/>
+  <title>Bandera de Argelia</title></svg>
