@@ -1,0 +1,733 @@
+{
+  "version": "5.1.0",
+  "size": "100x100",
+  "flags": {
+    "ARG": {
+      "name": "Argentina",
+      "iso2": "AR",
+      "file": "assets/flags/ARG.svg"
+    },
+    "USA": {
+      "name": "Estados Unidos",
+      "iso2": "US",
+      "file": "assets/flags/USA.svg"
+    },
+    "ECU": {
+      "name": "Ecuador",
+      "iso2": "EC",
+      "file": "assets/flags/ECU.svg"
+    },
+    "BRA": {
+      "name": "Brasil",
+      "iso2": "BR",
+      "file": "assets/flags/BRA.svg"
+    },
+    "MEX": {
+      "name": "México",
+      "iso2": "MX",
+      "file": "assets/flags/MEX.svg"
+    },
+    "CHN": {
+      "name": "China",
+      "iso2": "CN",
+      "file": "assets/flags/CHN.svg"
+    },
+    "RUS": {
+      "name": "Rusia",
+      "iso2": "RU",
+      "file": "assets/flags/RUS.svg"
+    },
+    "DEU": {
+      "name": "Alemania",
+      "iso2": "DE",
+      "file": "assets/flags/DEU.svg"
+    },
+    "IND": {
+      "name": "India",
+      "iso2": "IN",
+      "file": "assets/flags/IND.svg"
+    },
+    "ZAF": {
+      "name": "Sudáfrica",
+      "iso2": "ZA",
+      "file": "assets/flags/ZAF.svg"
+    },
+    "CUB": {
+      "name": "Cuba",
+      "iso2": "CU",
+      "file": "assets/flags/CUB.svg"
+    },
+    "ZMB": {
+      "name": "Zambia",
+      "iso2": "ZM",
+      "file": "assets/flags/ZMB.svg"
+    },
+    "NGA": {
+      "name": "Nigeria",
+      "iso2": "NG",
+      "file": "assets/flags/NGA.svg"
+    },
+    "URY": {
+      "name": "Uruguay",
+      "iso2": "UY",
+      "file": "assets/flags/URY.svg"
+    },
+    "HTI": {
+      "name": "Haití",
+      "iso2": "HT",
+      "file": "assets/flags/HTI.svg"
+    },
+    "NRU": {
+      "name": "Nauru",
+      "iso2": "NR",
+      "file": "assets/flags/NRU.svg"
+    },
+    "IDN": {
+      "name": "Indonesia",
+      "iso2": "ID",
+      "file": "assets/flags/IDN.svg"
+    },
+    "PAK": {
+      "name": "Pakistán",
+      "iso2": "PK",
+      "file": "assets/flags/PAK.svg"
+    },
+    "BGD": {
+      "name": "Bangladés",
+      "iso2": "BD",
+      "file": "assets/flags/BGD.svg"
+    },
+    "ETH": {
+      "name": "Etiopía",
+      "iso2": "ET",
+      "file": "assets/flags/ETH.svg"
+    },
+    "JPN": {
+      "name": "Japón",
+      "iso2": "JP",
+      "file": "assets/flags/JPN.svg"
+    },
+    "PHL": {
+      "name": "Filipinas",
+      "iso2": "PH",
+      "file": "assets/flags/PHL.svg"
+    },
+    "COD": {
+      "name": "República Democrática del Congo",
+      "iso2": "CD",
+      "file": "assets/flags/COD.svg"
+    },
+    "VNM": {
+      "name": "Vietnam",
+      "iso2": "VN",
+      "file": "assets/flags/VNM.svg"
+    },
+    "IRN": {
+      "name": "Irán",
+      "iso2": "IR",
+      "file": "assets/flags/IRN.svg"
+    },
+    "TUR": {
+      "name": "Turquía",
+      "iso2": "TR",
+      "file": "assets/flags/TUR.svg"
+    },
+    "THA": {
+      "name": "Tailandia",
+      "iso2": "TH",
+      "file": "assets/flags/THA.svg"
+    },
+    "GBR": {
+      "name": "Reino Unido",
+      "iso2": "GB",
+      "file": "assets/flags/GBR.svg"
+    },
+    "FRA": {
+      "name": "Francia",
+      "iso2": "FR",
+      "file": "assets/flags/FRA.svg"
+    },
+    "ITA": {
+      "name": "Italia",
+      "iso2": "IT",
+      "file": "assets/flags/ITA.svg"
+    },
+    "MMR": {
+      "name": "Myanmar (Birmania)",
+      "iso2": "MM",
+      "file": "assets/flags/MMR.svg"
+    },
+    "COL": {
+      "name": "Colombia",
+      "iso2": "CO",
+      "file": "assets/flags/COL.svg"
+    },
+    "KOR": {
+      "name": "Corea del Sur",
+      "iso2": "KR",
+      "file": "assets/flags/KOR.svg"
+    },
+    "SDN": {
+      "name": "Sudán",
+      "iso2": "SD",
+      "file": "assets/flags/SDN.svg"
+    },
+    "ESP": {
+      "name": "España",
+      "iso2": "ES",
+      "file": "assets/flags/ESP.svg"
+    },
+    "DZA": {
+      "name": "Argelia",
+      "iso2": "DZ",
+      "file": "assets/flags/DZA.svg"
+    },
+    "IRQ": {
+      "name": "Irak",
+      "iso2": "IQ",
+      "file": "assets/flags/IRQ.svg"
+    },
+    "AFG": {
+      "name": "Afganistán",
+      "iso2": "AF",
+      "file": "assets/flags/AFG.svg"
+    },
+    "CAN": {
+      "name": "Canadá",
+      "iso2": "CA",
+      "file": "assets/flags/CAN.svg"
+    },
+    "UKR": {
+      "name": "Ucrania",
+      "iso2": "UA",
+      "file": "assets/flags/UKR.svg"
+    },
+    "POL": {
+      "name": "Polonia",
+      "iso2": "PL",
+      "file": "assets/flags/POL.svg"
+    },
+    "MYS": {
+      "name": "Malasia",
+      "iso2": "MY",
+      "file": "assets/flags/MYS.svg"
+    },
+    "MOZ": {
+      "name": "Mozambique",
+      "iso2": "MZ",
+      "file": "assets/flags/MOZ.svg"
+    },
+    "PER": {
+      "name": "Perú",
+      "iso2": "PE",
+      "file": "assets/flags/PER.svg"
+    },
+    "MDG": {
+      "name": "Madagascar",
+      "iso2": "MG",
+      "file": "assets/flags/MDG.svg"
+    },
+    "CIV": {
+      "name": "Côte d’Ivoire",
+      "iso2": "CI",
+      "file": "assets/flags/CIV.svg"
+    },
+    "CMR": {
+      "name": "Camerún",
+      "iso2": "CM",
+      "file": "assets/flags/CMR.svg"
+    },
+    "NPL": {
+      "name": "Nepal",
+      "iso2": "NP",
+      "file": "assets/flags/NPL.svg"
+    },
+    "NER": {
+      "name": "Níger",
+      "iso2": "NE",
+      "file": "assets/flags/NER.svg"
+    },
+    "AUS": {
+      "name": "Australia",
+      "iso2": "AU",
+      "file": "assets/flags/AUS.svg"
+    },
+    "MLI": {
+      "name": "Mali",
+      "iso2": "ML",
+      "file": "assets/flags/MLI.svg"
+    },
+    "BFA": {
+      "name": "Burkina Faso",
+      "iso2": "BF",
+      "file": "assets/flags/BFA.svg"
+    },
+    "LKA": {
+      "name": "Sri Lanka",
+      "iso2": "LK",
+      "file": "assets/flags/LKA.svg"
+    },
+    "KAZ": {
+      "name": "Kazajistán",
+      "iso2": "KZ",
+      "file": "assets/flags/KAZ.svg"
+    },
+    "CHL": {
+      "name": "Chile",
+      "iso2": "CL",
+      "file": "assets/flags/CHL.svg"
+    },
+    "SOM": {
+      "name": "Somalia",
+      "iso2": "SO",
+      "file": "assets/flags/SOM.svg"
+    },
+    "ROU": {
+      "name": "Rumanía",
+      "iso2": "RO",
+      "file": "assets/flags/ROU.svg"
+    },
+    "GTM": {
+      "name": "Guatemala",
+      "iso2": "GT",
+      "file": "assets/flags/GTM.svg"
+    },
+    "NLD": {
+      "name": "Países Bajos",
+      "iso2": "NL",
+      "file": "assets/flags/NLD.svg"
+    },
+    "BEN": {
+      "name": "Benín",
+      "iso2": "BJ",
+      "file": "assets/flags/BEN.svg"
+    },
+    "RWA": {
+      "name": "Ruanda",
+      "iso2": "RW",
+      "file": "assets/flags/RWA.svg"
+    },
+    "BDI": {
+      "name": "Burundi",
+      "iso2": "BI",
+      "file": "assets/flags/BDI.svg"
+    },
+    "TUN": {
+      "name": "Túnez",
+      "iso2": "TN",
+      "file": "assets/flags/TUN.svg"
+    },
+    "BEL": {
+      "name": "Bélgica",
+      "iso2": "BE",
+      "file": "assets/flags/BEL.svg"
+    },
+    "JOR": {
+      "name": "Jordania",
+      "iso2": "JO",
+      "file": "assets/flags/JOR.svg"
+    },
+    "DOM": {
+      "name": "República Dominicana",
+      "iso2": "DO",
+      "file": "assets/flags/DOM.svg"
+    },
+    "HND": {
+      "name": "Honduras",
+      "iso2": "HN",
+      "file": "assets/flags/HND.svg"
+    },
+    "CZE": {
+      "name": "Chequia",
+      "iso2": "CZ",
+      "file": "assets/flags/CZE.svg"
+    },
+    "PRT": {
+      "name": "Portugal",
+      "iso2": "PT",
+      "file": "assets/flags/PRT.svg"
+    },
+    "TJK": {
+      "name": "Tayikistán",
+      "iso2": "TJ",
+      "file": "assets/flags/TJK.svg"
+    },
+    "PNG": {
+      "name": "Papúa Nueva Guinea",
+      "iso2": "PG",
+      "file": "assets/flags/PNG.svg"
+    },
+    "SWE": {
+      "name": "Suecia",
+      "iso2": "SE",
+      "file": "assets/flags/SWE.svg"
+    },
+    "GRC": {
+      "name": "Grecia",
+      "iso2": "GR",
+      "file": "assets/flags/GRC.svg"
+    },
+    "ISR": {
+      "name": "Israel",
+      "iso2": "IL",
+      "file": "assets/flags/ISR.svg"
+    },
+    "HUN": {
+      "name": "Hungría",
+      "iso2": "HU",
+      "file": "assets/flags/HUN.svg"
+    },
+    "AUT": {
+      "name": "Austria",
+      "iso2": "AT",
+      "file": "assets/flags/AUT.svg"
+    },
+    "BLR": {
+      "name": "Bielorrusia",
+      "iso2": "BY",
+      "file": "assets/flags/BLR.svg"
+    },
+    "SLE": {
+      "name": "Sierra Leona",
+      "iso2": "SL",
+      "file": "assets/flags/SLE.svg"
+    },
+    "LAO": {
+      "name": "Laos",
+      "iso2": "LA",
+      "file": "assets/flags/LAO.svg"
+    },
+    "HKG": {
+      "name": "RAE de Hong Kong (China)",
+      "iso2": "HK",
+      "file": "assets/flags/HKG.svg"
+    },
+    "LBY": {
+      "name": "Libia",
+      "iso2": "LY",
+      "file": "assets/flags/LBY.svg"
+    },
+    "KGZ": {
+      "name": "Kirguistán",
+      "iso2": "KG",
+      "file": "assets/flags/KGZ.svg"
+    },
+    "BGR": {
+      "name": "Bulgaria",
+      "iso2": "BG",
+      "file": "assets/flags/BGR.svg"
+    },
+    "SLV": {
+      "name": "El Salvador",
+      "iso2": "SV",
+      "file": "assets/flags/SLV.svg"
+    },
+    "SGP": {
+      "name": "Singapur",
+      "iso2": "SG",
+      "file": "assets/flags/SGP.svg"
+    },
+    "DNK": {
+      "name": "Dinamarca",
+      "iso2": "DK",
+      "file": "assets/flags/DNK.svg"
+    },
+    "LBN": {
+      "name": "Líbano",
+      "iso2": "LB",
+      "file": "assets/flags/LBN.svg"
+    },
+    "FIN": {
+      "name": "Finlandia",
+      "iso2": "FI",
+      "file": "assets/flags/FIN.svg"
+    },
+    "NOR": {
+      "name": "Noruega",
+      "iso2": "NO",
+      "file": "assets/flags/NOR.svg"
+    },
+    "CAF": {
+      "name": "República Centroafricana",
+      "iso2": "CF",
+      "file": "assets/flags/CAF.svg"
+    },
+    "IRL": {
+      "name": "Irlanda",
+      "iso2": "IE",
+      "file": "assets/flags/IRL.svg"
+    },
+    "SVK": {
+      "name": "Eslovaquia",
+      "iso2": "SK",
+      "file": "assets/flags/SVK.svg"
+    },
+    "PSE": {
+      "name": "Territorios Palestinos",
+      "iso2": "PS",
+      "file": "assets/flags/PSE.svg"
+    },
+    "MRT": {
+      "name": "Mauritania",
+      "iso2": "MR",
+      "file": "assets/flags/MRT.svg"
+    },
+    "CRI": {
+      "name": "Costa Rica",
+      "iso2": "CR",
+      "file": "assets/flags/CRI.svg"
+    },
+    "PAN": {
+      "name": "Panamá",
+      "iso2": "PA",
+      "file": "assets/flags/PAN.svg"
+    },
+    "GEO": {
+      "name": "Georgia",
+      "iso2": "GE",
+      "file": "assets/flags/GEO.svg"
+    },
+    "HRV": {
+      "name": "Croacia",
+      "iso2": "HR",
+      "file": "assets/flags/HRV.svg"
+    },
+    "MNG": {
+      "name": "Mongolia",
+      "iso2": "MN",
+      "file": "assets/flags/MNG.svg"
+    },
+    "PRI": {
+      "name": "Puerto Rico",
+      "iso2": "PR",
+      "file": "assets/flags/PRI.svg"
+    },
+    "BIH": {
+      "name": "Bosnia y Herzegovina",
+      "iso2": "BA",
+      "file": "assets/flags/BIH.svg"
+    },
+    "NAM": {
+      "name": "Namibia",
+      "iso2": "NA",
+      "file": "assets/flags/NAM.svg"
+    },
+    "ARM": {
+      "name": "Armenia",
+      "iso2": "AM",
+      "file": "assets/flags/ARM.svg"
+    },
+    "QAT": {
+      "name": "Catar",
+      "iso2": "QA",
+      "file": "assets/flags/QAT.svg"
+    },
+    "LTU": {
+      "name": "Lituania",
+      "iso2": "LT",
+      "file": "assets/flags/LTU.svg"
+    },
+    "GAB": {
+      "name": "Gabón",
+      "iso2": "GA",
+      "file": "assets/flags/GAB.svg"
+    },
+    "LSO": {
+      "name": "Lesoto",
+      "iso2": "LS",
+      "file": "assets/flags/LSO.svg"
+    },
+    "MDA": {
+      "name": "Moldavia",
+      "iso2": "MD",
+      "file": "assets/flags/MDA.svg"
+    },
+    "ALB": {
+      "name": "Albania",
+      "iso2": "AL",
+      "file": "assets/flags/ALB.svg"
+    },
+    "GNB": {
+      "name": "Guinea-Bisáu",
+      "iso2": "GW",
+      "file": "assets/flags/GNB.svg"
+    },
+    "SVN": {
+      "name": "Eslovenia",
+      "iso2": "SI",
+      "file": "assets/flags/SVN.svg"
+    },
+    "GNQ": {
+      "name": "Guinea Ecuatorial",
+      "iso2": "GQ",
+      "file": "assets/flags/GNQ.svg"
+    },
+    "LVA": {
+      "name": "Letonia",
+      "iso2": "LV",
+      "file": "assets/flags/LVA.svg"
+    },
+    "MKD": {
+      "name": "Macedonia del Norte",
+      "iso2": "MK",
+      "file": "assets/flags/MKD.svg"
+    },
+    "TLS": {
+      "name": "Timor-Leste",
+      "iso2": "TL",
+      "file": "assets/flags/TLS.svg"
+    },
+    "TTO": {
+      "name": "Trinidad y Tobago",
+      "iso2": "TT",
+      "file": "assets/flags/TTO.svg"
+    },
+    "EST": {
+      "name": "Estonia",
+      "iso2": "EE",
+      "file": "assets/flags/EST.svg"
+    },
+    "SWZ": {
+      "name": "Esuatini",
+      "iso2": "SZ",
+      "file": "assets/flags/SWZ.svg"
+    },
+    "MUS": {
+      "name": "Mauricio",
+      "iso2": "MU",
+      "file": "assets/flags/MUS.svg"
+    },
+    "DJI": {
+      "name": "Yibuti",
+      "iso2": "DJ",
+      "file": "assets/flags/DJI.svg"
+    },
+    "FJI": {
+      "name": "Fiyi",
+      "iso2": "FJ",
+      "file": "assets/flags/FJI.svg"
+    },
+    "SLB": {
+      "name": "Islas Salomón",
+      "iso2": "SB",
+      "file": "assets/flags/SLB.svg"
+    },
+    "GUY": {
+      "name": "Guyana",
+      "iso2": "GY",
+      "file": "assets/flags/GUY.svg"
+    },
+    "BTN": {
+      "name": "Bután",
+      "iso2": "BT",
+      "file": "assets/flags/BTN.svg"
+    },
+    "LUX": {
+      "name": "Luxemburgo",
+      "iso2": "LU",
+      "file": "assets/flags/LUX.svg"
+    },
+    "MAC": {
+      "name": "RAE de Macao (China)",
+      "iso2": "MO",
+      "file": "assets/flags/MAC.svg"
+    },
+    "MNE": {
+      "name": "Montenegro",
+      "iso2": "ME",
+      "file": "assets/flags/MNE.svg"
+    },
+    "MLT": {
+      "name": "Malta",
+      "iso2": "MT",
+      "file": "assets/flags/MLT.svg"
+    }
+  },
+  "resources": {
+    "grains": {
+      "label": "Granos",
+      "tier": "basic",
+      "file": "assets/resources/grains.svg"
+    },
+    "timber": {
+      "label": "Madera",
+      "tier": "basic",
+      "file": "assets/resources/timber.svg"
+    },
+    "crude_oil": {
+      "label": "Petróleo crudo",
+      "tier": "basic",
+      "file": "assets/resources/crude_oil.svg"
+    },
+    "iron_ore": {
+      "label": "Mineral de hierro",
+      "tier": "basic",
+      "file": "assets/resources/iron_ore.svg"
+    },
+    "copper": {
+      "label": "Cobre",
+      "tier": "basic",
+      "file": "assets/resources/copper.svg"
+    },
+    "uranium": {
+      "label": "Uranio",
+      "tier": "basic",
+      "file": "assets/resources/uranium.svg"
+    },
+    "minerals": {
+      "label": "Minerales industriales",
+      "tier": "basic",
+      "file": "assets/resources/minerals.svg"
+    },
+    "cement": {
+      "label": "Cemento",
+      "tier": "intermediate",
+      "file": "assets/resources/cement.svg"
+    },
+    "steel": {
+      "label": "Acero",
+      "tier": "intermediate",
+      "file": "assets/resources/steel.svg"
+    },
+    "fuel": {
+      "label": "Combustible refinado",
+      "tier": "intermediate",
+      "file": "assets/resources/fuel.svg"
+    },
+    "chemicals": {
+      "label": "Químicos",
+      "tier": "intermediate",
+      "file": "assets/resources/chemicals.svg"
+    },
+    "components": {
+      "label": "Componentes",
+      "tier": "intermediate",
+      "file": "assets/resources/components.svg"
+    },
+    "food_products": {
+      "label": "Alimentos elaborados",
+      "tier": "final",
+      "file": "assets/resources/food_products.svg"
+    },
+    "automobiles": {
+      "label": "Automóviles",
+      "tier": "final",
+      "file": "assets/resources/automobiles.svg"
+    },
+    "machinery": {
+      "label": "Maquinaria industrial",
+      "tier": "final",
+      "file": "assets/resources/machinery.svg"
+    },
+    "electronics": {
+      "label": "Equipos electrónicos",
+      "tier": "final",
+      "file": "assets/resources/electronics.svg"
+    },
+    "plutonium": {
+      "label": "Plutonio procesado",
+      "tier": "final",
+      "file": "assets/resources/plutonium.svg"
+    }
+  }
+}

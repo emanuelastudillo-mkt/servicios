@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" role="img" aria-label="Equipos electrónicos">
+  <rect width="100" height="100" rx="20" fill="#0b1e2d"/><rect x="5" y="5" width="90" height="90" rx="16" fill="none" stroke="#ca8cff" stroke-opacity=".55" stroke-width="2"/>
+  <g fill="none" stroke="#ca8cff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><rect x="29" y="29" width="42" height="42" rx="6"/><path d="M40 22v7M50 22v7M60 22v7M40 71v7M50 71v7M60 71v7M22 40h7M22 50h7M22 60h7M71 40h7M71 50h7M71 60h7"/><path d="M39 57V43h22v14zM43 51h14"/></g>
+  <circle cx="82" cy="18" r="5" fill="#ca8cff"/><title>Equipos electrónicos</title></svg>

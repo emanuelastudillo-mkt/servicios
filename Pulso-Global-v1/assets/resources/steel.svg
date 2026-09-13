@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" role="img" aria-label="Acero">
+  <rect width="100" height="100" rx="20" fill="#0b1e2d"/><rect x="5" y="5" width="90" height="90" rx="16" fill="none" stroke="#f4bd63" stroke-opacity=".55" stroke-width="2"/>
+  <g fill="none" stroke="#f4bd63" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M25 24h50M43 24v52M57 24v52M25 76h50"/><path d="M34 39h32M34 61h32"/></g>
+  <circle cx="82" cy="18" r="5" fill="#f4bd63"/><title>Acero</title></svg>
