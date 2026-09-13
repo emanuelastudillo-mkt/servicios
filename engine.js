@@ -1,0 +1,1033 @@
+(function (root, factory) {
+  const api = factory(typeof module === "object" && module.exports ? require("./data.js") : root.PULSO_DATA);
+  if (typeof module === "object" && module.exports) module.exports = api;
+  else root.PulsoEngine = api;
+})(typeof globalThis !== "undefined" ? globalThis : this, function (DATA) {
+  "use strict";
+
+  const SAVE_VERSION = 5;
+  const START_YEAR = 2026;
+  const START_MONTH = 1;
+  const ENDLESS = true;
+  const MIN_SHARE = 2;
+  const MATERIAL_IDS = DATA.materials.map((item) => item.id);
+  const LOAN_OPTIONS = [
+    { id: "bridge", label: "Crédito puente", description: "Liquidez breve para atravesar un déficit transitorio.", principalShare: 0.03, months: 24, annualRate: 8.5 },
+    { id: "development", label: "Préstamo de desarrollo", description: "Financiación gradual para inversión y capacidad productiva.", principalShare: 0.08, months: 84, annualRate: 6.5 },
+    { id: "infrastructure", label: "Bono de infraestructura", description: "Emisión de largo plazo para un programa amplio de obras.", principalShare: 0.12, months: 120, annualRate: 7.25 },
+    { id: "emergency", label: "Línea de emergencia", description: "Desembolso grande y rápido, con costo financiero elevado.", principalShare: 0.18, months: 48, annualRate: 13.5 }
+  ];
+
+  function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+  function round(value, digits) {
+    const factor = 10 ** (digits || 0);
+    return Math.round((Number(value) + Number.EPSILON) * factor) / factor;
+  }
+  function clone(value) { return JSON.parse(JSON.stringify(value)); }
+  function sumValues(object) { return Object.values(object || {}).reduce((sum, value) => sum + Number(value || 0), 0); }
+  function monthLabel(date) {
+    return new Intl.DateTimeFormat("es-AR", { month: "short", year: "numeric", timeZone: "UTC" })
+      .format(new Date(Date.UTC(date.year, date.month - 1, 1))).replace(" de ", " ");
+  }
+  function random(state) {
+    let t = (state.rngState + 0x6D2B79F5) >>> 0;
+    state.rngState = t;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  function pick(state, array) { return array[Math.floor(random(state) * array.length)]; }
+  function blankByMaterial(value) { return Object.fromEntries(MATERIAL_IDS.map((id) => [id, value])); }
+  function blankByConstruction(value) { return Object.fromEntries(DATA.constructions.map((item) => [item.id, value])); }
+  function getCountryDefinition(id) { return DATA.countries.find((country) => country.id === id); }
+  function getLeaderDefinition(countryId, leaderId) {
+    const country = getCountryDefinition(countryId);
+    return country ? country.leaders.find((leader) => leader.id === leaderId) : null;
+  }
+  function getConstructionDefinition(id) { return DATA.constructions.find((item) => item.id === id); }
+
+  function initialRelations(country) {
+    const relations = {};
+    DATA.countries.forEach((other) => {
+      if (other.id === country.id) return;
+      let score = country.region === other.region ? 65 : 50;
+      const pair = [country.id, other.id].sort().join("-");
+      const adjustments = {
+        "ARG-BRA": 10, "ARG-USA": 3, "BRA-CHN": 8, "BRA-USA": 2,
+        "CHN-RUS": 12, "CHN-USA": -14, "DEU-USA": 10, "DEU-RUS": -11,
+        "ECU-USA": 5, "IND-RUS": 7, "CHN-IND": -5, "MEX-USA": 18,
+        "RUS-USA": -18, "DEU-CHN": 4, "IND-USA": 8, "USA-ZAF": 3
+      };
+      relations[other.id] = clamp(score + (adjustments[pair] || 0), 10, 90);
+    });
+    return relations;
+  }
+
+  function initialMaterialCapacity(definition) {
+    const scale = clamp(Math.pow(Math.max(definition.gdp, 0.05), 0.18), 0.6, 5.5);
+    return Object.fromEntries(DATA.materials.map((material) => {
+      const tierBase = material.tier === "basic" ? 165 : material.tier === "intermediate" ? 210 : 115;
+      const strategic = material.strategic ? 8 : 0;
+      const capacity = strategic || tierBase + definition.infrastructure * 0.55 + scale * 18;
+      return [material.id, round(capacity, 1)];
+    }));
+  }
+
+  function initialHousing(definition) {
+    const needed = definition.population / 3.2;
+    const repairShare = clamp((78 - definition.infrastructure) / 100, 0.08, 0.34);
+    return { new: round(needed * 0.06, 4), normal: round(needed * (0.94 - repairShare), 4), repair: round(needed * repairShare, 4) };
+  }
+
+  function initialSubsidies() {
+    return {
+      infrastructure: 12, agriculture: 10, industry: 10, services: 8,
+      education: 22, health: 20, security: 5, energy: 12
+    };
+  }
+
+  function domesticTaxPoints(taxes, demographics, efficiency) {
+    const workerFactor = clamp((demographics.workers || 65) / 65, 0.72, 1.2);
+    return {
+      vat: taxes.vat * 0.38 * efficiency,
+      income: taxes.income * 0.29 * efficiency * workerFactor,
+      inheritance: taxes.inheritance * 0.02 * efficiency
+    };
+  }
+
+  function toCountryState(definition) {
+    const capacity = initialMaterialCapacity(definition);
+    const housingStock = initialHousing(definition);
+    const happiness = clamp(45 + definition.popularity * 0.18 + definition.infrastructure * 0.08 - definition.unemployment * 0.25 - definition.inflation * 0.08, 30, 82);
+    const taxes = clone(definition.taxes);
+    const demographics = clone(definition.demographics);
+    const domesticTaxes = domesticTaxPoints(taxes, demographics, definition.taxEfficiency);
+    const startingRevenue = definition.revenueRate || definition.spendingTarget - 4;
+    const nonTaxRevenue = Math.max(3, startingRevenue - sumValues(domesticTaxes));
+    return {
+      id: definition.id, name: definition.name, flag: definition.flag, region: definition.region,
+      center: clone(definition.center), politicalSystem: definition.politicalSystem, currency: definition.currency,
+      population: definition.population, gdp: definition.gdp, education: definition.education,
+      health: clamp(58 + definition.education * 0.18, 45, 88), unemployment: definition.unemployment,
+      infrastructure: definition.infrastructure, housing: clamp((housingStock.new + housingStock.normal) / (definition.population / 3.2) * 100, 20, 100),
+      happiness: round(happiness, 2), tourism: round(Math.max(0.15, definition.population * 0.022 * definition.infrastructure / 70), 2),
+      tourismPotential: 0, tradeCapacity: 0, foodCapacity: 0, industryCapacity: 0,
+      energyCapacity: 0, materialMachinery: 0, debt: definition.debt, inflation: definition.inflation,
+      popularity: definition.popularity, stability: definition.stability, birthRate: definition.birthRate,
+      mortality: definition.mortality, baseMigration: definition.migration, migration: definition.migration,
+      migrationAttraction: 0, productivity: definition.productivity, reserves: definition.reserves,
+      baseGrowth: definition.baseGrowth, spendingTarget: definition.spendingTarget,
+      revenueRate: startingRevenue, nonTaxRevenue: round(nonTaxRevenue, 2),
+      baseTaxEfficiency: definition.taxEfficiency, taxEfficiency: definition.taxEfficiency,
+      taxes, demographics,
+      demographicFlows: { births: 0, deaths: 0, migration: 0, enteringWorkAge: 0, retiring: 0 },
+      taxRevenueBreakdown: { ...domesticTaxes, imports: 0, exports: 0, other: round(nonTaxRevenue, 2), total: round(startingRevenue, 2) },
+      grossImports: 0, grossExports: 0,
+      resources: clone(definition.resources), budget: clone(definition.budget), labor: clone(definition.labor),
+      subsidies: initialSubsidies(), leaderId: definition.leaders[0].id, growth: definition.baseGrowth,
+      fiscalBalance: round(startingRevenue - definition.spendingTarget - DATA.sectors.reduce((sum, s) => sum + definition.budget[s.id] * initialSubsidies()[s.id] / 1000, 0), 2), tradeBalance: 0,
+      fiscalCashFlowMonthly: 0, tradeReserveFlowMonthly: 0, treasuryFlowMonthly: 0, reserveChangeMonthly: 0,
+      debtPaymentFromSurplus: 0, newDebtFromDeficit: 0,
+      sectorBalances: { food: 0, energy: 0, manufactures: 0, technology: 0 },
+      sectorSupply: { food: 0, energy: 0, manufactures: 0, technology: 0 },
+      sectorDemand: { food: 0, energy: 0, manufactures: 0, technology: 0 },
+      relations: initialRelations(definition),
+      deposits: clone(definition.deposits),
+      materialStocks: Object.fromEntries(DATA.materials.map((material) => [material.id, round(capacity[material.id] * (material.tier === "final" ? (material.strategic ? 0 : 0.16) : 0.58), 1)])),
+      materialCapacity: capacity, materialProduction: blankByMaterial(0), materialConsumption: blankByMaterial(0), buildings: blankByConstruction(0),
+      housingStock, electricityDemandTWh: definition.electricityDemandTWh,
+      electricityGenerationTWh: definition.electricityGenerationTWh, cycleShock: 0, eventMigrationPush: 0,
+      finalGoodsRevenue: 0,
+      projects: [], nextProjectId: 1, loans: [], nextLoanId: 1, debtServiceMonthly: 0,
+      lowPopularityMonths: 0, policyShock: 0, lastGdpDelta: 0
+    };
+  }
+
+  function createGame(countryId, leaderId, seed) {
+    const countryDef = getCountryDefinition(countryId);
+    const leaderDef = getLeaderDefinition(countryId, leaderId);
+    if (!countryDef || !leaderDef) throw new Error("País o figura no válidos.");
+    const countries = {};
+    DATA.countries.forEach((definition) => { countries[definition.id] = toCountryState(definition); });
+    countries[countryId].leaderId = leaderId;
+    const game = {
+      version: SAVE_VERSION, gameId: `pg-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+      createdAt: new Date().toISOString(), savedAt: null, rngState: (Number(seed) || Date.now()) >>> 0,
+      playerCountryId: countryId, playerLeaderId: leaderId, date: { year: START_YEAR, month: START_MONTH },
+      tick: 0, globalDemand: 1, globalGrowthShock: 0, monthsSinceWorldEvent: 0,
+      market: {
+        prices: Object.fromEntries(DATA.commodities.map((item) => [item.id, item.basePrice])),
+        previousPrices: Object.fromEntries(DATA.commodities.map((item) => [item.id, item.basePrice])),
+        resourcePrices: Object.fromEntries(DATA.materials.map((item) => [item.id, item.value])),
+        previousResourcePrices: Object.fromEntries(DATA.materials.map((item) => [item.id, item.value])), trades: []
+      },
+      countries, eventsEnabled: true, openEnded: true, activity: [], worldEvents: [], eventHistory: [], history: [], gameOver: null
+    };
+    addActivity(game, "briefing", `${leaderDef.name} asume la conducción de ${countryDef.name}. La economía mundial y los eventos pasivos ya están en marcha.`);
+    captureHistory(game);
+    return game;
+  }
+
+  function addActivity(state, type, text, countryId) {
+    if (!Array.isArray(state.activity)) state.activity = [];
+    state.activity.unshift({ id: `activity-${state.tick}-${state.activity.length}-${Math.floor(random(state) * 100000)}`,
+      tick: state.tick, date: monthLabel(state.date), type, countryId: countryId || null, text });
+    state.activity = state.activity.slice(0, 80);
+  }
+
+  function leaderBonuses(country) {
+    const leader = getLeaderDefinition(country.id, country.leaderId);
+    return leader ? leader.bonuses : {};
+  }
+
+  function sectorEffect(country, sectorId) {
+    const budget = country.budget[sectorId] || 0;
+    const labor = country.labor[sectorId] || 0;
+    const subsidy = country.subsidies[sectorId] || 0;
+    return (0.58 + budget / 25 + labor / 35) * (1 + subsidy / 260);
+  }
+
+  function productionAndDemand(country, state) {
+    // Pisos pequeños para que los microestados mantengan su escala real.
+    const gdpScale = Math.max(0.00005, country.gdp / 1000);
+    const popScale = Math.max(0.00005, country.population / 100);
+    const gdpPerCapita = country.gdp * 1000 / country.population;
+    const productivityFactor = 0.62 + country.productivity / 170;
+    const infrastructureFactor = 0.62 + country.infrastructure / 170 + country.tradeCapacity / 240;
+    const baseline = getCountryDefinition(country.id);
+    const disposableIncome = clamp(1 - (country.taxes.vat - baseline.taxes.vat) * 0.006 - (country.taxes.income - baseline.taxes.income) * 0.002, 0.6, 1.4);
+    const demandCycle = state.globalDemand * (0.94 + clamp(country.growth, -8, 10) / 120) * disposableIncome;
+    const workforceFactor = clamp(country.demographics.workers / baseline.demographics.workers, 0.45, 1.4);
+    const prices = state.market.prices;
+    const supply = {
+      food: popScale * (0.32 + country.resources.food * 0.82) * (0.55 + country.labor.agriculture / 12) * productivityFactor * (1 + country.foodCapacity / 100),
+      energy: gdpScale * (0.22 + country.resources.energy * 0.76) * (0.58 + country.labor.energy / 10) * infrastructureFactor * (1 + country.energyCapacity / 100),
+      manufactures: gdpScale * (0.2 + country.resources.manufactures * 0.78) * (0.48 + country.labor.industry / 28) * productivityFactor * (1 + country.industryCapacity / 100),
+      technology: gdpScale * (0.08 + country.resources.technology * 0.68) * (0.4 + country.education / 105) * (0.55 + country.labor.education / 15)
+    };
+    const demand = {
+      food: popScale * (0.78 + gdpPerCapita / 90000) * demandCycle * Math.pow(prices.food, -0.16),
+      energy: (popScale * (0.3 + gdpPerCapita / 39000) + gdpScale * country.labor.industry / 42) * demandCycle * Math.pow(prices.energy / 1.3, -0.2),
+      manufactures: gdpScale * (0.55 + gdpPerCapita / 85000) * demandCycle * Math.pow(prices.manufactures / 1.1, -0.24),
+      technology: gdpScale * (0.28 + country.education / 145) * demandCycle * Math.pow(prices.technology / 1.7, -0.28)
+    };
+    Object.keys(supply).forEach((key) => { supply[key] = Math.max(0.00001, supply[key] * workforceFactor); demand[key] = Math.max(0.00001, demand[key]); });
+    return { supply, demand };
+  }
+
+  function relationScore(importer, exporter) {
+    const relation = importer.relations[exporter.id] || 50;
+    const regional = importer.region === exporter.region ? 12 : 0;
+    return relation + regional + exporter.infrastructure * 0.08 + exporter.tradeCapacity * 0.12;
+  }
+
+  function simulateMarkets(state) {
+    const snapshots = {};
+    const totalSupply = Object.fromEntries(DATA.commodities.map((item) => [item.id, 0]));
+    const totalDemand = Object.fromEntries(DATA.commodities.map((item) => [item.id, 0]));
+    Object.values(state.countries).forEach((country) => {
+      const snapshot = productionAndDemand(country, state);
+      snapshots[country.id] = snapshot;
+      DATA.commodities.forEach((commodity) => { totalSupply[commodity.id] += snapshot.supply[commodity.id]; totalDemand[commodity.id] += snapshot.demand[commodity.id]; });
+      country.tradeBalance = 0;
+      country.grossImports = 0;
+      country.grossExports = 0;
+      country.finalGoodsRevenue = 0;
+    });
+    state.market.previousPrices = { ...state.market.prices };
+    DATA.commodities.forEach((commodity) => {
+      const id = commodity.id;
+      const buffer = (totalSupply[id] + totalDemand[id]) * 0.82;
+      const imbalance = (totalDemand[id] - totalSupply[id]) / Math.max(0.1, totalDemand[id] + totalSupply[id] + buffer * 2);
+      const change = clamp(imbalance * 0.24 + (random(state) - 0.5) * 0.012, -0.065, 0.065);
+      state.market.prices[id] = round(clamp(state.market.prices[id] * (1 + change), commodity.basePrice * 0.48, commodity.basePrice * 2.6), 3);
+    });
+    const trades = [];
+    DATA.commodities.forEach((commodity) => {
+      const id = commodity.id;
+      const exporters = Object.values(state.countries).map((country) => ({
+        country,
+        available: Math.max(0, snapshots[country.id].supply[id] - snapshots[country.id].demand[id]) * (1 - country.taxes.exports * 0.006)
+      })).filter((entry) => entry.available > 0.01);
+      const importers = Object.values(state.countries).map((country) => ({
+        country,
+        needed: Math.max(0, snapshots[country.id].demand[id] - snapshots[country.id].supply[id]) * (1 - country.taxes.imports * 0.004)
+      })).filter((entry) => entry.needed > 0.01).sort((a, b) => b.needed - a.needed);
+      importers.forEach((importer) => {
+        exporters.sort((a, b) => relationScore(importer.country, b.country) - relationScore(importer.country, a.country));
+        for (const exporter of exporters) {
+          if (importer.needed <= 0.005) break;
+          if (exporter.available <= 0.005 || exporter.country.id === importer.country.id) continue;
+          const quantity = Math.min(importer.needed, exporter.available);
+          const actual = quantity * clamp((importer.country.relations[exporter.country.id] || 50) / 70, 0.55, 1);
+          const value = actual * state.market.prices[id] * 0.72;
+          importer.needed -= actual; exporter.available -= actual;
+          importer.country.tradeBalance -= value;
+          exporter.country.tradeBalance += value;
+          importer.country.grossImports += value;
+          exporter.country.grossExports += value;
+          trades.push({ commodity: id, from: exporter.country.id, to: importer.country.id, quantity: round(actual, 2), value: round(value, 2) });
+        }
+        if (importer.needed > 0.005) {
+          const value = importer.needed * state.market.prices[id] * 0.78;
+          importer.country.tradeBalance -= value;
+          importer.country.grossImports += value;
+          trades.push({ commodity: id, from: "ROW", to: importer.country.id, quantity: round(importer.needed, 2), value: round(value, 2) });
+        }
+      });
+      exporters.forEach((exporter) => {
+        if (exporter.available > 0.005) {
+          const value = exporter.available * state.market.prices[id] * 0.66;
+          exporter.country.tradeBalance += value;
+          exporter.country.grossExports += value;
+          trades.push({ commodity: id, from: exporter.country.id, to: "ROW", quantity: round(exporter.available, 2), value: round(value, 2) });
+        }
+      });
+    });
+    Object.values(state.countries).forEach((country) => {
+      country.sectorSupply = Object.fromEntries(DATA.commodities.map((item) => [item.id, round(snapshots[country.id].supply[item.id], 2)]));
+      country.sectorDemand = Object.fromEntries(DATA.commodities.map((item) => [item.id, round(snapshots[country.id].demand[item.id], 2)]));
+      country.sectorBalances = Object.fromEntries(DATA.commodities.map((item) => [item.id, round(snapshots[country.id].supply[item.id] - snapshots[country.id].demand[item.id], 2)]));
+      country.tradeBalance = round(country.tradeBalance, 2);
+    });
+    state.market.trades = trades.sort((a, b) => b.value - a.value).slice(0, 120);
+  }
+
+  function simulateResourcePrices(state) {
+    state.market.previousResourcePrices = { ...state.market.resourcePrices };
+    DATA.materials.forEach((material) => {
+      let stock = 0; let capacity = 0; let production = 0; let consumption = 0;
+      Object.values(state.countries).forEach((country) => {
+        stock += country.materialStocks[material.id] || 0;
+        capacity += country.materialCapacity[material.id] || 0;
+        production += country.materialProduction[material.id] || 0;
+        consumption += country.materialConsumption[material.id] || 0;
+      });
+      const current = state.market.resourcePrices[material.id] || material.value;
+      const stockRatio = stock / Math.max(1, capacity);
+      const flowPressure = (consumption - production) / Math.max(1, consumption + production);
+      const scarcity = (0.48 - stockRatio) * 0.08 + flowPressure * 0.055;
+      const reversion = (material.value / current - 1) * 0.045;
+      const noise = (random(state) - 0.5) * 0.028;
+      const change = clamp(scarcity + reversion + noise, -0.09, 0.09);
+      state.market.resourcePrices[material.id] = round(clamp(current * (1 + change), material.value * 0.35, material.value * 4), 5);
+    });
+  }
+
+  function calculateTaxBreakdown(country, rates) {
+    const taxes = rates || country.taxes;
+    const domestic = domesticTaxPoints(taxes, country.demographics, country.taxEfficiency);
+    // Flujos mensuales -> recaudación anual como puntos de PBI.
+    const imports = country.grossImports * taxes.imports * 12 * country.taxEfficiency / Math.max(country.gdp, 1);
+    const exports = country.grossExports * taxes.exports * 12 * country.taxEfficiency / Math.max(country.gdp, 1);
+    const breakdown = {
+      vat: domestic.vat,
+      income: domestic.income,
+      inheritance: domestic.inheritance,
+      imports,
+      exports,
+      other: country.nonTaxRevenue
+    };
+    breakdown.total = sumValues(breakdown);
+    Object.keys(breakdown).forEach((key) => { breakdown[key] = round(breakdown[key], 2); });
+    return breakdown;
+  }
+
+  function estimateTaxes(state, input) {
+    const country = state.countries[state.playerCountryId];
+    const rates = {};
+    DATA.taxes.forEach((tax) => {
+      const value = Number(input && input[tax.id] !== undefined ? input[tax.id] : country.taxes[tax.id]);
+      if (!Number.isFinite(value)) throw new Error("La alícuota debe ser un número válido.");
+      rates[tax.id] = round(clamp(value, tax.min, tax.max), 2);
+    });
+    const growthEffect = -(rates.vat - 18) * 0.012 - (rates.income - 28) * 0.01 - rates.exports * 0.012 + rates.imports * 0.004;
+    const inflationEffect = (rates.vat - 18) * 0.012 + rates.imports * 0.018;
+    const happinessEffect = rates.inheritance * 0.015 - rates.vat * 0.01;
+    return {
+      rates,
+      breakdown: calculateTaxBreakdown(country, rates),
+      growthEffect: round(growthEffect, 2),
+      inflationEffect: round(inflationEffect, 2),
+      happinessEffect: round(happinessEffect, 2),
+      tradeFriction: round(rates.imports * 0.4 + rates.exports * 0.6, 1)
+    };
+  }
+
+  function activeEventEffects(country, state) {
+    const total = { growth: 0, mortality: 0, demand: 0, food: 0, migrationPush: 0 };
+    (state.worldEvents || []).forEach((event) => {
+      const applies = event.scope === "global" || (event.scope === "region" && event.region === country.region) || (event.scope === "country" && event.countryId === country.id);
+      if (!applies) return;
+      Object.keys(total).forEach((key) => { total[key] += Number(event.impact[key] || 0); });
+    });
+    return total;
+  }
+
+  function simulateDemographics(country, state) {
+    const pop = country.population;
+    const eventEffects = activeEventEffects(country, state);
+    const cohorts = Object.fromEntries(Object.entries(country.demographics).map(([key, share]) => [key, pop * share / 100]));
+    const births = pop * country.birthRate / 12000;
+    const deaths = pop * (country.mortality + eventEffects.mortality) / 12000;
+    const netMigration = pop * (country.migration - eventEffects.migrationPush) / 12000;
+    const enteringWorkAge = cohorts.children / (18 * 12);
+    const retiring = cohorts.workers / (47 * 12);
+    const deathWeights = { children: 0.15, workers: 0.45, retired: 4.5 };
+    const weightedTotal = Object.keys(cohorts).reduce((sum, key) => sum + cohorts[key] * deathWeights[key], 0);
+    const migrationShares = { children: 0.15, workers: 0.8, retired: 0.05 };
+    for (const key of Object.keys(cohorts)) {
+      cohorts[key] -= deaths * cohorts[key] * deathWeights[key] / Math.max(0.000001, weightedTotal);
+      cohorts[key] += netMigration * migrationShares[key];
+    }
+    cohorts.children += births - enteringWorkAge;
+    cohorts.workers += enteringWorkAge - retiring;
+    cohorts.retired += retiring;
+    for (const key of Object.keys(cohorts)) cohorts[key] = Math.max(0.000001, cohorts[key]);
+    country.population = sumValues(cohorts);
+    country.demographics.children = cohorts.children / country.population * 100;
+    country.demographics.retired = cohorts.retired / country.population * 100;
+    country.demographics.workers = 100 - country.demographics.children - country.demographics.retired;
+    country.demographicFlows = { births, deaths, migration: netMigration, enteringWorkAge, retiring };
+  }
+
+  function demographicSnapshot(country) {
+    const total = country.population;
+    const children = total * country.demographics.children / 100;
+    const retired = total * country.demographics.retired / 100;
+    const workingAge = total - children - retired;
+    const laborForce = workingAge * 0.72; // Participación agregada de juego.
+    const unemployed = laborForce * country.unemployment / 100;
+    return { total, children, retired, workingAge, laborForce, unemployed,
+      employed: laborForce - unemployed, inactive: workingAge - laborForce,
+      dependency: (children + retired) / Math.max(workingAge, 0.000001) * 100 };
+  }
+
+  function produceMaterials(country, state) {
+    country.materialProduction = blankByMaterial(0);
+    country.materialConsumption = blankByMaterial(0);
+    const scale = clamp(Math.pow(Math.max(country.gdp, 0.05) / 500, 0.25), 0.18, 2.7);
+    const eventEffects = activeEventEffects(country, state);
+    for (const tier of ["basic", "intermediate", "final"]) {
+      DATA.materials.filter((item) => item.tier === tier).forEach((material) => {
+        if (material.unlock && !(country.buildings[material.unlock] > 0)) return;
+        const deposit = material.tier === "basic" ? (country.deposits[material.id] || 0.02) : 1;
+        const sector = sectorEffect(country, material.sector || "industry");
+        let potential = material.baseOutput * scale * deposit * sector * (material.id === "grains" || material.id === "food_products" ? 1 + eventEffects.food : 1);
+        potential = Math.max(0, potential);
+        if (material.inputs) {
+          Object.entries(material.inputs).forEach(([inputId, ratio]) => { potential = Math.min(potential, country.materialStocks[inputId] / ratio); });
+        }
+        const free = Math.max(0, country.materialCapacity[material.id] - country.materialStocks[material.id]);
+        const output = Math.min(potential, free);
+        if (material.inputs && output > 0) Object.entries(material.inputs).forEach(([inputId, ratio]) => {
+          const used = output * ratio;
+          country.materialStocks[inputId] = Math.max(0, country.materialStocks[inputId] - used);
+          country.materialConsumption[inputId] += used;
+        });
+        country.materialStocks[material.id] += output;
+        country.materialProduction[material.id] = round(output, 3);
+        if (material.tier === "final" && output > 0) {
+          const sold = output * (material.strategic ? 0.55 : 0.3);
+          const revenue = sold * material.value;
+          country.materialStocks[material.id] = Math.max(0, country.materialStocks[material.id] - sold);
+          country.tradeBalance += revenue; country.grossExports += revenue; country.finalGoodsRevenue += revenue;
+        }
+      });
+    }
+    MATERIAL_IDS.forEach((id) => {
+      country.materialStocks[id] = round(country.materialStocks[id], 3);
+      country.materialConsumption[id] = round(country.materialConsumption[id], 3);
+    });
+    country.tradeBalance = round(country.tradeBalance, 3);
+    country.grossExports = round(country.grossExports, 3);
+    country.finalGoodsRevenue = round(country.finalGoodsRevenue, 3);
+  }
+
+  function constructionLaborProfile(country, definition) {
+    const workers = demographicSnapshot(country);
+    const unemployedK = workers.unemployed * 1000;
+    const availableK = unemployedK + workers.employed * 2.2;
+    const availability = clamp(0.66 + availableK / Math.max(1, definition.laborNeed) * 0.035, 0.66, 1.35);
+    const skillMatch = clamp(0.58 + country.education / Math.max(45, definition.skillNeed * 1.35), 0.62, 1.34);
+    const wageIndex = clamp(Math.sqrt((country.gdp * 1000 / Math.max(country.population, 0.001)) / 20), 0.28, 2.5);
+    const skillPremium = 0.78 + definition.skillNeed / 180;
+    const monthlyCost = definition.laborNeed * 0.000035 * wageIndex * skillPremium;
+    return { availableK, availability, skillMatch, wageIndex, monthlyCost, speedMultiplier: availability * skillMatch };
+  }
+
+  function projectSpeed(country, definition) {
+    const sameSector = Math.max(1, country.projects.filter((project) => project.sector === definition.sector && project.progress < 100).length);
+    const labor = constructionLaborProfile(country, definition);
+    return clamp((100 / definition.months) * sectorEffect(country, definition.sector) * labor.speedMultiplier / sameSector, 0.18, 24);
+  }
+
+  function applyConstructionEffects(country, effects) {
+    Object.entries(effects || {}).forEach(([key, amount]) => {
+      if (key === "housing") country.housing = clamp(country.housing + amount, 20, 100);
+      else if (key === "happiness") country.happiness = clamp(country.happiness + amount, 0, 100);
+      else if (key === "immigration") country.migrationAttraction = clamp(country.migrationAttraction + amount, -5, 8);
+      else if (key === "tourism") country.tourismPotential += amount;
+      else if (key === "tradeCapacity") country.tradeCapacity += amount;
+      else if (key === "foodCapacity") country.foodCapacity += amount;
+      else if (key === "industryCapacity") country.industryCapacity += amount;
+      else if (key === "energyCapacity") country.energyCapacity += amount;
+      else if (key === "materialMachinery") country.materialMachinery += amount;
+      else if (key === "health") country.health = clamp(country.health + amount, 20, 100);
+      else if (key === "mortality") country.mortality = clamp(country.mortality + amount, 2, 22);
+      else if (key === "jobs") country.unemployment = clamp(country.unemployment - amount, 1.2, 42);
+      else if (key === "infrastructure") country.infrastructure = clamp(country.infrastructure + amount, 20, 100);
+      else if (key === "education") country.education = clamp(country.education + amount, 25, 100);
+      else if (key === "productivity") country.productivity = clamp(country.productivity + amount, 35, 150);
+      else if (key === "stability") country.stability = clamp(country.stability + amount, 0, 100);
+    });
+  }
+
+  function advanceProjects(country, state) {
+    country.projects.forEach((project) => {
+      if (project.progress >= 100) return;
+      const definition = getConstructionDefinition(project.typeId);
+      const desired = Math.min(100 - project.progress, projectSpeed(country, definition));
+      let stockRatio = 1;
+      const blocked = [];
+      MATERIAL_IDS.forEach((id) => {
+        const need = (project.requirements[id] || 0) * desired / 100;
+        if (need <= 0) return;
+        stockRatio = Math.min(stockRatio, country.materialStocks[id] / need);
+        if (country.materialStocks[id] + 0.001 < need) blocked.push(id);
+      });
+      const actual = desired * clamp(stockRatio, 0, 1);
+      project.blockedBy = actual < desired * 0.98 ? blocked : [];
+      if (actual < 0.01) return;
+      MATERIAL_IDS.forEach((id) => {
+        const used = (project.requirements[id] || 0) * actual / 100;
+        country.materialStocks[id] = round(Math.max(0, country.materialStocks[id] - used), 2);
+        project.consumed[id] = round((project.consumed[id] || 0) + used, 2);
+        country.materialConsumption[id] = round((country.materialConsumption[id] || 0) + used, 3);
+      });
+      project.progress = round(Math.min(100, project.progress + actual), 2);
+      project.monthsActive += 1;
+      const labor = constructionLaborProfile(country, definition);
+      const baseCost = project.baseCost === undefined ? project.totalCost : project.baseCost;
+      const monthlyCost = baseCost * actual / 100 + labor.monthlyCost * actual / Math.max(desired, 0.01);
+      project.spent = round(project.spent + monthlyCost, 3);
+      project.laborSpent = round((project.laborSpent || 0) + labor.monthlyCost * actual / Math.max(desired, 0.01), 3);
+      country.debt = clamp(country.debt + monthlyCost / Math.max(1, country.gdp) * 100, 0, 260);
+      if (project.progress >= 99.999) {
+        project.progress = 100;
+        project.completedAt = monthLabel(state.date);
+        country.buildings[definition.id] = (country.buildings[definition.id] || 0) + 1;
+        applyConstructionEffects(country, definition.effects);
+        if (definition.housingUnits) country.housingStock.new += definition.housingUnits;
+        if (definition.housingRepairUnits) {
+          const repaired = Math.min(country.housingStock.repair, definition.housingRepairUnits);
+          country.housingStock.repair -= repaired; country.housingStock.normal += repaired;
+        }
+        if (definition.energyOutput) country.electricityGenerationTWh += definition.energyOutput;
+        addActivity(state, "construction", `${country.name} completa ${definition.label.toLowerCase()}.`, country.id);
+      }
+    });
+    // Conservar todas las obras activas, incluso tras décadas de construcción.
+    const recentCompleted = country.projects.filter((project) => project.progress >= 100).slice(-40);
+    country.projects = country.projects.filter((project) => project.progress < 100 || recentCompleted.includes(project));
+  }
+
+  function simulateHousing(country) {
+    const stock = country.housingStock;
+    const ageing = stock.new / 60;
+    const deteriorationRate = clamp(0.00055 - (country.infrastructure - 55) * 0.0000035 - (sectorEffect(country, "infrastructure") - 1.4) * 0.000045, 0.00012, 0.0008);
+    const deteriorated = stock.normal * deteriorationRate;
+    stock.new = Math.max(0, stock.new - ageing);
+    stock.normal = Math.max(0, stock.normal + ageing - deteriorated);
+    stock.repair = Math.max(0, stock.repair + deteriorated);
+    const needed = country.population / 3.2;
+    country.housing = clamp((stock.new + stock.normal) / Math.max(needed, 0.00001) * 100, 20, 100);
+    Object.keys(stock).forEach((key) => { stock[key] = round(stock[key], 4); });
+  }
+
+  function weightedEvent(state) {
+    const total = DATA.events.reduce((sum, item) => sum + item.weight, 0);
+    let roll = random(state) * total;
+    for (const item of DATA.events) { roll -= item.weight; if (roll <= 0) return item; }
+    return DATA.events[DATA.events.length - 1];
+  }
+
+  function updateWorldEvents(state) {
+    state.worldEvents = (state.worldEvents || []).map((item) => ({ ...item, remaining: item.remaining - 1 })).filter((item) => item.remaining > 0);
+    Object.values(state.countries).forEach((country) => {
+      country.cycleShock = clamp(country.cycleShock * 0.76 + (random(state) - 0.5) * 1.65, -4.5, 4.5);
+      country.eventMigrationPush = 0;
+    });
+    state.globalGrowthShock = clamp(state.globalGrowthShock * 0.82 + (random(state) - 0.5) * 1.05, -2.8, 2.8);
+    state.monthsSinceWorldEvent = (state.monthsSinceWorldEvent || 0) + 1;
+    if (state.worldEvents.length < 3 && state.monthsSinceWorldEvent >= 4 && random(state) < 0.085) {
+      const definition = weightedEvent(state);
+      const candidates = DATA.countries.filter((country) => !(definition.exclude || []).includes(country.id));
+      const target = pick(state, candidates);
+      const duration = definition.duration[0] + Math.floor(random(state) * (definition.duration[1] - definition.duration[0] + 1));
+      const event = { id: `event-${state.tick}-${definition.id}`, type: definition.type, definitionId: definition.id,
+        title: definition.title, summary: definition.summary, scope: definition.scope, region: definition.scope === "region" ? target.region : null,
+        countryId: definition.scope === "country" ? target.id : null, impact: clone(definition.impact), remaining: duration, startedAt: monthLabel(state.date) };
+      state.worldEvents.push(event); state.eventHistory.unshift(clone(event)); state.eventHistory = state.eventHistory.slice(0, 60);
+      const affected = Object.values(state.countries).filter((country) => event.scope === "global" || (event.scope === "region" && country.region === event.region) || country.id === event.countryId);
+      affected.forEach((country) => {
+        if (event.impact.infrastructure) country.infrastructure = clamp(country.infrastructure + event.impact.infrastructure, 20, 100);
+        if (event.impact.populationLoss) country.population *= 1 - event.impact.populationLoss;
+        if (event.impact.housingDamage) {
+          const damage = country.housingStock.normal * event.impact.housingDamage;
+          country.housingStock.normal -= damage; country.housingStock.repair += damage;
+        }
+      });
+      const location = event.scope === "global" ? "el mundo" : event.scope === "region" ? event.region : target.name;
+      addActivity(state, definition.type, `${definition.title} en ${location}: ${definition.summary}`, target.id);
+      state.monthsSinceWorldEvent = 0;
+    }
+    const displaced = state.worldEvents.reduce((sum, event) => sum + Number(event.impact.migrationPush || 0), 0);
+    Object.values(state.countries).sort((a, b) => (b.happiness + b.stability - b.unemployment) - (a.happiness + a.stability - a.unemployment)).slice(0, 3)
+      .forEach((country, index) => { country.eventMigrationPush = displaced * (0.28 - index * 0.06); });
+  }
+
+  function simulateCountry(country, state) {
+    const bonuses = leaderBonuses(country);
+    const previousGdp = country.gdp;
+    const previousUnemployment = country.unemployment;
+    const subsidyBurden = DATA.sectors.reduce((sum, sector) => sum + country.budget[sector.id] * country.subsidies[sector.id] / 1000, 0);
+    country.taxRevenueBreakdown = calculateTaxBreakdown(country);
+    const revenueRate = Math.max(0, country.taxRevenueBreakdown.total + (bonuses.efficiency || 0) * 0.12);
+    country.revenueRate = round(revenueRate, 2);
+    const fiscalBalance = revenueRate - country.spendingTarget - subsidyBurden;
+    const tradeImpulse = clamp(country.tradeBalance / Math.max(country.gdp, 1) * 95, -1.8, 1.8);
+    const educationDrive = (country.budget.education - 15) * 0.035 + (bonuses.education || 0) * 0.035 + country.education / 4000;
+    const industryDrive = (country.budget.industry - 10) * 0.04 + (country.labor.industry - 18) * 0.025 + (bonuses.industry || 0) * 0.055 + country.industryCapacity * 0.018;
+    const infrastructureDrive = (country.infrastructure - 65) * 0.012 + (bonuses.infrastructure || 0) * 0.04 + country.tradeCapacity * 0.008;
+    const taxGrowthEffect = -(country.taxes.vat - 18) * 0.012 - (country.taxes.income - 28) * 0.01 - country.taxes.exports * 0.012 + country.taxes.imports * 0.004;
+    const inflationDrag = Math.max(0, country.inflation - 5) * 0.022;
+    const unemploymentDrag = Math.max(0, country.unemployment - 6) * 0.07;
+    const eventEffects = activeEventEffects(country, state);
+    const growth = clamp(country.baseGrowth + state.globalGrowthShock + country.cycleShock + eventEffects.growth + educationDrive + industryDrive + infrastructureDrive + tradeImpulse + taxGrowthEffect - inflationDrag - unemploymentDrag, -12, 14);
+    country.growth = round(growth, 2);
+    country.gdp = Math.max(0.05, country.gdp * (1 + growth / 1200));
+    const employmentPulse = (2.5 - growth) * 0.012 - (sectorEffect(country, "infrastructure") - 1.5) * 0.018 - country.projects.filter((project) => project.progress < 100).length * 0.012;
+    country.unemployment = clamp(country.unemployment + employmentPulse, 1.2, 42);
+    const energyMove = (state.market.prices.energy / state.market.previousPrices.energy - 1) * 6;
+    const taxPricePressure = (country.taxes.vat - 18) * 0.012 + country.taxes.imports * 0.018;
+    const structuralInflation = clamp(2.4 + Math.max(0, country.spendingTarget + subsidyBurden - revenueRate) * 0.34 - Math.max(0, country.productivity - 80) * 0.008 + taxPricePressure - eventEffects.food * 4, 1, 35);
+    country.inflation = clamp(country.inflation + (structuralInflation - country.inflation) * 0.035 + energyMove, 0.2, 250);
+    country.education = clamp(country.education + (sectorEffect(country, "education") - 1.5) * 0.04 + (bonuses.education || 0) * 0.006, 25, 100);
+    country.health = clamp(country.health + (sectorEffect(country, "health") - 1.45) * 0.035, 25, 100);
+    country.infrastructure = clamp(country.infrastructure + (sectorEffect(country, "infrastructure") - 1.45) * 0.035 + (bonuses.infrastructure || 0) * 0.007, 20, 100);
+    country.productivity = clamp(country.productivity + (country.education - 65) * 0.0016 + (country.infrastructure - 60) * 0.0012, 35, 150);
+    country.taxEfficiency = clamp(country.taxEfficiency, 0.35, 0.98);
+    const taxSocialEffect = country.taxes.inheritance * 0.015 - country.taxes.vat * 0.01;
+    const happinessTarget = clamp(52 + (country.education - 65) * 0.13 + (country.health - 65) * 0.14 + (country.infrastructure - 60) * 0.1 + (country.housing - 60) * 0.14 - Math.max(0, country.unemployment - 6) * 0.55 - Math.max(0, country.inflation - 5) * 0.17 + taxSocialEffect, 10, 92);
+    country.happiness = clamp(country.happiness + (happinessTarget - country.happiness) * 0.055, 0, 100);
+    const tourismTarget = Math.max(0.05, country.population * 0.018 * (0.5 + country.infrastructure / 130) * (0.5 + country.stability / 140) + country.tourismPotential);
+    country.tourism = Math.max(0, country.tourism + (tourismTarget - country.tourism) * 0.08);
+    const migrationPull = (country.happiness - 52) * 0.055 + (country.housing - 55) * 0.035 + (8 - country.unemployment) * 0.06 + country.migrationAttraction + country.eventMigrationPush;
+    country.migration = clamp(country.migration + (country.baseMigration + migrationPull - country.migration) * 0.07, -12, 16);
+    simulateDemographics(country, state);
+    simulateHousing(country);
+    country.electricityDemandTWh = Math.max(0.01, country.electricityDemandTWh * (1 + Math.max(-5, growth) / 24000 + country.demographicFlows.births / Math.max(country.population, 0.001) * 0.08));
+    country.fiscalBalance = round(fiscalBalance, 2);
+    settleTreasury(country, fiscalBalance, growth, bonuses.debtPressure || 0);
+    const servicesApproval = ((country.budget.education + country.budget.health) - 35) * 0.012 + (bonuses.welfare || 0) * 0.012;
+    const economyApproval = (growth - 2) * 0.025 - Math.max(0, country.inflation - 6) * 0.008 - Math.max(0, country.unemployment - 8) * 0.015;
+    const fiscalConcern = Math.max(0, -fiscalBalance - 6) * 0.025 + Math.max(0, country.debt - 130) * 0.004;
+    const laborChange = previousUnemployment - country.unemployment;
+    const approvalRegression = (50 - country.popularity) * 0.01;
+    country.popularity = clamp(country.popularity + approvalRegression + servicesApproval + economyApproval + laborChange * 0.35 + (country.happiness - 50) * 0.006 - fiscalConcern - country.policyShock, 0, 100);
+    country.policyShock *= 0.55;
+    country.stability = clamp(country.stability + growth * 0.015 - Math.max(0, country.unemployment - 12) * 0.018 - Math.max(0, country.inflation - 12) * 0.008 + (bonuses.stability || 0) * 0.008, 0, 100);
+    if (country.popularity < 18) country.lowPopularityMonths += 1;
+    else country.lowPopularityMonths = Math.max(0, country.lowPopularityMonths - 1);
+    ["gdp", "population", "education", "health", "unemployment", "infrastructure", "housing", "happiness", "tourism", "migration", "debt", "inflation", "popularity", "stability", "productivity", "reserves", "electricityDemandTWh", "electricityGenerationTWh", "cycleShock"].forEach((key) => {
+      const digits = key === "population" || key === "gdp" ? 6 : key === "reserves" ? 5 : 2;
+      country[key] = round(country[key], digits);
+    });
+    country.lastGdpDelta = round(country.gdp - previousGdp, 6);
+  }
+
+  function settleTreasury(country, fiscalBalance, growth, debtPressure) {
+    const gdp = Math.max(country.gdp, 0.000001);
+    const fiscalCashFlow = gdp * fiscalBalance / 1200;
+    const tradeReserveFlow = (Number(country.tradeBalance) || 0) * 0.08;
+    const previousReserves = Number(country.reserves) || 0;
+    let reserves = previousReserves + tradeReserveFlow;
+    let debt = clamp((Number(country.debt) || 0) - (Number(growth) || 0) * (Number(country.debt) || 0) / 1200 + (Number(debtPressure) || 0) / 24, 0, 260);
+    let debtPayment = 0;
+    let newDebt = 0;
+
+    if (fiscalCashFlow >= 0) {
+      let available = fiscalCashFlow;
+      const reserveRecovery = Math.min(available, Math.max(0, -reserves));
+      reserves += reserveRecovery;
+      available -= reserveRecovery;
+      debtPayment = Math.min(available, debt * gdp / 100);
+      debt -= debtPayment / gdp * 100;
+      reserves += available - debtPayment;
+    } else {
+      let deficit = -fiscalCashFlow;
+      const reserveUse = Math.min(deficit, Math.max(0, reserves));
+      reserves -= reserveUse;
+      deficit -= reserveUse;
+      newDebt = deficit;
+      debt += newDebt / gdp * 100;
+    }
+
+    country.debt = round(clamp(debt, 0, 260), 5);
+    country.reserves = round(reserves, 5);
+    country.fiscalCashFlowMonthly = round(fiscalCashFlow, 5);
+    country.tradeReserveFlowMonthly = round(tradeReserveFlow, 5);
+    country.treasuryFlowMonthly = round(fiscalCashFlow + tradeReserveFlow, 5);
+    country.reserveChangeMonthly = round(reserves - previousReserves, 5);
+    country.debtPaymentFromSurplus = round(debtPayment, 5);
+    country.newDebtFromDeficit = round(newDebt, 5);
+    return {
+      fiscalCashFlow: country.fiscalCashFlowMonthly,
+      tradeReserveFlow: country.tradeReserveFlowMonthly,
+      treasuryFlow: country.treasuryFlowMonthly,
+      reserveChange: country.reserveChangeMonthly,
+      debtPayment: country.debtPaymentFromSurplus,
+      newDebt: country.newDebtFromDeficit
+    };
+  }
+
+  function transferShare(allocation, fromId, toId, amount) {
+    const movable = Math.min(amount, Math.max(0, allocation[fromId] - MIN_SHARE));
+    allocation[fromId] = round(allocation[fromId] - movable, 1);
+    allocation[toId] = round(allocation[toId] + movable, 1);
+  }
+
+  function simulateAI(country, state) {
+    if (state.tick % 3 !== 0 || country.id === state.playerCountryId) return;
+    if (country.unemployment > 10) transferShare(country.budget, "security", "infrastructure", 0.8);
+    if (country.inflation > 9) country.spendingTarget = clamp(country.spendingTarget - 0.5, 24, 52);
+    if (country.growth < 1) transferShare(country.budget, "services", "industry", 0.6);
+    if (country.education < 68) transferShare(country.budget, "security", "education", 0.5);
+    if (country.infrastructure < 60) transferShare(country.labor, "services", "infrastructure", 0.5);
+    if (random(state) < 0.28) {
+      const sectorA = pick(state, DATA.sectors).id;
+      const sectorB = pick(state, DATA.sectors).id;
+      if (sectorA !== sectorB) transferShare(country.budget, sectorA, sectorB, 0.3);
+    }
+  }
+
+  function advanceDate(state) {
+    state.date.month += 1;
+    if (state.date.month > 12) { state.date.month = 1; state.date.year += 1; }
+  }
+
+  function captureHistory(state) {
+    const country = state.countries[state.playerCountryId];
+    state.history.push({ tick: state.tick, date: monthLabel(state.date), gdp: country.gdp,
+      growth: country.growth, population: country.population, education: country.education,
+      unemployment: country.unemployment, infrastructure: country.infrastructure, debt: country.debt,
+      inflation: country.inflation, popularity: country.popularity, stability: country.stability,
+      happiness: country.happiness, tourism: country.tourism, migration: country.migration,
+      workers: country.demographics.workers, children: country.demographics.children,
+      retired: country.demographics.retired, taxRevenue: country.revenueRate,
+      tradeBalance: country.tradeBalance });
+    state.history = state.history.slice(-120);
+  }
+
+  function calculateScore(state) {
+    const current = state.countries[state.playerCountryId];
+    const initial = state.history[0];
+    const gdpGain = (current.gdp / initial.gdp - 1) * 100;
+    const completed = sumValues(current.buildings);
+    return Math.max(0, Math.round(current.popularity * 6 + current.stability * 3 + current.happiness * 3 + gdpGain * 8 + completed * 18 - Math.max(0, current.debt - initial.debt) * 3));
+  }
+
+  function bankruptcyRisk(country, projectedDebt, projectedPayment) {
+    const debt = Number.isFinite(projectedDebt) ? projectedDebt : country.debt;
+    const payment = Number.isFinite(projectedPayment) ? projectedPayment : (country.debtServiceMonthly || 0);
+    const reserveShare = country.reserves / Math.max(country.gdp, 0.000001) * 100;
+    const annualServiceShare = payment * 12 / Math.max(country.gdp, 0.000001) * 100;
+    const score = clamp(Math.max(0, debt - 45) * 0.42 + Math.max(0, -(country.fiscalBalance || 0)) * 4.5 +
+      Math.max(0, 3 - reserveShare) * 6 + annualServiceShare * 3.5, 0, 100);
+    const band = score < 25 ? ["Bajo", "low"] : score < 50 ? ["Moderado", "moderate"] : score < 75 ? ["Alto", "high"] : ["Crítico", "critical"];
+    const reasons = [];
+    if (debt >= 100) reasons.push(`deuda proyectada de ${round(debt, 1)}% del PBI`);
+    if (country.fiscalBalance < -5) reasons.push(`déficit fiscal de ${round(country.fiscalBalance, 1)}%`);
+    if (reserveShare < 3) reasons.push("reservas inferiores al 3% del PBI");
+    if (annualServiceShare > 5) reasons.push(`servicio anual equivalente al ${round(annualServiceShare, 1)}% del PBI`);
+    return { score: round(score, 1), level: band[0], tone: band[1], reserveShare: round(reserveShare, 2), annualServiceShare: round(annualServiceShare, 2), reasons };
+  }
+
+  function loanPreview(state, optionId) {
+    const option = LOAN_OPTIONS.find((item) => item.id === optionId);
+    if (!option) throw new Error("Préstamo no válido.");
+    const country = state.countries[state.playerCountryId];
+    const amount = country.gdp * option.principalShare;
+    const principalPayment = amount / option.months;
+    const firstPayment = principalPayment + amount * option.annualRate / 1200;
+    const projectedDebt = country.debt + option.principalShare * 100;
+    const projectedPayment = (country.debtServiceMonthly || 0) + firstPayment;
+    return { ...option, amount: round(amount, 6), principalPayment: round(principalPayment, 6), firstPayment: round(firstPayment, 6),
+      projectedDebt: round(projectedDebt, 2), projectedPayment: round(projectedPayment, 6), risk: bankruptcyRisk(country, projectedDebt, projectedPayment) };
+  }
+
+  function takeLoan(state, optionId) {
+    if (state.gameOver) throw new Error("La partida terminó.");
+    const country = state.countries[state.playerCountryId];
+    if ((country.loans || []).length >= 5) throw new Error("El país ya tiene cinco préstamos activos.");
+    const preview = loanPreview(state, optionId);
+    const loan = { id: `loan-${country.nextLoanId++}`, optionId, label: preview.label, originalPrincipal: preview.amount,
+      outstanding: preview.amount, annualRate: preview.annualRate, originalMonths: preview.months, remainingMonths: preview.months,
+      startedAt: monthLabel(state.date), lastPayment: 0 };
+    country.loans.push(loan);
+    country.reserves = round(country.reserves + preview.amount, 6);
+    country.debt = round(clamp(country.debt + preview.principalShare * 100, 0, 300), 4);
+    country.debtServiceMonthly = round((country.debtServiceMonthly || 0) + preview.firstPayment, 6);
+    country.popularity = clamp(country.popularity - (preview.risk.tone === "critical" ? 2 : preview.risk.tone === "high" ? 0.8 : 0.2), 0, 100);
+    addActivity(state, "loan", `${country.name} toma ${preview.label.toLowerCase()} por ${round(preview.amount, 6)} mil millones de dólares.`, country.id);
+    return { loan: clone(loan), preview };
+  }
+
+  function serviceLoans(country) {
+    if (!Array.isArray(country.loans) || !country.loans.length) { country.debtServiceMonthly = 0; return; }
+    let totalPayment = 0;
+    let totalPrincipal = 0;
+    country.loans.forEach((loan) => {
+      const principal = Math.min(loan.outstanding, loan.originalPrincipal / loan.originalMonths);
+      const interest = loan.outstanding * loan.annualRate / 1200;
+      const payment = principal + interest;
+      loan.outstanding = Math.max(0, loan.outstanding - principal);
+      loan.remainingMonths = Math.max(0, loan.remainingMonths - 1);
+      loan.lastPayment = round(payment, 6);
+      totalPayment += payment;
+      totalPrincipal += principal;
+    });
+    country.reserves -= totalPayment;
+    country.debt = clamp(country.debt - totalPrincipal / Math.max(country.gdp, 0.000001) * 100, 0, 300);
+    country.loans = country.loans.filter((loan) => loan.remainingMonths > 0 && loan.outstanding > 0.0000001);
+    country.debtServiceMonthly = round(country.loans.reduce((sum, loan) => sum + loan.outstanding / Math.max(1, loan.remainingMonths) + loan.outstanding * loan.annualRate / 1200, 0), 6);
+  }
+
+  function evaluateGame(state) {
+    const country = state.countries[state.playerCountryId];
+    if (country.lowPopularityMonths >= 4) state.gameOver = { won: false, title: "Gobierno sin respaldo", detail: "Cuatro meses bajo 18% de apoyo terminaron con tu mandato." };
+    else if (country.debt > 205 && country.reserves <= 0) state.gameOver = { won: false, title: "Cesación de pagos", detail: "La deuda y la falta de reservas bloquearon el funcionamiento del Estado." };
+  }
+
+  function advanceTick(state) {
+    if (state.gameOver) return state;
+    state.tick += 1;
+    updateWorldEvents(state);
+    const demandShock = (state.worldEvents || []).reduce((sum, event) => sum + (event.scope === "global" ? Number(event.impact.demand || 0) : Number(event.impact.demand || 0) * 0.18), 0);
+    state.globalDemand = clamp(state.globalDemand * 0.84 + (0.96 + random(state) * 0.09 + demandShock) * 0.16, 0.72, 1.22);
+    simulateMarkets(state);
+    Object.values(state.countries).forEach((country) => {
+      produceMaterials(country, state);
+      advanceProjects(country, state);
+      serviceLoans(country);
+      simulateCountry(country, state);
+      simulateAI(country, state);
+    });
+    simulateResourcePrices(state);
+    advanceDate(state);
+    captureHistory(state);
+    evaluateGame(state);
+    return state;
+  }
+
+  function normalizeAllocation(allocation) {
+    const normalized = {};
+    DATA.sectors.forEach((sector) => { normalized[sector.id] = clamp(Number(allocation[sector.id]) || 0, MIN_SHARE, 65); });
+    const scale = 100 / sumValues(normalized);
+    DATA.sectors.forEach((sector) => { normalized[sector.id] = round(normalized[sector.id] * scale, 1); });
+    normalized.services = round(normalized.services + (100 - sumValues(normalized)), 1);
+    return normalized;
+  }
+
+  function applyAllocations(state, input) {
+    if (state.gameOver) throw new Error("La partida terminó.");
+    const country = state.countries[state.playerCountryId];
+    const budget = normalizeAllocation(input.budget || country.budget);
+    const labor = normalizeAllocation(input.labor || country.labor);
+    const subsidies = {};
+    DATA.sectors.forEach((sector) => { subsidies[sector.id] = round(clamp(Number((input.subsidies || country.subsidies)[sector.id]) || 0, 0, 60), 1); });
+    const movement = DATA.sectors.reduce((total, sector) => total + Math.abs(budget[sector.id] - country.budget[sector.id]) + Math.abs(labor[sector.id] - country.labor[sector.id]) + Math.abs(subsidies[sector.id] - country.subsidies[sector.id]) * 0.25, 0);
+    country.budget = budget; country.labor = labor; country.subsidies = subsidies;
+    country.spendingTarget = clamp(Number(input.spendingTarget) || country.spendingTarget, 22, 58);
+    country.policyShock = clamp(movement / 180, 0, 0.7);
+    addActivity(state, "policy", `El gobierno de ${country.name} actualiza presupuesto, empleo sectorial y subsidios.`, country.id);
+    return state;
+  }
+
+  function applyTaxes(state, input) {
+    if (state.gameOver) throw new Error("La partida terminó.");
+    const country = state.countries[state.playerCountryId];
+    const preview = estimateTaxes(state, input);
+    const movement = DATA.taxes.reduce((sum, tax) => sum + Math.abs(preview.rates[tax.id] - country.taxes[tax.id]), 0);
+    country.taxes = preview.rates;
+    country.taxRevenueBreakdown = preview.breakdown;
+    country.policyShock = clamp(country.policyShock + movement / 130, 0, 0.9);
+    addActivity(state, "tax", `El gobierno de ${country.name} actualiza el esquema impositivo nacional.`, country.id);
+    return state;
+  }
+
+  function constructionPreview(state, constructionId) {
+    const definition = getConstructionDefinition(constructionId);
+    if (!definition) throw new Error("Construcción no válida.");
+    const country = state.countries[state.playerCountryId];
+    const labor = constructionLaborProfile(country, definition);
+    const estimatedMonths = definition.months / Math.max(0.2, sectorEffect(country, definition.sector) * labor.speedMultiplier);
+    const laborCost = labor.monthlyCost * estimatedMonths;
+    return { baseCost: definition.fixedCost, laborCost: round(laborCost, 3), totalCost: round(definition.fixedCost + laborCost, 3),
+      speed: round(projectSpeed(country, definition), 2), estimatedMonths: round(estimatedMonths, 1), laborNeed: definition.laborNeed,
+      laborAvailability: round(labor.availability * 100, 0), skillMatch: round(labor.skillMatch * 100, 0), wageIndex: round(labor.wageIndex, 2),
+      energyShare: definition.energyOutput ? round(definition.energyOutput / Math.max(country.electricityDemandTWh, 0.001) * 100, 2) : null,
+      requirements: clone(definition.requirements), unlocks: clone(definition.unlocks || []) };
+  }
+
+  function queueConstruction(state, constructionId) {
+    if (state.gameOver) throw new Error("La partida terminó.");
+    const definition = getConstructionDefinition(constructionId);
+    if (!definition) throw new Error("Construcción no válida.");
+    const country = state.countries[state.playerCountryId];
+    if (country.projects.filter((project) => project.progress < 100).length >= 8) throw new Error("La cartera admite hasta ocho obras activas.");
+    const preview = constructionPreview(state, constructionId);
+    const project = { id: `project-${country.nextProjectId++}`, typeId: definition.id, sector: definition.sector,
+      startedAt: monthLabel(state.date), progress: 0, monthsActive: 0, baseCost: preview.baseCost, estimatedLaborCost: preview.laborCost, totalCost: preview.totalCost,
+      spent: 0, laborSpent: 0, requirements: clone(definition.requirements), consumed: blankByMaterial(0),
+      blockedBy: [], completedAt: null };
+    country.projects.push(project);
+    addActivity(state, "construction", `${country.name} inicia ${definition.label.toLowerCase()}.`, country.id);
+    return project;
+  }
+
+  function tradeResource(state, materialId, direction, requestedQuantity) {
+    const material = DATA.materials.find((item) => item.id === materialId);
+    if (!material) throw new Error("Recurso no válido.");
+    if (!['buy', 'sell'].includes(direction)) throw new Error("Operación de recursos no válida.");
+    if (state.gameOver) throw new Error("La partida terminó.");
+    const country = state.countries[state.playerCountryId];
+    const limit = direction === 'buy' ? Math.max(0, country.materialCapacity[material.id] - country.materialStocks[material.id]) : country.materialStocks[material.id];
+    if (limit < 0.001) throw new Error(direction === 'buy' ? "El depósito de este recurso está lleno." : "No hay existencias para vender.");
+    const fallback = Math.max(0.1, country.materialCapacity[material.id] * 0.1);
+    const numeric = requestedQuantity === undefined ? fallback : Number(requestedQuantity);
+    if (!Number.isFinite(numeric) || numeric <= 0) throw new Error("La cantidad debe ser un número mayor que cero.");
+    const quantity = Math.min(limit, numeric);
+    const price = state.market.resourcePrices[material.id] || material.value;
+    const taxRate = direction === 'buy' ? country.taxes.imports : country.taxes.exports;
+    const grossValue = quantity * price;
+    const netValue = direction === 'buy' ? grossValue * (1 + taxRate / 100) : grossValue * (1 - taxRate / 100);
+    if (direction === 'buy') {
+      country.materialStocks[material.id] = round(country.materialStocks[material.id] + quantity, 3);
+      country.grossImports = round(country.grossImports + netValue, 3); country.tradeBalance = round(country.tradeBalance - netValue, 3);
+      country.reserves = round(country.reserves - netValue, 3);
+      if (country.reserves < 0) country.debt = clamp(country.debt + netValue / Math.max(country.gdp, 0.05) * 100, 0, 260);
+    } else {
+      country.materialStocks[material.id] = round(country.materialStocks[material.id] - quantity, 3);
+      country.grossExports = round(country.grossExports + grossValue, 3); country.tradeBalance = round(country.tradeBalance + grossValue, 3);
+      country.reserves = round(country.reserves + netValue, 3);
+    }
+    const verb = direction === 'buy' ? 'compra' : 'vende';
+    addActivity(state, "trade", `${country.name} ${verb} ${round(quantity, 2)} unidades de ${material.label.toLowerCase()} a precio de mercado.`, country.id);
+    return { direction, quantity: round(quantity, 3), unitPrice: round(price, 5), grossValue: round(grossValue, 3), netValue: round(netValue, 3), taxRate };
+  }
+
+  function importResource(state, materialId, quantity) {
+    const result = tradeResource(state, materialId, 'buy', quantity);
+    return { ...result, cost: result.netValue };
+  }
+
+  function sellResource(state, materialId, quantity) {
+    const result = tradeResource(state, materialId, 'sell', quantity);
+    return { ...result, revenue: result.netValue };
+  }
+
+  function ensureCountryV4(country, definition) {
+    const fresh = toCountryState(definition);
+    Object.keys(fresh).forEach((key) => { if (country[key] === undefined || country[key] === null) country[key] = clone(fresh[key]); });
+    country.subsidies = { ...fresh.subsidies, ...(country.subsidies || {}) };
+    country.materialStocks = { ...fresh.materialStocks, ...(country.materialStocks || {}) };
+    country.materialCapacity = { ...fresh.materialCapacity, ...(country.materialCapacity || {}) };
+    country.materialProduction = { ...fresh.materialProduction, ...(country.materialProduction || {}) };
+    country.materialConsumption = { ...fresh.materialConsumption, ...(country.materialConsumption || {}) };
+    country.buildings = { ...fresh.buildings, ...(country.buildings || {}) };
+    country.taxes = { ...fresh.taxes, ...(country.taxes || {}) };
+    country.demographics = { ...fresh.demographics, ...(country.demographics || {}) };
+    country.taxRevenueBreakdown = { ...fresh.taxRevenueBreakdown, ...(country.taxRevenueBreakdown || {}) };
+    country.projects = Array.isArray(country.projects) ? country.projects : [];
+    country.loans = Array.isArray(country.loans) ? country.loans : [];
+    country.nextLoanId = Number.isSafeInteger(country.nextLoanId) ? country.nextLoanId : country.loans.length + 1;
+    country.debtServiceMonthly = Number.isFinite(country.debtServiceMonthly) ? country.debtServiceMonthly : 0;
+    country.projects.forEach((project) => {
+      const construction = getConstructionDefinition(project.typeId);
+      if (construction && project.baseCost === undefined) project.baseCost = construction.fixedCost;
+      if (project.laborSpent === undefined) project.laborSpent = 0;
+      project.consumed = { ...blankByMaterial(0), ...(project.consumed || {}) };
+      project.requirements = { ...(construction ? construction.requirements : {}), ...(project.requirements || {}) };
+    });
+    delete country.modifiers;
+    return country;
+  }
+
+  function migrate(candidate) {
+    const state = clone(candidate);
+    if (![1, 2, 3, 4, SAVE_VERSION].includes(state.version)) throw new Error("La versión de la partida no es compatible.");
+    if (!state.playerCountryId || !state.countries || !state.countries[state.playerCountryId]) throw new Error("La partida está incompleta.");
+    DATA.countries.forEach((definition) => {
+      if (!state.countries[definition.id]) state.countries[definition.id] = toCountryState(definition);
+      else ensureCountryV4(state.countries[definition.id], definition);
+    });
+    state.activity = Array.isArray(state.activity) ? state.activity : (Array.isArray(state.events) ? state.events.filter((item) => ["briefing", "policy", "election"].includes(item.type)) : []);
+    state.eventsEnabled = true;
+    state.worldEvents = Array.isArray(state.worldEvents) ? state.worldEvents : [];
+    state.eventHistory = Array.isArray(state.eventHistory) ? state.eventHistory : [];
+    state.monthsSinceWorldEvent = Number.isFinite(state.monthsSinceWorldEvent) ? state.monthsSinceWorldEvent : 0;
+    state.globalGrowthShock = Number.isFinite(state.globalGrowthShock) ? state.globalGrowthShock : 0;
+    state.market = state.market || {};
+    state.market.prices = { ...Object.fromEntries(DATA.commodities.map((item) => [item.id, item.basePrice])), ...(state.market.prices || {}) };
+    state.market.previousPrices = { ...state.market.prices, ...(state.market.previousPrices || {}) };
+    state.market.resourcePrices = { ...Object.fromEntries(DATA.materials.map((item) => [item.id, item.value])), ...(state.market.resourcePrices || {}) };
+    state.market.previousResourcePrices = { ...state.market.resourcePrices, ...(state.market.previousResourcePrices || {}) };
+    state.market.trades = Array.isArray(state.market.trades) ? state.market.trades : [];
+    state.openEnded = true;
+    state.version = SAVE_VERSION;
+    state.gameOver = state.gameOver && !state.gameOver.won && state.gameOver.title !== "Crisis institucional" ? state.gameOver : null;
+    state.history = Array.isArray(state.history) ? state.history : [];
+    delete state.pendingDecision; delete state.monthsWithoutEvent; delete state.events;
+    return state;
+  }
+
+  function validateSave(candidate) {
+    if (!candidate || typeof candidate !== "object") throw new Error("El archivo no contiene una partida.");
+    if (![1, 2, 3, 4, SAVE_VERSION].includes(candidate.version)) throw new Error("La versión de la partida no es compatible.");
+    if (!candidate.playerCountryId || !candidate.countries || !candidate.countries[candidate.playerCountryId]) throw new Error("La partida está incompleta.");
+    if (!candidate.date || !Number.isSafeInteger(candidate.tick) || candidate.tick < 0 ||
+      !Number.isSafeInteger(candidate.date.year) || candidate.date.year < START_YEAR ||
+      !Number.isInteger(candidate.date.month) || candidate.date.month < 1 || candidate.date.month > 12) throw new Error("La fecha de la partida no es válida.");
+    if (!getLeaderDefinition(candidate.playerCountryId, candidate.playerLeaderId)) throw new Error("El país o la figura de la partida no son válidos.");
+    for (const [id, country] of Object.entries(candidate.countries)) {
+      if (!getCountryDefinition(id) || !country || country.id !== id) throw new Error("Los países de la partida no son válidos.");
+      for (const key of ["population", "gdp", "unemployment", "debt", "inflation", "popularity", "stability"]) {
+        if (!Number.isFinite(country[key])) throw new Error("Los indicadores de la partida no son válidos.");
+      }
+      if (country.population <= 0 || country.gdp <= 0) throw new Error("La población y el PBI deben ser positivos.");
+      if (country.taxes !== undefined) {
+        for (const tax of DATA.taxes) {
+          const value = country.taxes && country.taxes[tax.id];
+          if (!Number.isFinite(value) || value < tax.min || value > tax.max) throw new Error("Los impuestos de la partida no son válidos.");
+        }
+      }
+      if (country.demographics !== undefined) {
+        if (!country.demographics || !["children", "workers", "retired"].every((key) => Number.isFinite(country.demographics[key]) && country.demographics[key] >= 0) ||
+          Math.abs(sumValues(country.demographics) - 100) > 0.00001) throw new Error("La demografía de la partida no es válida.");
+      }
+    }
+    return true;
+  }
+
+  function hydrate(candidate) { validateSave(candidate); return migrate(candidate); }
+
+  return {
+    SAVE_VERSION, ENDLESS, LOAN_OPTIONS, createGame, advanceTick, applyAllocations, applyTaxes, estimateTaxes, demographicSnapshot, queueConstruction, importResource, sellResource, tradeResource,
+    bankruptcyRisk, loanPreview, takeLoan, settleTreasury,
+    constructionPreview, calculateScore, validateSave, hydrate, getCountryDefinition,
+    getLeaderDefinition, getConstructionDefinition, normalizeAllocation, monthLabel,
+    clone, clamp, sumValues
+  };
+});
