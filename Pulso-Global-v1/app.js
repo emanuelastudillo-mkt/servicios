@@ -9,6 +9,7 @@
     { id: "map", label: "Mapa mundial", icon: "◎" },
     ...DATA.sectors,
     { id: "resources", label: "Recursos y producción", icon: "▦" },
+    { id: "economy", label: "Economía y deuda", icon: "¤" },
     { id: "taxes", label: "Impuestos", icon: "$" },
     { id: "trade", label: "Comercio exterior", icon: "↔" },
     { id: "demographics", label: "Demografía", icon: "◒" },
@@ -38,6 +39,7 @@
   let panelTab = "overview";
   let focusedCountryId = null;
   let selectedCountryId = "ARG";
+  let countrySearch = "";
   let timer = null;
   let speed = 0;
   let draft = null;
@@ -109,8 +111,16 @@
   function fmt(value, digits) {
     return new Intl.NumberFormat("es-AR", { minimumFractionDigits: digits == null ? 1 : digits, maximumFractionDigits: digits == null ? 1 : digits }).format(Number(value) || 0);
   }
-  function money(value) { return `US$ ${fmt(value, Math.abs(value) < 100 ? 2 : 0)} mil M`; }
-  function resourceMoney(value) { return `US$ ${fmt(value, Math.abs(value) < 0.1 ? 4 : 3)} mil M`; }
+  function compactAbsolute(value) {
+    const numeric = Number(value) || 0; const absolute = Math.abs(numeric);
+    const unit = absolute >= 1e12 ? [1e12, "B"] : absolute >= 1e9 ? [1e9, "MM"] : absolute >= 1e6 ? [1e6, "M"] : absolute >= 1e5 ? [1e3, "k"] : absolute >= 1e3 ? [1e3, "m"] : [1, ""];
+    const scaled = numeric / unit[0]; const scaledAbs = Math.abs(scaled);
+    const digits = unit[0] === 1 ? (scaledAbs < 10 && scaledAbs !== 0 ? 2 : 0) : scaledAbs < 10 ? 2 : scaledAbs < 100 ? 1 : 0;
+    return `${fmt(scaled, digits)}${unit[1] ? ` ${unit[1]}` : ""}`;
+  }
+  function money(value) { return `US$ ${compactAbsolute((Number(value) || 0) * 1e9)}`; }
+  function resourceMoney(value) { return money(value); }
+  function people(value) { return compactAbsolute((Number(value) || 0) * 1e6); }
   function signed(value, suffix) { return `${value > 0 ? "+" : ""}${fmt(value, 1)}${suffix || ""}`; }
   function playerCountry() { return game.countries[game.playerCountryId]; }
   function playerLeader() { return Engine.getLeaderDefinition(game.playerCountryId, game.playerLeaderId); }
@@ -146,17 +156,36 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. Cada mes transforma la economía y la población.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v4.1</span><b>16 países · cadenas productivas · mercado mundial de recursos</b></div>
-        <div class="country-grid" aria-label="Países disponibles">
-          ${DATA.countries.map((country) => `
-            <button class="country-card ${country.id === selectedCountryId ? "selected" : ""}" type="button" data-action="select-country" data-country="${country.id}" aria-pressed="${country.id === selectedCountryId}">
-              <span class="flag">${country.flag}</span><span class="country-name">${e(country.name)}</span>
-              <span class="country-meta">${fmt(country.population, 2)} M habitantes · PBI ${money(country.gdp)}</span>
-            </button>`).join("")}
+        <div class="start-badge"><span>Motor económico v5.0</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
+        <div id="country-grid" class="country-grid" aria-label="Países disponibles">
+          ${renderCountryCards()}
         </div>
         <section id="leader-panel" class="leader-panel" aria-live="polite">${renderLeaderPanel(selectedCountryId)}</section>
         <p class="simulation-note">${e(DATA.disclaimer)} Las figuras representan escenarios hipotéticos de conducción.</p>
       </section>`;
+    updateCountryCount();
+  }
+
+  function filteredCountries() {
+    const query = countrySearch.trim().toLocaleLowerCase("es");
+    if (!query) return DATA.countries;
+    return DATA.countries.filter((country) => [country.name, country.id, country.region].some((value) => String(value || "").toLocaleLowerCase("es").includes(query)));
+  }
+
+  function renderCountryCards() {
+    const countries = filteredCountries();
+    if (!countries.length) return '<p class="empty-country-search">No hay países que coincidan con la búsqueda.</p>';
+    return countries.map((country) => `
+            <button class="country-card ${country.id === selectedCountryId ? "selected" : ""}" type="button" data-action="select-country" data-country="${country.id}" aria-pressed="${country.id === selectedCountryId}">
+              <span class="flag">${country.flag}</span><span class="country-name">${e(country.name)}</span>
+              <span class="country-meta">${people(country.population)} habitantes · PBI ${money(country.gdp)}</span>
+            </button>`).join("");
+  }
+
+  function updateCountryCount() {
+    const count = document.querySelector("#country-count");
+    if (count) count.textContent = `${filteredCountries().length} de ${DATA.countries.length} países`;
   }
 
   function renderLeaderPanel(countryId) {
@@ -228,7 +257,7 @@
             <div class="mobile-brand"><div class="brand-mark small"><span></span></div><strong>Pulso Global</strong></div>
             <div class="date-block"><span>Fecha de gobierno</span><strong>${e(Engine.monthLabel(game.date))}</strong></div>
             <div class="hud-stats">
-              <div class="hud-population"><span>Población</span><strong>${fmt(country.population, 2)} M</strong><small>${e(country.name)}</small></div>
+              <div class="hud-population"><span>Población</span><strong>${people(country.population)}</strong><small>${e(country.name)}</small></div>
               <div><span>PBI</span><strong>${money(country.gdp)}</strong><small class="${country.growth < 0 ? "negative" : "positive"}">${signed(country.growth, "%")}</small></div>
               <div><span>Felicidad</span><strong>${fmt(country.happiness)}%</strong><small>${fmt(country.popularity)}% apoyo</small></div>
               <div><span>Empleo</span><strong>${fmt(100 - country.unemployment)}%</strong><small>${fmt(country.unemployment)}% desocupación</small></div>
@@ -297,6 +326,7 @@
   function renderCurrentPanel() {
     if (currentView === "map") return renderMapPanel();
     if (currentView === "resources") return renderResourcesPanel();
+    if (currentView === "economy") return renderEconomyPanel();
     if (currentView === "taxes") return renderTaxesPanel();
     if (currentView === "demographics") return renderDemographicsPanel();
     if (currentView === "trade") return renderTradePanel();
@@ -316,14 +346,14 @@
         </div>
         <div class="dashboard-kpis">
           <article><span>Infraestructura</span><strong>${fmt(country.infrastructure)}/100</strong><small>Vivienda adecuada ${fmt(country.housing)}%</small></article>
-          <article><span>Turismo anual</span><strong>${fmt(country.tourism, 2)} M</strong><small>Capacidad +${fmt(country.tourismPotential, 1)}</small></article>
+          <article><span>Turismo anual</span><strong>${people(country.tourism)}</strong><small>Capacidad +${people(country.tourismPotential)}</small></article>
           <article><span>Migración neta</span><strong class="${country.migration < 0 ? "negative" : "positive"}">${signed(country.migration, "‰")}</strong><small>Natalidad ${fmt(country.birthRate)}‰</small></article>
           <article><span>Balance fiscal</span><strong class="${country.fiscalBalance < 0 ? "negative" : "positive"}">${signed(country.fiscalBalance, "%")}</strong><small>Deuda ${fmt(country.debt)}% PBI</small></article>
         </div>
         <div class="dashboard-bottom">
           <div class="focus-country">
             <span class="focus-flag">${focus.flag}</span><div><small>País seleccionado en el mapa</small><strong>${e(focus.name)}</strong><span>${e(focusLeader ? focusLeader.name : "Gobierno")}</span></div>
-            <div class="focus-numbers"><b>${fmt(focus.population, 2)} M</b><small>Habitantes</small><small>${signed(focus.growth, "%")} PBI</small></div>
+            <div class="focus-numbers"><b>${people(focus.population)}</b><small>Habitantes</small><small>${signed(focus.growth, "%")} PBI</small></div>
           </div>
           <div class="project-summary">
             <strong>${activeProjects(country).length}</strong><span>obras en ejecución</span>
@@ -345,9 +375,9 @@
       infrastructure: [["Infraestructura", `${fmt(country.infrastructure)}/100`, "Red nacional"], ["Vivienda adecuada", `${fmt(country.housing)}%`, "Nueva + normal"], ["A refaccionar", `${fmt(country.housingStock.repair, 3)} M`, "Unidades"], ["Migración", signed(country.migration, "‰"), "Saldo por mil"]],
       agriculture: [["Oferta propia", fmt(country.sectorSupply.food, 2), "Unidades de mercado"], ["Consumo", fmt(country.sectorDemand.food, 2), "Demanda interna"], ["Balance", signed(foodBalance), foodBalance < 0 ? "Déficit" : "Superávit"], ["Madera", fmt(country.materialStocks.timber, 1), `+${fmt(country.materialProduction.timber, 1)}/mes`]],
       industry: [["Oferta industrial", fmt(country.sectorSupply.manufactures, 2), "Manufacturas"], ["Balance", signed(industryBalance), industryBalance < 0 ? "Importador" : "Exportador"], ["Productividad", `${fmt(country.productivity)}/150`, "Capacidad laboral"], ["Acero", fmt(country.materialStocks.steel, 1), `+${fmt(country.materialProduction.steel, 1)}/mes`]],
-      services: [["Crecimiento", signed(country.growth, "%"), "Ritmo anualizado"], ["Turismo", `${fmt(country.tourism, 2)} M`, "Visitantes anuales"], ["Felicidad", `${fmt(country.happiness)}%`, "Bienestar percibido"], ["Logística", `+${fmt(country.tradeCapacity, 1)}`, "Capacidad adicional"]],
+      services: [["Crecimiento", signed(country.growth, "%"), "Ritmo anualizado"], ["Turismo", people(country.tourism), "Visitantes anuales"], ["Felicidad", `${fmt(country.happiness)}%`, "Bienestar percibido"], ["Logística", `+${fmt(country.tradeCapacity, 1)}`, "Capacidad adicional"]],
       education: [["Educación", `${fmt(country.education)}/100`, "Capital humano"], ["Productividad", `${fmt(country.productivity)}/150`, "Efecto acumulado"], ["Tecnología", fmt(country.sectorSupply.technology, 2), "Oferta propia"], ["Electrónica", fmt(country.materialStocks.electronics, 1), `+${fmt(country.materialProduction.electronics, 1)}/mes`]],
-      health: [["Salud", `${fmt(country.health)}/100`, "Cobertura y calidad"], ["Mortalidad", `${fmt(country.mortality)}‰`, "Por mil habitantes"], ["Felicidad", `${fmt(country.happiness)}%`, "Bienestar percibido"], ["Población", `${fmt(country.population, 2)} M`, "Habitantes"]],
+      health: [["Salud", `${fmt(country.health)}/100`, "Cobertura y calidad"], ["Mortalidad", `${fmt(country.mortality)}‰`, "Por mil habitantes"], ["Felicidad", `${fmt(country.happiness)}%`, "Bienestar percibido"], ["Población", people(country.population), "Habitantes"]],
       security: [["Estabilidad", `${fmt(country.stability)}/100`, "Gobernabilidad"], ["Popularidad", `${fmt(country.popularity)}%`, "Apoyo al gobierno"], ["Felicidad", `${fmt(country.happiness)}%`, "Confianza social"], ["Empleo", `${fmt(100 - country.unemployment)}%`, "Población activa"]],
       energy: [["Generación", `${fmt(country.electricityGenerationTWh, 1)} TWh`, "Capacidad anual"], ["Demanda", `${fmt(country.electricityDemandTWh, 1)} TWh`, "Consumo anual"], ["Cobertura", `${fmt(country.electricityGenerationTWh / country.electricityDemandTWh * 100, 1)}%`, "Oferta / demanda"], ["Combustible", fmt(country.materialStocks.fuel, 1), `+${fmt(country.materialProduction.fuel, 1)}/mes`]]
     };
@@ -464,7 +494,7 @@
     return `<section class="management-panel system-panel resource-system">
       <header class="management-heading"><div class="section-symbol">▦</div><div><p class="panel-kicker">Cadena productiva · ${e(country.name)}</p><h2>Recursos y producción</h2></div><button class="panel-close" type="button" data-action="view" data-view="map">×</button></header>
       <div class="panel-body resource-body">
-        <div class="resource-summary"><article><span>Electricidad</span><strong>${fmt(country.electricityGenerationTWh, 1)} / ${fmt(country.electricityDemandTWh, 1)} TWh</strong><small>${fmt(country.electricityGenerationTWh / country.electricityDemandTWh * 100, 1)}% de cobertura</small></article><article><span>Viviendas nuevas</span><strong>${fmt(country.housingStock.new, 3)} M</strong><small>${fmt(country.housingStock.normal, 3)} M normales</small></article><article><span>A refaccionar</span><strong>${fmt(country.housingStock.repair, 3)} M</strong><small>Se deterioran mes a mes</small></article><article><span>Ventas finales / mes</span><strong>${money(country.finalGoodsRevenue)}</strong><small>Incluye exportaciones de alto valor</small></article></div>
+        <div class="resource-summary"><article><span>Electricidad</span><strong>${fmt(country.electricityGenerationTWh, 1)} / ${fmt(country.electricityDemandTWh, 1)} TWh</strong><small>${fmt(country.electricityGenerationTWh / country.electricityDemandTWh * 100, 1)}% de cobertura</small></article><article><span>Viviendas nuevas</span><strong>${people(country.housingStock.new)}</strong><small>${people(country.housingStock.normal)} normales</small></article><article><span>A refaccionar</span><strong>${people(country.housingStock.repair)}</strong><small>Se deterioran mes a mes</small></article><article><span>Ventas finales / mes</span><strong>${money(country.finalGoodsRevenue)}</strong><small>Incluye exportaciones de alto valor</small></article></div>
         ${DATA.resourceTiers.map((tier) => `<section class="resource-tier"><div class="stock-heading"><div><p class="panel-kicker">${e(tier.label)}</p><h3>${e(tier.description)}</h3></div></div><div class="resource-tree">${DATA.materials.filter((item) => item.tier === tier.id).map((item) => {
           const stock = country.materialStocks[item.id]; const capacity = country.materialCapacity[item.id]; const pct = Math.min(100, stock / capacity * 100);
           const locked = item.unlock && !(country.buildings[item.unlock] > 0);
@@ -485,6 +515,58 @@
         <span class="project-icon">${e(definition.icon)}</span><div class="project-copy"><strong>${e(definition.label)}</strong><small>${project.progress >= 100 ? `Completada ${e(project.completedAt)}` : blocked.length ? `Falta: ${blocked.map((id) => materialById(id).label).join(", ")}` : `En obra · ${project.monthsActive} meses`}</small><div class="project-track"><i style="width:${project.progress}%"></i></div></div><b>${fmt(project.progress, 0)}%</b>
       </article>`;
     }).join("")}</div>`;
+  }
+
+  function renderEconomyPanel() {
+    const c = playerCountry();
+    const definition = Engine.getCountryDefinition(c.id);
+    const risk = Engine.bankruptcyRisk(c);
+    const subsidies = DATA.sectors.reduce((sum, sector) => sum + c.budget[sector.id] * c.subsidies[sector.id] / 1000, 0);
+    const expenditureRate = c.spendingTarget + subsidies;
+    const populationChange = (c.demographicFlows.births - c.demographicFlows.deaths + c.demographicFlows.migration) * 1e6;
+    const loanCards = Engine.LOAN_OPTIONS.map((option) => {
+      const preview = Engine.loanPreview(game, option.id);
+      return `<article class="loan-card risk-${preview.risk.tone}">
+        <div class="loan-title"><div><span>${e(option.label)}</span><strong>${money(preview.amount)}</strong></div><b>${fmt(option.annualRate, 2)}% anual</b></div>
+        <p>${e(option.description)}</p>
+        <dl><div><dt>Plazo</dt><dd>${option.months} meses</dd></div><div><dt>Primera cuota</dt><dd>${money(preview.firstPayment)}</dd></div><div><dt>Deuda resultante</dt><dd>${fmt(preview.projectedDebt)}% PBI</dd></div><div><dt>Riesgo proyectado</dt><dd>${preview.risk.level} · ${fmt(preview.risk.score, 0)}/100</dd></div></dl>
+        <button class="button ${preview.risk.tone === "critical" ? "danger" : ""}" type="button" data-action="take-loan" data-loan="${option.id}" ${c.loans.length >= 5 ? "disabled" : ""}>${preview.risk.tone === "critical" ? "Tomar con riesgo crítico" : "Pedir préstamo"}</button>
+      </article>`;
+    }).join("");
+    const activeLoans = c.loans.length ? c.loans.map((loan) => `<tr><th scope="row">${e(loan.label)}<small>Desde ${e(loan.startedAt)}</small></th><td>${money(loan.outstanding)}</td><td>${fmt(loan.annualRate, 2)}%</td><td>${loan.remainingMonths}</td><td>${money(loan.lastPayment || 0)}</td></tr>`).join("") : '<tr><td colspan="5" class="empty-table">No hay préstamos activos.</td></tr>';
+    const sourceYears = definition.dataYears ? Object.values(definition.dataYears).filter(Boolean) : [];
+    const yearRange = sourceYears.length ? `${Math.min(...sourceYears)}–${Math.max(...sourceYears)}` : "escenario base";
+    return `
+      <section class="management-panel system-panel economy-system">
+        <header class="management-heading"><div class="section-symbol">¤</div><div><p class="panel-kicker">Tesoro y cuentas nacionales · ${e(c.name)}</p><h2>Economía y deuda</h2></div><button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar economía">×</button></header>
+        <div class="panel-body economy-body">
+          <div class="economy-kpis">
+            <article><span>PBI nominal</span><strong>${money(c.gdp)}</strong><small class="${c.lastGdpDelta < 0 ? "negative" : "positive"}">${c.lastGdpDelta >= 0 ? "+" : ""}${money(c.lastGdpDelta)} este mes</small></article>
+            <article><span>PBI por habitante</span><strong>${`US$ ${compactAbsolute(c.gdp * 1000 / Math.max(c.population, 0.000001))}`}</strong><small>Escala comparable</small></article>
+            <article><span>Ingresos públicos</span><strong>${money(c.gdp * c.revenueRate / 100)}</strong><small>${fmt(c.revenueRate, 2)}% del PBI anual</small></article>
+            <article><span>Gasto público</span><strong>${money(c.gdp * expenditureRate / 100)}</strong><small>${fmt(expenditureRate, 2)}% del PBI anual</small></article>
+            <article><span>Reservas</span><strong>${money(c.reserves)}</strong><small>${fmt(risk.reserveShare, 2)}% del PBI</small></article>
+            <article><span>Cambio poblacional</span><strong class="${populationChange < 0 ? "negative" : "positive"}">${populationChange > 0 ? "+" : ""}${compactAbsolute(populationChange)}</strong><small>Nacimientos, muertes y migración del mes</small></article>
+          </div>
+          <section class="risk-banner ${risk.tone}"><div><span>Riesgo de cesación de pagos</span><strong>${e(risk.level)} · ${fmt(risk.score, 0)}/100</strong></div><p>${risk.reasons.length ? `Factores: ${e(risk.reasons.join("; "))}.` : "La posición fiscal, las reservas y el servicio de deuda son sostenibles en el escenario actual."} Una deuda superior a 205% del PBI con reservas agotadas provoca cesación de pagos.</p></section>
+          <div class="economy-ledger">
+            <section><h3>Detalle fiscal y externo</h3><dl class="economy-lines">
+              <div><dt>Balance fiscal</dt><dd class="${c.fiscalBalance < 0 ? "negative" : "positive"}">${signed(c.fiscalBalance, "% PBI")}</dd></div>
+              <div><dt>Deuda pública</dt><dd>${fmt(c.debt, 2)}% del PBI</dd></div>
+              <div><dt>Servicio mensual de préstamos</dt><dd>${money(c.debtServiceMonthly || 0)}</dd></div>
+              <div><dt>Exportaciones mensuales</dt><dd>${money(c.grossExports)}</dd></div>
+              <div><dt>Importaciones mensuales</dt><dd>${money(c.grossImports)}</dd></div>
+              <div><dt>Balance comercial mensual</dt><dd class="${c.tradeBalance < 0 ? "negative" : "positive"}">${money(c.tradeBalance)}</dd></div>
+              <div><dt>Inflación</dt><dd>${fmt(c.inflation, 2)}%</dd></div>
+              <div><dt>Desocupación</dt><dd>${fmt(c.unemployment, 2)}%</dd></div>
+            </dl></section>
+            <aside class="bankruptcy-advice"><h3>Alertas antes de endeudarte</h3><p>La cuota sale de reservas cada mes. Un déficit persistente aumenta la deuda aun sin pedir nuevos préstamos.</p><ul><li>Compará la primera cuota con reservas y balance fiscal.</li><li>Las líneas de emergencia son caras y concentran pagos.</li><li>Invertir el crédito sin mejorar ingresos puede acelerar la insolvencia.</li></ul><span>Base de datos del país: ${e(yearRange)}. Los valores de simulación evolucionan desde ese punto.</span></aside>
+          </div>
+          <section class="loan-section"><div class="module-heading"><div><p class="panel-kicker">Financiación</p><h3>Pedir préstamos</h3></div><span>${c.loans.length}/5 activos</span></div><div class="loan-grid">${loanCards}</div></section>
+          <section class="active-loans"><h3>Deuda contratada</h3><div class="table-wrap"><table><thead><tr><th>Instrumento</th><th>Saldo</th><th>Tasa</th><th>Cuotas</th><th>Último pago</th></tr></thead><tbody>${activeLoans}</tbody></table></div></section>
+        </div>
+        <footer class="panel-footer"><span>Escala: B = billones · MM = mil millones · M = millones · k = cientos de miles · m = miles.</span><b>Montos internos almacenados en miles de millones de US$.</b></footer>
+      </section>`;
   }
 
   function renderTaxesPanel() {
@@ -553,15 +635,15 @@
         <header class="management-heading"><div class="section-symbol">◒</div><div><p class="panel-kicker">Población y trabajo</p><h2>Demografía</h2></div><button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar demografía">×</button></header>
         <div class="panel-body demographic-body">
           <div class="population-heading"><div><label for="demographic-country">Consultar país</label><select id="demographic-country">${DATA.countries.map((item) => `<option value="${item.id}" ${item.id === id ? "selected" : ""}>${e(item.name)}${item.id === game.playerCountryId ? " · Tu país" : ""}</option>`).join("")}</select></div>
-            <div class="population-total"><span>Población total de ${e(c.name)}</span><strong>${fmt(c.population, 2)} <small>millones</small></strong><span>${fmt(c.population * 1000000, 0)} habitantes · ${e(Engine.monthLabel(game.date))}</span></div>
+            <div class="population-total"><span>Población total de ${e(c.name)}</span><strong>${people(c.population)}</strong><span>${fmt(c.population * 1000000, 0)} habitantes · ${e(Engine.monthLabel(game.date))}</span></div>
           </div>
           <div class="population-stack" role="img" aria-label="${groups.map((g) => g.label + ': ' + fmt(g.share) + '%').join(', ')}">${groups.map((g) => `<span class="${g.key}" style="width:${g.share}%"></span>`).join("")}</div>
-          <div class="demographic-cards">${groups.map((g) => `<article class="${g.key}"><span>${g.label}</span><strong>${fmt(g.count, 2)} M</strong><b>${fmt(g.share)}% de la población</b><small>${g.detail}</small></article>`).join("")}</div>
+          <div class="demographic-cards">${groups.map((g) => `<article class="${g.key}"><span>${g.label}</span><strong>${people(g.count)}</strong><b>${fmt(g.share)}% de la población</b><small>${g.detail}</small></article>`).join("")}</div>
           <div class="population-detail-grid">
             <section class="population-detail"><h3>Trabajadores y empleo</h3><dl>
-              <div><dt>Ocupados</dt><dd>${fmt(d.employed, 2)} M</dd></div>
-              <div><dt>Desocupados</dt><dd>${fmt(d.unemployed, 2)} M</dd></div>
-              <div><dt>Inactivos en edad laboral</dt><dd>${fmt(d.inactive, 2)} M</dd></div>
+              <div><dt>Ocupados</dt><dd>${people(d.employed)}</dd></div>
+              <div><dt>Desocupados</dt><dd>${people(d.unemployed)}</dd></div>
+              <div><dt>Inactivos en edad laboral</dt><dd>${people(d.inactive)}</dd></div>
               <div><dt>Tasa de desocupación</dt><dd>${fmt(c.unemployment)}%</dd></div>
             </dl><p>Participación laboral del modelo: 72% de los adultos de 18–64 años. La desocupación se mide sobre esa fuerza laboral.</p></section>
             <section class="population-detail"><h3>Movimientos del último mes</h3><dl>
@@ -575,7 +657,7 @@
             <div class="table-wrap"><table><caption class="sr-only">Comparación de población por país; valores en millones de habitantes</caption><thead><tr><th>País</th><th>Población</th><th>Menores</th><th>Edad laboral</th><th>Jubilados</th></tr></thead><tbody>
               ${countries.map((other) => {
                 const s = Engine.demographicSnapshot(other);
-                return `<tr class="${other.id === id ? "selected" : ""}" data-demographic-row="${other.id}"><th scope="row"><button type="button" data-action="inspect-demographic" data-country="${other.id}">${e(other.name)}${other.id === game.playerCountryId ? ' <small>Tu país</small>' : ""}</button></th><td>${fmt(s.total, 2)} M</td><td>${fmt(s.children, 2)} M</td><td>${fmt(s.workingAge, 2)} M</td><td>${fmt(s.retired, 2)} M</td></tr>`;
+                return `<tr class="${other.id === id ? "selected" : ""}" data-demographic-row="${other.id}"><th scope="row"><button type="button" data-action="inspect-demographic" data-country="${other.id}">${e(other.name)}${other.id === game.playerCountryId ? ' <small>Tu país</small>' : ""}</button></th><td>${people(s.total)}</td><td>${people(s.children)}</td><td>${people(s.workingAge)}</td><td>${people(s.retired)}</td></tr>`;
               }).join("")}
             </tbody></table></div>
           </section>
@@ -631,9 +713,9 @@
     const country = playerCountry();
     const indicators = [
       ["PBI", money(country.gdp), "gdp", "#48d7c5", `${signed(country.growth, "%")} anualizado`],
-      ["Población", `${fmt(country.population, 2)} M`, "population", "#74a8ff", `Migración ${signed(country.migration, "‰")}`],
+      ["Población", people(country.population), "population", "#74a8ff", `Migración ${signed(country.migration, "‰")}`],
       ["Felicidad", `${fmt(country.happiness)}%`, "happiness", "#f4bd63", `Apoyo ${fmt(country.popularity)}%`],
-      ["Turismo", `${fmt(country.tourism, 2)} M`, "tourism", "#d08cff", "Visitantes anuales"],
+      ["Turismo", people(country.tourism), "tourism", "#d08cff", "Visitantes anuales"],
       ["Educación", `${fmt(country.education)}/100`, "education", "#f4bd63", "Productividad gradual"],
       ["Desocupación", `${fmt(country.unemployment)}%`, "unemployment", "#ff8d6b", "Actividad y obra pública"],
       ["Infraestructura", `${fmt(country.infrastructure)}/100`, "infrastructure", "#85db79", `Vivienda ${fmt(country.housing)}`],
@@ -646,7 +728,7 @@
           <div class="indicator-grid">${indicators.map(([label, value, key, color, detail]) => `<article><div><span>${e(label)}</span><strong>${e(value)}</strong><small>${e(detail)}</small></div>${sparkline(key, color)}</article>`).join("")}</div>
           <section class="inner-card history-card"><div class="inner-heading"><div><small>Registro reciente</small><h3>Evolución mensual</h3></div></div>
             <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>PBI</th><th>Variación</th><th>Desocupación</th><th>Felicidad</th><th>Turismo</th><th>Comercio</th></tr></thead><tbody>
-              ${game.history.slice(-12).reverse().map((row) => `<tr><td>${e(row.date)}</td><td>${money(row.gdp)}</td><td class="${row.growth < 0 ? "negative" : "positive"}">${signed(row.growth, "%")}</td><td>${fmt(row.unemployment)}%</td><td>${fmt(row.happiness)}%</td><td>${fmt(row.tourism, 2)} M</td><td class="${row.tradeBalance < 0 ? "negative" : "positive"}">${money(row.tradeBalance)}</td></tr>`).join("")}
+              ${game.history.slice(-12).reverse().map((row) => `<tr><td>${e(row.date)}</td><td>${money(row.gdp)}</td><td class="${row.growth < 0 ? "negative" : "positive"}">${signed(row.growth, "%")}</td><td>${fmt(row.unemployment)}%</td><td>${fmt(row.happiness)}%</td><td>${people(row.tourism)}</td><td class="${row.tradeBalance < 0 ? "negative" : "positive"}">${money(row.tradeBalance)}</td></tr>`).join("")}
             </tbody></table></div>
           </section>
         </div>
@@ -701,10 +783,11 @@
       const markers = Object.values(game.countries).map((country) => {
         const [x, y] = projectPoint(country.center);
         const player = country.id === game.playerCountryId;
+        const showLabel = player || focusedCountryId === country.id || country.population >= 75;
         const label = markerLabel(country.id);
         return `<g class="country-marker ${player ? "player" : ""} ${focusedCountryId === country.id ? "focused" : ""}" transform="translate(${x} ${y})" data-action="inspect-country" data-country="${country.id}" tabindex="0" role="button" aria-label="${e(country.name)}">
           ${player ? '<circle class="pulse-ring" r="15"></circle>' : ""}<circle class="marker-core" r="${player ? 6.5 : 4.5}"></circle>
-          <text x="${label.x}" y="${label.y}" text-anchor="${label.anchor}">${e(country.id)}</text><title>${e(country.name)} · ${fmt(country.population, 2)} M habitantes · PBI ${money(country.gdp)} · ${signed(country.growth, "%")}</title>
+          ${showLabel ? `<text x="${label.x}" y="${label.y}" text-anchor="${label.anchor}">${e(country.id)}</text>` : ""}<title>${e(country.name)} · ${people(country.population)} habitantes · PBI ${money(country.gdp)} · ${signed(country.growth, "%")}</title>
         </g>`;
       }).join("");
       document.querySelector("#map-content").innerHTML = `<g class="land-layer">${land}</g><g class="trade-layer">${flows}</g><g class="marker-layer">${markers}</g>`;
@@ -903,6 +986,11 @@
         const result = Engine.sellResource(game, target.dataset.material, field ? field.value : undefined); await saveGame("autosave", false); renderGame();
         showToast(`Venta realizada: ${fmt(result.quantity, 2)} unidades; ingreso neto ${money(result.revenue)}`, "success");
       } catch (error) { showToast(error.message, "error"); }
+    } else if (action === "take-loan") {
+      try {
+        const result = Engine.takeLoan(game, target.dataset.loan); await saveGame("autosave", false); renderGame();
+        showToast(`${result.preview.label}: ingresaron ${money(result.preview.amount)} a reservas`, result.preview.risk.tone === "critical" ? "error" : "success");
+      } catch (error) { showToast(error.message, "error"); }
     } else if (action === "save") { await saveGame("manual", true); renderGame(); }
     else if (action === "toggle-menu") {
       const menu = document.querySelector("#save-menu"); menu.hidden = !menu.hidden;
@@ -918,6 +1006,13 @@
 
   app.addEventListener("input", (event) => {
     const input = event.target;
+    if (input.id === "country-search" && !game) {
+      countrySearch = input.value;
+      const grid = document.querySelector("#country-grid");
+      if (grid) grid.innerHTML = renderCountryCards();
+      updateCountryCount();
+      return;
+    }
     if (input.dataset.kind === "tax" && game) {
       if (input.value === "" || !Number.isFinite(Number(input.value))) return;
       const tax = DATA.taxes.find((t) => t.id === input.dataset.tax);

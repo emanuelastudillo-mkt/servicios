@@ -1,8 +1,9 @@
 (function (root, factory) {
-  const data = factory();
+  const extras = typeof module === "object" && module.exports ? require("./countries-extra.js") : (root.PULSO_EXTRA_COUNTRIES || []);
+  const data = factory(extras);
   if (typeof module === "object" && module.exports) module.exports = data;
   else root.PULSO_DATA = data;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (EXTRA_COUNTRIES) {
   "use strict";
 
   const SECTORS = [
@@ -521,11 +522,14 @@
     { id: "drought", type: "climate", title: "Sequía prolongada", scope: "region", weight: 1.45, duration: [7, 14], impact: { growth: -1.3, food: -0.28, demand: -0.02, migrationPush: 2 }, summary: "La escasez de agua reduce cosechas, energía y actividad rural." }
   ];
 
+  (EXTRA_COUNTRIES || []).forEach((item) => COUNTRIES.push(country(item)));
+
   COUNTRIES.forEach((item) => {
-    item.center = COUNTRY_CENTERS[item.id];
-    item.demographics = COUNTRY_DEMOGRAPHICS[item.id];
-    item.taxes = COUNTRY_TAXES[item.id];
-    item.electricityDemandTWh = COUNTRY_ELECTRICITY[item.id];
+    item.center = item.center || COUNTRY_CENTERS[item.id];
+    item.demographics = item.demographics || COUNTRY_DEMOGRAPHICS[item.id];
+    item.demographics.workers = 100 - item.demographics.children - item.demographics.retired;
+    item.taxes = item.taxes || COUNTRY_TAXES[item.id];
+    item.electricityDemandTWh = item.electricityDemandTWh || COUNTRY_ELECTRICITY[item.id] || Math.max(0.01, item.population * 2.2);
     item.electricityGenerationTWh = Math.max(0.01, item.electricityDemandTWh * Math.min(1.08, 0.62 + item.resources.energy * 0.22));
     const inferred = {
       grains: Math.max(0.05, item.resources.food), timber: Math.max(0.03, item.resources.food * 0.7),
@@ -533,12 +537,12 @@
       copper: Math.max(0.02, item.resources.manufactures * 0.55), uranium: Math.max(0.01, item.resources.energy * 0.16),
       minerals: Math.max(0.05, (item.resources.manufactures + item.resources.food) * 0.55)
     };
-    item.deposits = { ...inferred, ...(COUNTRY_DEPOSIT_OVERRIDES[item.id] || {}) };
+    item.deposits = { ...inferred, ...(item.deposits || {}), ...(COUNTRY_DEPOSIT_OVERRIDES[item.id] || {}) };
   });
 
   return {
-    version: 4,
-    release: "4.1.0",
+    version: 5,
+    release: "5.0.0",
     disclaimer: "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
     sectors: SECTORS,
     commodities: COMMODITIES,

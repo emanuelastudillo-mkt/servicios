@@ -5,12 +5,18 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (DATA) {
   "use strict";
 
-  const SAVE_VERSION = 4;
+  const SAVE_VERSION = 5;
   const START_YEAR = 2026;
   const START_MONTH = 1;
   const ENDLESS = true;
   const MIN_SHARE = 2;
   const MATERIAL_IDS = DATA.materials.map((item) => item.id);
+  const LOAN_OPTIONS = [
+    { id: "bridge", label: "Crédito puente", description: "Liquidez breve para atravesar un déficit transitorio.", principalShare: 0.03, months: 24, annualRate: 8.5 },
+    { id: "development", label: "Préstamo de desarrollo", description: "Financiación gradual para inversión y capacidad productiva.", principalShare: 0.08, months: 84, annualRate: 6.5 },
+    { id: "infrastructure", label: "Bono de infraestructura", description: "Emisión de largo plazo para un programa amplio de obras.", principalShare: 0.12, months: 120, annualRate: 7.25 },
+    { id: "emergency", label: "Línea de emergencia", description: "Desembolso grande y rápido, con costo financiero elevado.", principalShare: 0.18, months: 48, annualRate: 13.5 }
+  ];
 
   function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
   function round(value, digits) {
@@ -130,7 +136,8 @@
       housingStock, electricityDemandTWh: definition.electricityDemandTWh,
       electricityGenerationTWh: definition.electricityGenerationTWh, cycleShock: 0, eventMigrationPush: 0,
       finalGoodsRevenue: 0,
-      projects: [], nextProjectId: 1, lowPopularityMonths: 0, policyShock: 0
+      projects: [], nextProjectId: 1, loans: [], nextLoanId: 1, debtServiceMonthly: 0,
+      lowPopularityMonths: 0, policyShock: 0, lastGdpDelta: 0
     };
   }
 
@@ -632,8 +639,11 @@
     country.stability = clamp(country.stability + growth * 0.015 - Math.max(0, country.unemployment - 12) * 0.018 - Math.max(0, country.inflation - 12) * 0.008 + (bonuses.stability || 0) * 0.008, 0, 100);
     if (country.popularity < 18) country.lowPopularityMonths += 1;
     else country.lowPopularityMonths = Math.max(0, country.lowPopularityMonths - 1);
-    ["gdp", "population", "education", "health", "unemployment", "infrastructure", "housing", "happiness", "tourism", "migration", "debt", "inflation", "popularity", "stability", "productivity", "reserves", "electricityDemandTWh", "electricityGenerationTWh", "cycleShock"].forEach((key) => { country[key] = round(country[key], key === "population" ? 3 : 2); });
-    country.lastGdpDelta = round(country.gdp - previousGdp, 3);
+    ["gdp", "population", "education", "health", "unemployment", "infrastructure", "housing", "happiness", "tourism", "migration", "debt", "inflation", "popularity", "stability", "productivity", "reserves", "electricityDemandTWh", "electricityGenerationTWh", "cycleShock"].forEach((key) => {
+      const digits = key === "population" || key === "gdp" ? 6 : key === "reserves" ? 5 : 2;
+      country[key] = round(country[key], digits);
+    });
+    country.lastGdpDelta = round(country.gdp - previousGdp, 6);
   }
 
   function transferShare(allocation, fromId, toId, amount) {
@@ -682,6 +692,72 @@
     return Math.max(0, Math.round(current.popularity * 6 + current.stability * 3 + current.happiness * 3 + gdpGain * 8 + completed * 18 - Math.max(0, current.debt - initial.debt) * 3));
   }
 
+  function bankruptcyRisk(country, projectedDebt, projectedPayment) {
+    const debt = Number.isFinite(projectedDebt) ? projectedDebt : country.debt;
+    const payment = Number.isFinite(projectedPayment) ? projectedPayment : (country.debtServiceMonthly || 0);
+    const reserveShare = country.reserves / Math.max(country.gdp, 0.000001) * 100;
+    const annualServiceShare = payment * 12 / Math.max(country.gdp, 0.000001) * 100;
+    const score = clamp(Math.max(0, debt - 45) * 0.42 + Math.max(0, -(country.fiscalBalance || 0)) * 4.5 +
+      Math.max(0, 3 - reserveShare) * 6 + annualServiceShare * 3.5, 0, 100);
+    const band = score < 25 ? ["Bajo", "low"] : score < 50 ? ["Moderado", "moderate"] : score < 75 ? ["Alto", "high"] : ["Crítico", "critical"];
+    const reasons = [];
+    if (debt >= 100) reasons.push(`deuda proyectada de ${round(debt, 1)}% del PBI`);
+    if (country.fiscalBalance < -5) reasons.push(`déficit fiscal de ${round(country.fiscalBalance, 1)}%`);
+    if (reserveShare < 3) reasons.push("reservas inferiores al 3% del PBI");
+    if (annualServiceShare > 5) reasons.push(`servicio anual equivalente al ${round(annualServiceShare, 1)}% del PBI`);
+    return { score: round(score, 1), level: band[0], tone: band[1], reserveShare: round(reserveShare, 2), annualServiceShare: round(annualServiceShare, 2), reasons };
+  }
+
+  function loanPreview(state, optionId) {
+    const option = LOAN_OPTIONS.find((item) => item.id === optionId);
+    if (!option) throw new Error("Préstamo no válido.");
+    const country = state.countries[state.playerCountryId];
+    const amount = country.gdp * option.principalShare;
+    const principalPayment = amount / option.months;
+    const firstPayment = principalPayment + amount * option.annualRate / 1200;
+    const projectedDebt = country.debt + option.principalShare * 100;
+    const projectedPayment = (country.debtServiceMonthly || 0) + firstPayment;
+    return { ...option, amount: round(amount, 6), principalPayment: round(principalPayment, 6), firstPayment: round(firstPayment, 6),
+      projectedDebt: round(projectedDebt, 2), projectedPayment: round(projectedPayment, 6), risk: bankruptcyRisk(country, projectedDebt, projectedPayment) };
+  }
+
+  function takeLoan(state, optionId) {
+    if (state.gameOver) throw new Error("La partida terminó.");
+    const country = state.countries[state.playerCountryId];
+    if ((country.loans || []).length >= 5) throw new Error("El país ya tiene cinco préstamos activos.");
+    const preview = loanPreview(state, optionId);
+    const loan = { id: `loan-${country.nextLoanId++}`, optionId, label: preview.label, originalPrincipal: preview.amount,
+      outstanding: preview.amount, annualRate: preview.annualRate, originalMonths: preview.months, remainingMonths: preview.months,
+      startedAt: monthLabel(state.date), lastPayment: 0 };
+    country.loans.push(loan);
+    country.reserves = round(country.reserves + preview.amount, 6);
+    country.debt = round(clamp(country.debt + preview.principalShare * 100, 0, 300), 4);
+    country.debtServiceMonthly = round((country.debtServiceMonthly || 0) + preview.firstPayment, 6);
+    country.popularity = clamp(country.popularity - (preview.risk.tone === "critical" ? 2 : preview.risk.tone === "high" ? 0.8 : 0.2), 0, 100);
+    addActivity(state, "loan", `${country.name} toma ${preview.label.toLowerCase()} por ${round(preview.amount, 6)} mil millones de dólares.`, country.id);
+    return { loan: clone(loan), preview };
+  }
+
+  function serviceLoans(country) {
+    if (!Array.isArray(country.loans) || !country.loans.length) { country.debtServiceMonthly = 0; return; }
+    let totalPayment = 0;
+    let totalPrincipal = 0;
+    country.loans.forEach((loan) => {
+      const principal = Math.min(loan.outstanding, loan.originalPrincipal / loan.originalMonths);
+      const interest = loan.outstanding * loan.annualRate / 1200;
+      const payment = principal + interest;
+      loan.outstanding = Math.max(0, loan.outstanding - principal);
+      loan.remainingMonths = Math.max(0, loan.remainingMonths - 1);
+      loan.lastPayment = round(payment, 6);
+      totalPayment += payment;
+      totalPrincipal += principal;
+    });
+    country.reserves -= totalPayment;
+    country.debt = clamp(country.debt - totalPrincipal / Math.max(country.gdp, 0.000001) * 100, 0, 300);
+    country.loans = country.loans.filter((loan) => loan.remainingMonths > 0 && loan.outstanding > 0.0000001);
+    country.debtServiceMonthly = round(country.loans.reduce((sum, loan) => sum + loan.outstanding / Math.max(1, loan.remainingMonths) + loan.outstanding * loan.annualRate / 1200, 0), 6);
+  }
+
   function evaluateGame(state) {
     const country = state.countries[state.playerCountryId];
     if (country.lowPopularityMonths >= 4) state.gameOver = { won: false, title: "Gobierno sin respaldo", detail: "Cuatro meses bajo 18% de apoyo terminaron con tu mandato." };
@@ -698,6 +774,7 @@
     Object.values(state.countries).forEach((country) => {
       produceMaterials(country, state);
       advanceProjects(country, state);
+      serviceLoans(country);
       simulateCountry(country, state);
       simulateAI(country, state);
     });
@@ -828,6 +905,9 @@
     country.demographics = { ...fresh.demographics, ...(country.demographics || {}) };
     country.taxRevenueBreakdown = { ...fresh.taxRevenueBreakdown, ...(country.taxRevenueBreakdown || {}) };
     country.projects = Array.isArray(country.projects) ? country.projects : [];
+    country.loans = Array.isArray(country.loans) ? country.loans : [];
+    country.nextLoanId = Number.isSafeInteger(country.nextLoanId) ? country.nextLoanId : country.loans.length + 1;
+    country.debtServiceMonthly = Number.isFinite(country.debtServiceMonthly) ? country.debtServiceMonthly : 0;
     country.projects.forEach((project) => {
       const construction = getConstructionDefinition(project.typeId);
       if (construction && project.baseCost === undefined) project.baseCost = construction.fixedCost;
@@ -841,7 +921,7 @@
 
   function migrate(candidate) {
     const state = clone(candidate);
-    if (![1, 2, 3, SAVE_VERSION].includes(state.version)) throw new Error("La versión de la partida no es compatible.");
+    if (![1, 2, 3, 4, SAVE_VERSION].includes(state.version)) throw new Error("La versión de la partida no es compatible.");
     if (!state.playerCountryId || !state.countries || !state.countries[state.playerCountryId]) throw new Error("La partida está incompleta.");
     DATA.countries.forEach((definition) => {
       if (!state.countries[definition.id]) state.countries[definition.id] = toCountryState(definition);
@@ -869,7 +949,7 @@
 
   function validateSave(candidate) {
     if (!candidate || typeof candidate !== "object") throw new Error("El archivo no contiene una partida.");
-    if (![1, 2, 3, SAVE_VERSION].includes(candidate.version)) throw new Error("La versión de la partida no es compatible.");
+    if (![1, 2, 3, 4, SAVE_VERSION].includes(candidate.version)) throw new Error("La versión de la partida no es compatible.");
     if (!candidate.playerCountryId || !candidate.countries || !candidate.countries[candidate.playerCountryId]) throw new Error("La partida está incompleta.");
     if (!candidate.date || !Number.isSafeInteger(candidate.tick) || candidate.tick < 0 ||
       !Number.isSafeInteger(candidate.date.year) || candidate.date.year < START_YEAR ||
@@ -898,7 +978,8 @@
   function hydrate(candidate) { validateSave(candidate); return migrate(candidate); }
 
   return {
-    SAVE_VERSION, ENDLESS, createGame, advanceTick, applyAllocations, applyTaxes, estimateTaxes, demographicSnapshot, queueConstruction, importResource, sellResource, tradeResource,
+    SAVE_VERSION, ENDLESS, LOAN_OPTIONS, createGame, advanceTick, applyAllocations, applyTaxes, estimateTaxes, demographicSnapshot, queueConstruction, importResource, sellResource, tradeResource,
+    bankruptcyRisk, loanPreview, takeLoan,
     constructionPreview, calculateScore, validateSave, hydrate, getCountryDefinition,
     getLeaderDefinition, getConstructionDefinition, normalizeAllocation, monthLabel,
     clone, clamp, sumValues

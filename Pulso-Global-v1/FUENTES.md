@@ -1,8 +1,16 @@
-# Fuentes y criterio de los países agregados
+# Fuentes y criterio de los países
 
-Consulta realizada el 11 de septiembre de 2026. Pulso Global usa estas fuentes para establecer una base reconocible; no intenta reproducir legislación, presupuestos ni estadísticas en tiempo real.
+Consulta y generación realizadas el 12 de septiembre de 2026. Pulso Global usa una foto estática para establecer una base reconocible; no intenta reproducir legislación, presupuestos ni estadísticas en tiempo real.
 
 ## Indicadores
+
+Para los 112 países incorporados en v5 se consultó la [API v2 del Banco Mundial](https://api.worldbank.org/v2/) y se eligió el último valor no nulo entre 2019 y 2026 de población (`SP.POP.TOTL`), PBI nominal (`NY.GDP.MKTP.CD`), desempleo (`SL.UEM.TOTL.ZS`), natalidad y mortalidad (`SP.DYN.CBRT.IN`, `SP.DYN.CDRT.IN`), grupos etarios, crecimiento real, inflación, reservas y consumo eléctrico. `countries-extra.js` conserva `dataYears` por país y serie. La mayoría de los valores corresponde a 2024 o 2025; electricidad puede corresponder a 2023 y la cobertura varía entre países.
+
+Los nombres de las figuras de esos países se obtuvieron de [Wikidata](https://www.wikidata.org/) a partir de declaraciones presentes o históricas de jefatura de gobierno (`P6`) y jefatura de Estado (`P35`), con etiquetas en español o inglés. Se excluyeron personas con fecha de fallecimiento registrada y se conservaron tres nombres distintos por país.
+
+La presencia de una persona solo representa un escenario hipotético. No afirma candidatura, elegibilidad, ideología, probabilidad electoral ni equivalencia entre sistemas políticos. Las descripciones y bonificaciones son decisiones de diseño.
+
+### Contraste manual de los seis países de v4.1
 
 Población, PBI nominal, desempleo, natalidad, mortalidad y estructura por edades se contrastaron con la [API de datos del Banco Mundial](https://api.worldbank.org/v2/country/CUB;ZMB;NGA;URY;HTI;NRU?format=json). Se tomaron los datos disponibles de 2024 o 2025 y se redondearon. Cuando una serie no estaba disponible —como PBI reciente de Cuba o desempleo de Nauru— se utilizó una aproximación de juego.
 
@@ -10,7 +18,7 @@ Educación, infraestructura, estabilidad, productividad, reservas, deuda, popula
 
 Los grupos demográficos del juego son 0–17, 18–64 y 65 años o más. Las series internacionales publican principalmente 0–14, 15–64 y 65+; por eso la distribución inicial fue adaptada a los límites del motor y normalizada al 100%.
 
-## Figuras públicas
+## Fuentes públicas de figuras de v4.1
 
 - Cuba: [World Leaders — Cuba](https://www.cia.gov/resources/world-leaders/foreign-governments/cuba) y [jefaturas de gobierno, DFAT Australia](https://www.dfat.gov.au/geo/heads-of-government/cuba).
 - Zambia: [State House](https://www.sh.gov.zm/president-hakainde-hichilema-secures-second-term-in-decisive-election-victory/) e [IFES, elecciones generales 2026](https://www.ifes.org/tools-resources/election-snapshots/elections-zambia-2026-general-elections).

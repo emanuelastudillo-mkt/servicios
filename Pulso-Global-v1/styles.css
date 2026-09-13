@@ -119,7 +119,14 @@ h1, h2, h3, p { margin-top: 0; }
 }
 .start-badge span { color: var(--gold); font-weight: 850; text-transform: uppercase; }
 .start-badge b { color: #c9d5d9; font-weight: 650; }
+.start-country-tools { display: grid; grid-template-columns: auto minmax(220px, 420px) 1fr; align-items: center; gap: 10px; margin: 0 0 12px; }
+.start-country-tools label { color: var(--muted); font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.start-country-tools input { width: 100%; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 9px; background: #0d2232; color: var(--ink); font: inherit; }
+.start-country-tools input:focus { outline: 2px solid rgba(72,215,197,.35); border-color: var(--aqua); }
+.start-country-tools span { justify-self: end; color: var(--muted); font-size: .72rem; }
 .country-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.start-screen .country-grid { max-height: 530px; padding: 2px 4px 8px 2px; overflow-y: auto; }
+.empty-country-search { grid-column: 1 / -1; padding: 32px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); text-align: center; }
 .country-card {
   min-height: 118px;
   padding: 15px;
@@ -646,6 +653,8 @@ th { color: var(--muted); font-size: 0.53rem; letter-spacing: 0.05em; text-trans
   .briefing { grid-template-columns: 1fr; gap: 15px; padding-top: 40px; }
   .briefing h2 { font-size: 2.55rem; }
   .start-badge { display: grid; }
+  .start-country-tools { grid-template-columns: 1fr; }
+  .start-country-tools span { justify-self: start; }
   .country-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .leader-panel { padding: 14px; }
   .leader-heading { display: block; }
@@ -762,6 +771,54 @@ th { color: var(--muted); font-size: 0.53rem; letter-spacing: 0.05em; text-trans
 .tax-effects b { color: var(--gold); white-space: nowrap; }
 .tax-footnote { margin: 18px 0 0; color: var(--muted); font-size: .8rem; line-height: 1.55; }
 .policy-system .panel-footer { font-size: .75rem; line-height: 1.5; }
+.economy-system { grid-template-rows: auto minmax(0,1fr) auto; }
+.economy-body { padding: 18px; }
+.economy-kpis { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
+.economy-kpis article { padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(20,42,57,.62); }
+.economy-kpis span, .economy-kpis strong, .economy-kpis small { display: block; }
+.economy-kpis span { color: var(--muted); font-size: .72rem; }
+.economy-kpis strong { margin: 7px 0 5px; font-size: 1.15rem; letter-spacing: -.025em; }
+.economy-kpis small { color: var(--muted); font-size: .68rem; line-height: 1.4; }
+.risk-banner { display: grid; grid-template-columns: minmax(190px,.45fr) 1fr; gap: 18px; align-items: center; margin-bottom: 14px; padding: 14px 16px; border: 1px solid rgba(72,215,197,.3); border-left: 4px solid var(--aqua); border-radius: 10px; background: rgba(72,215,197,.07); }
+.risk-banner.moderate { border-color: rgba(244,189,99,.38); border-left-color: var(--gold); background: rgba(244,189,99,.07); }
+.risk-banner.high, .risk-banner.critical { border-color: rgba(255,113,109,.42); border-left-color: #ff716d; background: rgba(255,113,109,.08); }
+.risk-banner span, .risk-banner strong { display: block; }
+.risk-banner span { color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; }
+.risk-banner strong { margin-top: 4px; font-size: 1.15rem; }
+.risk-banner p { margin: 0; color: #c7d4d9; font-size: .75rem; line-height: 1.55; }
+.economy-ledger { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(260px,.85fr); gap: 12px; margin-bottom: 18px; }
+.economy-ledger > * { padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: rgba(9,26,39,.75); }
+.economy-ledger h3, .loan-section h3, .active-loans h3 { margin: 0 0 12px; font-size: .94rem; }
+.economy-lines { margin: 0; }
+.economy-lines div { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px solid rgba(119,155,174,.12); font-size: .75rem; }
+.economy-lines div:last-child { border-bottom: 0; }
+.economy-lines dt { color: var(--muted); }
+.economy-lines dd { margin: 0; font-weight: 750; text-align: right; }
+.bankruptcy-advice p, .bankruptcy-advice li, .bankruptcy-advice span { color: var(--muted); font-size: .72rem; line-height: 1.55; }
+.bankruptcy-advice ul { margin: 9px 0 12px; padding-left: 18px; }
+.bankruptcy-advice span { display: block; padding-top: 10px; border-top: 1px solid var(--line); color: var(--gold); }
+.module-heading { display: flex; justify-content: space-between; gap: 12px; align-items: end; }
+.module-heading > span { color: var(--muted); font-size: .72rem; }
+.loan-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.loan-card { padding: 15px; border: 1px solid var(--line); border-top: 3px solid var(--aqua); border-radius: 10px; background: #102739; }
+.loan-card.risk-moderate { border-top-color: var(--gold); }
+.loan-card.risk-high, .loan-card.risk-critical { border-top-color: #ff716d; }
+.loan-title { display: flex; justify-content: space-between; gap: 10px; }
+.loan-title span, .loan-title strong { display: block; }
+.loan-title span { color: var(--muted); font-size: .7rem; }
+.loan-title strong { margin-top: 4px; font-size: 1.12rem; }
+.loan-title > b { color: var(--gold); font-size: .7rem; white-space: nowrap; }
+.loan-card > p { min-height: 34px; color: var(--muted); font-size: .7rem; line-height: 1.45; }
+.loan-card dl { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; margin: 10px 0 12px; }
+.loan-card dl div { padding: 7px; border-radius: 6px; background: rgba(4,14,22,.45); }
+.loan-card dt { color: var(--muted); font-size: .62rem; }
+.loan-card dd { margin: 3px 0 0; font-size: .7rem; font-weight: 750; }
+.loan-card .button { width: 100%; }
+.button.danger { border-color: rgba(255,113,109,.65); background: #912f35; }
+.active-loans { margin-top: 18px; }
+.active-loans table { font-size: .72rem; }
+.active-loans th small { display: block; margin-top: 3px; color: var(--muted); font-weight: 400; }
+.empty-table { padding: 20px !important; color: var(--muted); text-align: center; }
 .population-heading { display: flex; justify-content: space-between; gap: 20px; align-items: end; margin-bottom: 24px; }
 .population-heading label { display: block; margin-bottom: 8px; color: var(--muted); font-size: .875rem; }
 .population-heading select { max-width: 100%; padding: 10px 30px 10px 12px; border: 1px solid var(--line-strong); border-radius: 8px; background: #142c3e; color: var(--ink); font: inherit; }
@@ -827,12 +884,16 @@ th { color: var(--muted); font-size: 0.53rem; letter-spacing: 0.05em; text-trans
   .mobile-nav button { min-width: 94px; flex-shrink: 0; padding-inline: 8px; }
   .mobile-nav button small { font-size: .75rem; }
   .fiscal-layout { grid-template-columns: 1fr; }
+  .economy-kpis { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .economy-ledger { grid-template-columns: 1fr; }
   .population-detail-grid { grid-template-columns: 1fr; }
   .population-heading { align-items: start; }
   .management-panel { min-height: 0; }
 }
 @media (max-width: 600px) {
-  .fiscal-body, .demographic-body { padding: 14px; }
+  .fiscal-body, .demographic-body, .economy-body { padding: 14px; }
+  .economy-kpis, .loan-grid { grid-template-columns: 1fr; }
+  .risk-banner { grid-template-columns: 1fr; gap: 8px; }
   .population-heading { display: block; }
   .population-total { margin-top: 18px; text-align: left; }
   .demographic-cards { grid-template-columns: 1fr; }
