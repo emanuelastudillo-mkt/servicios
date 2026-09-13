@@ -140,6 +140,30 @@
   function constructionById(id) { return DATA.constructions.find((item) => item.id === id); }
   function flagImage(country, className) { return `<img class="${className || "flag-image"}" src="./assets/flags/${country.id}.svg" width="100" height="100" alt="Bandera de ${e(country.name)}" loading="lazy" />`; }
   function resourceImage(material) { return `<img class="resource-icon" src="./assets/resources/${material.id}.svg" width="100" height="100" alt="${e(material.label)}" loading="lazy" />`; }
+  function purchasePreview(material, requestedQuantity) {
+    const country = playerCountry();
+    const limit = Math.max(0, country.materialCapacity[material.id] - country.materialStocks[material.id]);
+    const requested = Number(requestedQuantity);
+    const fallback = Math.max(0.1, Math.min(country.materialCapacity[material.id] * 0.1, country.materialStocks[material.id] || country.materialCapacity[material.id] * 0.1));
+    const quantity = Math.min(limit, Number.isFinite(requested) && requested > 0 ? requested : fallback);
+    const price = game.market.resourcePrices[material.id] || material.value;
+    const cost = quantity * price * (1 + country.taxes.imports / 100);
+    const projectedReserves = country.reserves - cost;
+    const projectedDebt = projectedReserves < 0 ? Math.min(260, country.debt + cost / Math.max(country.gdp, 0.05) * 100) : country.debt;
+    const risk = Engine.bankruptcyRisk({ ...country, reserves: projectedReserves }, projectedDebt, country.debtServiceMonthly || 0);
+    const willDefault = projectedDebt > 205 && projectedReserves <= 0;
+    return { quantity, cost, projectedReserves, projectedDebt, risk, willDefault };
+  }
+  function renderPurchaseSafety(material, requestedQuantity) {
+    const preview = purchasePreview(material, requestedQuantity);
+    const tone = preview.willDefault ? "critical" : preview.projectedReserves <= 0 ? "high" : preview.risk.tone;
+    const message = preview.willDefault
+      ? "Esta compra deja al país en condición de cesación de pagos: al avanzar un mes la partida termina."
+      : preview.projectedReserves <= 0
+        ? "La compra agota las reservas y convierte el faltante en deuda al instante."
+        : `Riesgo fiscal tras comprar: ${preview.risk.level}.`;
+    return `<div class="buy-safety ${tone}" data-buy-safety="${material.id}"><div><span>Costo final</span><b>${money(preview.cost)}</b><span>Reservas después</span><b class="${preview.projectedReserves < 0 ? "negative" : ""}">${money(preview.projectedReserves)}</b></div><small>${e(message)} Deuda proyectada: ${fmt(preview.projectedDebt, 1)}% PBI.</small></div>`;
+  }
   function isSector(id) { return DATA.sectors.some((sector) => sector.id === id); }
   function activeProjects(country, sector) { return country.projects.filter((project) => project.progress < 100 && (!sector || project.sector === sector)); }
 
@@ -273,6 +297,7 @@
             <div class="hud-stats">
               <div class="hud-population"><span>Población</span><strong>${people(country.population)}</strong><small>${e(country.name)}</small></div>
               <div><span>PBI</span><strong>${money(country.gdp)}</strong><small class="${country.growth < 0 ? "negative" : "positive"}">${signed(country.growth, "%")}</small></div>
+              <div class="hud-reserves"><span>Reservas</span><strong class="${country.reserves < 0 ? "negative" : ""}">${money(country.reserves)}</strong><small>Deuda ${fmt(country.debt, 1)}% PBI</small></div>
               <div><span>Felicidad</span><strong>${fmt(country.happiness)}%</strong><small>${fmt(country.popularity)}% apoyo</small></div>
               <div><span>Empleo</span><strong>${fmt(100 - country.unemployment)}%</strong><small>${fmt(country.unemployment)}% desocupación</small></div>
               <div><span>Insumos</span><strong>${lowStock ? `${lowStock} críticos` : "Estables"}</strong><small>${activeProjects(country).length} obras activas</small></div>
@@ -516,7 +541,7 @@
           const inputs = item.inputs ? Object.entries(item.inputs).map(([id, amount]) => `${materialById(id).label} ${amount}`).join(" + ") : "Producción primaria";
           const price = game.market.resourcePrices[item.id]; const previous = game.market.previousResourcePrices[item.id] || price;
           const priceChange = previous ? (price / previous - 1) * 100 : 0; const defaultAmount = Math.max(0.1, Math.min(capacity * 0.1, stock || capacity * 0.1));
-          return `<article class="resource-node ${pct < 18 ? "low" : ""} ${locked ? "locked" : ""}"><div class="resource-node-title">${resourceImage(item)}<div><strong>${e(item.label)}</strong><small>${e(inputs)}</small></div></div><b>${fmt(stock, 2)} / ${fmt(capacity, 0)}</b><div class="stock-track"><i style="width:${pct}%"></i></div><small>${locked ? `Bloqueado: requiere ${e(constructionById(item.unlock).label)}` : `Producción ${signed(country.materialProduction[item.id], "/mes")} · Uso ${fmt(country.materialConsumption[item.id], 2)}`}</small><div class="resource-quote"><span>Cotización</span><strong>${resourceMoney(price)}</strong><b class="${priceChange < 0 ? "negative" : "positive"}">${signed(priceChange, "%")}</b></div><div class="resource-trade"><label><span>Cantidad</span><input type="number" min="0.01" max="${fmt(capacity, 2).replace(/\./g, "").replace(",", ".")}" step="0.1" value="${defaultAmount.toFixed(2)}" data-resource-amount="${item.id}" /></label><button class="button button-quiet compact" type="button" data-action="import-resource" data-material="${item.id}" ${pct >= 99 ? "disabled" : ""}>Comprar</button><button class="button compact sell" type="button" data-action="sell-resource" data-material="${item.id}" ${stock < 0.001 ? "disabled" : ""}>Vender</button></div></article>`;
+          return `<article class="resource-node ${pct < 18 ? "low" : ""} ${locked ? "locked" : ""}"><div class="resource-node-title">${resourceImage(item)}<div><strong>${e(item.label)}</strong><small>${e(inputs)}</small></div></div><b>${fmt(stock, 2)} / ${fmt(capacity, 0)}</b><div class="stock-track"><i style="width:${pct}%"></i></div><small>${locked ? `Bloqueado: requiere ${e(constructionById(item.unlock).label)}` : `Producción ${signed(country.materialProduction[item.id], "/mes")} · Uso ${fmt(country.materialConsumption[item.id], 2)}`}</small><div class="resource-quote"><span>Cotización</span><strong>${resourceMoney(price)}</strong><b class="${priceChange < 0 ? "negative" : "positive"}">${signed(priceChange, "%")}</b></div>${renderPurchaseSafety(item, defaultAmount)}<div class="resource-trade"><label><span>Cantidad</span><input type="number" min="0.01" max="${fmt(capacity, 2).replace(/\./g, "").replace(",", ".")}" step="0.1" value="${defaultAmount.toFixed(2)}" data-kind="resource-amount" data-resource-amount="${item.id}" /></label><button class="button button-quiet compact" type="button" data-action="import-resource" data-material="${item.id}" ${pct >= 99 ? "disabled" : ""}>Comprar</button><button class="button compact sell" type="button" data-action="sell-resource" data-material="${item.id}" ${stock < 0.001 ? "disabled" : ""}>Vender</button></div></article>`;
         }).join("")}</div></section>`).join("")}
       </div><footer class="panel-footer"><span>La cotización fluctúa mensualmente según existencias, producción y consumo mundial.</span><b>Compras con arancel de importación · ventas con derecho de exportación</b></footer></section>`;
   }
@@ -1059,6 +1084,12 @@
       const grid = document.querySelector("#country-grid");
       if (grid) grid.innerHTML = renderCountryCards();
       updateCountryCount();
+      return;
+    }
+    if (input.dataset.kind === "resource-amount" && game) {
+      const material = materialById(input.dataset.resourceAmount);
+      const target = document.querySelector(`[data-buy-safety="${input.dataset.resourceAmount}"]`);
+      if (material && target) target.outerHTML = renderPurchaseSafety(material, input.value);
       return;
     }
     if (input.dataset.kind === "tax" && game) {

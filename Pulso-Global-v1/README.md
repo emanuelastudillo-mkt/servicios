@@ -1,4 +1,4 @@
-# Pulso Global v5.2 - paquete para GitHub Pages
+# Pulso Global v5.3 - paquete para GitHub Pages
 
 Subí todos los archivos de esta carpeta a la raíz de un repositorio. Después activá GitHub Pages desde **Settings > Pages > Deploy from a branch**, seleccionando `main` y `/ (root)`.
 
@@ -10,7 +10,9 @@ Desde la carpeta descomprimida, con Python instalado, ejecutá `python -m http.s
 
 Después de una primera carga completa por localhost o HTTPS, los recursos quedan disponibles offline en ese navegador. No hay progreso mientras la pestaña está cerrada. Borrar los datos del sitio o usar navegación privada puede eliminar las partidas; exportá una copia importante antes de actualizar o cambiar de dirección.
 
-## Qué cambia en v5.2
+## Qué cambia en v5.3
+
+- **Reservas** queda fija en la barra superior junto con la deuda como porcentaje del PBI. Al comprar recursos se muestra el costo final con arancel, reservas posteriores, deuda proyectada y una alerta si la compra deja al país en condición de cesación de pagos.
 
 - Se incorpora **Cómo jugar**, una guía de ocho pasos que se abre desde la pantalla inicial o desde el menú ••• durante la partida. Incluye navegación por botones, indicadores de progreso, Escape y flechas izquierda/derecha.
 
