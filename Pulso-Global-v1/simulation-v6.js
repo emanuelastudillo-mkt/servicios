@@ -3728,6 +3728,188 @@
       deposits: c.naturalDeposits[id] || null,
     };
   }
+  function financeSummary(s) {
+    const c = s.countries[s.playerCountryId],
+      monthly = c.finance.monthly || {},
+      flows = monthly.flows || {};
+    const groups = {
+      taxes: 0,
+      publicSales: 0,
+      otherIncome: 0,
+      payroll: 0,
+      pensions: 0,
+      operations: 0,
+      investment: 0,
+      inputs: 0,
+      otherExpense: 0,
+      interest: 0,
+      principal: 0,
+    };
+    const taxKinds = new Set([
+      "IVA",
+      "IVA servicios",
+      "Impuesto a las ganancias salariales",
+      "Ganancias empresariales",
+      "Herencias",
+      "Arancel",
+      "Derecho de exportación",
+    ]);
+    const financing = new Set([
+      "Crédito automático",
+      "Préstamo recibido",
+      "Amortización de préstamo",
+      "Amortización anticipada",
+      "Amortización de deuda general",
+    ]);
+    for (const [kind, value] of Object.entries(flows)) {
+      if (financing.has(kind)) {
+        if (value < 0) groups.principal -= value;
+        continue;
+      }
+      if (kind === "Intereses") {
+        groups.interest += Math.max(0, -value);
+        continue;
+      }
+      if (value >= 0) {
+        if (taxKinds.has(kind)) groups.taxes += value;
+        else if (
+          kind === "Exportación" ||
+          kind === "Bienes y servicios generales públicos"
+        )
+          groups.publicSales += value;
+        else groups.otherIncome += value;
+        continue;
+      }
+      const amount = -value;
+      if (kind === "Salarios" || kind === "Salarios de obra")
+        groups.payroll += amount;
+      else if (kind === "Pensiones") groups.pensions += amount;
+      else if (kind.startsWith("Obra:") || kind.startsWith("Investigación"))
+        groups.investment += amount;
+      else if (
+        kind === "Insumos nacionales" ||
+        kind === "Tratamiento nacional de residuos"
+      )
+        groups.inputs += amount;
+      else if (
+        kind === "Funcionamiento y mantenimiento" ||
+        kind === "Subsidio sectorial"
+      )
+        groups.operations += amount;
+      else groups.otherExpense += amount;
+    }
+    const income = groups.taxes + groups.publicSales + groups.otherIncome,
+      operatingExpense =
+        groups.payroll +
+        groups.pensions +
+        groups.operations +
+        groups.investment +
+        groups.inputs +
+        groups.otherExpense,
+      operatingBalance = income - operatingExpense,
+      fiscalBalance = operatingBalance - groups.interest,
+      drain = Math.max(0, -monthly.change || 0),
+      runwayMonths = drain > 1e-9 ? Math.max(0, c.reserves) / drain : null,
+      expenses = Object.entries(groups)
+        .filter(
+          ([key]) => !["taxes", "publicSales", "otherIncome"].includes(key),
+        )
+        .map(([key, value]) => ({ key, value }))
+        .filter((x) => x.value > 1e-9)
+        .sort((a, b) => b.value - a.value);
+    return {
+      ...groups,
+      income,
+      operatingExpense,
+      operatingBalance,
+      fiscalBalance,
+      reserveChange: monthly.change || 0,
+      runwayMonths,
+      topExpenses: expenses.slice(0, 3),
+      taxBases: { ...(c.finance.taxBases || {}) },
+      debtPressure: income > 0 ? groups.interest / income : 0,
+    };
+  }
+  function projectDiagnostic(s, project) {
+    const c = s.countries[s.playerCountryId],
+      p =
+        typeof project === "string"
+          ? c.projects.find((x) => x.id === project)
+          : project;
+    if (!p) throw Error("Obra no encontrada.");
+    const b = D.getBuilding(p.typeId),
+      need = p.laborNeed || b.laborNeed * 1000 * (p.factor || 1),
+      availableWorkers = Math.max(0, c.laborSnapshot.unemployed * 1e6),
+      hired = Math.min(need, availableWorkers),
+      skill = clamp(c.education / b.skillNeed, 0.2, 1),
+      desired = Math.min(
+        100 - p.progress,
+        (100 / b.months) * skill * (hired / Math.max(1, need)),
+      ),
+      sector = c.sectors[b.sector],
+      pay =
+        ((p.baseCost || 0) * desired) / 100 +
+        (hired * c.sectors.infrastructure.salary) / 1e9,
+      materials = Object.entries(p.requirements)
+        .map(([id, total]) => {
+          const required = (total * desired) / 100,
+            available = c.publicStocks[id] || 0;
+          return {
+            id,
+            required,
+            available,
+            missing: Math.max(0, required - available),
+          };
+        })
+        .filter((x) => x.missing > 1e-9),
+      budgetAvailable = Math.max(0, sector.budget - sector.executed),
+      blockers = [];
+    if (!availableWorkers) blockers.push({ type: "workers", amount: need });
+    if (materials.length) blockers.push({ type: "materials", materials });
+    if (pay > Math.max(0, c.reserves))
+      blockers.push({
+        type: "treasury",
+        amount: pay,
+        available: Math.max(0, c.reserves),
+      });
+    if (pay > budgetAvailable)
+      blockers.push({
+        type: "sectorBudget",
+        amount: pay,
+        available: budgetAvailable,
+      });
+    return {
+      project: p,
+      building: b,
+      need,
+      availableWorkers,
+      hired,
+      skill,
+      desired,
+      pay,
+      budgetAvailable,
+      materials,
+      blockers,
+      status: blockers.length ? "blocked" : "advancing",
+    };
+  }
+  function sectorDiagnostic(s, id) {
+    const c = s.countries[s.playerCountryId],
+      sector = c.sectors[id];
+    if (!sector) throw Error("Sector no válido.");
+    const resources = D.materials
+      .filter((m) => m.sector === id && c.outputReasons[m.id])
+      .map((m) => ({ id: m.id, label: m.label, reason: c.outputReasons[m.id] }))
+      .slice(0, 4);
+    return {
+      projects: c.projects
+        .filter((p) => p.sector === id && p.progress < 100)
+        .map((p) => projectDiagnostic(s, p)),
+      resources,
+      availableWorkers: c.laborSnapshot.unemployed * 1e6,
+      budgetAvailable: Math.max(0, sector.budget - sector.executed),
+    };
+  }
   return {
     ...L,
     SAVE_VERSION: 6,
@@ -3758,6 +3940,9 @@
     cancelAgreement,
     rank,
     resourceReport,
+    financeSummary,
+    projectDiagnostic,
+    sectorDiagnostic,
     availableLand,
     storageCapacity,
     storageUsed,

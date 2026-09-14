@@ -18,7 +18,25 @@
     new Intl.NumberFormat("es-AR", { maximumFractionDigits: d }).format(
       Number.isFinite(n) ? n : 0,
     );
-  const dollars = (n) => "US$ " + num(n * 1e9, 2);
+  const dollars = (n) => {
+    const value = (Number(n) || 0) * 1e9,
+      absolute = Math.abs(value),
+      unit =
+        absolute >= 1e12
+          ? [1e12, "B"]
+          : absolute >= 1e9
+            ? [1e9, "MM"]
+            : absolute >= 1e6
+              ? [1e6, "M"]
+              : absolute >= 1e3
+                ? [1e3, "m"]
+                : [1, ""];
+    return (
+      "US$ " +
+      num(value / unit[0], Math.abs(value / unit[0]) < 10 ? 2 : 1) +
+      (unit[1] ? " " + unit[1] : "")
+    );
+  };
   const amount = (n, unit = "") => num(n, 2) + (unit ? " " + unit : "");
   const btn = (action, label, extra = "", disabled = false) =>
     `<button class="button compact" type="button" data-action="v6-${action}" ${extra} ${disabled ? "disabled" : ""}>${esc(label)}</button>`;
@@ -97,7 +115,11 @@
           (n, m) => n + c.materialProduction[m.id] * Math.abs(m.value),
           0,
         );
-      body += `<div class="v6-grid">${card("Funcionarios", num(v.publicWorkers), "Solicitados: " + num(v.requested))}${card("Empleo privado", num(v.privateWorkers), "Puestos: " + num(v.privateJobs))}${card("Eficiencia pública", num(v.efficiencyPublic * 100, 1) + "%")}${card("Eficiencia privada", num(v.efficiencyPrivate * 100, 1) + "%")}${card("Presupuesto autorizado", dollars(v.budget), num((v.budget * 1200) / c.gdp, 2) + "% PBI anual")}${card("Valor producido / mes", dollars(produced))}</div><p class="method-note">La capacidad necesita instalaciones, personal, energía e insumos. La eficiencia mejora mediante formación, experiencia operativa y tecnología.</p>`;
+      const diagnostic = E.sectorDiagnostic(s, id),
+        productionBlocks = diagnostic.resources
+          .map((x) => `${x.label}: ${x.reason}`)
+          .join(" · ");
+      body += `<div class="v6-grid">${card("Funcionarios", num(v.publicWorkers), "Solicitados: " + num(v.requested))}${card("Empleo privado", num(v.privateWorkers), "Puestos: " + num(v.privateJobs))}${card("Eficiencia pública", num(v.efficiencyPublic * 100, 1) + "%")}${card("Eficiencia privada", num(v.efficiencyPrivate * 100, 1) + "%")}${card("Presupuesto autorizado", dollars(v.budget), num((v.budget * 1200) / c.gdp, 2) + "% PBI anual")}${card("Valor producido / mes", dollars(produced))}</div><p class="method-note">La capacidad necesita instalaciones, personal, energía e insumos. La eficiencia mejora mediante formación, experiencia operativa y tecnología.</p>${productionBlocks ? `<div class="v6-alert v6-alert-warning"><strong>Qué limita la producción hoy:</strong> ${esc(productionBlocks)}</div>` : `<div class="v6-alert"><strong>Producción:</strong> no hay un bloqueo de recurso reportado; verificá demanda, capacidad instalada y funcionarios.</div>`}`;
       if (id === "agriculture")
         body += `<div class="v6-grid">${card("Superficie agrícola", amount(c.land.agricultureHa, "ha"))}${card("Superficie irrigada", amount(c.land.irrigatedHa, "ha"))}${card("Bovinos", num(c.herds.public.cattle + c.herds.private.cattle))}${card("Porcinos", num(c.herds.public.pigs + c.herds.private.pigs))}${card("Aves", num(c.herds.public.poultry + c.herds.private.poultry))}${card("Ovinos", num(c.herds.public.sheep + c.herds.private.sheep))}</div>`;
       if (id === "energy")
@@ -155,15 +177,35 @@
     return `<section class="v6-section"><h3>Obras en ejecución · ${items.length}</h3>${
       items.length
         ? items
-            .map(
-              (p) =>
-                `<div class="v6-project"><strong>${esc(D.getBuilding(p.typeId)?.label || p.typeId)}</strong><progress max="100" value="${p.progress}"></progress><span>${num(p.progress, 1)}% · ${num(p.workers || 0)} trabajadores · ${dollars(p.spent)}</span><small>${
-                  p.blockedBy
-                    .map((id) => D.getMaterial(id)?.label || id)
-                    .map(esc)
-                    .join(", ") || "Avance según presupuesto y personal"
-                }</small></div>`,
-            )
+            .map((p) => {
+              const d = E.projectDiagnostic(s, p),
+                materialText = d.materials
+                  .map(
+                    (m) =>
+                      `${D.getMaterial(m.id)?.label || m.id}: faltan ${amount(m.missing)}`,
+                  )
+                  .join(" · "),
+                blockers = d.blockers
+                  .map((x) => {
+                    if (x.type === "workers")
+                      return `sin desocupados disponibles (se requieren ${num(x.amount)})`;
+                    if (x.type === "materials") return materialText;
+                    if (x.type === "treasury")
+                      return `Tesoro insuficiente: necesita ${dollars(x.amount)} y hay ${dollars(x.available)}`;
+                    if (x.type === "sectorBudget")
+                      return `presupuesto autorizado insuficiente: quedan ${dollars(x.available)}`;
+                    return x.type;
+                  })
+                  .join(". ");
+              return `<div class="v6-project ${d.status === "blocked" ? "v6-project-blocked" : ""}"><strong>${esc(D.getBuilding(p.typeId)?.label || p.typeId)}</strong><progress max="100" value="${p.progress}"></progress><span>${num(p.progress, 1)}% · ${num(p.workers || 0)} trabajadores asignados · ${dollars(p.spent)} ejecutados</span><small class="${d.status === "blocked" ? "negative" : "positive"}">${esc(
+                d.status === "blocked"
+                  ? "No avanzará el próximo mes: " + blockers
+                  : "Avanzará aproximadamente " +
+                      num(d.desired, 1) +
+                      "% el próximo mes; costo previsto " +
+                      dollars(d.pay),
+              )}</small></div>`;
+            })
             .join("")
         : "<p>No hay obras activas.</p>"
     }</section>`;
@@ -236,10 +278,29 @@
   }
   function economy(s) {
     const c = s.countries[s.playerCountryId],
-      v = c.finance.monthly;
+      v = c.finance.monthly,
+      f = E.financeSummary(s),
+      expenseLabels = {
+        payroll: "Salarios públicos y de obra",
+        pensions: "Pensiones",
+        operations: "Funcionamiento y subsidios",
+        investment: "Obras e investigación",
+        inputs: "Insumos nacionales",
+        otherExpense: "Otros pagos",
+        interest: "Intereses de deuda",
+        principal: "Amortización de capital",
+      },
+      fiscalAdvice =
+        f.reserveChange < -1e-9
+          ? `Las reservas bajan ${dollars(-f.reserveChange)} por mes. Al ritmo actual alcanzan para ${f.runwayMonths === null ? "un plazo no estimable" : num(f.runwayMonths, 1) + " meses"}.`
+          : `Las reservas suben ${dollars(f.reserveChange)} por mes con los datos del último mes.`,
+      debtAdvice =
+        f.debtPressure >= 0.25
+          ? `Los intereses absorben ${amount(f.debtPressure * 100, "%")} de los ingresos públicos del último mes. Antes de sumar deuda, revisá gastos e inversión.`
+          : "La carga de intereses está por debajo de una cuarta parte de los ingresos públicos del último mes.";
     return shell(
       "Economía y deuda",
-      `<div class="v6-grid">${card("Reservas del Tesoro", dollars(c.reserves), "Saldo público disponible")}${card("Caja privada", dollars(c.finance.privateCash))}${card("Dinero de hogares", dollars(c.finance.householdCash))}${card("Deuda nominal", dollars(c.finance.nominalDebt), amount(c.debt, "% del PBI"))}${card("Resultado fiscal mensual", dollars(c.fiscalCashFlowMonthly || 0))}${card("Cambio de reservas", dollars(c.reserveChangeMonthly || 0))}${card("PBI real / nominal", dollars(c.realGdp) + " / " + dollars(c.gdp))}${card("Balance comercial nacional", dollars(c.tradeBalance), "Incluye comercio público y privado")}</div><p>Las operaciones privadas no se cargan al Tesoro. Un préstamo agrega capital disponible y deuda; las compras se descuentan una sola vez. La deuda no desaparece porque crezca el PBI.</p><dl class="v6-lines">${row("Ingresos públicos mensuales", dollars(v.income || 0))}${row("Gasto ejecutado", dollars(v.spending || 0))}${row("Intereses / amortizaciones", dollars(v.interest || 0) + " / " + dollars(v.principal || 0))}${row("Cuotas próximas", dollars(c.debtServiceMonthly))}${row("Crédito automático máximo", amount(c.finance.creditLimitShare, "% PBI"))}</dl>${btn("auto-credit", c.finance.automaticCredit ? "Desactivar crédito automático" : "Activar crédito automático")}<p>La financiación automática cubre gastos públicos hasta su límite; las compras manuales requieren reservas disponibles. Deuda superior al 205% del PBI y reservas agotadas mantienen la condición de cesación de pagos.</p><div class="v6-buildings">${E.LOAN_OPTIONS.map(
+      `<section class="v6-section v6-finance-summary"><h3>Resumen del último mes</h3><p class="method-note">Separa operación, deuda y financiación: así podés ver qué está vaciando el Tesoro sin leer cada asiento contable.</p><div class="v6-grid">${card("Entró al Tesoro", dollars(f.income), "Impuestos " + dollars(f.taxes) + " · ventas públicas " + dollars(f.publicSales))}${card("Operación antes de deuda", dollars(f.operatingBalance), f.operatingBalance < 0 ? "El gasto cotidiano supera a los ingresos" : "Los ingresos cubren el gasto cotidiano")}${card("Intereses", dollars(f.interest), amount(f.debtPressure * 100, "% de los ingresos"))}${card("Cambio real de reservas", dollars(f.reserveChange), f.reserveChange < 0 ? "Las reservas se redujeron" : "Las reservas crecieron")}</div><dl class="v6-lines">${row("Impuestos cobrados", dollars(f.taxes))}${row("Ventas y servicios públicos", dollars(f.publicSales))}${row("Sueldos públicos y obras", dollars(f.payroll))}${row("Pensiones", dollars(f.pensions))}${row("Funcionamiento y subsidios", dollars(f.operations))}${row("Obras e investigación", dollars(f.investment))}${row("Insumos y otros pagos", dollars(f.inputs + f.otherExpense))}${row("Intereses", dollars(f.interest))}${row("Amortización de capital", dollars(f.principal))}</dl><div class="v6-alert ${f.reserveChange < 0 ? "v6-alert-warning" : ""}"><strong>Lectura rápida:</strong> ${esc(fiscalAdvice)} ${esc(debtAdvice)}</div><p>Mayores gastos del mes: ${f.topExpenses.length ? f.topExpenses.map((x) => `${esc(expenseLabels[x.key])} (${dollars(x.value)})`).join(" · ") : "sin pagos públicos registrados todavía"}.</p></section><section class="v6-section"><h3>Detalle patrimonial y financiación</h3><div class="v6-grid">${card("Reservas del Tesoro", dollars(c.reserves), "Saldo público disponible")}${card("Caja privada", dollars(c.finance.privateCash))}${card("Dinero de hogares", dollars(c.finance.householdCash))}${card("Deuda nominal", dollars(c.finance.nominalDebt), amount(c.debt, "% del PBI"))}${card("PBI real / nominal", dollars(c.realGdp) + " / " + dollars(c.gdp))}${card("Balance comercial nacional", dollars(c.tradeBalance), "Incluye comercio público y privado")}</div><p>Las operaciones privadas no se cargan al Tesoro. Un préstamo agrega capital disponible y deuda; las compras se descuentan una sola vez. La deuda no desaparece porque crezca el PBI.</p><dl class="v6-lines">${row("Resultado fiscal (incluye intereses)", dollars(c.fiscalCashFlowMonthly || 0))}${row("Cuotas próximas de préstamos", dollars(c.debtServiceMonthly))}${row("Crédito automático máximo", amount(c.finance.creditLimitShare, "% PBI"))}</dl>${btn("auto-credit", c.finance.automaticCredit ? "Desactivar crédito automático" : "Activar crédito automático")}<p>La financiación automática cubre gastos públicos hasta su límite; las compras manuales requieren reservas disponibles. Deuda superior al 205% del PBI y reservas agotadas mantienen la condición de cesación de pagos.</p></section><div class="v6-buildings">${E.LOAN_OPTIONS.map(
         (o) => {
           const p = E.loanPreview(s, o.id);
           return `<article><h3>${esc(o.label)}</h3><p>${esc(o.description)}</p><strong>${dollars(p.amount)}</strong><p>${p.months} meses · ${amount(p.annualRate, "% anual")}</p><p>Primera cuota: ${dollars(p.firstPayment)} · deuda resultante ${amount(p.projectedDebt, "%")}</p><p>Reservas tras recibirlo: ${dollars(c.reserves + p.amount)}</p>${btn("loan", "Contratar préstamo", `data-loan="${o.id}"`)}</article>`;

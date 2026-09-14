@@ -1,14 +1,14 @@
-# Pulso Global 6.0 — gestión nacional
+# Pulso Global 6.1 — lectura financiera y diagnóstico operativo
 
-Actualización incremental sobre **v5.4**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v6.0**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v5.4, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v6.0, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **6.0**; si todavía aparece v5.4, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio. El menú ofrece **Continuar** y **Respaldo anterior a v6** cuando se migró una partida antigua.
+5. Comprobá que la pantalla inicial indique **6.1**; si todavía aparece v6.0, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -23,6 +23,14 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. Cada tick representa un mes; las velocidades son máximos deseados, sujetos a la capacidad del dispositivo. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
 ## Qué incorpora v6
+
+## Ajuste 6.1: leer y destrabar la economía
+
+- Economía y deuda abre con un resumen de un mes: impuestos, ventas públicas, salarios, pensiones, funcionamiento, obra/investigación, intereses, amortización y cambio efectivo de reservas. Los importes se muestran en escala compacta.
+- El panel indica el plazo estimado de reservas si hay pérdida mensual, la proporción de ingresos absorbida por intereses y los tres mayores pagos. Es una lectura del último mes, no una previsión garantizada.
+- Cada obra activa explica si avanzará el mes siguiente o cuál es el bloqueo exacto: materiales y faltante, Tesoro, presupuesto autorizado del ministerio o falta de desocupados.
+- La situación de cada ministerio muestra los recursos que hoy impiden producir; no presenta una instalación aún en construcción como producción ya disponible.
+- Impuestos ahora enseña la base gravada del último mes y el cambio monetario estimado frente al esquema vigente. La alícuota se cobra recién al avanzar un mes y no recauda si no existen operaciones gravadas.
 
 - Tesoro, empresas y hogares con cuentas separadas; registro de operaciones, cuotas, intereses y amortización. Comprar recursos no vuelve a descontar el préstamo en el tick siguiente.
 - Presupuestos y subsidios editados en dinero mensual; funcionarios solicitados, salarios, vacantes, cualificación y competencia entre empleadores. Los impuestos siguen siendo alícuotas.

@@ -156,6 +156,22 @@
 .v6-project small {
   font-size: 12px;
 }
+.v6-project-blocked {
+  border-color: #9a7244;
+  background: #2b261e;
+}
+.v6-alert {
+  margin: 12px 0;
+  padding: 11px 13px;
+  border-left: 3px solid #45d5c2;
+  border-radius: 5px;
+  background: #102d36;
+  font-size: 13px;
+}
+.v6-alert-warning {
+  border-left-color: #dfb363;
+  background: #30291d;
+}
 .v6-table {
   width: 100%;
   border-collapse: collapse;
