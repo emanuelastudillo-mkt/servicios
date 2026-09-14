@@ -4,4 +4,4 @@ Las banderas se derivan de [flag-icons](https://github.com/lipis/flag-icons), li
 
 # Recursos
 
-Los 17 iconos de recursos son SVG originales de Pulso Global, diseñados para esta interfaz.
+Los 48 iconos de recursos son SVG originales de Pulso Global, diseñados para esta interfaz. Los 31 nuevos de v6 extienden el sistema anterior, con lienzo de 100 × 100 px. No requieren servicios externos ni generación de imágenes durante la partida.

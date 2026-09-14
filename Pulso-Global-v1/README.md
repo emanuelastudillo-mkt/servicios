@@ -1,81 +1,77 @@
-# Pulso Global v5.3 - paquete para GitHub Pages
+# Pulso Global 6.0 — gestión nacional
 
-Subí todos los archivos de esta carpeta a la raíz de un repositorio. Después activá GitHub Pages desde **Settings > Pages > Deploy from a branch**, seleccionando `main` y `/ (root)`.
+Actualización incremental sobre **v5.4**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
-El juego no necesita backend ni base de datos remota. Las partidas se guardan localmente en el navegador. El menú `•••` permite exportarlas como JSON para conservar una copia o moverlas a otro dispositivo. Este ZIP es el sitio estático completo: no necesita instalación ni compilación.
+## Instalar el incremental
 
-## Jugar localmente
+1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
+2. Descomprimí el incremental sobre una copia de la carpeta de v5.4, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
+4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
+5. Comprobá que la pantalla inicial indique **6.0**; si todavía aparece v5.4, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio. El menú ofrece **Continuar** y **Respaldo anterior a v6** cuando se migró una partida antigua.
 
-Desde la carpeta descomprimida, con Python instalado, ejecutá `python -m http.server 4173` y abrí `http://localhost:4173/`. Usá siempre el mismo navegador y dirección para encontrar tus partidas. No abras directamente el HTML con doble clic: el mapa y el modo offline requieren HTTP.
+La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
-Después de una primera carga completa por localhost o HTTPS, los recursos quedan disponibles offline en ese navegador. No hay progreso mientras la pestaña está cerrada. Borrar los datos del sitio o usar navegación privada puede eliminar las partidas; exportá una copia importante antes de actualizar o cambiar de dirección.
+No importes una partida v6 en v5.4. Para volver, usá una copia de v5.4 y el JSON anterior a la actualización.
 
-## Qué cambia en v5.3
+## Jugar localmente y guardar
 
-- **Reservas** queda fija en la barra superior junto con la deuda como porcentaje del PBI. Al comprar recursos se muestra el costo final con arancel, reservas posteriores, deuda proyectada y una alerta si la compra deja al país en condición de cesación de pagos.
+Con Python instalado, ejecutá `python -m http.server 4173` desde la carpeta del juego y abrí `http://localhost:4173/`. No abras el HTML con doble clic: se necesita HTTP en localhost o HTTPS.
 
-- Se incorpora **Cómo jugar**, una guía de ocho pasos que se abre desde la pantalla inicial o desde el menú ••• durante la partida. Incluye navegación por botones, indicadores de progreso, Escape y flechas izquierda/derecha.
+Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece a esa dirección. Cambiarla no borra la partida original, pero la nueva dirección no puede verla: trasladala mediante exportar/importar. Borrar datos del sitio o usar navegación privada puede hacerte perder guardados.
 
-- Se integran 128 banderas nacionales SVG y 17 iconos SVG de recursos. Cada archivo tiene lienzo de 100 × 100 px, funciona sin conexión y está listado en `assets/icons-manifest.json`.
-- Las banderas se muestran en la selección de país, paneles de gobierno y comercio. Los recursos reemplazan las abreviaturas del inventario por iconos reconocibles.
-- `assets/ATTRIBUTION.md` documenta la licencia MIT de las banderas base y el origen de los iconos de recursos.
+Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. Cada tick representa un mes; las velocidades son máximos deseados, sujetos a la capacidad del dispositivo. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
-- El mundo jugable pasa a 128 países y 384 figuras públicas reales, tres por país. La pantalla inicial incorpora búsqueda por nombre, código o región.
-- Los 112 países nuevos parten de indicadores del Banco Mundial con el año de cada serie preservado en `countries-extra.js`; los valores corresponden principalmente a 2024–2025.
-- **Economía y deuda** detalla PBI nominal y per cápita, variación mensual, ingresos, gasto, reservas, comercio, inflación, desempleo, deuda y riesgo de cesación de pagos.
-- Se pueden pedir cuatro clases de préstamo. Antes de contratar se muestran monto, tasa, plazo, primera cuota, deuda resultante y riesgo proyectado. La cuota consume reservas y amortiza capital mes a mes.
-- La interfaz usa la escala acordada: `B` billones, `MM` mil millones, `M` millones, `k` cientos de miles y `m` miles.
-- Población y PBI ahora conservan seis decimales internos. En Nauru se ven movimientos de decenas de personas y montos inferiores al millón.
-- Los guardados v1–v4 migran al formato v5 y reciben países, préstamos y campos nuevos sin perder progreso.
+## Qué incorpora v6
 
-## Sistemas incorporados en v4.1
+- Tesoro, empresas y hogares con cuentas separadas; registro de operaciones, cuotas, intereses y amortización. Comprar recursos no vuelve a descontar el préstamo en el tick siguiente.
+- Presupuestos y subsidios editados en dinero mensual; funcionarios solicitados, salarios, vacantes, cualificación y competencia entre empleadores. Los impuestos siguen siendo alícuotas.
+- Propiedad pública/privada, producción diferenciada, inversión y cierres privados graduales, nacionalización y eficiencia sectorial.
+- 48 recursos con recetas, instalaciones y tecnologías; ganadería, lácteos, cuero, lana, litio, electrónica avanzada y residuos. 48 iconos SVG de 100 × 100 y las 128 banderas existentes.
+- Almacenes especializados con capacidad compartida por familia. El espacio se reparte entre productos para que los insumos no bloqueen toda la cadena. Las pérdidas y basura sin recoger quedan registradas.
+- Consumo doméstico, reposición y existencias de bienes durables, prohibición de importaciones por recurso/categoría o general, compraventa pública y acuerdos bilaterales.
+- Obras de cantidad física fija: viviendas, km de redes, aeropuertos y puertos por unidad; riego en hectáreas. Costo laboral y plazo dependen del país, sin cambiar el tamaño de una central o fábrica.
+- Territorio, agricultura y vivienda; aviso y confirmación al ocupar suelo agrícola. Viviendas nuevas, normales y a refaccionar.
+- Cohortes por edad, edad laboral configurable (18–65 al inicio; extremos permitidos 12–80), pensiones, esperanza de vida y migración entre países. Nauru muestra habitantes e importes pequeños con precisión.
+- Educación primaria, secundaria, técnica/superior y universitaria, más siete ramas de formación. Los docentes e investigadores se asignan desde los funcionarios de Educación, no se duplican.
+- Laboratorios, árbol tecnológico de cuatro niveles y exploración terrestre/marítima con probabilidad de fracaso. Un hallazgo descubre reservas finitas; no crea producción sin construir.
+- Nuclear, hidroeléctrica, eólica terrestre, geotérmica, solar, fósil y biomasa. La electricidad se limita por demanda, combustible, personal y almacenamiento específico.
+- Eventos pasivos, ciclos económicos, rankings numerados y ordenables y ficha de cada recurso con producción nacional y mundial.
 
-- Se agregan Cuba, Zambia, Nigeria, Uruguay, Haití y Nauru. Los seis pueden elegirse en la pantalla inicial y tienen tres figuras, parámetros nacionales, impuestos, demografía, recursos, producción y comercio propios.
-- El mapa, la comparación demográfica y el mercado mundial integran ahora 128 países. Las partidas existentes reciben los países faltantes al cargarse, sin perder el país jugado ni sus avances.
-- Hay 17 recursos en tres niveles: básicos, intermedios y productos finales. Cada transformación consume existencias reales; los productos finales exigen una fábrica o laboratorio.
-- Las 26 construcciones tienen el mismo costo fijo y requerimiento material en cualquier país. El desempleo, el nivel educativo y el salario relativo modifican costo laboral y plazo. Una central nuclear siempre suma 12 TWh, por lo que su peso cambia según la demanda nacional.
-- Las viviendas se dividen en nuevas, normales y a refaccionar. Envejecen y se deterioran cada mes; los proyectos de mantenimiento reparan un lote fijo.
-- Los países atraviesan ciclos diferentes. Pandemias, epidemias, terremotos, tsunamis, tornados, tormentas y sequías aparecen como shocks pasivos: no abren decisiones, pero alteran producción, PBI, población, vivienda y migración.
-- Cada recurso tiene una cotización mundial que fluctúa mensualmente según existencias, producción y consumo. En **Recursos y producción** se puede elegir una cantidad y comprarla o venderla; importaciones y exportaciones aplican los impuestos configurados.
-- Una crisis institucional ya no finaliza el gobierno. La estabilidad puede llegar a cero y la simulación continúa; también se reabren automáticamente los guardados anteriores que habían terminado por esa causa.
+## Cómo funciona la economía
 
-## Sistemas conservados y ampliados
+**Reservas = Tesoro disponible**, no todo el dinero del país. Un superávit comercial privado no entra íntegro al Estado. Solo impuestos, operaciones públicas y financiación identificada cambian el Tesoro.
 
-- No hay fecha final, límite de mandatos ni victoria automática a los ocho años. Cada tick sigue representando un mes. Se mantienen las derrotas por cuatro meses de respaldo inferior al 18% o deuda extrema sin reservas.
-- Impuestos editables: IVA, ganancias, herencias, derechos de importación y derechos de exportación. Podés mover los deslizadores o escribir la alícuota; una vista previa muestra el efecto estimado. Solo cambian al pulsar **Aplicar impuestos** y sus resultados se calculan al avanzar el mes. **Restablecer** descarta el borrador, sin alterar la política vigente.
-- Población del país propio siempre visible en la barra superior. Al seleccionar países en el mapa se muestra su población; Demografía permite consultar y comparar los 128 países.
-- Menores, población en edad laboral y jubilados evolucionan mensualmente, con nacimientos, envejecimiento, fallecimientos y migración.
-- Los guardados v1, v2, v3 y v4 se migran automáticamente a v5. Una partida que ganó por alcanzar el antiguo límite temporal o terminó por crisis institucional vuelve a estar activa. Las demás derrotas previas se conservan. Las obras, existencias e indicadores se mantienen y los campos nuevos se inicializan.
+Una compra manual exige reservas suficientes según la cotización conservadora y no solicita un préstamo por sí sola. Puede ejecutarse menos cantidad si faltan vendedor, excedente, transporte o capacidad. El préstamo recibido sigue disponible hasta que una operación o gasto real lo utiliza. No existe el antiguo piso de −20 MM.
 
-Se conservan el mapa mundial, ocho ministerios, presupuestos, mano de obra, subsidios e impuestos. Los eventos son automáticos y no detienen el tiempo.
+El crédito automático cubre obligaciones y ciertos insumos públicos dentro del presupuesto y del límite crediticio. Puede desactivarse en Economía. Aumentar presupuesto no obliga a gastarlo entero: faltas de trabajadores, recursos, instalaciones o caja dejan parte sin ejecutar. Obras e investigación pueden detenerse.
 
-## Impuestos y economía
+El saldo mensual incluye ingresos y gastos efectivos. Un superávit recupera caja y permite amortizar deuda; una caída del cociente deuda/PBI no significa que se haya cancelado capital. Los intereses impagos se registran, no desaparecen.
 
-Las alícuotas iniciales son parámetros de juego, no una reproducción de la legislación de cada país. Ganancias agrupa ingresos y utilidades; el modelo no distingue escalas, exenciones ni tributos provinciales.
+Se mantiene una única derrota económica: **deuda superior al 205% del PBI y reservas agotadas**, evaluada al cerrar el mes. No hay derrota por respaldo, crisis institucional, fecha ni cantidad de mandatos.
 
-- IVA reduce el consumo a tasas más altas y aumenta la presión de precios. Ganancias reduce ingreso disponible y el impulso de crecimiento. Herencias aporta una base fiscal menor y un pequeño efecto social definido para el juego.
-- Los derechos de importación reducen los intercambios y presionan los precios; los de exportación reducen la oferta externa. La recaudación aduanera parte del valor efectivamente comerciado, no del PBI total.
-- Las bases domésticas se aproximan con coeficientes sobre el PBI: IVA × 0,38; ganancias × 0,29 ajustado por la proporción en edad laboral; herencias × 0,02. Se aplica la eficiencia recaudatoria del país.
-- Para aduanas, la proyección anual es flujo mensual × alícuota × 12 × eficiencia / PBI, expresada en puntos de PBI. Los impuestos internos no se descuentan de la balanza comercial: esta compara exportaciones e importaciones brutas.
-- **Otros ingresos** resume recursos públicos no gestionados individualmente. **Ajuste de gestión** muestra la bonificación del perfil elegido. Balance fiscal = ingresos con ese ajuste − gasto público − subsidios. Las obras agregan su costo a la deuda a medida que avanzan.
-- Las proyecciones no son promesas: empleo, productividad, demografía, PBI, precios y comercio cambian cada mes. El resto de países evoluciona con gestión simplificada.
+El comercio mueve las mismas unidades entre dos países. Los acuerdos no garantizan ventas sin demanda ni obligan al Estado a comprar producción privada. Los insumos importados tras la fase productiva se utilizan desde el mes siguiente. Quien exporta basura de precio negativo paga por su recepción; los reciclables pueden valer positivamente.
 
-## Cómo leer la demografía
+## Datos, escala y límites del modelo
 
-Los tres grupos no se superponen y suman la población: menores de 0–17 años, edad laboral de 18–64 años y jubilados de 65 años o más. La última categoría es una aproximación etaria; no un padrón real de beneficiarios. No se simulan edades de retiro particulares por país.
+Se conservan 128 países/territorios jugables y sus figuras reales de la base anterior. La selección de una persona es un escenario hipotético, no una afirmación de candidatura o elegibilidad.
 
-La fuerza laboral es el 72% de quienes están en edad laboral. Se reparte en ocupados y desocupados según la tasa de desempleo; el resto son inactivos. Por eso “edad laboral” no equivale a “personas empleadas”.
+`country-facts.js` incorpora superficie terrestre, tierra agrícola, esperanza de vida y, donde hay cobertura, ferrocarril y riego del Banco Mundial. Conserva año y serie por campo; **no son todos datos de 2026**. Las cifras de población y PBI continúan con las fuentes y años de v5. Ver `FUENTES.md`.
 
-Cada mes se agregan nacimientos, se descuentan muertes y se aplica migración neta; parte de los menores pasa a edad laboral y parte de los adultos se jubila. Los movimientos se calculan como población × tasa anual por mil / 12.000. Las cohortes se expresan internamente en millones y se actualizan para todos los países. Las diferencias mínimas entre cifras mostradas corresponden al redondeo.
+Las cantidades iniciales de establecimientos, almacenes, ganado, matriz energética y tecnologías son **equivalentes de escenario**, no censos reales. Las reservas minerales, precios, recetas, costos, probabilidades y coeficientes sociales son parámetros de juego. La agricultura incluye tierra agropecuaria, no solo cultivos.
 
-La proporción de adultos modifica la capacidad productiva y la base de ganancias. Esta versión no implementa todavía un sistema previsional individual, pirámide por edad ni presupuesto jubilatorio separado.
+El PBI real usa valor añadido de bienes sin volver a sumar sus insumos y un componente de servicios agregado, anclado a la economía inicial y ajustado por empleo y eficiencia. Los bienes y servicios fuera del catálogo tienen pagos entre hogares y proveedores públicos/privados según su participación; no representan tarifas reales de cada servicio. No se simula un sistema bancario completo, tipos de cambio ni contratos laborales individuales.
 
-## Alcance del prototipo
+Los sectores pagan un salario agregado; las ramas educativas influyen en la oferta ponderada del ministerio. La migración y la población se calculan por cohortes, con participación laboral de referencia del 72%. Con edad inicial menor de 18, “menores” y “edad laboral habilitada” se superponen: no deben sumarse como grupos exclusivos.
 
-Es un motor agregado para experimentar, no una predicción económica. Los mercados de alimentos, energía, manufacturas y tecnología usan oferta, consumo y precios dinámicos, con el resto del mundo como contraparte simplificada. Los 17 recursos usan inventarios y recetas nacionales. Hay eventos pasivos, pero no elecciones ni un plazo automático de salida del cargo.
+El límite de 60.000 habitantes/km² es una regla de diseño. Nauru tiene 21 km² y un máximo de 1.260.000 habitantes. Un guardado antiguo ya excedido no elimina habitantes de golpe; se frena el nuevo crecimiento por encima de capacidad.
 
-Se guardan los últimos 120 meses de gráficos y 80 avisos, sin limitar la duración total. Las obras activas se conservan; el listado histórico mantiene las 40 completadas más recientes, mientras el total construido sigue acumulado.
+Las abreviaturas conservan la escala de la interfaz: B = billones, MM = mil millones, M = millones; m = miles y k se usa en magnitudes de cientos de miles. Para tomar decisiones, los controles monetarios muestran el importe completo en US$.
 
-Los perfiles de figuras públicas y los valores iniciales son abstracciones para una simulación hipotética, no evaluaciones ni estadísticas oficiales.
+Esta es una simulación para jugar y probar decisiones, no una predicción económica. El balance requiere pruebas de juego continuadas, especialmente después de migrar economías muy avanzadas o alterar fuertemente salarios, nacionalización e impuestos.
 
-Las fuentes y la metodología de los 112 países nuevos están detalladas en `FUENTES.md`. El año exacto varía por serie. Los parámetros no cubiertos por datos públicos fueron derivados o ajustados deliberadamente para equilibrar el juego.
+## Verificación y archivos
+
+El código editable está en los JavaScript y CSS de esta carpeta. `catalog-v6.js` define el catálogo, `simulation-v6.js` el motor ampliado y `ui-v6.js` las pantallas. No modifiques archivos del navegador ni guardados para instalar la actualización.
+
+`CAMBIOS-v6.md` resume cobertura, criterios y comprobaciones de esta entrega. No se publicó ningún cambio automáticamente en GitHub.

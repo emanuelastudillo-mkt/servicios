@@ -1,5 +1,5 @@
 {
-  "version": "5.1.0",
+  "version": "6.0.0",
   "size": "100x100",
   "flags": {
     "ARG": {
@@ -690,7 +690,7 @@
       "file": "assets/resources/steel.svg"
     },
     "fuel": {
-      "label": "Combustible refinado",
+      "label": "Combustible",
       "tier": "intermediate",
       "file": "assets/resources/fuel.svg"
     },
@@ -700,7 +700,7 @@
       "file": "assets/resources/chemicals.svg"
     },
     "components": {
-      "label": "Componentes",
+      "label": "Componentes electrónicos",
       "tier": "intermediate",
       "file": "assets/resources/components.svg"
     },
@@ -715,7 +715,7 @@
       "file": "assets/resources/automobiles.svg"
     },
     "machinery": {
-      "label": "Maquinaria industrial",
+      "label": "Maquinaria productiva",
       "tier": "final",
       "file": "assets/resources/machinery.svg"
     },
@@ -728,6 +728,161 @@
       "label": "Plutonio procesado",
       "tier": "final",
       "file": "assets/resources/plutonium.svg"
+    },
+    "lithium": {
+      "label": "Litio bruto",
+      "tier": "basic",
+      "file": "assets/resources/lithium.svg"
+    },
+    "gold": {
+      "label": "Oro bruto",
+      "tier": "basic",
+      "file": "assets/resources/gold.svg"
+    },
+    "diamonds": {
+      "label": "Diamantes en bruto",
+      "tier": "basic",
+      "file": "assets/resources/diamonds.svg"
+    },
+    "refined_lithium": {
+      "label": "Litio refinado",
+      "tier": "intermediate",
+      "file": "assets/resources/refined_lithium.svg"
+    },
+    "refined_gold": {
+      "label": "Oro refinado",
+      "tier": "intermediate",
+      "file": "assets/resources/refined_gold.svg"
+    },
+    "cut_diamonds": {
+      "label": "Diamantes procesados",
+      "tier": "intermediate",
+      "file": "assets/resources/cut_diamonds.svg"
+    },
+    "semiconductors": {
+      "label": "Semiconductores",
+      "tier": "intermediate",
+      "file": "assets/resources/semiconductors.svg"
+    },
+    "chips": {
+      "label": "Microchips avanzados",
+      "tier": "intermediate",
+      "file": "assets/resources/chips.svg"
+    },
+    "cells": {
+      "label": "Celdas de batería",
+      "tier": "intermediate",
+      "file": "assets/resources/cells.svg"
+    },
+    "feed": {
+      "label": "Alimento balanceado",
+      "tier": "intermediate",
+      "file": "assets/resources/feed.svg"
+    },
+    "batteries": {
+      "label": "Baterías",
+      "tier": "final",
+      "file": "assets/resources/batteries.svg"
+    },
+    "computers": {
+      "label": "Computadoras",
+      "tier": "final",
+      "file": "assets/resources/computers.svg"
+    },
+    "smartphones": {
+      "label": "Teléfonos de alta gama",
+      "tier": "final",
+      "file": "assets/resources/smartphones.svg"
+    },
+    "servers": {
+      "label": "Servidores",
+      "tier": "final",
+      "file": "assets/resources/servers.svg"
+    },
+    "supercomputers": {
+      "label": "Supercomputadoras",
+      "tier": "final",
+      "file": "assets/resources/supercomputers.svg"
+    },
+    "electric_vehicles": {
+      "label": "Vehículos eléctricos",
+      "tier": "final",
+      "file": "assets/resources/electric_vehicles.svg"
+    },
+    "jewelry": {
+      "label": "Joyería",
+      "tier": "final",
+      "file": "assets/resources/jewelry.svg"
+    },
+    "diamond_tools": {
+      "label": "Herramientas de diamante",
+      "tier": "final",
+      "file": "assets/resources/diamond_tools.svg"
+    },
+    "appliances": {
+      "label": "Electrodomésticos",
+      "tier": "final",
+      "file": "assets/resources/appliances.svg"
+    },
+    "transport_vehicles": {
+      "label": "Vehículos de transporte",
+      "tier": "final",
+      "file": "assets/resources/transport_vehicles.svg"
+    },
+    "milk": {
+      "label": "Leche cruda",
+      "tier": "basic",
+      "file": "assets/resources/milk.svg"
+    },
+    "meat": {
+      "label": "Carne",
+      "tier": "intermediate",
+      "file": "assets/resources/meat.svg"
+    },
+    "raw_leather": {
+      "label": "Cuero sin procesar",
+      "tier": "basic",
+      "file": "assets/resources/raw_leather.svg"
+    },
+    "wool": {
+      "label": "Lana",
+      "tier": "basic",
+      "file": "assets/resources/wool.svg"
+    },
+    "dairy": {
+      "label": "Lácteos",
+      "tier": "final",
+      "file": "assets/resources/dairy.svg"
+    },
+    "leather": {
+      "label": "Cuero acondicionado",
+      "tier": "intermediate",
+      "file": "assets/resources/leather.svg"
+    },
+    "textiles": {
+      "label": "Textiles de lana",
+      "tier": "final",
+      "file": "assets/resources/textiles.svg"
+    },
+    "organic_waste": {
+      "label": "Residuos orgánicos",
+      "tier": "basic",
+      "file": "assets/resources/organic_waste.svg"
+    },
+    "recyclables": {
+      "label": "Residuos reciclables",
+      "tier": "basic",
+      "file": "assets/resources/recyclables.svg"
+    },
+    "waste": {
+      "label": "Basura no aprovechable",
+      "tier": "basic",
+      "file": "assets/resources/waste.svg"
+    },
+    "biomass": {
+      "label": "Biomasa agrícola",
+      "tier": "basic",
+      "file": "assets/resources/biomass.svg"
     }
   }
 }

@@ -541,8 +541,8 @@
   });
 
   return {
-    version: 5,
-    release: "5.3.0",
+    version: 6,
+    release: "6.0.0",
     disclaimer: "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
     sectors: SECTORS,
     commodities: COMMODITIES,

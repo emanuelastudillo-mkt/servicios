@@ -1,11 +1,11 @@
 (function (root, factory) {
-  const api = factory(typeof module === "object" && module.exports ? require("./data.js") : root.PULSO_DATA);
+  const api = factory(typeof module === "object" && module.exports ? require("./catalog-v6.js") : root.PULSO_DATA, typeof module === "object" && module.exports ? require("./simulation-v6.js") : root.PulsoV6);
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.PulsoEngine = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function (DATA) {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (DATA, V6) {
   "use strict";
 
-  const SAVE_VERSION = 5;
+  const SAVE_VERSION = 6;
   const START_YEAR = 2026;
   const START_MONTH = 1;
   const ENDLESS = true;
@@ -126,6 +126,8 @@
       resources: clone(definition.resources), budget: clone(definition.budget), labor: clone(definition.labor),
       subsidies: initialSubsidies(), leaderId: definition.leaders[0].id, growth: definition.baseGrowth,
       fiscalBalance: round(startingRevenue - definition.spendingTarget - DATA.sectors.reduce((sum, s) => sum + definition.budget[s.id] * initialSubsidies()[s.id] / 1000, 0), 2), tradeBalance: 0,
+      fiscalCashFlowMonthly: 0, tradeReserveFlowMonthly: 0, treasuryFlowMonthly: 0, reserveChangeMonthly: 0,
+      debtPaymentFromSurplus: 0, newDebtFromDeficit: 0,
       sectorBalances: { food: 0, energy: 0, manufactures: 0, technology: 0 },
       sectorSupply: { food: 0, energy: 0, manufactures: 0, technology: 0 },
       sectorDemand: { food: 0, energy: 0, manufactures: 0, technology: 0 },
@@ -560,7 +562,7 @@
     state.monthsSinceWorldEvent = (state.monthsSinceWorldEvent || 0) + 1;
     if (state.worldEvents.length < 3 && state.monthsSinceWorldEvent >= 4 && random(state) < 0.085) {
       const definition = weightedEvent(state);
-      const candidates = DATA.countries.filter((country) => !(definition.exclude || []).includes(country.id));
+      const candidates = DATA.countries.filter((country) => !(definition.exclude || []).includes(country.id) && !(definition.id === "tsunami" && (DATA.landlocked || []).includes(country.id)));
       const target = pick(state, candidates);
       const duration = definition.duration[0] + Math.floor(random(state) * (definition.duration[1] - definition.duration[0] + 1));
       const event = { id: `event-${state.tick}-${definition.id}`, type: definition.type, definitionId: definition.id,
@@ -569,10 +571,12 @@
       state.worldEvents.push(event); state.eventHistory.unshift(clone(event)); state.eventHistory = state.eventHistory.slice(0, 60);
       const affected = Object.values(state.countries).filter((country) => event.scope === "global" || (event.scope === "region" && country.region === event.region) || country.id === event.countryId);
       affected.forEach((country) => {
-        if (event.impact.infrastructure) country.infrastructure = clamp(country.infrastructure + event.impact.infrastructure, 20, 100);
-        if (event.impact.populationLoss) country.population *= 1 - event.impact.populationLoss;
+        const tech=country.research?.levels||{};
+        const mitigation=1-Math.min(.5,((tech.resilience||0)+(tech.seismic||0)+(tech.emergencies||0)+(tech.civil_defense||0)+(tech.weather_warning||0))*.025);
+        if (event.impact.infrastructure) country.infrastructure = clamp(country.infrastructure + event.impact.infrastructure*mitigation, 20, 100);
+        if (event.impact.populationLoss) country.population *= 1 - event.impact.populationLoss*mitigation;
         if (event.impact.housingDamage) {
-          const damage = country.housingStock.normal * event.impact.housingDamage;
+          const damage = country.housingStock.normal * event.impact.housingDamage*mitigation;
           country.housingStock.normal -= damage; country.housingStock.repair += damage;
         }
       });
@@ -627,8 +631,7 @@
     simulateHousing(country);
     country.electricityDemandTWh = Math.max(0.01, country.electricityDemandTWh * (1 + Math.max(-5, growth) / 24000 + country.demographicFlows.births / Math.max(country.population, 0.001) * 0.08));
     country.fiscalBalance = round(fiscalBalance, 2);
-    country.debt = clamp(country.debt + (-fiscalBalance) / 12 - growth * country.debt / 1200 + (bonuses.debtPressure || 0) / 24, 0, 260);
-    country.reserves = Math.max(-20, country.reserves + country.tradeBalance * 0.08);
+    settleTreasury(country, fiscalBalance, growth, bonuses.debtPressure || 0);
     const servicesApproval = ((country.budget.education + country.budget.health) - 35) * 0.012 + (bonuses.welfare || 0) * 0.012;
     const economyApproval = (growth - 2) * 0.025 - Math.max(0, country.inflation - 6) * 0.008 - Math.max(0, country.unemployment - 8) * 0.015;
     const fiscalConcern = Math.max(0, -fiscalBalance - 6) * 0.025 + Math.max(0, country.debt - 130) * 0.004;
@@ -644,6 +647,51 @@
       country[key] = round(country[key], digits);
     });
     country.lastGdpDelta = round(country.gdp - previousGdp, 6);
+  }
+
+  function settleTreasury(country, fiscalBalance, growth, debtPressure) {
+    const gdp = Math.max(country.gdp, 0.000001);
+    const fiscalCashFlow = gdp * fiscalBalance / 1200;
+    const tradeReserveFlow = (Number(country.tradeBalance) || 0) * 0.08;
+    const previousReserves = Number(country.reserves) || 0;
+    let reserves = previousReserves + tradeReserveFlow;
+    let debt = clamp((Number(country.debt) || 0) - (Number(growth) || 0) * (Number(country.debt) || 0) / 1200 + (Number(debtPressure) || 0) / 24, 0, 260);
+    let debtPayment = 0;
+    let newDebt = 0;
+
+    if (fiscalCashFlow >= 0) {
+      let available = fiscalCashFlow;
+      const reserveRecovery = Math.min(available, Math.max(0, -reserves));
+      reserves += reserveRecovery;
+      available -= reserveRecovery;
+      debtPayment = Math.min(available, debt * gdp / 100);
+      debt -= debtPayment / gdp * 100;
+      reserves += available - debtPayment;
+    } else {
+      let deficit = -fiscalCashFlow;
+      const reserveUse = Math.min(deficit, Math.max(0, reserves));
+      reserves -= reserveUse;
+      deficit -= reserveUse;
+      newDebt = deficit;
+      debt += newDebt / gdp * 100;
+    }
+
+    country.debt = round(clamp(debt, 0, 260), 5);
+    country.reserves = round(reserves, 5);
+    country.fiscalCashFlowMonthly = round(fiscalCashFlow, 5);
+    country.tradeReserveFlowMonthly = round(tradeReserveFlow, 5);
+    country.treasuryFlowMonthly = round(fiscalCashFlow + tradeReserveFlow, 5);
+    country.reserveChangeMonthly = round(reserves - previousReserves, 5);
+    country.debtPaymentFromSurplus = round(debtPayment, 5);
+    country.newDebtFromDeficit = round(newDebt, 5);
+    return {
+      fiscalCashFlow: country.fiscalCashFlowMonthly,
+      tradeReserveFlow: country.tradeReserveFlowMonthly,
+      treasuryFlow: country.treasuryFlowMonthly,
+      reserveChange: country.reserveChangeMonthly,
+      debtPayment: country.debtPaymentFromSurplus,
+      newDebt: country.newDebtFromDeficit
+    };
   }
 
   function transferShare(allocation, fromId, toId, amount) {
@@ -760,8 +808,7 @@
 
   function evaluateGame(state) {
     const country = state.countries[state.playerCountryId];
-    if (country.lowPopularityMonths >= 4) state.gameOver = { won: false, title: "Gobierno sin respaldo", detail: "Cuatro meses bajo 18% de apoyo terminaron con tu mandato." };
-    else if (country.debt > 205 && country.reserves <= 0) state.gameOver = { won: false, title: "Cesación de pagos", detail: "La deuda y la falta de reservas bloquearon el funcionamiento del Estado." };
+    if (country.debt > 205 && country.reserves <= 0) state.gameOver = { won: false, title: "Cesación de pagos", detail: "La deuda y la falta de reservas bloquearon el funcionamiento del Estado." };
   }
 
   function advanceTick(state) {
@@ -921,7 +968,7 @@
 
   function migrate(candidate) {
     const state = clone(candidate);
-    if (![1, 2, 3, 4, SAVE_VERSION].includes(state.version)) throw new Error("La versión de la partida no es compatible.");
+    if (![1, 2, 3, 4, 5, SAVE_VERSION].includes(state.version)) throw new Error("La versión de la partida no es compatible.");
     if (!state.playerCountryId || !state.countries || !state.countries[state.playerCountryId]) throw new Error("La partida está incompleta.");
     DATA.countries.forEach((definition) => {
       if (!state.countries[definition.id]) state.countries[definition.id] = toCountryState(definition);
@@ -949,7 +996,7 @@
 
   function validateSave(candidate) {
     if (!candidate || typeof candidate !== "object") throw new Error("El archivo no contiene una partida.");
-    if (![1, 2, 3, 4, SAVE_VERSION].includes(candidate.version)) throw new Error("La versión de la partida no es compatible.");
+    if (![1, 2, 3, 4, 5, SAVE_VERSION].includes(candidate.version)) throw new Error("La versión de la partida no es compatible.");
     if (!candidate.playerCountryId || !candidate.countries || !candidate.countries[candidate.playerCountryId]) throw new Error("La partida está incompleta.");
     if (!candidate.date || !Number.isSafeInteger(candidate.tick) || candidate.tick < 0 ||
       !Number.isSafeInteger(candidate.date.year) || candidate.date.year < START_YEAR ||
@@ -977,11 +1024,12 @@
 
   function hydrate(candidate) { validateSave(candidate); return migrate(candidate); }
 
-  return {
+  const legacy = {
     SAVE_VERSION, ENDLESS, LOAN_OPTIONS, createGame, advanceTick, applyAllocations, applyTaxes, estimateTaxes, demographicSnapshot, queueConstruction, importResource, sellResource, tradeResource,
-    bankruptcyRisk, loanPreview, takeLoan,
+    bankruptcyRisk, loanPreview, takeLoan, settleTreasury,
     constructionPreview, calculateScore, validateSave, hydrate, getCountryDefinition,
     getLeaderDefinition, getConstructionDefinition, normalizeAllocation, monthLabel,
     clone, clamp, sumValues
   };
+  return V6(legacy, DATA, {random, addActivity, updateWorldEvents, activeEventEffects, advanceDate, captureHistory, evaluateGame});
 });

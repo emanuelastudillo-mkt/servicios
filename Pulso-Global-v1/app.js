@@ -3,6 +3,8 @@
 
   const DATA = window.PULSO_DATA;
   const Engine = window.PulsoEngine;
+  const UI6 = window.PulsoUI6;
+  const ui6 = { tab: "summary", resource: null, confirm: null, sort: "gdp", ascending: false };
   const app = document.querySelector("#app");
   const speedIntervals = { 1: 2600, 3: 1050, 6: 430 };
   const mapViews = [
@@ -13,6 +15,8 @@
     { id: "taxes", label: "Impuestos", icon: "$" },
     { id: "trade", label: "Comercio exterior", icon: "↔" },
     { id: "demographics", label: "Demografía", icon: "◒" },
+    { id: "territory", label: "Territorio y vivienda", icon: "⌂" },
+    { id: "research", label: "Investigación", icon: "⚗" },
     { id: "indicators", label: "Indicadores", icon: "▧" }
   ];
   const sectorHelp = {
@@ -36,10 +40,12 @@
   const TUTORIAL_STEPS = [
     { icon: "◎", label: "Elegí tu punto de partida", title: "País y figura de conducción", text: "Cada país arranca con población, PBI, empleo, recursos e impuestos propios. La figura elegida modifica el punto de partida, pero la evolución depende de tus decisiones mensuales." },
     { icon: "+1", label: "El reloj no tiene final", title: "Avanzá mes a mes", text: "Usá pausa, 1×, 3×, 6× o +1 mes. No existe un mandato con fecha límite: el mundo continúa evolucionando mientras la partida esté abierta." },
-    { icon: "▰", label: "Definí prioridades", title: "Presupuesto, empleo y subsidios", text: "Cada ministerio permite repartir presupuesto, mano de obra y subsidios. Los cambios no son instantáneos: educación, salud e infraestructura construyen efectos graduales." },
+    { icon: "▰", label: "Definí prioridades", title: "Presupuestos monetarios y funcionarios", text: "Cada ministerio tiene presupuesto mensual en dólares, puestos públicos solicitados, sueldo y subsidios. Contrata gradualmente a desempleados cualificados o atrae empleados privados con mejores salarios. El presupuesto es un techo, no un gasto duplicado." },
     { icon: "⌂", label: "Convertí planes en obras", title: "Construcciones", text: "Viviendas, rutas, aeropuertos, trenes, fábricas y centrales consumen recursos y mano de obra. Revisá plazo, costo y materiales antes de iniciar hasta ocho obras activas." },
-    { icon: "▦", label: "Cadenas productivas", title: "Recursos y producción", text: "Los 17 recursos se ordenan en materias básicas, bienes intermedios y productos finales. Algunas fábricas o laboratorios desbloquean productos de mayor valor." },
-    { icon: "$", label: "Cuidá las cuentas", title: "Impuestos, comercio y deuda", text: "Configurá IVA, ganancias, herencias e impuestos aduaneros. En Economía y deuda podés pedir préstamos, pero cada cuota sale de reservas y aumenta el riesgo de cesación de pagos." },
+    { icon: "▦", label: "Cadenas productivas", title: "Recursos y producción", text: "Abrí un recurso para ver su receta, cotización, producción pública, privada y mundial. Las fábricas necesitan tecnología, personal, insumos y almacenes adecuados. Las compras manuales usan únicamente reservas disponibles; una prohibición de importación también bloquea estas compras." },
+    { icon: "⌂", label: "El espacio también cuenta", title: "Territorio e infraestructura", text: "Las viviendas envejecen y se pueden refaccionar. Las nuevas obras ocupan hectáreas; si necesitan reemplazar suelo agrícola, requieren confirmación. Rutas y trenes se miden en kilómetros, aeropuertos y puertos en instalaciones y riego en hectáreas." },
+    { icon: "⚗", label: "Desarrollá capacidades", title: "Educación e investigación", text: "Asigná fondos y docentes por nivel y especialidad dentro del ministerio. Los laboratorios investigan desbloqueos y mejoras; explorar minerales puede fracasar y cada campaña consume tiempo y dinero. Los resultados y avances se guardan en la partida." },
+    { icon: "$", label: "Cuidá las cuentas", title: "Impuestos, comercio y deuda", text: "Configurá los cinco impuestos y acuerdos comerciales para vender excedentes reales. Los préstamos ingresan al Tesoro; las cuotas consumen reservas y amortizan capital. Revisá costo y saldo antes de comprar. La partida termina por deuda superior al 205% del PBI con el Tesoro agotado, nunca por una crisis institucional." },
     { icon: "◒", label: "Leé a la población", title: "Demografía y mundo", text: "Menores, trabajadores y jubilados cambian con natalidad, mortalidad y migraciones. Los demás países también crecen o se contraen y los eventos pasivos alteran el equilibrio mundial." },
     { icon: "▣", label: "Conservá tu gobierno", title: "Guardá y experimentá", text: "El guardado queda en este dispositivo. Usá Guardar o el menú ••• para exportar un JSON. No hay victoria por tiempo; probá estrategias y observá sus consecuencias." }
   ];
@@ -132,7 +138,7 @@
   }
   function money(value) { return `US$ ${compactAbsolute((Number(value) || 0) * 1e9)}`; }
   function resourceMoney(value) { return money(value); }
-  function people(value) { return compactAbsolute((Number(value) || 0) * 1e6); }
+  function people(value) { const count=(Number(value)||0)*1e6;return count<100000?fmt(count,0):compactAbsolute(count); }
   function signed(value, suffix) { return `${value > 0 ? "+" : ""}${fmt(value, 1)}${suffix || ""}`; }
   function playerCountry() { return game.countries[game.playerCountryId]; }
   function playerLeader() { return Engine.getLeaderDefinition(game.playerCountryId, game.playerLeaderId); }
@@ -194,7 +200,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. Cada mes transforma la economía y la población.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v5.0</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v6.0</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -297,7 +303,7 @@
             <div class="hud-stats">
               <div class="hud-population"><span>Población</span><strong>${people(country.population)}</strong><small>${e(country.name)}</small></div>
               <div><span>PBI</span><strong>${money(country.gdp)}</strong><small class="${country.growth < 0 ? "negative" : "positive"}">${signed(country.growth, "%")}</small></div>
-              <div class="hud-reserves"><span>Reservas</span><strong class="${country.reserves < 0 ? "negative" : ""}">${money(country.reserves)}</strong><small>Deuda ${fmt(country.debt, 1)}% PBI</small></div>
+              <div class="hud-reserves" title="Tesoro disponible: US$ ${fmt(country.reserves * 1e9, 2)}"><span>Reservas</span><strong class="${country.reserves < 0 ? "negative" : ""}">${money(country.reserves)}</strong><small>Deuda ${fmt(country.debt, 1)}% PBI</small></div>
               <div><span>Felicidad</span><strong>${fmt(country.happiness)}%</strong><small>${fmt(country.popularity)}% apoyo</small></div>
               <div><span>Empleo</span><strong>${fmt(100 - country.unemployment)}%</strong><small>${fmt(country.unemployment)}% desocupación</small></div>
               <div><span>Insumos</span><strong>${lowStock ? `${lowStock} críticos` : "Estables"}</strong><small>${activeProjects(country).length} obras activas</small></div>
@@ -313,7 +319,7 @@
               <span>${e(lastSaveLabel)}</span><button class="button compact" type="button" data-action="save">Guardar</button>
               <button class="menu-button" type="button" data-action="toggle-menu" aria-label="Más opciones">•••</button>
               <div id="save-menu" class="save-menu" hidden>
-                <button type="button" data-action="export">Exportar JSON</button><button type="button" data-action="import">Importar JSON</button>
+                <button type="button" data-action="export">Exportar JSON</button><button type="button" data-action="import">Importar JSON</button><button type="button" data-action="export-backup">Respaldo anterior a v6</button>
                 <button type="button" data-action="open-tutorial">Tutorial</button>
                 <button type="button" data-action="new-game">Nueva partida</button>
               </div>
@@ -353,6 +359,7 @@
     if (activeNav) mobileNav.scrollLeft = activeNav.offsetLeft - (mobileNav.clientWidth - activeNav.offsetWidth) / 2;
     if (window.matchMedia("(max-width: 820px)").matches) window.scrollTo(0, samePanel ? previousScroll.page : 0);
     lastPanelKey = panelKey;
+    app.querySelectorAll('[data-v6-form="trade-resource"]').forEach(form => UI6.quote(game, form));
     drawWorldMap();
   }
 
@@ -364,6 +371,8 @@
   }
 
   function renderCurrentPanel() {
+    const enhanced = UI6.render(game, currentView, ui6);
+    if (enhanced != null) return enhanced;
     if (currentView === "map") return renderMapPanel();
     if (currentView === "resources") return renderResourcesPanel();
     if (currentView === "economy") return renderEconomyPanel();
@@ -597,6 +606,11 @@
               <div><dt>Exportaciones mensuales</dt><dd>${money(c.grossExports)}</dd></div>
               <div><dt>Importaciones mensuales</dt><dd>${money(c.grossImports)}</dd></div>
               <div><dt>Balance comercial mensual</dt><dd class="${c.tradeBalance < 0 ? "negative" : "positive"}">${money(c.tradeBalance)}</dd></div>
+              <div><dt>Flujo fiscal mensual</dt><dd class="${c.fiscalCashFlowMonthly < 0 ? "negative" : "positive"}">${money(c.fiscalCashFlowMonthly || 0)}</dd></div>
+              <div><dt>Impacto comercial en reservas</dt><dd class="${c.tradeReserveFlowMonthly < 0 ? "negative" : "positive"}">${money(c.tradeReserveFlowMonthly || 0)}</dd></div>
+              <div><dt>Cambio mensual de reservas</dt><dd class="${c.reserveChangeMonthly < 0 ? "negative" : "positive"}">${money(c.reserveChangeMonthly || 0)}</dd></div>
+              <div><dt>Superávit destinado a deuda</dt><dd>${money(c.debtPaymentFromSurplus || 0)}</dd></div>
+              <div><dt>Deuda nueva por déficit</dt><dd>${money(c.newDebtFromDeficit || 0)}</dd></div>
               <div><dt>Inflación</dt><dd>${fmt(c.inflation, 2)}%</dd></div>
               <div><dt>Desocupación</dt><dd>${fmt(c.unemployment, 2)}%</dd></div>
             </dl></section>
@@ -630,7 +644,7 @@
             <aside id="tax-preview" class="tax-preview" aria-live="polite">${renderTaxPreview()}</aside>
           </div>
         </div>
-        <footer class="panel-footer">Alícuotas iniciales y bases simplificadas para el juego. “Otros ingresos” agrupa tributos y aportes no gestionados aquí.</footer>
+        <footer class="panel-footer">Proyección sobre las bases gravadas del último mes; antes del primer mes utiliza una estimación de consumo y nóminas. No es recaudación garantizada.</footer>
       </section>`;
   }
 
@@ -639,9 +653,9 @@
     const preview = Engine.estimateTaxes(game, taxDraft);
     const current = Engine.estimateTaxes(game, c.taxes);
     const delta = preview.breakdown.total - current.breakdown.total;
-    const subsidies = DATA.sectors.reduce((sum, s) => sum + c.budget[s.id] * c.subsidies[s.id] / 1000, 0);
-    const bonus = (playerLeader().bonuses.efficiency || 0) * 0.12;
-    const balance = Math.max(0, preview.breakdown.total + bonus) - c.spendingTarget - subsidies;
+    const bonus = 0;
+    const expense = (c.finance.monthly.spending || DATA.sectors.reduce((n,s)=>n+c.sectors[s.id].budget,0))+(c.finance.monthly.interest||0);
+    const balance = preview.breakdown.total - expense*1200/c.gdp;
     return `
       <p class="panel-kicker">Proyección anual</p><h3>Recaudación estimada</h3>
       <div class="tax-total">${fmt(preview.breakdown.total, 2)}<span>% del PBI</span></div>
@@ -652,10 +666,7 @@
         <div><dt>Ajuste de gestión</dt><dd>${signed(bonus, " pts")}</dd></div>
         <div class="revenue-balance"><dt>Balance fiscal proyectado</dt><dd class="${balance < 0 ? "negative" : "positive"}">${signed(balance, "%")}</dd></div>
       </dl>
-      <div class="tax-effects"><strong>Efecto directo del cambio</strong>
-        <span>Crecimiento anual <b>${signed(preview.growthEffect - current.growthEffect, " pts")}</b></span>
-        <span>Presión sobre precios <b>${signed(preview.inflationEffect - current.inflationEffect, " pts")}</b></span>
-      </div>
+      <div class="tax-effects"><strong>Recaudación mensual proyectada</strong><span>${money(preview.monthly)}</span><span>Los impuestos modifican el dinero de hogares, empresas y Estado; su efecto en empleo y consumo se calcula en el motor.</span></div>
       <p class="tax-footnote">Estimación con la economía actual. La recaudación final cambia con el empleo, el PBI y los flujos comerciales. Los derechos aduaneros se calculan sobre comercio mensual anualizado.</p>`;
   }
 
@@ -930,6 +941,7 @@
     const latest = await SaveStore.latest();
     if (!latest) return showToast("No se encontró una partida guardada", "error");
     try {
+      if (latest.state.version < 6) await SaveStore.put("backup-pre-v6", latest.state);
       game = Engine.hydrate(latest.state); selectedCountryId = game.playerCountryId; focusedCountryId = game.playerCountryId;
       demographicCountryId = game.playerCountryId; taxDraftDirty = false;
       currentView = "map"; panelTab = "overview"; lastSaveLabel = "Partida recuperada"; draftFromGame(); renderGame();
@@ -947,7 +959,9 @@
   async function importGame(file) {
     if (!file) return;
     try {
-      const imported = Engine.hydrate(JSON.parse(await file.text()));
+      const raw = JSON.parse(await file.text());
+      const imported = Engine.hydrate(raw);
+      if (raw.version < 6) await SaveStore.put("backup-pre-v6", raw);
       clearInterval(timer); timer = null;
       game = imported; selectedCountryId = game.playerCountryId; focusedCountryId = game.playerCountryId;
       demographicCountryId = game.playerCountryId; taxDraftDirty = false;
@@ -968,7 +982,7 @@
       execute() {
         if (!game) return { active: false };
         const c = playerCountry();
-        return { active: true, date: Engine.monthLabel(game.date), month: game.tick, openEnded: game.openEnded, country: c.name, leader: playerLeader().name, population: c.population, demographics: Engine.demographicSnapshot(c), taxes: c.taxes, revenueRate: c.revenueRate, happiness: c.happiness, gdp: c.gdp, growth: c.growth, unemployment: c.unemployment, tourism: c.tourism, migration: c.migration, activeProjects: activeProjects(c).length, materialStocks: c.materialStocks };
+        return { active: true, date: Engine.monthLabel(game.date), month: game.tick, openEnded: game.openEnded, country: c.name, leader: playerLeader().name, population: c.population, demographics: Engine.demographicSnapshot(c), taxes: c.taxes, revenueRate: c.revenueRate, happiness: c.happiness, gdp: c.gdp, growth: c.growth, unemployment: c.unemployment, tourism: c.tourism, migration: c.migration, activeProjects: activeProjects(c).length, materialStocks: c.materialStocks, reserves: c.reserves, debt: c.debt, sectors: c.sectors, research: c.research, land: c.land, loans: c.loans, resourceImports: c.resourceImports, resourceExports: c.resourceExports };
       }
     });
     register({
@@ -1003,6 +1017,14 @@
     const target = event.target.closest("[data-action]");
     if (!target) return;
     const action = target.dataset.action;
+    if (action.startsWith("v6-") && game) {
+      try {
+        const result = UI6.action(game, ui6, target);
+        if (result?.view) currentView = result.view;
+        await saveGame("autosave", false); renderGame();
+      } catch (error) { showToast(error.message, "error"); }
+      return;
+    }
     if (action === "open-tutorial") { await setTutorial(true, tutorialStep); return; }
     if (action === "close-tutorial") { await setTutorial(false); return; }
     if (action === "tutorial-next") { await setTutorial(true, tutorialStep + 1); return; }
@@ -1018,6 +1040,7 @@
     } else if (action === "start-game") startGame(target.dataset.country, target.dataset.leader);
     else if (action === "continue-game") await continueGame();
     else if (action === "view") {
+      ui6.resource = null; ui6.confirm = null; ui6.tab = "summary";
       currentView = target.dataset.view; panelTab = isSector(currentView) ? "overview" : panelTab; renderGame();
     } else if (action === "panel-tab") { panelTab = target.dataset.tab; renderGame(); }
     else if (action === "inspect-demographic") { demographicCountryId = target.dataset.country; renderGame(); }
@@ -1063,11 +1086,18 @@
     else if (action === "toggle-menu") {
       const menu = document.querySelector("#save-menu"); menu.hidden = !menu.hidden;
     } else if (action === "export") exportGame();
+    else if (action === "export-backup") {
+      const backup=await SaveStore.get("backup-pre-v6");
+      if(!backup) { showToast("No hay respaldo de migración en este dispositivo","error"); return; }
+      const url=URL.createObjectURL(new Blob([JSON.stringify(backup.state)],{type:"application/json"}));
+      const anchor=document.createElement("a"); anchor.href=url; anchor.download="pulso-global-respaldo-pre-v6.json";anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }
     else if (action === "import") document.querySelector("#import-file").click();
     else if (action === "new-game") { setSpeed(0); game = null; await renderStart(); }
   });
 
   app.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && (ui6.confirm || ui6.resource)) { ui6.confirm = null; ui6.resource = null; renderGame(); return; }
     if (tutorialOpen) {
       if (event.key === "Escape") { event.preventDefault(); setTutorial(false); return; }
       if (event.key === "ArrowRight" && tutorialStep < TUTORIAL_STEPS.length - 1) { event.preventDefault(); setTutorial(true, tutorialStep + 1); return; }
@@ -1079,6 +1109,7 @@
 
   app.addEventListener("input", (event) => {
     const input = event.target;
+    if (game && input.closest("[data-v6-form]")) { UI6.quote(game, input.closest("[data-v6-form]")); return; }
     if (input.id === "country-search" && !game) {
       countrySearch = input.value;
       const grid = document.querySelector("#country-grid");
@@ -1115,9 +1146,20 @@
   });
 
   app.addEventListener("change", (event) => {
+    if (game && event.target.closest("[data-v6-form]")) UI6.quote(game, event.target.closest("[data-v6-form]"));
     if (event.target.id === "import-file") importGame(event.target.files[0]);
     if (event.target.id === "demographic-country") { demographicCountryId = event.target.value; renderGame(); }
     if (event.target.dataset.kind === "tax") event.target.value = taxDraft[event.target.dataset.tax];
+  });
+  app.addEventListener("focusin", (event) => {
+    if (game && event.target.matches("input,select,textarea") && event.target.closest(".v6-panel") && speed) { clearInterval(timer);timer=null;speed=0;app.querySelectorAll('[data-action="speed"]').forEach(button=>button.classList.toggle("active",button.dataset.speed==="0")); }
+  });
+  app.addEventListener("submit", async (event) => {
+    const form = event.target.closest("[data-v6-form]");
+    if (!form || !game) return;
+    event.preventDefault();
+    try { const message = UI6.submit(game, ui6, form); await saveGame("autosave", false); renderGame(); showToast(message || "Cambios aplicados", "success"); }
+    catch (error) { showToast(error.message, "error"); }
   });
   document.addEventListener("click", (event) => {
     const menu = document.querySelector("#save-menu");

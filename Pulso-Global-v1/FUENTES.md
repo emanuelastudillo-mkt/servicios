@@ -1,5 +1,23 @@
 # Fuentes y criterio de los países
 
+## Incorporaciones de v6 — 13 de septiembre de 2026
+
+Se consultó la API oficial WDI del Banco Mundial para los 128 países/territorios de la base. `country-facts.js` conserva valor, año y código de serie de cada observación. Se seleccionó el último dato no nulo entre 2010 y 2025; no se atribuye el año de descarga al dato.
+
+- [Superficie terrestre](https://data.worldbank.org/indicator/AG.LND.TOTL.K2): 128 registros; km² de tierra, sin usar aguas territoriales como espacio construible. Nauru conserva la regla de 21 km² solicitada.
+- [Superficie agrícola](https://data.worldbank.org/indicator/AG.LND.AGRI.K2): 127 registros; se convierte de km² a hectáreas e incluye uso agropecuario. No equivale únicamente a hectáreas sembradas.
+- [Esperanza de vida al nacer](https://data.worldbank.org/indicator/SP.DYN.LE00.IN): 128 registros. Es la base inicial; la evolución posterior corresponde a la simulación.
+- [Líneas ferroviarias](https://data.worldbank.org/indicator/IS.RRS.TOTL.KM): 77 registros; longitud de rutas, no suma de todas las vías paralelas. Si falta, se estima la red de escenario.
+- [Tierra agrícola irrigada](https://data.worldbank.org/indicator/AG.LND.IRIG.AG.ZS): 79 registros. Se aplica el porcentaje al área agrícola disponible; algunas observaciones son antiguas y no se presentan como censo actual de distritos.
+
+La población, PBI, empleo y nombres de figuras mantienen la base v5 descrita debajo. Esta entrega no vuelve a certificar que una figura continúe en el cargo ni recalcula todos esos indicadores a septiembre de 2026.
+
+Instalaciones, carreteras, viviendas, ganado, capacidades logísticas, propiedad pública/privada y distribución energética son **estimaciones de escenario** derivadas de escala, educación y actividad. No hay una fuente que respalde cada cantidad como inventario real. Las listas de conocimientos industriales y zonas con depósitos son supuestos de diseño; no constituyen un mapa geológico comprobado ni estimaciones oficiales de reservas explotables. La inicialización calibra capacidades equivalentes para disponer de cadenas productivas; no crea abastecimiento gratuito durante los ticks.
+
+Precios, recetas, rendimiento de plantas, impuestos, probabilidades de exploración, cohortes sintéticas, velocidades de deterioro y respuestas de IA son parámetros de juego. Los datos de observación, las estimaciones y las reglas del motor deben mantenerse diferenciados al interpretar una partida.
+
+## Metodología de la base anterior
+
 Consulta y generación realizadas el 12 de septiembre de 2026. Pulso Global usa una foto estática para establecer una base reconocible; no intenta reproducir legislación, presupuestos ni estadísticas en tiempo real.
 
 ## Indicadores

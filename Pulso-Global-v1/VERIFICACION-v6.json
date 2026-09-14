@@ -1,0 +1,104 @@
+{
+  "version": "6.0.0",
+  "base": "5.4",
+  "generatedAt": "2026-09-14T00:00:10.238Z",
+  "engine": {
+    "result": "PASS",
+    "exitCode": 0,
+    "elapsedSeconds": 80.537,
+    "createdAt": "2026-09-13T23:50:29.923Z",
+    "testCount": 32
+  },
+  "browser": {
+    "result": "PASS",
+    "countries": 128,
+    "menus": 16,
+    "screenshots": 8,
+    "offline": true,
+    "saveReload": true,
+    "errors": []
+  },
+  "upgrade": {
+    "result": "PASS",
+    "oldCache": "5.4",
+    "newCache": "6.0",
+    "migration": true,
+    "backupDownload": true,
+    "negativeBalancePreserved": true,
+    "offlineResume": true,
+    "errors": []
+  },
+  "stress": {
+    "result": "PASS",
+    "months": 360,
+    "countries": 128,
+    "averageTickMs": 1396.12156,
+    "samples": [
+      {
+        "tick": 60,
+        "recessions": 128,
+        "averageCoverage": 0.7198115313363815,
+        "averageEnergy": 0.8857092093442203,
+        "nauruPopulation": 13401.489831373117,
+        "elapsedSeconds": 119.2447632
+      },
+      {
+        "tick": 120,
+        "recessions": 82,
+        "averageCoverage": 0.5280240278479819,
+        "averageEnergy": 0.6956525446478572,
+        "nauruPopulation": 14948.606462281306,
+        "elapsedSeconds": 214.6634722
+      },
+      {
+        "tick": 180,
+        "recessions": 96,
+        "averageCoverage": 0.4313965127954803,
+        "averageEnergy": 0.550613819457704,
+        "nauruPopulation": 16675.47101609975,
+        "elapsedSeconds": 287.50678020000004
+      },
+      {
+        "tick": 240,
+        "recessions": 111,
+        "averageCoverage": 0.4106839565167069,
+        "averageEnergy": 0.4872221370334171,
+        "nauruPopulation": 18558.276838077032,
+        "elapsedSeconds": 355.21148400000004
+      },
+      {
+        "tick": 300,
+        "recessions": 128,
+        "averageCoverage": 0.4300197478211938,
+        "averageEnergy": 0.4546188966800051,
+        "nauruPopulation": 20566.194782506693,
+        "elapsedSeconds": 425.31243340000003
+      },
+      {
+        "tick": 360,
+        "recessions": 84,
+        "averageCoverage": 0.33574086663553016,
+        "averageEnergy": 0.4204294666534757,
+        "nauruPopulation": 22629.382211346976,
+        "elapsedSeconds": 502.59715910000006
+      }
+    ],
+    "scope": "Numerical/accounting stability, not economic balance approval",
+    "playerCountry": "NRU",
+    "testTreasuryBillions": 1000
+  },
+  "sourceSha256": {
+    "app.js": "cea0dfe1b80e93a4116cf62a3470be5c3435dca56157062e5ad0e8af3b394e67",
+    "engine.js": "7284bc86041dd01614ee642db7d48c76922994197aad26392f9301e2eb10c3d1",
+    "catalog-v6.js": "bd60f3cc85f8291d75bbfbe1ddc91118beafde7b7ca1ac451bd1f1b0fe2c2401",
+    "simulation-v6.js": "2867fc3e145190402763d35c82ebef518c53e474407b79cf846d4625775fdef4",
+    "ui-v6.js": "88e48cf1c664f0ea97c5bb174b0453c69120184b46ab5c0e0dc9875c1603e3fa",
+    "styles-v6.css": "7a178ee0ff0fe2c6cbd0239e523afa9bb65d7b5df035cb8b82fe6f3d814e9ad7",
+    "sw.js": "a5d3894fd2797bf527b9d4f5296805e7dd14923b6ede1ad1d41a95e83a27af73"
+  },
+  "limits": [
+    "Long-term economic balance remains experimental; sustained scarcity observed.",
+    "Initial facilities, technology and deposits are game scenario estimates.",
+    "Only local Edge desktop/emulated-mobile testing; no GitHub deployment."
+  ]
+}

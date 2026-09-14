@@ -1,28 +1,40 @@
-const CACHE_NAME = "pulso-global-v5.3.0";
-const ASSETS = ["./", "./index.html", "./styles.css", "./countries-extra.js", "./data.js", "./engine.js", "./app.js", "./world.geojson", "./manifest.webmanifest", "./README.md", "./FUENTES.md", "./VERSION.txt", "./assets/icons-manifest.json", "./assets/ATTRIBUTION.md"];
+const CACHE_NAME = "pulso-global-v6.0.0";
+const ASSETS = ["./", "./index.html", "./styles.css", "./styles-v6.css", "./countries-extra.js", "./data.js", "./country-facts.js", "./catalog-v6.js", "./simulation-v6.js", "./engine.js", "./ui-v6.js", "./app.js", "./world.geojson", "./manifest.webmanifest", "./README.md", "./FUENTES.md", "./VERSION.txt", "./assets/icons-manifest.json", "./assets/ATTRIBUTION.md"];
 
 async function assetList() {
-  const response = await fetch("./assets/icons-manifest.json");
+  const response = await fetch("./assets/icons-manifest.json", { cache: "reload" });
   if (!response.ok) throw new Error("No se pudo cargar el manifiesto de iconos");
   const manifest = await response.json();
   return [...Object.values(manifest.flags), ...Object.values(manifest.resources)].map((item) => `./${item.file}`);
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(Promise.all([caches.open(CACHE_NAME), assetList()]).then(([cache, icons]) => cache.addAll([...ASSETS, ...icons])));
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const [cache, icons] = await Promise.all([caches.open(CACHE_NAME), assetList()]);
+    await cache.addAll([...ASSETS, ...icons].map(url => new Request(url, { cache: "reload" })));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith("pulso-global-") && key !== CACHE_NAME).map((key) => caches.delete(key)))));
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key.startsWith("pulso-global-") && key !== CACHE_NAME).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
-    const copy = response.clone();
-    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+  event.respondWith((async () => {
+    // Never search all caches: an old tab may recreate its previous-version
+    // cache while an update activates. Only this release is a valid source.
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(event.request);
+    if (cached) return cached;
+    const response = await fetch(event.request);
+    if (response.ok && new URL(event.request.url).origin === self.location.origin)
+      await cache.put(event.request, response.clone());
     return response;
-  })));
+  })());
 });
