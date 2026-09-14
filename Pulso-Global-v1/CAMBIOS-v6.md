@@ -1,6 +1,6 @@
-# Pulso Global 6.1 — lectura financiera y diagnóstico operativo
+# Pulso Global 6.3 — tutorial completo de Economía y deuda
 
-Fecha de entrega: 13 de septiembre de 2026. Incremental sobre v6.0. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
+Fecha de entrega: 13 de septiembre de 2026. Incremental sobre v6.1. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
 
 ## Cobertura de la lista consolidada
 
@@ -35,6 +35,8 @@ Fecha de entrega: 13 de septiembre de 2026. Incremental sobre v6.0. Motor jugabl
 | Ficha de recursos | Receta, instalación, tecnología, capacidad, producción pública/privada/mundial, existencias, costos, precio, faltantes y comercio. |
 
 ## Correcciones adicionales encontradas durante la revisión
+
+- Tutorial desplegable de Economía y deuda: explica el origen y los factores de aumento/disminución de cada valor visible, más un orden de lectura para déficit, intereses y obras detenidas.
 
 - Resumen de Tesoro simplificado, separando ingresos de operación, gastos cotidianos, intereses, amortización y variación real de reservas.
 - Diagnóstico anticipado de obras: distingue falta de material, Tesoro, presupuesto ministerial y trabajadores disponibles, en lugar de mostrar una etiqueta genérica.

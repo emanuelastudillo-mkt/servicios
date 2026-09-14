@@ -1,14 +1,14 @@
-# Pulso Global 6.1 — lectura financiera y diagnóstico operativo
+# Pulso Global 6.3 — tutorial completo de Economía y deuda
 
-Actualización incremental sobre **v6.0**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v6.1**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v6.0, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v6.1, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **6.1**; si todavía aparece v6.0, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **6.3**; si todavía aparece v6.1, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -23,6 +23,11 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. Cada tick representa un mes; las velocidades son máximos deseados, sujetos a la capacidad del dispositivo. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
 ## Qué incorpora v6
+
+## Ajuste 6.3: tutorial de Economía y deuda
+
+- La parte superior de Economía y deuda incluye una guía desplegable que explica ingresos, impuestos, gastos, pensiones, obras, intereses, amortización, reservas, deuda, crédito automático y una lectura práctica para decidir.
+- Cada explicación separa qué puede aumentar o disminuir el valor y qué condiciones requiere. El tutorial recalca que alícuotas, préstamos y recortes no producen resultados instantáneos ni garantizados.
 
 ## Ajuste 6.1: leer y destrabar la economía
 

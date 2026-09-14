@@ -396,7 +396,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. Cada mes transforma la economía y la población.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v6.1</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v6.3</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
