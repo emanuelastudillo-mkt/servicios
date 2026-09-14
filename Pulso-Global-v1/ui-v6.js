@@ -102,6 +102,32 @@
           `data-sector="${id}"`,
         ) +
         `<div class="v6-grid">${card("Ejecutado este mes", dollars(v.executed))}${card("Vacantes", num(Math.max(0, v.requested - v.publicWorkers)))}${card("Nómina potencial", dollars((v.requested * v.salary) / 1e9))}${card("Desde desempleo", num(v.newFromUnemployment || 0), "Contrataciones del mes")}${card("Desde privados", num(v.transfers || 0), "Cambios de empleador")}</div>`;
+      if (id === "infrastructure") {
+        const p = c.housingProgram;
+        body += `<section class="v6-section"><h3>Programa pasivo de vivienda</h3><p>Reservá parte del presupuesto y cuadrillas temporales para construir y refaccionar todos los meses, sin iniciar una obra manual. El programa usa solo suelo libre no agrícola; se detiene o avanza parcialmente si faltan Tesoro, presupuesto general, materiales o desocupados.</p>${form(
+          "housing-program",
+          field(
+            "buildBudget",
+            "Construcción: tope mensual (US$)",
+            p.buildBudget * 1e9,
+          ) +
+            field(
+              "buildWorkers",
+              "Construcción: cuadrilla solicitada",
+              Math.round(p.buildWorkers),
+            ) +
+            field(
+              "repairBudget",
+              "Refacción: tope mensual (US$)",
+              p.repairBudget * 1e9,
+            ) +
+            field(
+              "repairWorkers",
+              "Refacción: cuadrilla solicitada",
+              Math.round(p.repairWorkers),
+            ),
+        )}<div class="v6-grid">${card("Viviendas construidas último mes", num(p.lastBuildUnits))}${card("Viviendas refaccionadas último mes", num(p.lastRepairUnits))}${card("Estado de construcción", p.lastBuildStatus)}${card("Estado de refacción", p.lastRepairStatus)}</div></section>`;
+      }
     } else if (tab === "build") body += constructionList(s, id, u);
     else if (tab === "stock")
       body += resourceTable(
@@ -652,6 +678,13 @@
         requested: Number(v.requested),
         salary: Number(v.salary),
         subsidyCap: Number(v.subsidyCap) / 1e9,
+      });
+    if (a === "housing-program")
+      E.setHousingProgram(s, {
+        buildBudget: Number(v.buildBudget) / 1e9,
+        buildWorkers: Number(v.buildWorkers),
+        repairBudget: Number(v.repairBudget) / 1e9,
+        repairWorkers: Number(v.repairWorkers),
       });
     if (a === "education")
       E.setEducation(s, formElement.dataset.education, {

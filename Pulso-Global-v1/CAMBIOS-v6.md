@@ -1,4 +1,4 @@
-# Pulso Global 6.3 — tutorial completo de Economía y deuda
+# Pulso Global 6.4 — programa pasivo de vivienda
 
 Fecha de entrega: 13 de septiembre de 2026. Incremental sobre v6.1. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
 
@@ -37,6 +37,7 @@ Fecha de entrega: 13 de septiembre de 2026. Incremental sobre v6.1. Motor jugabl
 ## Correcciones adicionales encontradas durante la revisión
 
 - Tutorial desplegable de Economía y deuda: explica el origen y los factores de aumento/disminución de cada valor visible, más un orden de lectura para déficit, intereses y obras detenidas.
+- Programa pasivo de vivienda y refacción dentro de Infraestructura, con presupuesto, cuadrillas, materiales, suelo y caja contabilizados cada mes.
 
 - Resumen de Tesoro simplificado, separando ingresos de operación, gastos cotidianos, intereses, amortización y variación real de reservas.
 - Diagnóstico anticipado de obras: distingue falta de material, Tesoro, presupuesto ministerial y trabajadores disponibles, en lugar de mostrar una etiqueta genérica.

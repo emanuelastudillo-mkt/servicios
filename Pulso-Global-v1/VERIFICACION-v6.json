@@ -1,13 +1,13 @@
 {
-  "version": "6.3.0",
+  "version": "6.4.0",
   "base": "6.1.0",
-  "generatedAt": "2026-09-14T02:37:01.319Z",
+  "generatedAt": "2026-09-14T03:29:31.383Z",
   "engine": {
     "result": "PASS",
     "exitCode": 0,
-    "elapsedSeconds": 82.24,
-    "createdAt": "2026-09-14T02:23:13.583Z",
-    "testCount": 34
+    "elapsedSeconds": 70.375,
+    "createdAt": "2026-09-14T03:29:14.652Z",
+    "testCount": 35
   },
   "browser": {
     "result": "PASS",
@@ -21,7 +21,7 @@
   "upgrade": {
     "result": "PASS",
     "oldCache": "5.4",
-    "newCache": "6.3",
+    "newCache": "6.4",
     "migration": true,
     "backupDownload": true,
     "negativeBalancePreserved": true,
@@ -88,13 +88,13 @@
     "testTreasuryBillions": 1000
   },
   "sourceSha256": {
-    "app.js": "d34aff0d85db983b95575387c07380f52007f642d01b4be588180261be02ea95",
+    "app.js": "86166c7d52ab5ff4506781af6144170191b27321e0daa42d4f2a355dc361eaf9",
     "engine.js": "7284bc86041dd01614ee642db7d48c76922994197aad26392f9301e2eb10c3d1",
-    "catalog-v6.js": "60f2b2b0710e8773d603476fd9cdd36116c74ea243ae58f8338f3d198dc73bf9",
-    "simulation-v6.js": "264a41efbddbe2a5472c5a8232cae6a821b025f4420ffd201008187777ee96c6",
-    "ui-v6.js": "67276f4e649a3cc8a3c9fe97f1ff8e34f2c9fb96a1027474f90e0a343d3e386d",
+    "catalog-v6.js": "ef4138919e0b069570f64fbea2cf2811fe7e6f41c5805dd3223068de34744e9f",
+    "simulation-v6.js": "3972985897ac81057e2b379362a7999647b86003ba47efcd1423724b6dd02caa",
+    "ui-v6.js": "9b59248d98e2a37e0b58a852fcd2aa33baa598b5cd629fc2d9d95677bde26f55",
     "styles-v6.css": "8d22d1cc1b212c66d3b8246d0a546661e306a3da797e4b4ed2e679d030537e40",
-    "sw.js": "3c7748dfdbd68fa1ac705e1b6cc92745c873209f07fdd2ad466195aa400acc80"
+    "sw.js": "99702ac81c3503996117d2b73a2928221c43b094f02e8a7405dd0e0969d9bf1c"
   },
   "limits": [
     "Long-term economic balance remains experimental; sustained scarcity observed.",

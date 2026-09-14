@@ -593,7 +593,18 @@
     s.agreements = s.agreements || [];
     s.nextAgreementId = s.nextAgreementId || 1;
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
-    for (const c of Object.values(s.countries)) initCountry(c, legacy);
+    for (const c of Object.values(s.countries)) {
+      initCountry(c, legacy);
+      const p = (c.housingProgram ||= {});
+      p.buildBudget = Math.max(0, finite(p.buildBudget, 0));
+      p.repairBudget = Math.max(0, finite(p.repairBudget, 0));
+      p.buildWorkers = Math.max(0, finite(p.buildWorkers, 0));
+      p.repairWorkers = Math.max(0, finite(p.repairWorkers, 0));
+      p.lastBuildUnits = Math.max(0, finite(p.lastBuildUnits, 0));
+      p.lastRepairUnits = Math.max(0, finite(p.lastRepairUnits, 0));
+      p.lastBuildStatus = p.lastBuildStatus || "Sin programa activo";
+      p.lastRepairStatus = p.lastRepairStatus || "Sin programa activo";
+    }
     if (!s.v6Seeded) {
       seedSupplyChains(s, legacy);
       s.v6Seeded = true;
@@ -2166,6 +2177,127 @@
     c.projects = c.projects.filter(
       (p) => p.progress < 100 || completed.includes(p),
     );
+    return free;
+  }
+  function passiveHousing(s, c, freeWorkers) {
+    const program = c.housingProgram,
+      sector = c.sectors.infrastructure;
+    let free = Math.max(0, freeWorkers || 0);
+    const run = (buildingId, budgetCap, requested, mode) => {
+      const b = D.getBuilding(buildingId),
+        statusKey = mode === "build" ? "lastBuildStatus" : "lastRepairStatus",
+        outputKey = mode === "build" ? "lastBuildUnits" : "lastRepairUnits";
+      program[outputKey] = 0;
+      if (budgetCap <= 0 || requested <= 0) {
+        program[statusKey] = "Sin presupuesto o cuadrilla asignada";
+        return;
+      }
+      if (!free) {
+        program[statusKey] = "Sin desocupados disponibles";
+        return;
+      }
+      const workers = Math.min(requested, free),
+        skill = clamp(c.education / b.skillNeed, 0.2, 1);
+      let factor =
+        (workers / Math.max(1, b.laborNeed * 1000)) * (skill / b.months);
+      if (mode === "build") {
+        const densityRoom =
+          (c.land.areaKm2 * 60000) / 1e6 / 3.2 - sum(c.housingStock);
+        factor = Math.min(
+          factor,
+          Math.max(0, densityRoom) / Math.max(1e-12, b.housingUnits),
+          Math.max(0, availableLand(c)) / Math.max(1e-12, b.landHa),
+        );
+      } else
+        factor = Math.min(
+          factor,
+          c.housingStock.repair / Math.max(1e-12, b.housingRepairUnits),
+        );
+      if (factor <= 1e-12) {
+        program[statusKey] =
+          mode === "build"
+            ? "Sin suelo residencial libre o capacidad demográfica"
+            : "No hay viviendas pendientes de refacción";
+        return;
+      }
+      const wage = (workers * sector.salary) / 1e9,
+        base = b.fixedCost * factor,
+        fullCost = wage + base,
+        remainingBudget = Math.max(0, sector.budget - sector.executed);
+      let share = Math.min(
+        1,
+        budgetCap / Math.max(1e-12, fullCost),
+        remainingBudget / Math.max(1e-12, fullCost),
+        Math.max(0, c.reserves) / Math.max(1e-12, fullCost),
+      );
+      for (const [id, amount] of Object.entries(b.requirements))
+        share = Math.min(
+          share,
+          (c.publicStocks[id] || 0) / Math.max(1e-12, amount * factor),
+        );
+      if (share <= 1e-12) {
+        const missing = Object.entries(b.requirements)
+          .filter(([id, amount]) => (c.publicStocks[id] || 0) < amount * factor)
+          .map(([id]) => D.getMaterial(id)?.label || id);
+        program[statusKey] = missing.length
+          ? "Faltan materiales: " + missing.join(", ")
+          : remainingBudget <= 0
+            ? "Sin presupuesto disponible de Infraestructura"
+            : "Tesoro insuficiente";
+        return;
+      }
+      const executedFactor = factor * share,
+        executedWorkers = workers * share,
+        executedWage = wage * share,
+        executedBase = base * share;
+      free -= executedWorkers;
+      c.constructionWorkers += executedWorkers;
+      transfer(
+        s,
+        c,
+        "public",
+        "private",
+        executedBase,
+        mode === "build"
+          ? "Programa pasivo de vivienda"
+          : "Programa pasivo de refacción",
+      );
+      transfer(s, c, "public", "household", executedWage, "Salarios de obra");
+      sector.executed += executedBase + executedWage;
+      c.finance.spending += executedBase + executedWage;
+      for (const [id, amount] of Object.entries(b.requirements)) {
+        const used = amount * executedFactor;
+        c.publicStocks[id] -= used;
+        c.materialConsumption[id] += used;
+      }
+      if (mode === "build") {
+        c.housingStock.new += b.housingUnits * executedFactor;
+        c.land.residentialHa += b.landHa * executedFactor;
+        c.buildings.housing += executedFactor;
+        program[outputKey] = b.housingUnits * executedFactor * 1e6;
+      } else {
+        const repaired = Math.min(
+          c.housingStock.repair,
+          b.housingRepairUnits * executedFactor,
+        );
+        c.housingStock.repair -= repaired;
+        c.housingStock.normal += repaired;
+        program[outputKey] = repaired * 1e6;
+      }
+      program[statusKey] =
+        share < 0.999
+          ? "Avance parcial por caja, presupuesto o materiales"
+          : "Programa ejecutado";
+    };
+    run("housing", program.buildBudget, program.buildWorkers, "build");
+    run(
+      "housing_maintenance",
+      program.repairBudget,
+      program.repairWorkers,
+      "repair",
+    );
+    syncDemographics(c);
+    return free;
   }
   function education(s, c) {
     c.educationGraduates = 0;
@@ -3097,7 +3229,7 @@
     trade(s);
     for (const c of Object.values(s.countries)) {
       consume(s, c, true);
-      projects(s, c);
+      passiveHousing(s, c, projects(s, c));
       education(s, c);
       research(s, c);
       waste(s, c);
@@ -3427,6 +3559,18 @@
       if (input[key] !== undefined) values[key] = needNumber(input[key]);
     Object.assign(sec, values);
     return sec;
+  }
+  function setHousingProgram(s, input) {
+    const c = player(s),
+      p = c.housingProgram;
+    for (const key of [
+      "buildBudget",
+      "repairBudget",
+      "buildWorkers",
+      "repairWorkers",
+    ])
+      if (input[key] !== undefined) p[key] = needNumber(input[key], 0);
+    return p;
   }
   function setImportPolicy(s, id, banned) {
     const c = player(s);
@@ -3928,6 +4072,7 @@
     constructionPreview,
     queueConstruction,
     setSector,
+    setHousingProgram,
     setImportPolicy,
     setResourcePolicy,
     setAges,
