@@ -376,7 +376,7 @@
           .filter((a) => [a.from, a.to].includes(c.id))
           .map(
             (a) =>
-              `<article class="v6-project"><strong>${esc(D.getMaterial(a.resource).label)} · ${esc(s.countries[a.from].name)} → ${esc(s.countries[a.to].name)}</strong><span>${amount(a.lastQuantity)} / ${amount(a.quantity)} este mes · ${a.remaining} meses</span><small>${esc(a.status)}</small>${a.active ? btn("cancel-agreement", "Cancelar", `data-agreement="${a.id}"`) : ""}</article>`,
+              `<article class="v6-project"><strong>${esc(D.getMaterial(a.resource).label)} · ${esc(s.countries[a.from].name)} → ${esc(s.countries[a.to].name)}</strong><span>${amount(a.lastQuantity)} / ${amount(a.quantity)} este mes · ${a.remaining} meses</span><small>${esc(a.status)}</small>${a.active ? btn("close-agreement", "Cerrar acuerdo", `data-agreement="${a.id}"`) : !a.closed ? `${btn("renew-agreement", `Renovar por ${a.duration || 24} meses`, `data-agreement="${a.id}"`)} ${btn("close-agreement", "Cerrar", `data-agreement="${a.id}"`)}` : ""}</article>`,
           )
           .join("") || "<p>No hay acuerdos.</p>"
       }</section><section class="v6-section"><h3>Flujos del último mes</h3><div class="table-wrap"><table class="v6-table"><thead><tr><th>Recurso</th><th>Origen</th><th>Destino</th><th>Cantidad</th><th>Valor</th></tr></thead><tbody>${s.market.trades
@@ -563,7 +563,7 @@
             "Presupuesto mensual US$",
             Math.max(100, c.gdp * 1e9 * 0.00001).toFixed(2),
           ),
-      )}<p>La probabilidad depende del potencial geológico y tecnología. Reabrir un guardado no vuelve a sortear la campaña.</p>${c.research.explorations.map((x) => `<p>${esc(D.getMaterial(x.resource).label)} · ${x.offshore ? "marítima" : "terrestre"} · ${amount(x.progress, "%")} · ${esc(x.status)}${x.discovered ? " · " + amount(x.discovered, D.getMaterial(x.resource).unit) : ""}</p>`).join("")}</section>`,
+      )}<p>La probabilidad depende del potencial geológico y tecnología. Reabrir un guardado no vuelve a sortear la campaña.</p>${c.research.explorations.map((x) => `<article class="v6-project"><span>${esc(D.getMaterial(x.resource).label)} · ${x.offshore ? "marítima" : "terrestre"} · ${amount(x.progress, "%")} · ${esc(x.status)}${x.discovered ? " · " + amount(x.discovered, D.getMaterial(x.resource).unit) : ""}</span>${x.status === "Sin hallazgo" ? btn("remove-exploration", "Borrar resultado", `data-exploration="${x.id}"`) : ""}</article>`).join("") || "<p>No hay campañas registradas.</p>"}</section>`,
     );
   }
   function modal(s, u) {
@@ -637,8 +637,10 @@
         body: `<p>Desembolso: ${dollars(p.amount)}. Primera cuota: ${dollars(p.firstPayment)}.</p><p>Deuda posterior: ${amount(p.projectedDebt, "% del PBI")}.</p><p>Riesgo: ${esc(p.risk.label)}. Las cuotas futuras salen de reservas.</p>`,
       };
     }
-    if (a === "cancel-agreement")
-      E.cancelAgreement(s, target.dataset.agreement);
+    if (a === "close-agreement") E.closeAgreement(s, target.dataset.agreement);
+    if (a === "renew-agreement") E.renewAgreement(s, target.dataset.agreement);
+    if (a === "remove-exploration")
+      E.removeExploration(s, target.dataset.exploration);
     if (a === "cancel-research") c.research.project = null;
     if (a === "build") {
       const p = E.constructionPreview(s, target.dataset.building),

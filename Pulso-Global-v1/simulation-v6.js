@@ -596,6 +596,20 @@
     s.dailyStage ||= "Inicio del mes";
     s.agreements = s.agreements || [];
     s.nextAgreementId = s.nextAgreementId || 1;
+    for (const a of s.agreements) {
+      const oldRemaining = Math.max(0, Math.floor(finite(a.remaining, 0)));
+      a.remaining = oldRemaining;
+      a.duration = Math.max(
+        1,
+        Math.min(
+          120,
+          Math.floor(finite(a.duration, oldRemaining > 0 ? oldRemaining : 24)),
+        ),
+      );
+      a.closed = a.closed === true || a.status === "Cancelado";
+      if (a.remaining <= 0) a.active = false;
+      if (!a.active && !a.closed && a.remaining <= 0) a.status = "Finalizado";
+    }
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
@@ -1801,7 +1815,10 @@
         ? "Operativo"
         : "Sin excedente, demanda, fondos o capacidad";
       a.remaining--;
-      if (!a.remaining) a.active = false;
+      if (!a.remaining) {
+        a.active = false;
+        a.status = "Finalizado";
+      }
     }
     for (const m of materials) {
       if (m.waste) continue;
@@ -3794,6 +3811,14 @@
     c.research.explorations.push(ex);
     return ex;
   }
+  function removeExploration(s, id) {
+    const list = player(s).research.explorations,
+      index = list.findIndex((x) => x.id === Number(id));
+    if (index < 0) throw Error("Exploración no válida.");
+    if (list[index].status !== "Sin hallazgo")
+      throw Error("Solo se pueden borrar exploraciones sin hallazgo.");
+    return list.splice(index, 1)[0];
+  }
   function setEducation(s, id, input) {
     const c = player(s),
       plan = id.startsWith("branch:")
@@ -3825,7 +3850,8 @@
       throw Error("Elegí país y recurso válidos.");
     const importing = input.direction === "import",
       from = importing ? other : c,
-      to = importing ? c : other;
+      to = importing ? c : other,
+      duration = Math.floor(needNumber(input.months ?? 24, 1, 120));
     if (to.importsBanned || to.importBans[m.id])
       throw Error("El destino prohíbe importar ese recurso.");
     const a = {
@@ -3835,8 +3861,10 @@
       resource: m.id,
       quantity: needNumber(input.quantity, 1e-12),
       tariff: needNumber(input.tariff ?? Math.min(5, to.taxes.imports), 0, 40),
-      remaining: needNumber(input.months ?? 24, 1, 120),
+      remaining: duration,
+      duration,
       active: true,
+      closed: false,
       owner: importing ? "private" : "public",
       lastQuantity: 0,
       status: "Firmado · excedentes a precio de mercado",
@@ -3845,13 +3873,37 @@
     return a;
   }
   function cancelAgreement(s, id) {
+    return closeAgreement(s, id);
+  }
+  function closeAgreement(s, id) {
     const c = player(s),
       a = s.agreements.find((a) => a.id === Number(id));
     if (!a || ![a.from, a.to].includes(c.id)) throw Error("Acuerdo no válido.");
+    if (a.closed) throw Error("El acuerdo ya está cerrado.");
     a.active = false;
-    a.status = "Cancelado";
+    a.closed = true;
+    a.status = "Cerrado por el jugador";
     const other = a.from === c.id ? a.to : a.from;
     c.relations[other] = Math.max(0, c.relations[other] - 1);
+    return a;
+  }
+  function renewAgreement(s, id) {
+    const c = player(s),
+      a = s.agreements.find((a) => a.id === Number(id)),
+      to = a && s.countries[a.to],
+      m = a && D.getMaterial(a.resource);
+    if (!a || ![a.from, a.to].includes(c.id) || !to || !m)
+      throw Error("Acuerdo no válido.");
+    if (a.active) throw Error("El acuerdo todavía está activo.");
+    if (a.closed) throw Error("Un acuerdo cerrado no se puede renovar.");
+    if (to.importsBanned || to.importBans[m.id])
+      throw Error("El destino prohíbe importar ese recurso.");
+    a.duration = Math.floor(needNumber(a.duration || 24, 1, 120));
+    a.remaining = a.duration;
+    a.active = true;
+    a.lastQuantity = 0;
+    a.status = "Renovado · excedentes a precio de mercado";
+    return a;
   }
   function rank(s, key = "gdp", direction = "desc", resource = null) {
     const rows = Object.values(s.countries).map((c) => ({
@@ -4143,9 +4195,12 @@
     nationalize,
     startResearch,
     explore,
+    removeExploration,
     setEducation,
     addAgreement,
     cancelAgreement,
+    closeAgreement,
+    renewAgreement,
     rank,
     resourceReport,
     financeSummary,

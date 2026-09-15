@@ -1,14 +1,14 @@
-# Pulso Global 7.0 — calendario diario y cálculo en segundo plano
+# Pulso Global 7.1 — control de acuerdos y resultados de exploración
 
-Actualización incremental sobre **v6.4**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.0**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v6.4, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.0, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.0**; si todavía aparece v6.4, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.1**; si todavía aparece v7.0, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -23,6 +23,12 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
 ## Evolución del motor
+
+## Ajuste 7.1: acuerdos y exploraciones
+
+- Un acuerdo que agota su plazo queda como **Finalizado** y ofrece renovarlo por la duración original o cerrarlo definitivamente. Renovar conserva socio, recurso, dirección, cantidad máxima y arancel, y vuelve a validar la política de importación del destino.
+- **Cerrar acuerdo** reemplaza la cancelación ambigua: conserva el registro histórico, detiene el intercambio y evita renovaciones accidentales.
+- Cada campaña con resultado **Sin hallazgo** ofrece **Borrar resultado**. Las campañas activas y los depósitos descubiertos no se pueden borrar desde esa acción.
 
 ## Ajuste 7.0: calendario diario y rendimiento
 

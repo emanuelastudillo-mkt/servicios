@@ -1,6 +1,6 @@
-# Pulso Global 7.0 — calendario diario y cálculo en segundo plano
+# Pulso Global 7.1 — acuerdos renovables y limpieza de exploraciones
 
-Fecha de entrega: 13 de septiembre de 2026. Incremental sobre v6.1. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
+Fecha de entrega: 15 de septiembre de 2026. Incremental sobre v7.0. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
 
 ## Cobertura de la lista consolidada
 
@@ -36,6 +36,8 @@ Fecha de entrega: 13 de septiembre de 2026. Incremental sobre v6.1. Motor jugabl
 
 ## Correcciones adicionales encontradas durante la revisión
 
+- Los acuerdos vencidos ahora quedan identificados como finalizados y pueden renovarse por su plazo original o cerrarse definitivamente. El cierre conserva el historial y no permite reactivación.
+- Los resultados de exploración “Sin hallazgo” se pueden borrar individualmente; la acción rechaza campañas activas y depósitos descubiertos.
 - Tutorial desplegable de Economía y deuda: explica el origen y los factores de aumento/disminución de cada valor visible, más un orden de lectura para déficit, intereses y obras detenidas.
 - Programa pasivo de vivienda y refacción dentro de Infraestructura, con presupuesto, cuadrillas, materiales, suelo y caja contabilizados cada mes.
 - Calendario diario persistente y ciclo mensual repartido por etapas, manteniendo un solo cobro/pago mensual por concepto.
@@ -70,7 +72,7 @@ Los resultados exactos se incluyen en `VERIFICACION-v6.json`, generado desde las
 - Migración de un guardado v5.4 situado en noviembre de 2205, con préstamo, obra en curso y saldo negativo exacto.
 - Navegación de los 16 menús, selección de Nauru, controles monetarios, préstamo/compra, guardado, recarga y modo offline en Edge.
 - Vista de escritorio y móvil de 390 × 844, sin desbordamiento de página; las tablas anchas se desplazan horizontalmente dentro de su contenedor.
-- Actualización real de caché v5.4 a v6, exportación del respaldo antiguo y reapertura offline.
+- Actualización real de caché v5.4 a v7.1, exportación del respaldo antiguo y reapertura offline.
 - Simulación actual de 60 meses (1.826 jornadas) con 128 países: valores finitos, conciliación de dinero y recursos y empleo no superior a la población disponible. Esta prueba financia artificialmente el país del jugador para que una derrota por falta de gestión no detenga el ensayo; no prueba que una partida normal se sostenga sin intervenir.
 - ZIP incremental contrastado por hash con la base preservada y aplicado a una copia nueva: el resultado debe coincidir byte a byte con la carpeta final del juego.
 
@@ -78,6 +80,6 @@ Los resultados exactos se incluyen en `VERIFICACION-v6.json`, generado desde las
 
 ## Uso y conservación de partidas
 
-Aplicá todos los archivos del incremental sobre v5.4, conservando los que no vienen en el ZIP. Exportá antes tu partida. Recargá con conexión hasta ver **Motor económico v6.0** y luego continuá. No hay fecha de finalización ni derrota institucional; sigue existiendo cesación de pagos cuando la deuda supera 205% del PBI y el Tesoro está agotado.
+Aplicá todos los archivos del incremental sobre v7.0, conservando los que no vienen en el ZIP. Exportá antes tu partida. Recargá con conexión hasta ver **Motor económico v7.1** y luego continuá. No hay fecha de finalización ni derrota institucional; sigue existiendo cesación de pagos cuando la deuda supera 205% del PBI y el Tesoro está agotado.
 
 La carpeta base anterior y los guardados de prueba se preservaron. No se publicó el proyecto ni se eliminaron archivos del usuario.
