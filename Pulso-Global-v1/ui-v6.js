@@ -225,10 +225,10 @@
                   .join(". ");
               return `<div class="v6-project ${d.status === "blocked" ? "v6-project-blocked" : ""}"><strong>${esc(D.getBuilding(p.typeId)?.label || p.typeId)}</strong><progress max="100" value="${p.progress}"></progress><span>${num(p.progress, 1)}% · ${num(p.workers || 0)} trabajadores asignados · ${dollars(p.spent)} ejecutados</span><small class="${d.status === "blocked" ? "negative" : "positive"}">${esc(
                 d.status === "blocked"
-                  ? "No avanzará el próximo mes: " + blockers
+                  ? "No avanzará en la próxima etapa de obras: " + blockers
                   : "Avanzará aproximadamente " +
                       num(d.desired, 1) +
-                      "% el próximo mes; costo previsto " +
+                      "% en la próxima etapa de obras; costo previsto " +
                       dollars(d.pay),
               )}</small></div>`;
             })

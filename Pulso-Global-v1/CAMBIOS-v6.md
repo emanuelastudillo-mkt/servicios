@@ -1,4 +1,4 @@
-# Pulso Global 6.4 — programa pasivo de vivienda
+# Pulso Global 7.0 — calendario diario y cálculo en segundo plano
 
 Fecha de entrega: 13 de septiembre de 2026. Incremental sobre v6.1. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
 
@@ -38,6 +38,8 @@ Fecha de entrega: 13 de septiembre de 2026. Incremental sobre v6.1. Motor jugabl
 
 - Tutorial desplegable de Economía y deuda: explica el origen y los factores de aumento/disminución de cada valor visible, más un orden de lectura para déficit, intereses y obras detenidas.
 - Programa pasivo de vivienda y refacción dentro de Infraestructura, con presupuesto, cuadrillas, materiales, suelo y caja contabilizados cada mes.
+- Calendario diario persistente y ciclo mensual repartido por etapas, manteniendo un solo cobro/pago mensual por concepto.
+- Web Worker local para procesar cada jornada fuera del hilo de interfaz, con fallback compatible y nuevo archivo `simulation-worker.js` precargado offline.
 
 - Resumen de Tesoro simplificado, separando ingresos de operación, gastos cotidianos, intereses, amortización y variación real de reservas.
 - Diagnóstico anticipado de obras: distingue falta de material, Tesoro, presupuesto ministerial y trabajadores disponibles, en lugar de mostrar una etiqueta genérica.
@@ -69,7 +71,7 @@ Los resultados exactos se incluyen en `VERIFICACION-v6.json`, generado desde las
 - Navegación de los 16 menús, selección de Nauru, controles monetarios, préstamo/compra, guardado, recarga y modo offline en Edge.
 - Vista de escritorio y móvil de 390 × 844, sin desbordamiento de página; las tablas anchas se desplazan horizontalmente dentro de su contenedor.
 - Actualización real de caché v5.4 a v6, exportación del respaldo antiguo y reapertura offline.
-- Simulación de 360 meses con 128 países: valores finitos, conciliación de dinero y recursos y empleo no superior a la población disponible. Esta prueba financia artificialmente el país del jugador para que una derrota por falta de gestión no detenga el ensayo; no prueba que una partida normal se sostenga sin intervenir.
+- Simulación actual de 60 meses (1.826 jornadas) con 128 países: valores finitos, conciliación de dinero y recursos y empleo no superior a la población disponible. Esta prueba financia artificialmente el país del jugador para que una derrota por falta de gestión no detenga el ensayo; no prueba que una partida normal se sostenga sin intervenir.
 - ZIP incremental contrastado por hash con la base preservada y aplicado a una copia nueva: el resultado debe coincidir byte a byte con la carpeta final del juego.
 
 **Límite de validación:** aprobar conservación contable no equivale a garantizar un balance económico divertido o estable en todas las políticas y semillas. Los ensayos prolongados muestran escenarios de escasez y recesión persistentes; la calibración macroeconómica y las decisiones de la IA siguen siendo experimentales. No se certificaron otros navegadores, teléfonos físicos, uso simultáneo en varias pestañas ni publicación en GitHub.

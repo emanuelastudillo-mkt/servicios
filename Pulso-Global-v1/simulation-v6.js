@@ -109,6 +109,7 @@
   }
   function book(s, c, kind, amount, account = "public", details = "") {
     if (!Number.isFinite(amount)) throw Error("Movimiento monetario inválido.");
+    if (Object.is(amount, -0)) amount = 0;
     if (account === "public") c.reserves += amount;
     else if (account === "private") c.finance.privateCash += amount;
     else c.finance.householdCash += amount;
@@ -590,6 +591,9 @@
   }
   function initialize(s, legacy = false) {
     s.version = 6;
+    s.date.day = Math.max(1, Math.min(31, Math.floor(finite(s.date.day, 1))));
+    s.dayTick = Math.max(0, Math.floor(finite(s.dayTick, 0)));
+    s.dailyStage ||= "Inicio del mes";
     s.agreements = s.agreements || [];
     s.nextAgreementId = s.nextAgreementId || 1;
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
@@ -3204,49 +3208,105 @@
       updateCapacity(c);
     }
   }
+  function daysInMonth(date) {
+    return new Date(Date.UTC(date.year, date.month, 0)).getUTCDate();
+  }
+  function dateLabel(date) {
+    return new Intl.DateTimeFormat("es-AR", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    })
+      .format(new Date(Date.UTC(date.year, date.month - 1, date.day || 1)))
+      .replace(" de ", " ");
+  }
+  function countrySlice(s, index, count) {
+    const list = Object.values(s.countries),
+      size = Math.ceil(list.length / count);
+    return list.slice(index * size, (index + 1) * size);
+  }
+  function advanceDay(s) {
+    if (s.gameOver) return s;
+    initialize(s, true);
+    const day = s.date.day,
+      lastDay = daysInMonth(s.date);
+    if (day === 1 && !s.dailyCycle) {
+      s.tick++;
+      s.dailyCycle = {
+        populations: Object.fromEntries(
+          Object.values(s.countries).map((c) => [c.id, c.population]),
+        ),
+      };
+      H.updateWorldEvents(s);
+      for (const c of Object.values(s.countries)) {
+        const previous = s.dailyCycle.populations[c.id];
+        if (c.population !== previous) {
+          const ratio = c.population / previous;
+          c.ageCohorts = c.ageCohorts.map((n) => n * ratio);
+        }
+        c.disasterDeaths = Math.max(0, previous - c.population) * 1e6;
+        c.finance.openingReserves = c.reserves;
+        c.finance.pendingPublic = 0;
+        c.finance.tickFlows = {};
+      }
+      s.dailyStage = "Eventos y apertura contable";
+    } else if (day >= 2 && day <= 5) {
+      for (const c of countrySlice(s, day - 2, 4)) {
+        working(s, c);
+        wages(s, c);
+      }
+      s.dailyStage = "Empleo, salarios y presupuestos";
+    } else if (day >= 6 && day <= 9) {
+      for (const c of countrySlice(s, day - 6, 4)) produce(s, c);
+      s.dailyStage = "Producción nacional";
+    } else if (day >= 10 && day <= 13) {
+      for (const c of countrySlice(s, day - 10, 4)) consume(s, c);
+      s.dailyStage = "Consumo interno";
+    } else if (day === 14) {
+      trade(s);
+      s.dailyStage = "Comercio mundial";
+    } else if (day >= 15 && day <= 22) {
+      for (const c of countrySlice(s, day - 15, 8)) {
+        consume(s, c, true);
+        passiveHousing(s, c, projects(s, c));
+        education(s, c);
+        research(s, c);
+        waste(s, c);
+        closeFinance(s, c);
+        privateDevelopment(s, c);
+        wellbeing(c);
+      }
+      s.dailyStage = "Obras, servicios y cierre fiscal";
+    } else if (day === 23) {
+      demographics(s);
+      s.dailyStage = "Demografía y migraciones";
+    } else if (day === 24) {
+      prices(s);
+      s.dailyStage = "Precios y mercado mundial";
+    } else s.dailyStage = "Consolidación mensual";
+    s.dayTick++;
+    if (day >= lastDay) {
+      H.advanceDate(s);
+      s.date.day = 1;
+      H.captureHistory(s);
+      const h = s.history[s.history.length - 1],
+        c = s.countries[s.playerCountryId];
+      h.reserves = c.reserves;
+      h.fiscalBalance = c.fiscalBalance;
+      h.lifeExpectancy = c.lifeExpectancy;
+      H.evaluateGame(s);
+      s.dailyCycle = null;
+      s.dailyStage = "Mes cerrado";
+    } else s.date.day++;
+    return s;
+  }
   function advanceTick(s) {
     if (s.gameOver) return s;
     initialize(s, true);
-    s.tick++;
-    const pops = Object.fromEntries(
-      Object.values(s.countries).map((c) => [c.id, c.population]),
-    );
-    H.updateWorldEvents(s);
-    for (const c of Object.values(s.countries)) {
-      if (c.population !== pops[c.id]) {
-        const ratio = c.population / pops[c.id];
-        c.ageCohorts = c.ageCohorts.map((n) => n * ratio);
-      }
-      c.disasterDeaths = Math.max(0, pops[c.id] - c.population) * 1e6;
-      c.finance.openingReserves = c.reserves;
-      c.finance.pendingPublic = 0;
-      c.finance.tickFlows = {};
-      working(s, c);
-      wages(s, c);
-      produce(s, c);
-      consume(s, c);
-    }
-    trade(s);
-    for (const c of Object.values(s.countries)) {
-      consume(s, c, true);
-      passiveHousing(s, c, projects(s, c));
-      education(s, c);
-      research(s, c);
-      waste(s, c);
-      closeFinance(s, c);
-      privateDevelopment(s, c);
-      wellbeing(c);
-    }
-    demographics(s);
-    prices(s);
-    H.advanceDate(s);
-    H.captureHistory(s);
-    const h = s.history[s.history.length - 1],
-      c = s.countries[s.playerCountryId];
-    h.reserves = c.reserves;
-    h.fiscalBalance = c.fiscalBalance;
-    h.lifeExpectancy = c.lifeExpectancy;
-    H.evaluateGame(s);
+    const startingTick = s.tick;
+    do advanceDay(s);
+    while (!s.gameOver && (s.dailyCycle || s.tick === startingTick));
     return s;
   }
   function createGame(...args) {
@@ -4060,6 +4120,9 @@
     createGame,
     hydrate,
     advanceTick,
+    advanceDay,
+    dateLabel,
+    daysInMonth,
     estimateTaxes,
     applyTaxes,
     loanPreview,

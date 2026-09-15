@@ -12,7 +12,7 @@
     ascending: false,
   };
   const app = document.querySelector("#app");
-  const speedIntervals = { 1: 2600, 3: 1050, 6: 430 };
+  const speedIntervals = { 1: 1000, 3: 360, 6: 170 };
   const mapViews = [
     { id: "map", label: "Mapa mundial", icon: "◎" },
     ...DATA.sectors,
@@ -66,13 +66,13 @@
       icon: "◎",
       label: "Elegí tu punto de partida",
       title: "País y figura de conducción",
-      text: "Cada país arranca con población, PBI, empleo, recursos e impuestos propios. La figura elegida modifica el punto de partida, pero la evolución depende de tus decisiones mensuales.",
+      text: "Cada país arranca con población, PBI, empleo, recursos e impuestos propios. La figura elegida modifica el punto de partida, pero la evolución depende de tus decisiones y del cierre mensual.",
     },
     {
       icon: "+1",
       label: "El reloj no tiene final",
-      title: "Avanzá mes a mes",
-      text: "Usá pausa, 1×, 3×, 6× o +1 mes. No existe un mandato con fecha límite: el mundo continúa evolucionando mientras la partida esté abierta.",
+      title: "Avanzá día a día",
+      text: "Usá pausa, 1×, 3×, 6× o +1 día. Los cálculos se reparten durante el mes y el encabezado indica la etapa en curso. No existe un mandato con fecha límite.",
     },
     {
       icon: "▰",
@@ -144,6 +144,12 @@
   let worldPromise = null;
   let tutorialOpen = false;
   let tutorialStep = 0;
+  let simulationWorker = null;
+  let simulationBusy = false;
+  let workerUnavailable = false;
+  let simulationRequestId = 0;
+  let simulationMode = "Preparando segundo plano";
+  let lastSimulationMs = 0;
 
   const SaveStore = {
     dbPromise: null,
@@ -351,7 +357,7 @@
         ? "high"
         : preview.risk.tone;
     const message = preview.willDefault
-      ? "Esta compra deja al país en condición de cesación de pagos: al avanzar un mes la partida termina."
+      ? "Esta compra deja al país en condición de cesación de pagos: al cerrar el mes la partida termina."
       : preview.projectedReserves <= 0
         ? "La compra agota las reservas y convierte el faltante en deuda al instante."
         : `Riesgo fiscal tras comprar: ${preview.risk.level}.`;
@@ -394,9 +400,9 @@
         </header>
         <div class="briefing">
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
-          <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. Cada mes transforma la economía y la población.</p>
+          <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v6.4</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.0</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -523,13 +529,13 @@
               )
               .join("")}
           </nav>
-          <div class="mandate-card"><span class="mini-flag">${flagImage(country, "flag-image mini-flag-image")}</span><strong>${e(leader.name)}</strong><small>${e(country.name)}</small><span class="mandate-time">Mes ${game.tick} · Sin límite</span></div>
+          <div class="mandate-card"><span class="mini-flag">${flagImage(country, "flag-image mini-flag-image")}</span><strong>${e(leader.name)}</strong><small>${e(country.name)}</small><span class="mandate-time">Día ${game.dayTick || 0} · Mes ${game.tick} · Sin límite</span></div>
         </aside>
 
         <section class="workspace">
           <header class="command-bar">
             <div class="mobile-brand"><div class="brand-mark small"><span></span></div><strong>Pulso Global</strong></div>
-            <div class="date-block"><span>Fecha de gobierno</span><strong>${e(Engine.monthLabel(game.date))}</strong></div>
+            <div class="date-block"><span>Fecha de gobierno</span><strong>${e(Engine.dateLabel(game.date))}</strong><small>${e(game.dailyStage || "Inicio del mes")} · ${e(simulationMode)}</small></div>
             <div class="hud-stats">
               <div class="hud-population"><span>Población</span><strong>${people(country.population)}</strong><small>${e(country.name)}</small></div>
               <div><span>PBI</span><strong>${money(country.gdp)}</strong><small class="${country.growth < 0 ? "negative" : "positive"}">${signed(country.growth, "%")}</small></div>
@@ -543,7 +549,7 @@
               <button class="icon-button ${speed === 1 ? "active" : ""}" type="button" data-action="speed" data-speed="1">1×</button>
               <button class="icon-button ${speed === 3 ? "active" : ""}" type="button" data-action="speed" data-speed="3">3×</button>
               <button class="icon-button ${speed === 6 ? "active" : ""}" type="button" data-action="speed" data-speed="6">6×</button>
-              <button class="icon-button next" type="button" data-action="step">+1 mes</button>
+              <button class="icon-button next" type="button" data-action="step">+1 día</button>
             </div>
             <div class="save-cluster">
               <span>${e(lastSaveLabel)}</span><button class="button compact" type="button" data-action="save">Guardar</button>
@@ -867,7 +873,7 @@
     return `
       <div class="micro-layout">
         <section class="control-stack">
-          <div class="inner-heading"><div><small>Microgestión</small><h3>Palancas del ministerio</h3></div><span>Vigentes desde el próximo mes</span></div>
+          <div class="inner-heading"><div><small>Microgestión</small><h3>Palancas del ministerio</h3></div><span>Vigentes desde la próxima etapa aplicable</span></div>
           ${values
             .map(
               ([kind, label, help, value, min, max, suffix]) => `
@@ -1139,7 +1145,7 @@
       <div class="tax-effects"><strong>Recaudación mensual proyectada</strong><span>${money(preview.monthly)}</span><span>Los impuestos modifican el dinero de hogares, empresas y Estado; su efecto en empleo y consumo se calcula en el motor.</span></div>
       <div class="tax-effects"><strong>Cambio frente al esquema vigente</strong><span class="${monthlyDelta < 0 ? "negative" : "positive"}">${signed(monthlyDelta, "")}</span><span>Es el efecto máximo estimado con la misma base gravada del último mes, antes de que hogares y empresas ajusten su conducta.</span></div>
       <dl class="revenue-lines tax-bases"><div><dt>Consumo gravado (IVA)</dt><dd>${money(bases.vat || 0)}</dd></div><div><dt>Ingresos y ganancias gravados</dt><dd>${money(bases.income || 0)}</dd></div><div><dt>Importaciones gravadas</dt><dd>${money(bases.imports || 0)}</dd></div><div><dt>Exportaciones gravadas</dt><dd>${money(bases.exports || 0)}</dd></div></dl>
-      <p class="tax-footnote">Las alícuotas se aplican al presionar “Aplicar impuestos” y se cobran durante el próximo mes simulado. Si una base es baja o cero —por ejemplo, sin importaciones— cambiar ese impuesto casi no modifica la recaudación. La recaudación final cambia con el empleo, el consumo, el PBI y los flujos comerciales.</p>`;
+      <p class="tax-footnote">Las alícuotas se aplican al presionar “Aplicar impuestos” y se cobran en la próxima etapa fiscal; si esa etapa ya pasó, rigen desde el mes siguiente. Si una base es baja o cero —por ejemplo, sin importaciones— cambiar ese impuesto casi no modifica la recaudación.</p>`;
   }
 
   function renderDemographicsPanel() {
@@ -1178,7 +1184,7 @@
         <header class="management-heading"><div class="section-symbol">◒</div><div><p class="panel-kicker">Población y trabajo</p><h2>Demografía</h2></div><button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar demografía">×</button></header>
         <div class="panel-body demographic-body">
           <div class="population-heading"><div><label for="demographic-country">Consultar país</label><select id="demographic-country">${DATA.countries.map((item) => `<option value="${item.id}" ${item.id === id ? "selected" : ""}>${e(item.name)}${item.id === game.playerCountryId ? " · Tu país" : ""}</option>`).join("")}</select></div>
-            <div class="population-total"><span>Población total de ${e(c.name)}</span><strong>${people(c.population)}</strong><span>${fmt(c.population * 1000000, 0)} habitantes · ${e(Engine.monthLabel(game.date))}</span></div>
+            <div class="population-total"><span>Población total de ${e(c.name)}</span><strong>${people(c.population)}</strong><span>${fmt(c.population * 1000000, 0)} habitantes · ${e(Engine.dateLabel(game.date))}</span></div>
           </div>
           <div class="population-stack" role="img" aria-label="${groups.map((g) => g.label + ": " + fmt(g.share) + "%").join(", ")}">${groups.map((g) => `<span class="${g.key}" style="width:${g.share}%"></span>`).join("")}</div>
           <div class="demographic-cards">${groups.map((g) => `<article class="${g.key}"><span>${g.label}</span><strong>${people(g.count)}</strong><b>${fmt(g.share)}% de la población</b><small>${g.detail}</small></article>`).join("")}</div>
@@ -1552,6 +1558,46 @@
       });
   }
 
+  function backgroundWorker() {
+    if (workerUnavailable || !window.Worker) return null;
+    if (simulationWorker) return simulationWorker;
+    try {
+      simulationWorker = new Worker("./simulation-worker.js");
+      simulationMode = "Cálculo en segundo plano";
+      return simulationWorker;
+    } catch (_) {
+      workerUnavailable = true;
+      simulationMode = "Modo compatible";
+      return null;
+    }
+  }
+
+  function runDayInBackground(state) {
+    const worker = backgroundWorker();
+    if (!worker) {
+      const beforeMonth = state.date.month,
+        beforeYear = state.date.year;
+      Engine.advanceDay(state);
+      return Promise.resolve({
+        state,
+        monthClosed:
+          state.date.month !== beforeMonth || state.date.year !== beforeYear,
+      });
+    }
+    const id = ++simulationRequestId;
+    return new Promise((resolve, reject) => {
+      worker.onmessage = (event) => {
+        const message = event.data || {};
+        if (message.id !== id) return;
+        if (message.type === "error") reject(new Error(message.message));
+        else resolve(message);
+      };
+      worker.onerror = (event) =>
+        reject(new Error(event.message || "Falló el cálculo en segundo plano"));
+      worker.postMessage({ type: "advance-day", id, state });
+    });
+  }
+
   function setSpeed(nextSpeed) {
     clearInterval(timer);
     timer = null;
@@ -1567,15 +1613,41 @@
       setSpeed(0);
       return;
     }
-    Engine.advanceTick(game);
-    if (!draftDirty) draftFromGame();
-    if (game.tick % 3 === 0) await saveGame("autosave", false);
-    if (game.gameOver) {
-      clearInterval(timer);
-      timer = null;
-      speed = 0;
+    if (simulationBusy) return;
+    simulationBusy = true;
+    const started = performance.now();
+    try {
+      let result;
+      try {
+        result = await runDayInBackground(game);
+      } catch (_) {
+        simulationWorker?.terminate();
+        simulationWorker = null;
+        workerUnavailable = true;
+        simulationMode = "Modo compatible";
+        const beforeMonth = game.date.month,
+          beforeYear = game.date.year;
+        Engine.advanceDay(game);
+        result = {
+          state: game,
+          monthClosed:
+            game.date.month !== beforeMonth || game.date.year !== beforeYear,
+        };
+      }
+      game = result.state;
+      lastSimulationMs = performance.now() - started;
+      if (!draftDirty) draftFromGame();
+      if (result.monthClosed && game.tick % 3 === 0)
+        await saveGame("autosave", false);
+      if (game.gameOver) {
+        clearInterval(timer);
+        timer = null;
+        speed = 0;
+      }
+      renderGame();
+    } finally {
+      simulationBusy = false;
     }
-    renderGame();
   }
 
   async function saveGame(slot, notify) {
@@ -1672,7 +1744,12 @@
         const c = playerCountry();
         return {
           active: true,
-          date: Engine.monthLabel(game.date),
+          date: Engine.dateLabel(game.date),
+          day: game.date.day,
+          dayTick: game.dayTick,
+          dailyStage: game.dailyStage,
+          simulationMode,
+          lastSimulationMs,
           month: game.tick,
           openEnded: game.openEnded,
           country: c.name,
@@ -1728,7 +1805,7 @@
         renderGame();
         return {
           advanced,
-          date: Engine.monthLabel(game.date),
+          date: Engine.dateLabel(game.date),
           gameOver: game.gameOver ? game.gameOver.title : null,
         };
       },
@@ -1767,6 +1844,19 @@
     const target = event.target.closest("[data-action]");
     if (!target) return;
     const action = target.dataset.action;
+    if (
+      simulationBusy &&
+      ![
+        "view",
+        "speed",
+        "toggle-menu",
+        "open-tutorial",
+        "close-tutorial",
+      ].includes(action)
+    ) {
+      showToast("Terminando el cálculo de este día…", "success");
+      return;
+    }
     if (action.startsWith("v6-") && game) {
       try {
         const result = UI6.action(game, ui6, target);
@@ -1845,7 +1935,7 @@
       await saveGame("autosave", false);
       renderGame();
       showToast(
-        "Impuestos aplicados. El próximo mes reflejará su efecto.",
+        "Impuestos aplicados. La próxima etapa fiscal reflejará su efecto.",
         "success",
       );
     } else if (action === "reset-taxes") {
@@ -2083,6 +2173,10 @@
     const form = event.target.closest("[data-v6-form]");
     if (!form || !game) return;
     event.preventDefault();
+    if (simulationBusy) {
+      showToast("Terminando el cálculo de este día…", "success");
+      return;
+    }
     try {
       const message = UI6.submit(game, ui6, form);
       await saveGame("autosave", false);

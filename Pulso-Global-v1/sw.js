@@ -1,5 +1,5 @@
-const CACHE_NAME = "pulso-global-v6.4.0";
-const ASSETS = ["./", "./index.html", "./styles.css", "./styles-v6.css", "./countries-extra.js", "./data.js", "./country-facts.js", "./catalog-v6.js", "./simulation-v6.js", "./engine.js", "./ui-v6.js", "./app.js", "./world.geojson", "./manifest.webmanifest", "./README.md", "./FUENTES.md", "./VERSION.txt", "./assets/icons-manifest.json", "./assets/ATTRIBUTION.md"];
+const CACHE_NAME = "pulso-global-v7.0.0";
+const ASSETS = ["./", "./index.html", "./styles.css", "./styles-v6.css", "./countries-extra.js", "./data.js", "./country-facts.js", "./catalog-v6.js", "./simulation-v6.js", "./simulation-worker.js", "./engine.js", "./ui-v6.js", "./app.js", "./world.geojson", "./manifest.webmanifest", "./README.md", "./FUENTES.md", "./VERSION.txt", "./assets/icons-manifest.json", "./assets/ATTRIBUTION.md"];
 
 async function assetList() {
   const response = await fetch("./assets/icons-manifest.json", { cache: "reload" });
