@@ -1,6 +1,14 @@
-# Pulso Global 7.3 — nacionalización productiva y dependencia comercial
+# Pulso Global 7.4 — revisión de nacionalización inmediata
 
-Fecha de entrega: 15 de septiembre de 2026. Incremental sobre v7.2. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
+Fecha de entrega: 15 de septiembre de 2026. Incremental sobre v7.3. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
+
+## Ajuste 7.4
+
+- **Revisar nacionalización** abre su confirmación de inmediato aunque en ese instante esté terminando el cálculo diario en segundo plano.
+- La ficha detallada del recurso ya incorpora el cuadro de confirmación; antes un retorno anticipado calculaba la revisión pero omitía el diálogo del HTML.
+- Las acciones que solo navegan o abren/cancelan vistas previas ya no se descartan durante el cálculo ni generan un autoguardado innecesario.
+- Las confirmaciones que cambian dinero, instalaciones o políticas continúan protegidas hasta que termine la jornada, para evitar que el resultado del Worker sobrescriba la decisión.
+- La prueba de navegador inicia deliberadamente un día y abre/cancela la revisión de nacionalización mientras el cálculo está ocupado.
 
 ## Cobertura de la lista consolidada
 
@@ -79,7 +87,7 @@ Los resultados exactos se incluyen en `VERIFICACION-v6.json`, generado desde las
 - Migración de un guardado v5.4 situado en noviembre de 2205, con préstamo, obra en curso y saldo negativo exacto.
 - Navegación de los 16 menús, selección de Nauru, controles monetarios, préstamo/compra, guardado, recarga y modo offline en Edge.
 - Vista de escritorio y móvil de 390 × 844, sin desbordamiento de página; las tablas anchas se desplazan horizontalmente dentro de su contenedor.
-- Actualización real de caché v5.4 a v7.3, exportación del respaldo antiguo y reapertura offline.
+- Actualización real de caché v5.4 a v7.4, exportación del respaldo antiguo y reapertura offline.
 - Simulación actual de 60 meses (1.826 jornadas) con 128 países: valores finitos, conciliación de dinero y recursos y empleo no superior a la población disponible. Esta prueba financia artificialmente el país del jugador para que una derrota por falta de gestión no detenga el ensayo; no prueba que una partida normal se sostenga sin intervenir.
 - ZIP incremental contrastado por hash con la base preservada y aplicado a una copia nueva: el resultado debe coincidir byte a byte con la carpeta final del juego.
 
@@ -87,6 +95,6 @@ Los resultados exactos se incluyen en `VERIFICACION-v6.json`, generado desde las
 
 ## Uso y conservación de partidas
 
-Aplicá todos los archivos del incremental sobre v7.2, conservando los que no vienen en el ZIP. Exportá antes tu partida. Recargá con conexión hasta ver **Motor económico v7.3** y luego continuá. No hay fecha de finalización ni derrota institucional; sigue existiendo cesación de pagos cuando la deuda supera 205% del PBI y el Tesoro está agotado.
+Aplicá todos los archivos del incremental sobre v7.3, conservando los que no vienen en el ZIP. Exportá antes tu partida. Recargá con conexión hasta ver **Motor económico v7.4** y luego continuá. No hay fecha de finalización ni derrota institucional; sigue existiendo cesación de pagos cuando la deuda supera 205% del PBI y el Tesoro está agotado.
 
 La carpeta base anterior y los guardados de prueba se preservaron. No se publicó el proyecto ni se eliminaron archivos del usuario.

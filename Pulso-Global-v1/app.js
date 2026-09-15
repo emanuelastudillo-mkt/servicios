@@ -13,6 +13,20 @@
   };
   const app = document.querySelector("#app");
   const speedIntervals = { 1: 1000, 3: 360, 6: 170 };
+  const interfaceOnlyActions = new Set([
+    "v6-build",
+    "v6-cancel-confirm",
+    "v6-close-resource",
+    "v6-go-sector",
+    "v6-loan",
+    "v6-nationalize",
+    "v6-research-filter",
+    "v6-resource",
+    "v6-resource-sort",
+    "v6-sort",
+    "v6-tab",
+    "v6-view-research",
+  ]);
   const mapViews = [
     { id: "map", label: "Mapa mundial", icon: "◎" },
     ...DATA.sectors,
@@ -402,7 +416,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.3</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.4</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -1855,7 +1869,8 @@
         "toggle-menu",
         "open-tutorial",
         "close-tutorial",
-      ].includes(action)
+      ].includes(action) &&
+      !interfaceOnlyActions.has(action)
     ) {
       showToast("Terminando el cálculo de este día…", "success");
       return;
@@ -1864,7 +1879,8 @@
       try {
         const result = UI6.action(game, ui6, target);
         if (result?.view) currentView = result.view;
-        await saveGame("autosave", false);
+        if (!interfaceOnlyActions.has(action))
+          await saveGame("autosave", false);
         renderGame();
       } catch (error) {
         showToast(error.message, "error");

@@ -1,4 +1,4 @@
-# Pulso Global 7.3 — nacionalización productiva y comercio necesario
+# Pulso Global 7.4 — revisión de nacionalización inmediata
 
 Actualización incremental sobre **v7.2**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
@@ -8,7 +8,7 @@ Actualización incremental sobre **v7.2**. No es un paquete completo: conserva e
 2. Descomprimí el incremental sobre una copia de la carpeta de v7.2, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.3**; si todavía aparece v7.2, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.4**; si todavía aparece v7.3, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -23,6 +23,13 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
 ## Evolución del motor
+
+## Ajuste 7.4: revisión de nacionalización sin clics perdidos
+
+- **Revisar nacionalización** abre la vista previa aun cuando coincida con el cálculo diario en segundo plano.
+- La ficha de cada recurso ahora renderiza correctamente el cuadro de confirmación que antes quedaba omitido.
+- Navegar, ordenar o abrir/cancelar una confirmación no queda bloqueado y ya no fuerza un autoguardado.
+- La confirmación final que modifica la partida sigue esperando a que termine el día para mantener el guardado coherente.
 
 ## Ajuste 7.3: propiedad por producción y dependencia comercial
 

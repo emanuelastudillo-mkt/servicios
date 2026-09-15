@@ -565,7 +565,7 @@
     return `<div class="v6-overlay" role="dialog" aria-modal="true" aria-labelledby="v6-confirm-title"><section class="v6-dialog"><h2 id="v6-confirm-title">${esc(item.title)}</h2>${item.body}<div class="v6-tabs">${btn("confirm", "Confirmar")} ${btn("cancel-confirm", "Cancelar")}</div></section></div>`;
   }
   function render(s, view, u) {
-    if (u.resource) return resourceDetail(s, u.resource, u);
+    if (u.resource) return resourceDetail(s, u.resource, u) + modal(s, u);
     let html;
     if (D.sectors.some((x) => x.id === view)) html = sector(s, view, u);
     else if (view === "resources") html = resources(s, u);
