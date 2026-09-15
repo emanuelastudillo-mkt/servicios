@@ -39,6 +39,7 @@
       materials.map((m) => [m.id, typeof v === "function" ? v(m) : v]),
     );
   const finite = (v, f = 0) => (Number.isFinite(v) ? v : f);
+  const DEPOSIT_EPSILON = 0.000001;
   const needNumber = (v, min = 0, max = 1e18) => {
     v = Number(v);
     if (!Number.isFinite(v) || v < min || v > max)
@@ -55,6 +56,34 @@
   }
   function scalarTech(c, id) {
     return c.research.levels[id] || 0;
+  }
+  function depositRemaining(c, id, site) {
+    const dep = c.naturalDeposits?.[id];
+    if (!dep) return 0;
+    return site
+      ? Math.max(0, finite(dep[site]))
+      : Math.max(0, finite(dep.land)) + Math.max(0, finite(dep.sea));
+  }
+  function syncDepositExplorations(c, id) {
+    const dep = c.naturalDeposits?.[id];
+    if (!dep) return false;
+    for (const site of ["land", "sea"]) {
+      dep[site] = Math.max(0, finite(dep[site]));
+      if (dep[site] <= DEPOSIT_EPSILON) dep[site] = 0;
+    }
+    let exhausted = false;
+    for (const ex of c.research?.explorations || []) {
+      const site = ex.offshore ? "sea" : "land";
+      if (
+        ex.resource === id &&
+        ex.status === "Depósito descubierto" &&
+        depositRemaining(c, id, site) === 0
+      ) {
+        ex.status = "Agotado";
+        exhausted = true;
+      }
+    }
+    return exhausted;
   }
   function recipe(c, m) {
     return Object.entries(m.inputs).map(([id, q]) => [
@@ -613,6 +642,14 @@
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
+      for (const m of materials) {
+        if (!m.natural) continue;
+        const becameExhausted = syncDepositExplorations(c, m.id);
+        if (c.naturalDeposits[m.id] && depositRemaining(c, m.id) === 0)
+          c.outputReasons[m.id] = "Depósito agotado";
+        if (becameExhausted && c.id === s.playerCountryId)
+          note(s, c, `El depósito de ${m.label.toLowerCase()} está agotado.`);
+      }
       const p = (c.housingProgram ||= {});
       p.buildBudget = Math.max(0, finite(p.buildBudget, 0));
       p.repairBudget = Math.max(0, finite(p.repairBudget, 0));
@@ -1388,6 +1425,7 @@
             ) *
             (1 +
               (c.land.irrigatedHa / Math.max(1, c.land.agricultureHa)) * 0.25);
+        output *= Math.max(0.05, c.energy.served);
         if (m.natural) {
           const dep = c.naturalDeposits[m.id];
           const assets = owner === "public" ? c.buildings : c.privateBuildings;
@@ -1400,11 +1438,10 @@
                     dep.sea,
                     (assets.offshore_platform || 0) * m.baseOutput * 2,
                   )
-                : dep.land
+                : depositRemaining(c, m.id, "land")
               : 0,
           );
         }
-        output *= Math.max(0.05, c.energy.served);
         if (m.sector === "agriculture")
           output *= clamp(1 + H.activeEventEffects(c, s).food, 0.1, 1.5);
         for (const [id, ratio] of recipe(c, m)) {
@@ -1476,7 +1513,30 @@
           );
           dep.land -= land;
           dep.sea = Math.max(0, dep.sea - (output - land));
+          if (syncDepositExplorations(c, m.id) && c.id === s.playerCountryId)
+            note(s, c, `El depósito de ${m.label.toLowerCase()} se agotó.`);
         }
+      }
+      if (m.natural) {
+        const remaining = depositRemaining(c, m.id),
+          installations =
+            (c.buildings[m.unlock] || 0) + (c.privateBuildings[m.unlock] || 0),
+          totalOutput = c.publicProduction[m.id] + c.privateProduction[m.id];
+        if (!c.naturalDeposits[m.id])
+          c.outputReasons[m.id] = "Depósito no descubierto";
+        else if (remaining === 0) c.outputReasons[m.id] = "Depósito agotado";
+        else if (!scalarTech(c, m.technology))
+          c.outputReasons[m.id] = "Tecnología pendiente";
+        else if (installations <= 0)
+          c.outputReasons[m.id] = "Falta instalación";
+        else if (totalOutput > DEPOSIT_EPSILON) c.outputReasons[m.id] = "";
+        else if (
+          freeStock(c, "public", m) + freeStock(c, "private", m) <=
+          DEPOSIT_EPSILON
+        )
+          c.outputReasons[m.id] = "Almacenamiento compatible lleno";
+        else
+          c.outputReasons[m.id] = "Personal, energía o capacidad insuficiente";
       }
     }
     husbandry(s, c);
@@ -1967,10 +2027,11 @@
       blocked = "El país no tiene acceso marítimo";
     if (b.deposit) {
       const dep = c.naturalDeposits[b.deposit];
-      if (!dep || !(b.offshore ? dep.sea : dep.land))
-        blocked =
-          "Hace falta descubrir un depósito " +
-          (b.offshore ? "marítimo" : "terrestre");
+      const site = b.offshore ? "sea" : "land";
+      if (!dep)
+        blocked = `Hace falta descubrir un depósito ${b.offshore ? "marítimo" : "terrestre"}`;
+      else if (depositRemaining(c, b.deposit, site) === 0)
+        blocked = `El depósito ${b.offshore ? "marítimo" : "terrestre"} está agotado`;
     }
     if (b.energyKind === "hydro" && c.land.areaKm2 < 100)
       blocked = "Sin emplazamiento hidroeléctrico apto";
@@ -3815,8 +3876,10 @@
     const list = player(s).research.explorations,
       index = list.findIndex((x) => x.id === Number(id));
     if (index < 0) throw Error("Exploración no válida.");
-    if (list[index].status !== "Sin hallazgo")
-      throw Error("Solo se pueden borrar exploraciones sin hallazgo.");
+    if (!["Sin hallazgo", "Agotado"].includes(list[index].status))
+      throw Error(
+        "Solo se pueden borrar exploraciones sin hallazgo o agotadas.",
+      );
     return list.splice(index, 1)[0];
   }
   function setEducation(s, id, input) {
@@ -3982,6 +4045,13 @@
       technology: scalarTech(c, m.technology),
       reason: c.outputReasons[id],
       deposits: c.naturalDeposits[id] || null,
+      depositStatus: m.natural
+        ? !c.naturalDeposits[id]
+          ? "No descubierto"
+          : depositRemaining(c, id) > 0
+            ? "Activo"
+            : "Agotado"
+        : null,
     };
   }
   function financeSummary(s) {

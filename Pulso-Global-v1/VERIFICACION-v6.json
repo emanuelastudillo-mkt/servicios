@@ -1,13 +1,13 @@
 {
-  "version": "7.1.0",
-  "base": "7.0.0",
-  "generatedAt": "2026-09-15T04:58:43.620Z",
+  "version": "7.2.0",
+  "base": "7.1.0",
+  "generatedAt": "2026-09-15T06:11:51.633Z",
   "engine": {
     "result": "PASS",
     "exitCode": 0,
-    "elapsedSeconds": 77.795,
-    "createdAt": "2026-09-15T04:55:56.119Z",
-    "testCount": 38
+    "elapsedSeconds": 81.467,
+    "createdAt": "2026-09-15T06:08:20.273Z",
+    "testCount": 40
   },
   "browser": {
     "result": "PASS",
@@ -21,7 +21,7 @@
   "upgrade": {
     "result": "PASS",
     "oldCache": "5.4",
-    "newCache": "7.1",
+    "newCache": "7.2",
     "migration": true,
     "backupDownload": true,
     "negativeBalancePreserved": true,
@@ -33,43 +33,43 @@
     "months": 60,
     "days": 1826,
     "countries": 128,
-    "averageMonthMs": 2445.335341666667,
-    "averageDayMs": 80.35056308871852,
+    "averageMonthMs": 2156.0094833333333,
+    "averageDayMs": 70.84368975903614,
     "samples": [
       {
         "tick": 12,
         "recessions": 113,
-        "averageCoverage": 0.8733131434054455,
-        "averageEnergy": 0.9240387715220569,
-        "elapsedSeconds": 19.5531282
+        "averageCoverage": 0.8732986523335413,
+        "averageEnergy": 0.9240327262862988,
+        "elapsedSeconds": 18.851987200000003
       },
       {
         "tick": 24,
-        "recessions": 107,
-        "averageCoverage": 0.8168580107918288,
-        "averageEnergy": 0.9152157854134286,
-        "elapsedSeconds": 48.2669462
+        "recessions": 108,
+        "averageCoverage": 0.8168731566252733,
+        "averageEnergy": 0.9152077439653311,
+        "elapsedSeconds": 48.5912388
       },
       {
         "tick": 36,
         "recessions": 97,
-        "averageCoverage": 0.7844360556545258,
-        "averageEnergy": 0.9192447628394644,
-        "elapsedSeconds": 84.5172753
+        "averageCoverage": 0.786853042684908,
+        "averageEnergy": 0.9195394943964278,
+        "elapsedSeconds": 75.6064265
       },
       {
         "tick": 48,
-        "recessions": 112,
-        "averageCoverage": 0.7045778144951997,
-        "averageEnergy": 0.9023109881535811,
-        "elapsedSeconds": 117.7321495
+        "recessions": 110,
+        "averageCoverage": 0.7070715280489018,
+        "averageEnergy": 0.9029677831745181,
+        "elapsedSeconds": 101.958624
       },
       {
         "tick": 60,
         "recessions": 128,
-        "averageCoverage": 0.7198115313363815,
-        "averageEnergy": 0.8857092093442203,
-        "elapsedSeconds": 146.7197446
+        "averageCoverage": 0.7166001189914741,
+        "averageEnergy": 0.886665680552299,
+        "elapsedSeconds": 129.3542521
       }
     ],
     "scope": "Numerical/accounting stability, not economic balance approval",
@@ -77,14 +77,14 @@
     "testTreasuryBillions": 1000
   },
   "sourceSha256": {
-    "app.js": "c8a15b4624f06be9998efdb829be7a6b5dd8dbef6815e90f6e20ce70fc52a9c7",
+    "app.js": "e4c8d9abf33b484b9e6599981bd93bb0d1e8d835dfb74bc8cdee6da49a40f8e6",
     "engine.js": "7284bc86041dd01614ee642db7d48c76922994197aad26392f9301e2eb10c3d1",
-    "catalog-v6.js": "5bc88d988984d7b4b1c34efd9094a82e54efdb23b25f5ebd192230be6428bcc9",
-    "simulation-v6.js": "47ed70367693298f3fe9696eea1fde8ffdc8dacbc9bf18929bad73ce4d231aa1",
+    "catalog-v6.js": "fc1b9aaf7457eae60bfaf9cafb73d6d57f815b74812dbac7ac91197915517610",
+    "simulation-v6.js": "6a54b9c731781637c49d352d2ff4771980af812003cfb8da53b4945d209281ce",
     "simulation-worker.js": "8cdb69e98dda815cc17aa75014b7e519e1ccdca8dce76a4ecd8bc9a8227bd9c6",
-    "ui-v6.js": "41cf8f904820b42ea84cd115a38261e5ae67eb7a57a463ec10e1757f4fa57219",
+    "ui-v6.js": "e55e60a66d2e252ae3b0d3fba4ff7054427d327ff0de8e36de0f9c4f32a09de9",
     "styles-v6.css": "8d22d1cc1b212c66d3b8246d0a546661e306a3da797e4b4ed2e679d030537e40",
-    "sw.js": "370ae0851c9286fcf7ba722c273fb5d0ecece33d5ce258f1e8949fe7a85412d7"
+    "sw.js": "51077c3103e2a011ae7de49df63d2c497f402bc6cae34efda3c27a59086e468a"
   },
   "limits": [
     "Long-term economic balance remains experimental; sustained scarcity observed.",
