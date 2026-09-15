@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (D, FACTS) {
   "use strict";
   D.version = 6;
-  D.release = "7.2.0";
+  D.release = "7.3.0";
   D.facts = FACTS;
   const techs = [];
   function branch(sector, items) {

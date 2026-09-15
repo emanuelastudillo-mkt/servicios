@@ -77,8 +77,8 @@
     {
       icon: "▰",
       label: "Definí prioridades",
-      title: "Presupuestos monetarios y funcionarios",
-      text: "Cada ministerio tiene presupuesto mensual en dólares, puestos públicos solicitados, sueldo y subsidios. Contrata gradualmente a desempleados cualificados o atrae empleados privados con mejores salarios. El presupuesto es un techo, no un gasto duplicado.",
+      title: "Funcionarios y sueldos",
+      text: "Cada ministerio administra puestos públicos solicitados y sueldo. Contrata gradualmente a desempleados cualificados o atrae empleados privados con mejores salarios. La nómina se paga desde el Tesoro y su cobertura condiciona la producción pública.",
     },
     {
       icon: "⌂",
@@ -400,9 +400,9 @@
         </header>
         <div class="briefing">
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
-          <p>Planificá presupuesto, impuestos, trabajo, subsidios y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
+          <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.2</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.3</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}

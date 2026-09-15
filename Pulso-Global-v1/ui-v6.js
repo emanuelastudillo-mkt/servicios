@@ -72,7 +72,7 @@
     let body = tabs(
       [
         { id: "summary", label: "Situación" },
-        { id: "manage", label: "Presupuesto y funcionarios" },
+        { id: "manage", label: "Funcionarios y sueldos" },
         { id: "build", label: "Construcciones" },
         { id: "stock", label: "Producción" },
       ],
@@ -80,31 +80,25 @@
     );
     if (tab === "manage") {
       body +=
-        `<p>Definí el gasto autorizado por mes. El presupuesto incluye la nómina; solo se pagan puestos cubiertos. Las vacantes compiten con otros empleadores.</p>` +
+        `<p>Definí cuántos puestos públicos querés cubrir y el sueldo ofrecido. La nómina se paga directamente desde el Tesoro; las vacantes dependen de desempleo, cualificación y competencia con empleadores privados.</p>` +
         form(
           "sector",
-          field("budget", "Presupuesto mensual (US$)", v.budget * 1e9) +
-            field(
-              "requested",
-              "Puestos públicos solicitados",
-              Math.round(v.requested),
-            ) +
+          field(
+            "requested",
+            "Puestos públicos solicitados",
+            Math.round(v.requested),
+          ) +
             field(
               "salary",
               "Sueldo por funcionario / mes (US$)",
               v.salary.toFixed(2),
-            ) +
-            field(
-              "subsidyCap",
-              "Tope de subsidio mensual (US$)",
-              v.subsidyCap * 1e9,
             ),
           `data-sector="${id}"`,
         ) +
         `<div class="v6-grid">${card("Ejecutado este mes", dollars(v.executed))}${card("Vacantes", num(Math.max(0, v.requested - v.publicWorkers)))}${card("Nómina potencial", dollars((v.requested * v.salary) / 1e9))}${card("Desde desempleo", num(v.newFromUnemployment || 0), "Contrataciones del mes")}${card("Desde privados", num(v.transfers || 0), "Cambios de empleador")}</div>`;
       if (id === "infrastructure") {
         const p = c.housingProgram;
-        body += `<section class="v6-section"><h3>Programa pasivo de vivienda</h3><p>Reservá parte del presupuesto y cuadrillas temporales para construir y refaccionar todos los meses, sin iniciar una obra manual. El programa usa solo suelo libre no agrícola; se detiene o avanza parcialmente si faltan Tesoro, presupuesto general, materiales o desocupados.</p>${form(
+        body += `<section class="v6-section"><h3>Programa pasivo de vivienda</h3><p>Definí un tope propio y cuadrillas temporales para construir y refaccionar todos los meses, sin iniciar una obra manual. El programa usa solo suelo libre no agrícola; se detiene o avanza parcialmente si faltan Tesoro, materiales o desocupados.</p>${form(
           "housing-program",
           field(
             "buildBudget",
@@ -145,7 +139,7 @@
         productionBlocks = diagnostic.resources
           .map((x) => `${x.label}: ${x.reason}`)
           .join(" · ");
-      body += `<div class="v6-grid">${card("Funcionarios", num(v.publicWorkers), "Solicitados: " + num(v.requested))}${card("Empleo privado", num(v.privateWorkers), "Puestos: " + num(v.privateJobs))}${card("Eficiencia pública", num(v.efficiencyPublic * 100, 1) + "%")}${card("Eficiencia privada", num(v.efficiencyPrivate * 100, 1) + "%")}${card("Presupuesto autorizado", dollars(v.budget), num((v.budget * 1200) / c.gdp, 2) + "% PBI anual")}${card("Valor producido / mes", dollars(produced))}</div><p class="method-note">La capacidad necesita instalaciones, personal, energía e insumos. La eficiencia mejora mediante formación, experiencia operativa y tecnología.</p>${productionBlocks ? `<div class="v6-alert v6-alert-warning"><strong>Qué limita la producción hoy:</strong> ${esc(productionBlocks)}</div>` : `<div class="v6-alert"><strong>Producción:</strong> no hay un bloqueo de recurso reportado; verificá demanda, capacidad instalada y funcionarios.</div>`}`;
+      body += `<div class="v6-grid">${card("Funcionarios", num(v.publicWorkers), "Solicitados: " + num(v.requested))}${card("Empleo privado", num(v.privateWorkers), "Puestos: " + num(v.privateJobs))}${card("Eficiencia pública", num(v.efficiencyPublic * 100, 1) + "%")}${card("Eficiencia privada", num(v.efficiencyPrivate * 100, 1) + "%")}${card("Nómina pública mensual", dollars((v.publicWorkers * v.salary) / 1e9), "Cobertura pagada: " + amount((v.payrollCoverage ?? 1) * 100, "%"))}${card("Valor producido / mes", dollars(produced))}</div><p class="method-note">La capacidad necesita instalaciones, personal pagado, energía e insumos. La eficiencia mejora mediante formación, experiencia operativa y tecnología.</p>${productionBlocks ? `<div class="v6-alert v6-alert-warning"><strong>Qué limita la producción hoy:</strong> ${esc(productionBlocks)}</div>` : `<div class="v6-alert"><strong>Producción:</strong> no hay un bloqueo de recurso reportado; verificá demanda, capacidad instalada y funcionarios.</div>`}`;
       if (id === "agriculture")
         body += `<div class="v6-grid">${card("Superficie agrícola", amount(c.land.agricultureHa, "ha"))}${card("Superficie irrigada", amount(c.land.irrigatedHa, "ha"))}${card("Bovinos", num(c.herds.public.cattle + c.herds.private.cattle))}${card("Porcinos", num(c.herds.public.pigs + c.herds.private.pigs))}${card("Aves", num(c.herds.public.poultry + c.herds.private.poultry))}${card("Ovinos", num(c.herds.public.sheep + c.herds.private.sheep))}</div>`;
       if (id === "energy")
@@ -159,15 +153,13 @@
           ),
           "Reducen bienestar; requieren recolección y tratamiento",
         )}${card("Basura acumulada", amount(c.publicStocks.waste, "t"))}${card("Residuos orgánicos", amount(c.publicStocks.organic_waste, "t"))}${card("Reciclables", amount(c.publicStocks.recyclables, "t"))}</div>`;
-      const p = E.nationalizePreview(s, id);
-      body += `<section class="v6-section"><h3>Propiedad del sector</h3><p>Nacionalizar transfiere instalaciones, inventario y empleados privados. El Estado asume sus costos y producción.</p><p>Transferencia del 100%: <strong>${dollars(p.cost)}</strong> · ${num(p.workers)} trabajadores</p>${btn("nationalize", "Revisar nacionalización", `data-sector="${id}"`)}</section>`;
       if (id === "education") body += educationForms(c);
     }
     body += projects(s, id);
     return shell(def.label, body);
   }
   function educationForms(c) {
-    return `<section class="v6-section"><h3>Educación por nivel y especialidad</h3><p>Los programas reparten funcionarios existentes y fondos del ministerio. Sus sueldos determinan la oferta salarial media de Educación. Las cohortes iniciales representan alumnos ya en formación.</p>${[
+    return `<section class="v6-section"><h3>Educación por nivel y especialidad</h3><p>Los programas reparten los funcionarios existentes y administran sus costos específicos. Sus sueldos determinan la oferta salarial media de Educación. Las cohortes iniciales representan alumnos ya en formación.</p>${[
       ...D.educationLevels.map((d) => ({
         ...d,
         key: "level:" + d.id,
@@ -218,8 +210,6 @@
                     if (x.type === "materials") return materialText;
                     if (x.type === "treasury")
                       return `Tesoro insuficiente: necesita ${dollars(x.amount)} y hay ${dollars(x.available)}`;
-                    if (x.type === "sectorBudget")
-                      return `presupuesto autorizado insuficiente: quedan ${dollars(x.available)}`;
                     return x.type;
                   })
                   .join(". ");
@@ -252,7 +242,9 @@
   function resourceDetail(s, id, u = {}) {
     const c = s.countries[s.playerCountryId],
       r = E.resourceReport(s, id),
-      m = r.material;
+      m = r.material,
+      nationalization = E.nationalizePreview(s, id),
+      ownershipAction = m.natural ? "extracción" : "producción";
     const related = s.agreements.filter(
       (a) => a.active && a.resource === id && [a.from, a.to].includes(c.id),
     );
@@ -277,6 +269,7 @@
                   : "Producción primaria",
           )
     } → <strong>${esc(m.label)}</strong></p><dl class="v6-lines">${row("Tecnología", esc(D.getTechnology(m.technology).label) + " · nivel " + r.technology)}${row("Instalación", esc(D.getBuilding(m.unlock)?.label || "Producción derivada"))}${row("Insumos por unidad producida", dollars(r.cost))}${row("Capacidad operativa mensual", amount(r.capacity, m.unit))}${row("Stock privado", amount(r.privateStock, m.unit))}${row("Almacén compatible", esc(D.storageTypes.find((t) => t.id === m.storage).label))}${row("Capacidad pública compartida", amount(E.storageCapacity(c, "public", m.storage), "t equivalentes"))}${row("Meses de cobertura", c.needs[id] > 0 ? amount((r.stock + r.privateStock) / c.needs[id], "meses") : "Sin demanda actual")}${row("Funcionarios / empleo privado del sector", num(c.sectors[m.sector].publicWorkers) + " / " + num(c.sectors[m.sector].privateWorkers))}${row("Energía disponible", amount(c.energy.served * 100, "%"))}${row("Consumo nacional total", amount(c.materialConsumption[id], m.unit))}${row("Consumo mundial", amount(r.world.consumption, m.unit))}${row("Importado / exportado", amount(c.resourceImports[id]) + " / " + amount(c.resourceExports[id]))}${row("Nivel de utilización pública / privada", amount((c.publicUtilization[id] || 0) * 100, "%") + " / " + amount((c.privateUtilization[id] || 0) * 100, "%"))}${r.depositStatus ? row("Estado del depósito", esc(r.depositStatus)) : ""}${r.deposits ? row("Depósitos terrestre / marítimo", amount(r.deposits.land, m.unit) + " / " + amount(r.deposits.sea, m.unit)) : ""}</dl><p>${esc(r.reason || "Producción condicionada por demanda, personal, insumos y capacidad.")}</p>${D.getBuilding(m.unlock) ? btn("go-sector", "Ver construcción", `data-sector="${m.sector}"`) : ""} ${btn("view-research", "Investigar tecnología", `data-tech="${m.technology}"`)}</section>
+    <section class="v6-section"><h3>Propiedad de esta ${ownershipAction}</h3><p>${nationalization.alreadyNationalized ? `La ${ownershipAction} de <strong>${esc(m.label)}</strong> está nacionalizada: la actividad privada de este recurso queda deshabilitada.` : `Nacionalizar transfiere al Estado las instalaciones vinculadas, el stock privado de ${esc(m.label)} y la parte proporcional de sus trabajadores.`}</p><dl class="v6-lines">${row("Estado", nationalization.alreadyNationalized ? "Nacionalizada" : "Mixta o privada")}${row("Costo de transferencia", dollars(nationalization.cost))}${row("Trabajadores transferidos", num(nationalization.workers))}${row("Stock transferido", amount(nationalization.stock, m.unit))}${nationalization.linkedProductions.length ? row("Instalación compartida", esc(nationalization.linkedProductions.join(", "))) : ""}</dl>${nationalization.alreadyNationalized ? "" : btn("nationalize", "Revisar nacionalización", `data-resource="${id}"`)}</section>
     <section class="v6-section"><h3>Política y mercado público</h3>${form("resource-policy", field("minimum", "Stock mínimo protegido (" + m.unit + ")", c.stockMinimum[id]) + field("target", "Producción pública deseada (0 a 100%)", c.productionTargets[id] * 100, "number", 'max="100"'), `data-resource="${id}"`)}${btn("ban", c.importBans[id] ? "Permitir importaciones" : "Prohibir importaciones", `data-resource="${id}" data-banned="${!c.importBans[id]}"`)}<p>Importaciones ${c.importsBanned || c.importBans[id] ? "prohibidas" : "permitidas"}. La prohibición también alcanza las compras manuales.</p>
     ${form(
       "trade-resource",
@@ -303,7 +296,7 @@
     );
   }
   function economyTutorial() {
-    return `<section class="v6-section v6-economy-tutorial"><h3>Cómo leer Economía y deuda</h3><p>Todos los valores del resumen corresponden al <strong>último mes cerrado</strong>. Mirá primero el cambio de reservas: es la caja pública que realmente ganaste o perdiste.</p><details open><summary>1. Ingresos: qué los aumenta y qué los reduce</summary><dl class="v6-lines">${row("Entró al Tesoro", "Suma de impuestos, ventas y otros cobros públicos. Sube si hay más actividad gravada, producción/ventas públicas y comercio con aranceles; baja con menor empleo, consumo, ganancias, comercio o cierres de empresas.")}${row("Impuestos cobrados", "IVA: sube con consumo gravado. Ganancias: con empleo formal y utilidades. Herencias: tiene una base pequeña. Importación/exportación: solo suben si realmente existe comercio. Aumentar una alícuota no crea actividad y puede reducir el consumo o el comercio.")}${row("Ventas y servicios públicos", "Suben cuando instalaciones públicas venden excedentes o prestan servicios. Requieren capacidad, funcionarios, energía, insumos, demanda y —para exportar— comprador y transporte.")}${row("PBI real y nominal", "El nominal cambia también con precios; el real refleja más producción/servicios. Ambos tienden a subir con empleo productivo, eficiencia, energía, tecnología, infraestructura y demanda; caen con escasez, desempleo, deterioro o producción detenida.")}${row("Balance comercial", "Exportaciones menos importaciones del país, públicas y privadas. Mejora al vender excedentes competitivos y reducir compras necesarias; empeora con importaciones altas o pérdida de capacidad exportadora. No todo superávit comercial entra al Tesoro.")}</dl></details><details><summary>2. Gasto: qué lo aumenta y cómo contenerlo</summary><dl class="v6-lines">${row("Sueldos públicos y obras", "Aumentan con funcionarios cubiertos, salarios más altos y obreros asignados. Para reducirlos, bajá puestos solicitados, salario u obras nuevas; no recortes un ministerio que necesita terminar una obra crítica sin revisar su efecto.")}${row("Pensiones", "Suben con más jubilados, mayor esperanza de vida y el gasto previsional vigente. Bajan gradualmente con una edad de retiro mayor; no se corrigen de un mes a otro.")}${row("Funcionamiento y subsidios", "Aumentan con instalaciones activas, presupuesto ejecutado y subsidios. Suben la capacidad o el bienestar si tienen insumos y personal; reducirlos demasiado puede deteriorar producción y felicidad.")}${row("Obras e investigación", "Solo se ejecutan si hay Tesoro, presupuesto del ministerio, materiales y trabajadores. Una obra detenida no se acelera subiendo impuestos de inmediato: abrí el ministerio y leé el bloqueo exacto.")}${row("Insumos y otros pagos", "Suben cuando el Estado compra o usa recursos nacionales. Disminuyen al usar existencias propias, producir localmente o ajustar el ritmo de expansión.")}</dl></details><details><summary>3. Deuda, cuentas y riesgo</summary><dl class="v6-lines">${row("Intereses", "Costo mensual de la deuda. Suben al pedir préstamos o acumular deuda; bajan al amortizar capital y evitar nuevo crédito caro. No financian producción por sí mismos.")}${row("Amortización de capital", "Pago que reduce la deuda nominal. Puede salir de un superávit o de una cuota de préstamo. Es una salida de reservas, pero mejora la carga futura.")}${row("Cuotas próximas", "Compromisos de préstamos activos. Suben al contratar más crédito o elegir plazos cortos/tasas altas; bajan al pagar capital, terminar cuotas o no sumar deuda.")}${row("Reservas del Tesoro", "Caja del Estado. Suben con superávit, préstamos y ventas/cobros públicos; bajan con todo gasto, compra manual y servicio de deuda. No son el dinero de hogares ni empresas.")}${row("Caja privada y dinero de hogares", "Recursos de empresas y población. Suben con ventas, salarios, pensiones y actividad privada; bajan con compras, impuestos y pérdidas. No pagan directamente una obra pública ni una cuota estatal.")}${row("Cambio real de reservas", "Resultado final del mes: positivo acumula caja, negativo la consume. Si es negativo de forma persistente, primero identificá los mayores gastos antes de endeudarte.")}${row("Deuda nominal y % del PBI", "La nominal es lo adeudado; el porcentaje la compara con el tamaño de la economía. El PBI puede mejorar el porcentaje, pero no borra capital. Hay cesación de pagos si la deuda supera 205% del PBI y el Tesoro está agotado.")}${row("Crédito automático", "Cubre obligaciones públicas dentro del límite, pero transforma falta de caja en más deuda. Desactivarlo evita nueva deuda automática, aunque puede detener gastos y obras sin reservas.")}</dl></details><details><summary>4. Lectura práctica para decidir</summary><ol class="v6-guide-list"><li>Si <strong>cambio real de reservas</strong> es negativo, revisá los tres mayores gastos.</li><li>Si la <strong>operación antes de deuda</strong> es positiva pero el resultado final es negativo, los intereses son el problema principal: evitá nuevos préstamos y buscá superávit.</li><li>Si una obra no avanza, corregí el bloqueo indicado: material, Tesoro, presupuesto o desempleo disponible.</li><li>Usá impuestos sobre una base existente: IVA para consumo, ganancias para empleo/utilidades y aranceles solo si hay comercio. Aplicá el cambio y avanzá un mes para medirlo.</li><li>No confundas caja privada u hogares con reservas: solo el Tesoro paga la obra pública y la deuda.</li></ol></details></section>`;
+    return `<section class="v6-section v6-economy-tutorial"><h3>Cómo leer Economía y deuda</h3><p>Todos los valores del resumen corresponden al <strong>último mes cerrado</strong>. Mirá primero el cambio de reservas: es la caja pública que realmente ganaste o perdiste.</p><details open><summary>1. Ingresos: qué los aumenta y qué los reduce</summary><dl class="v6-lines">${row("Entró al Tesoro", "Suma de impuestos, ventas y otros cobros públicos. Sube si hay más actividad gravada, producción/ventas públicas y comercio con aranceles; baja con menor empleo, consumo, ganancias, comercio o cierres de empresas.")}${row("Impuestos cobrados", "IVA: sube con consumo gravado. Ganancias: con empleo formal y utilidades. Herencias: tiene una base pequeña. Importación/exportación: solo suben si realmente existe comercio. Aumentar una alícuota no crea actividad y puede reducir el consumo o el comercio.")}${row("Ventas y servicios públicos", "Suben cuando instalaciones públicas venden excedentes o prestan servicios. Requieren capacidad, funcionarios pagos, energía, insumos, demanda y —para exportar— comprador y transporte.")}${row("PBI real y nominal", "El nominal cambia también con precios; el real refleja más producción/servicios. Ambos tienden a subir con empleo productivo, eficiencia, energía, tecnología, infraestructura y demanda; caen con escasez, desempleo, deterioro o producción detenida.")}${row("Balance comercial", "Exportaciones menos importaciones del país, públicas y privadas. Mejora al vender excedentes competitivos y reducir compras necesarias; empeora con importaciones altas o pérdida de capacidad exportadora. No todo superávit comercial entra al Tesoro.")}</dl></details><details><summary>2. Gasto: qué lo aumenta y cómo contenerlo</summary><dl class="v6-lines">${row("Sueldos públicos y obras", "Aumentan con funcionarios cubiertos, salarios más altos y obreros asignados. Para reducirlos, bajá puestos solicitados, salario u obras nuevas; una nómina impaga también reduce la producción pública.")}${row("Pensiones", "Suben con más jubilados, mayor esperanza de vida y el gasto previsional vigente. Bajan gradualmente con una edad de retiro mayor; no se corrigen de un mes a otro.")}${row("Costos específicos", "La producción pública paga los insumos que compra; vivienda, educación e investigación conservan sus propios topes o costos. Ya no existe un presupuesto general duplicado por ministerio.")}${row("Obras e investigación", "Solo se ejecutan si hay Tesoro, su propio financiamiento cuando corresponda, materiales y trabajadores. Una obra detenida no se acelera subiendo impuestos de inmediato: abrí el ministerio y leé el bloqueo exacto.")}${row("Insumos y otros pagos", "Suben cuando el Estado compra recursos nacionales. Disminuyen al usar existencias propias, producir localmente o ajustar el ritmo de expansión.")}</dl></details><details><summary>3. Deuda, cuentas y riesgo</summary><dl class="v6-lines">${row("Intereses", "Costo mensual de la deuda. Suben al pedir préstamos o acumular deuda; bajan al amortizar capital y evitar nuevo crédito caro. No financian producción por sí mismos.")}${row("Amortización de capital", "Pago que reduce la deuda nominal. Puede salir de un superávit o de una cuota de préstamo. Es una salida de reservas, pero mejora la carga futura.")}${row("Cuotas próximas", "Compromisos de préstamos activos. Suben al contratar más crédito o elegir plazos cortos/tasas altas; bajan al pagar capital, terminar cuotas o no sumar deuda.")}${row("Reservas del Tesoro", "Caja del Estado. Suben con superávit, préstamos y ventas/cobros públicos; bajan con todo gasto, compra manual y servicio de deuda. No son el dinero de hogares ni empresas.")}${row("Caja privada y dinero de hogares", "Recursos de empresas y población. Suben con ventas, salarios, pensiones y actividad privada; bajan con compras, impuestos y pérdidas. No pagan directamente una obra pública ni una cuota estatal.")}${row("Cambio real de reservas", "Resultado final del mes: positivo acumula caja, negativo la consume. Si es negativo de forma persistente, primero identificá los mayores gastos antes de endeudarte.")}${row("Deuda nominal y % del PBI", "La nominal es lo adeudado; el porcentaje la compara con el tamaño de la economía. El PBI puede mejorar el porcentaje, pero no borra capital. Hay cesación de pagos si la deuda supera 205% del PBI y el Tesoro está agotado.")}${row("Crédito automático", "Cubre obligaciones públicas dentro del límite, pero transforma falta de caja en más deuda. Desactivarlo evita nueva deuda automática, aunque puede detener gastos y obras sin reservas.")}</dl></details><details><summary>4. Lectura práctica para decidir</summary><ol class="v6-guide-list"><li>Si <strong>cambio real de reservas</strong> es negativo, revisá los tres mayores gastos.</li><li>Si la <strong>operación antes de deuda</strong> es positiva pero el resultado final es negativo, los intereses son el problema principal: evitá nuevos préstamos y buscá superávit.</li><li>Si una obra no avanza, corregí el bloqueo indicado: material, Tesoro o desempleo disponible.</li><li>Usá impuestos sobre una base existente: IVA para consumo, ganancias para empleo/utilidades y aranceles solo si hay comercio. Aplicá el cambio y avanzá un mes para medirlo.</li><li>No confundas caja privada u hogares con reservas: solo el Tesoro paga la obra pública y la deuda.</li></ol></details></section>`;
   }
   function economy(s) {
     const c = s.countries[s.playerCountryId],
@@ -312,7 +305,7 @@
       expenseLabels = {
         payroll: "Salarios públicos y de obra",
         pensions: "Pensiones",
-        operations: "Funcionamiento y subsidios",
+        operations: "Otros gastos operativos",
         investment: "Obras e investigación",
         inputs: "Insumos nacionales",
         otherExpense: "Otros pagos",
@@ -329,7 +322,7 @@
           : "La carga de intereses está por debajo de una cuarta parte de los ingresos públicos del último mes.";
     return shell(
       "Economía y deuda",
-      `${economyTutorial()}<section class="v6-section v6-finance-summary"><h3>Resumen del último mes</h3><p class="method-note">Separa operación, deuda y financiación: así podés ver qué está vaciando el Tesoro sin leer cada asiento contable.</p><div class="v6-grid">${card("Entró al Tesoro", dollars(f.income), "Impuestos " + dollars(f.taxes) + " · ventas públicas " + dollars(f.publicSales))}${card("Operación antes de deuda", dollars(f.operatingBalance), f.operatingBalance < 0 ? "El gasto cotidiano supera a los ingresos" : "Los ingresos cubren el gasto cotidiano")}${card("Intereses", dollars(f.interest), amount(f.debtPressure * 100, "% de los ingresos"))}${card("Cambio real de reservas", dollars(f.reserveChange), f.reserveChange < 0 ? "Las reservas se redujeron" : "Las reservas crecieron")}</div><dl class="v6-lines">${row("Impuestos cobrados", dollars(f.taxes))}${row("Ventas y servicios públicos", dollars(f.publicSales))}${row("Sueldos públicos y obras", dollars(f.payroll))}${row("Pensiones", dollars(f.pensions))}${row("Funcionamiento y subsidios", dollars(f.operations))}${row("Obras e investigación", dollars(f.investment))}${row("Insumos y otros pagos", dollars(f.inputs + f.otherExpense))}${row("Intereses", dollars(f.interest))}${row("Amortización de capital", dollars(f.principal))}</dl><div class="v6-alert ${f.reserveChange < 0 ? "v6-alert-warning" : ""}"><strong>Lectura rápida:</strong> ${esc(fiscalAdvice)} ${esc(debtAdvice)}</div><p>Mayores gastos del mes: ${f.topExpenses.length ? f.topExpenses.map((x) => `${esc(expenseLabels[x.key])} (${dollars(x.value)})`).join(" · ") : "sin pagos públicos registrados todavía"}.</p></section><section class="v6-section"><h3>Detalle patrimonial y financiación</h3><div class="v6-grid">${card("Reservas del Tesoro", dollars(c.reserves), "Saldo público disponible")}${card("Caja privada", dollars(c.finance.privateCash))}${card("Dinero de hogares", dollars(c.finance.householdCash))}${card("Deuda nominal", dollars(c.finance.nominalDebt), amount(c.debt, "% del PBI"))}${card("PBI real / nominal", dollars(c.realGdp) + " / " + dollars(c.gdp))}${card("Balance comercial nacional", dollars(c.tradeBalance), "Incluye comercio público y privado")}</div><p>Las operaciones privadas no se cargan al Tesoro. Un préstamo agrega capital disponible y deuda; las compras se descuentan una sola vez. La deuda no desaparece porque crezca el PBI.</p><dl class="v6-lines">${row("Resultado fiscal (incluye intereses)", dollars(c.fiscalCashFlowMonthly || 0))}${row("Cuotas próximas de préstamos", dollars(c.debtServiceMonthly))}${row("Crédito automático máximo", amount(c.finance.creditLimitShare, "% PBI"))}</dl>${btn("auto-credit", c.finance.automaticCredit ? "Desactivar crédito automático" : "Activar crédito automático")}<p>La financiación automática cubre gastos públicos hasta su límite; las compras manuales requieren reservas disponibles. Deuda superior al 205% del PBI y reservas agotadas mantienen la condición de cesación de pagos.</p></section><div class="v6-buildings">${E.LOAN_OPTIONS.map(
+      `${economyTutorial()}<section class="v6-section v6-finance-summary"><h3>Resumen del último mes</h3><p class="method-note">Separa operación, deuda y financiación: así podés ver qué está vaciando el Tesoro sin leer cada asiento contable.</p><div class="v6-grid">${card("Entró al Tesoro", dollars(f.income), "Impuestos " + dollars(f.taxes) + " · ventas públicas " + dollars(f.publicSales))}${card("Operación antes de deuda", dollars(f.operatingBalance), f.operatingBalance < 0 ? "El gasto cotidiano supera a los ingresos" : "Los ingresos cubren el gasto cotidiano")}${card("Intereses", dollars(f.interest), amount(f.debtPressure * 100, "% de los ingresos"))}${card("Cambio real de reservas", dollars(f.reserveChange), f.reserveChange < 0 ? "Las reservas se redujeron" : "Las reservas crecieron")}</div><dl class="v6-lines">${row("Impuestos cobrados", dollars(f.taxes))}${row("Ventas y servicios públicos", dollars(f.publicSales))}${row("Sueldos públicos y obras", dollars(f.payroll))}${row("Pensiones", dollars(f.pensions))}${row("Otros gastos operativos", dollars(f.operations))}${row("Obras e investigación", dollars(f.investment))}${row("Insumos y otros pagos", dollars(f.inputs + f.otherExpense))}${row("Intereses", dollars(f.interest))}${row("Amortización de capital", dollars(f.principal))}</dl><div class="v6-alert ${f.reserveChange < 0 ? "v6-alert-warning" : ""}"><strong>Lectura rápida:</strong> ${esc(fiscalAdvice)} ${esc(debtAdvice)}</div><p>Mayores gastos del mes: ${f.topExpenses.length ? f.topExpenses.map((x) => `${esc(expenseLabels[x.key])} (${dollars(x.value)})`).join(" · ") : "sin pagos públicos registrados todavía"}.</p></section><section class="v6-section"><h3>Detalle patrimonial y financiación</h3><div class="v6-grid">${card("Reservas del Tesoro", dollars(c.reserves), "Saldo público disponible")}${card("Caja privada", dollars(c.finance.privateCash))}${card("Dinero de hogares", dollars(c.finance.householdCash))}${card("Deuda nominal", dollars(c.finance.nominalDebt), amount(c.debt, "% del PBI"))}${card("PBI real / nominal", dollars(c.realGdp) + " / " + dollars(c.gdp))}${card("Balance comercial nacional", dollars(c.tradeBalance), "Incluye comercio público y privado")}</div><p>Las operaciones privadas no se cargan al Tesoro. Un préstamo agrega capital disponible y deuda; las compras se descuentan una sola vez. La deuda no desaparece porque crezca el PBI.</p><dl class="v6-lines">${row("Resultado fiscal (incluye intereses)", dollars(c.fiscalCashFlowMonthly || 0))}${row("Cuotas próximas de préstamos", dollars(c.debtServiceMonthly))}${row("Crédito automático máximo", amount(c.finance.creditLimitShare, "% PBI"))}</dl>${btn("auto-credit", c.finance.automaticCredit ? "Desactivar crédito automático" : "Activar crédito automático")}<p>La financiación automática cubre gastos públicos hasta su límite; las compras manuales requieren reservas disponibles. Deuda superior al 205% del PBI y reservas agotadas mantienen la condición de cesación de pagos.</p></section><div class="v6-buildings">${E.LOAN_OPTIONS.map(
         (o) => {
           const p = E.loanPreview(s, o.id);
           return `<article><h3>${esc(o.label)}</h3><p>${esc(o.description)}</p><strong>${dollars(p.amount)}</strong><p>${p.months} meses · ${amount(p.annualRate, "% anual")}</p><p>Primera cuota: ${dollars(p.firstPayment)} · deuda resultante ${amount(p.projectedDebt, "%")}</p><p>Reservas tras recibirlo: ${dollars(c.reserves + p.amount)}</p>${btn("loan", "Contratar préstamo", `data-loan="${o.id}"`)}</article>`;
@@ -499,7 +492,7 @@
       project = c.research.project;
     return shell(
       "Investigación y exploración",
-      `<p>El laboratorio utiliza científicos y el presupuesto de Educación. Una tecnología habilita instalaciones; la exploración puede terminar sin hallazgo.</p>${project ? `<section class="v6-section"><h3>${esc(D.getTechnology(project.technology).label)} · nivel ${project.level}</h3><progress max="100" value="${project.progress}"></progress><p>${amount(project.progress, "%")} · presupuesto ${dollars(project.budget)}/mes</p>${btn("cancel-research", "Cancelar investigación")}</section>` : ""}<div class="v6-tabs">${D.sectors.map((sec) => btn("research-filter", sec.short, `data-sector="${sec.id}"`)).join("")}</div><div class="v6-buildings">${D.technologies
+      `<p>El laboratorio utiliza científicos y el financiamiento propio de cada proyecto. Una tecnología habilita instalaciones; la exploración puede terminar sin hallazgo.</p>${project ? `<section class="v6-section"><h3>${esc(D.getTechnology(project.technology).label)} · nivel ${project.level}</h3><progress max="100" value="${project.progress}"></progress><p>${amount(project.progress, "%")} · presupuesto ${dollars(project.budget)}/mes</p>${btn("cancel-research", "Cancelar investigación")}</section>` : ""}<div class="v6-tabs">${D.sectors.map((sec) => btn("research-filter", sec.short, `data-sector="${sec.id}"`)).join("")}</div><div class="v6-buildings">${D.technologies
         .filter((t) => !u.researchSector || t.sector === u.researchSector)
         .map((t) => {
           const level = c.research.levels[t.id] || 0,
@@ -653,12 +646,12 @@
       };
     }
     if (a === "nationalize") {
-      const p = E.nationalizePreview(s, target.dataset.sector);
+      const p = E.nationalizePreview(s, target.dataset.resource);
       u.confirm = {
         type: "nationalize",
-        id: target.dataset.sector,
-        title: "Nacionalizar el 100% privado",
-        body: `<p>Costo ${dollars(p.cost)}. Se transfieren ${num(p.workers)} trabajadores e instalaciones; revisá luego el presupuesto salarial.</p><p>Reservas posteriores: ${dollars(c.reserves - p.cost)}.</p>`,
+        id: target.dataset.resource,
+        title: `Nacionalizar ${p.material.natural ? "extracción" : "producción"} de ${p.material.label}`,
+        body: `<p>Costo ${dollars(p.cost)}. Se transfieren ${num(p.workers)} trabajadores, ${amount(p.stock, p.material.unit)} de stock y las instalaciones productivas vinculadas.</p>${p.linkedProductions.length ? `<p>Atención: la instalación también se utiliza para ${esc(p.linkedProductions.join(", "))}.</p>` : ""}<p>Reservas posteriores: ${dollars(c.reserves - p.cost)}. La producción privada de este recurso quedará deshabilitada.</p>`,
       };
     }
     if (a === "cancel-confirm") u.confirm = null;
@@ -676,10 +669,8 @@
       a = formElement.dataset.v6Form;
     if (a === "sector")
       E.setSector(s, formElement.dataset.sector, {
-        budget: Number(v.budget) / 1e9,
         requested: Number(v.requested),
         salary: Number(v.salary),
-        subsidyCap: Number(v.subsidyCap) / 1e9,
       });
     if (a === "housing-program")
       E.setHousingProgram(s, {
@@ -775,7 +766,12 @@
               .map(
                 ([k]) =>
                   "<td>" +
-                  (k === "name" ? esc(c.name) : amount(c[k][id])) +
+                  (k === "name"
+                    ? esc(c.name) +
+                      (c.blockedRawMaterials?.includes(id)
+                        ? "<small>Requiere importar</small>"
+                        : "")
+                    : amount(c[k][id])) +
                   "</td>",
               )
               .join("") +

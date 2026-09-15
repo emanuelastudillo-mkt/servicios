@@ -2295,7 +2295,7 @@
 
     return {
       version: 6,
-      release: "7.2.0",
+      release: "7.3.0",
       disclaimer:
         "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
       sectors: SECTORS,

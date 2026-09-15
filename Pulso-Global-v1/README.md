@@ -1,14 +1,14 @@
-# Pulso Global 7.2 — depósitos agotables y diagnóstico de extracción
+# Pulso Global 7.3 — nacionalización productiva y comercio necesario
 
-Actualización incremental sobre **v7.1**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.2**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.1, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.2, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.2**; si todavía aparece v7.1, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.3**; si todavía aparece v7.2, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -23,6 +23,16 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
 ## Evolución del motor
+
+## Ajuste 7.3: propiedad por producción y dependencia comercial
+
+- Las nacionalizaciones se realizan desde la ficha de cada recurso: producción de acero, automóviles o alimentos, o extracción de petróleo, hierro, cobre y otros recursos naturales. Ya no absorben automáticamente todo el sector.
+- La transferencia incluye las instalaciones vinculadas, el stock de ese producto y una proporción coherente de empleos. Si una instalación fabrica más de un producto, la confirmación lo advierte.
+- Cada ministerio se administra con puestos solicitados y sueldo. Se eliminó el presupuesto sectorial duplicado y su tope de subsidio; la nómina, los insumos, las obras y los proyectos específicos siguen consumiendo Tesoro real.
+- Si el Estado no logra pagar toda la nómina, la cobertura salarial visible limita la producción pública. Las obras se detienen por Tesoro, materiales o trabajadores, no por una segunda autorización ministerial.
+- Cada uno de los 127 países no controlados por el jugador tiene dos o tres dependencias estables entre granos, madera, petróleo, hierro, cobre y minerales. No puede producirlas localmente y, al consumir sus existencias, debe importarlas mediante el mercado mundial o acuerdos.
+- La comparación mundial de cada recurso identifica a esos países con **Requiere importar**, permitiendo detectar mercados potenciales para el jugador.
+- El país elegido por el jugador nunca recibe estos bloqueos automáticos. La distribución es determinista y se conserva al guardar y cargar.
 
 ## Ajuste 7.2: agotamiento de depósitos
 
@@ -58,12 +68,12 @@ Después de cargar todos los archivos, funciona sin Internet. No hay avance con 
 
 - Economía y deuda abre con un resumen de un mes: impuestos, ventas públicas, salarios, pensiones, funcionamiento, obra/investigación, intereses, amortización y cambio efectivo de reservas. Los importes se muestran en escala compacta.
 - El panel indica el plazo estimado de reservas si hay pérdida mensual, la proporción de ingresos absorbida por intereses y los tres mayores pagos. Es una lectura del último mes, no una previsión garantizada.
-- Cada obra activa explica si avanzará el mes siguiente o cuál es el bloqueo exacto: materiales y faltante, Tesoro, presupuesto autorizado del ministerio o falta de desocupados.
+- Cada obra activa explica si avanzará el mes siguiente o cuál es el bloqueo exacto: materiales y faltante, Tesoro o falta de desocupados.
 - La situación de cada ministerio muestra los recursos que hoy impiden producir; no presenta una instalación aún en construcción como producción ya disponible.
 - Impuestos ahora enseña la base gravada del último mes y el cambio monetario estimado frente al esquema vigente. La alícuota se cobra en la próxima etapa fiscal aplicable y no recauda si no existen operaciones gravadas.
 
 - Tesoro, empresas y hogares con cuentas separadas; registro de operaciones, cuotas, intereses y amortización. Comprar recursos no vuelve a descontar el préstamo en el cierre siguiente.
-- Presupuestos y subsidios editados en dinero mensual; funcionarios solicitados, salarios, vacantes, cualificación y competencia entre empleadores. Los impuestos siguen siendo alícuotas.
+- Ministerios administrados mediante funcionarios solicitados y salarios; vacantes, cualificación, competencia entre empleadores y cobertura efectiva de la nómina. Los programas específicos conservan sus costos monetarios. Los impuestos siguen siendo alícuotas.
 - Propiedad pública/privada, producción diferenciada, inversión y cierres privados graduales, nacionalización y eficiencia sectorial.
 - 48 recursos con recetas, instalaciones y tecnologías; ganadería, lácteos, cuero, lana, litio, electrónica avanzada y residuos. 48 iconos SVG de 100 × 100 y las 128 banderas existentes.
 - Almacenes especializados con capacidad compartida por familia. El espacio se reparte entre productos para que los insumos no bloqueen toda la cadena. Las pérdidas y basura sin recoger quedan registradas.
@@ -82,7 +92,7 @@ Después de cargar todos los archivos, funciona sin Internet. No hay avance con 
 
 Una compra manual exige reservas suficientes según la cotización conservadora y no solicita un préstamo por sí sola. Puede ejecutarse menos cantidad si faltan vendedor, excedente, transporte o capacidad. El préstamo recibido sigue disponible hasta que una operación o gasto real lo utiliza. No existe el antiguo piso de −20 MM.
 
-El crédito automático cubre obligaciones y ciertos insumos públicos dentro del presupuesto y del límite crediticio. Puede desactivarse en Economía. Aumentar presupuesto no obliga a gastarlo entero: faltas de trabajadores, recursos, instalaciones o caja dejan parte sin ejecutar. Obras e investigación pueden detenerse.
+El crédito automático cubre obligaciones y ciertos insumos públicos dentro del límite crediticio. Puede desactivarse en Economía. Aumentar puestos o salarios eleva la nómina potencial, pero faltas de trabajadores, recursos, instalaciones o caja pueden reducir producción y dejar obras o investigaciones detenidas.
 
 El saldo mensual incluye ingresos y gastos efectivos. Un superávit recupera caja y permite amortizar deuda; una caída del cociente deuda/PBI no significa que se haya cancelado capital. Los intereses impagos se registran, no desaparecen.
 

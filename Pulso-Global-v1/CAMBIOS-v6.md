@@ -1,6 +1,6 @@
-# Pulso Global 7.2 — agotamiento real de depósitos
+# Pulso Global 7.3 — nacionalización productiva y dependencia comercial
 
-Fecha de entrega: 15 de septiembre de 2026. Incremental sobre v7.1. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
+Fecha de entrega: 15 de septiembre de 2026. Incremental sobre v7.2. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
 
 ## Cobertura de la lista consolidada
 
@@ -36,6 +36,10 @@ Fecha de entrega: 15 de septiembre de 2026. Incremental sobre v7.1. Motor jugabl
 
 ## Correcciones adicionales encontradas durante la revisión
 
+- La nacionalización ahora se aplica por recurso producido o extraído. Transfiere la instalación vinculada, el inventario concreto y una proporción de trabajadores; no absorbe las demás fábricas y existencias del ministerio.
+- Los formularios ministeriales conservan solamente puestos solicitados y sueldo. Nómina, insumos y obras se pagan desde el Tesoro y los topes propios de cada programa; desaparece el bloqueo duplicado por presupuesto general del sector.
+- La falta de pago de funcionarios reduce la producción pública mediante una cobertura salarial explícita, evitando que trabajadores impagos produzcan a pleno.
+- Los países simulados reciben dos o tres dependencias de materias primas deterministas. El país del jugador queda excluido y los faltantes entran al comercio automático y a los acuerdos existentes.
 - Hierro, cobre y los demás depósitos finitos ahora alcanzan cero exactamente aunque la energía disponible sea parcial; los residuos microscópicos de partidas existentes se normalizan al cargarlas.
 - Una exploración exitosa cambia a **Agotado** al consumirse las reservas de su zona, genera un aviso, puede borrarse y bloquea nuevas plantas extractivas hasta descubrir otra reserva.
 - La ficha del recurso distingue **No descubierto**, **Activo** y **Agotado**. El diagnóstico conjunto público/privado evita mostrar “Falta instalación” cuando sí existe capacidad pública.
@@ -52,7 +56,7 @@ Fecha de entrega: 15 de septiembre de 2026. Incremental sobre v7.1. Motor jugabl
 
 - Reparto del espacio logístico para que los materiales intermedios no ocupen permanentemente todo el almacén y bloqueen los productos finales.
 - Comprobación conjunta de insumos y dinero antes de producir: la misma caja no puede respaldar por separado varias compras incompatibles.
-- Compra de insumos públicos dentro del presupuesto autorizado y la capacidad crediticia; el stock ya propio no se compra de nuevo.
+- Compra de insumos públicos limitada por el Tesoro y la capacidad crediticia; el stock ya propio no se compra de nuevo.
 - Registro del ingreso de proveedores y costo de compradores, incluidos intercambios entre ramas privadas. Estas asignaciones no crean caja ni suman nuevamente los insumos al PBI.
 - Plantas de biomasa que aprovechan residuos orgánicos o biomasa agrícola; tratamiento a precio negativo con dirección de pago correcta.
 - Inversión privada en módulos enteros y escalables, limitada por recursos, suelo y caja, sin imponer el mismo techo de una fábrica a países de tamaños muy distintos.
@@ -75,7 +79,7 @@ Los resultados exactos se incluyen en `VERIFICACION-v6.json`, generado desde las
 - Migración de un guardado v5.4 situado en noviembre de 2205, con préstamo, obra en curso y saldo negativo exacto.
 - Navegación de los 16 menús, selección de Nauru, controles monetarios, préstamo/compra, guardado, recarga y modo offline en Edge.
 - Vista de escritorio y móvil de 390 × 844, sin desbordamiento de página; las tablas anchas se desplazan horizontalmente dentro de su contenedor.
-- Actualización real de caché v5.4 a v7.2, exportación del respaldo antiguo y reapertura offline.
+- Actualización real de caché v5.4 a v7.3, exportación del respaldo antiguo y reapertura offline.
 - Simulación actual de 60 meses (1.826 jornadas) con 128 países: valores finitos, conciliación de dinero y recursos y empleo no superior a la población disponible. Esta prueba financia artificialmente el país del jugador para que una derrota por falta de gestión no detenga el ensayo; no prueba que una partida normal se sostenga sin intervenir.
 - ZIP incremental contrastado por hash con la base preservada y aplicado a una copia nueva: el resultado debe coincidir byte a byte con la carpeta final del juego.
 
@@ -83,6 +87,6 @@ Los resultados exactos se incluyen en `VERIFICACION-v6.json`, generado desde las
 
 ## Uso y conservación de partidas
 
-Aplicá todos los archivos del incremental sobre v7.1, conservando los que no vienen en el ZIP. Exportá antes tu partida. Recargá con conexión hasta ver **Motor económico v7.2** y luego continuá. No hay fecha de finalización ni derrota institucional; sigue existiendo cesación de pagos cuando la deuda supera 205% del PBI y el Tesoro está agotado.
+Aplicá todos los archivos del incremental sobre v7.2, conservando los que no vienen en el ZIP. Exportá antes tu partida. Recargá con conexión hasta ver **Motor económico v7.3** y luego continuá. No hay fecha de finalización ni derrota institucional; sigue existiendo cesación de pagos cuando la deuda supera 205% del PBI y el Tesoro está agotado.
 
 La carpeta base anterior y los guardados de prueba se preservaron. No se publicó el proyecto ni se eliminaron archivos del usuario.

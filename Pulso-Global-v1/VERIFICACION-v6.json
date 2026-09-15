@@ -1,13 +1,13 @@
 {
-  "version": "7.2.0",
-  "base": "7.1.0",
-  "generatedAt": "2026-09-15T06:11:51.633Z",
+  "version": "7.3.0",
+  "base": "7.2.0",
+  "generatedAt": "2026-09-15T20:18:10.820Z",
   "engine": {
     "result": "PASS",
     "exitCode": 0,
-    "elapsedSeconds": 81.467,
-    "createdAt": "2026-09-15T06:08:20.273Z",
-    "testCount": 40
+    "elapsedSeconds": 101.903,
+    "createdAt": "2026-09-15T20:11:09.614Z",
+    "testCount": 41
   },
   "browser": {
     "result": "PASS",
@@ -21,7 +21,7 @@
   "upgrade": {
     "result": "PASS",
     "oldCache": "5.4",
-    "newCache": "7.2",
+    "newCache": "7.3",
     "migration": true,
     "backupDownload": true,
     "negativeBalancePreserved": true,
@@ -33,43 +33,43 @@
     "months": 60,
     "days": 1826,
     "countries": 128,
-    "averageMonthMs": 2156.0094833333333,
-    "averageDayMs": 70.84368975903614,
+    "averageMonthMs": 2157.2025183333335,
+    "averageDayMs": 70.88289178532311,
     "samples": [
       {
         "tick": 12,
-        "recessions": 113,
-        "averageCoverage": 0.8732986523335413,
-        "averageEnergy": 0.9240327262862988,
-        "elapsedSeconds": 18.851987200000003
+        "recessions": 108,
+        "averageCoverage": 0.8700762512043767,
+        "averageEnergy": 0.9464608021051526,
+        "elapsedSeconds": 20.7198599
       },
       {
         "tick": 24,
-        "recessions": 108,
-        "averageCoverage": 0.8168731566252733,
-        "averageEnergy": 0.9152077439653311,
-        "elapsedSeconds": 48.5912388
+        "recessions": 112,
+        "averageCoverage": 0.6774765642595274,
+        "averageEnergy": 0.9435182342562802,
+        "elapsedSeconds": 49.297353900000005
       },
       {
         "tick": 36,
-        "recessions": 97,
-        "averageCoverage": 0.786853042684908,
-        "averageEnergy": 0.9195394943964278,
-        "elapsedSeconds": 75.6064265
+        "recessions": 105,
+        "averageCoverage": 0.6623671622522397,
+        "averageEnergy": 0.9638476527184817,
+        "elapsedSeconds": 76.6389542
       },
       {
         "tick": 48,
-        "recessions": 110,
-        "averageCoverage": 0.7070715280489018,
-        "averageEnergy": 0.9029677831745181,
-        "elapsedSeconds": 101.958624
+        "recessions": 111,
+        "averageCoverage": 0.6141248849429277,
+        "averageEnergy": 0.7174228591773535,
+        "elapsedSeconds": 104.27815710000002
       },
       {
         "tick": 60,
-        "recessions": 128,
-        "averageCoverage": 0.7166001189914741,
-        "averageEnergy": 0.886665680552299,
-        "elapsedSeconds": 129.3542521
+        "recessions": 124,
+        "averageCoverage": 0.5844342496407047,
+        "averageEnergy": 0.8944497281914813,
+        "elapsedSeconds": 129.426242
       }
     ],
     "scope": "Numerical/accounting stability, not economic balance approval",
@@ -77,14 +77,14 @@
     "testTreasuryBillions": 1000
   },
   "sourceSha256": {
-    "app.js": "e4c8d9abf33b484b9e6599981bd93bb0d1e8d835dfb74bc8cdee6da49a40f8e6",
+    "app.js": "edb47ad166187d9c14e80310e9e7db733ca3f801473e2e1d581b538a85ddb0d8",
     "engine.js": "7284bc86041dd01614ee642db7d48c76922994197aad26392f9301e2eb10c3d1",
-    "catalog-v6.js": "fc1b9aaf7457eae60bfaf9cafb73d6d57f815b74812dbac7ac91197915517610",
-    "simulation-v6.js": "6a54b9c731781637c49d352d2ff4771980af812003cfb8da53b4945d209281ce",
+    "catalog-v6.js": "905e8b0bd2b41522168fe5ec44a47eba6a7abb0558f51c4daf782507fd3c4f57",
+    "simulation-v6.js": "99d06886f07f13e488e16c2c35acf35b41793a9511729f344cace7b35ed4d305",
     "simulation-worker.js": "8cdb69e98dda815cc17aa75014b7e519e1ccdca8dce76a4ecd8bc9a8227bd9c6",
-    "ui-v6.js": "e55e60a66d2e252ae3b0d3fba4ff7054427d327ff0de8e36de0f9c4f32a09de9",
+    "ui-v6.js": "7d1f29b2fc289c96a14d8305fb6ff8268d9a4b3607185bde568599804a6cea5d",
     "styles-v6.css": "8d22d1cc1b212c66d3b8246d0a546661e306a3da797e4b4ed2e679d030537e40",
-    "sw.js": "51077c3103e2a011ae7de49df63d2c497f402bc6cae34efda3c27a59086e468a"
+    "sw.js": "a4fbbd9960d33e5e915992259e94c5a316f22f8dc1ab346d10e4283ade8ad5b5"
   },
   "limits": [
     "Long-term economic balance remains experimental; sustained scarcity observed.",

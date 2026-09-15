@@ -32,6 +32,14 @@
     appliances: 10,
     jewelry: 25,
   };
+  const tradeDependencyPool = [
+    "grains",
+    "timber",
+    "crude_oil",
+    "iron_ore",
+    "copper",
+    "minerals",
+  ];
   for (const t of D.technologies)
     (techGroups[t.sector + "|" + t.effect] ||= []).push(t);
   const map = (v) =>
@@ -56,6 +64,19 @@
   }
   function scalarTech(c, id) {
     return c.research.levels[id] || 0;
+  }
+  function dependencyMaterials(countryId) {
+    const score = (text) =>
+      [...text].reduce((n, char) => (n * 33 + char.charCodeAt(0)) >>> 0, 5381);
+    const count = 2 + (score(countryId) % 2);
+    return tradeDependencyPool
+      .slice()
+      .sort(
+        (a, b) =>
+          score(`${countryId}:${a}`) - score(`${countryId}:${b}`) ||
+          a.localeCompare(b),
+      )
+      .slice(0, count);
   }
   function depositRemaining(c, id, site) {
     const dep = c.naturalDeposits?.[id];
@@ -464,6 +485,7 @@
         executed: 0,
         initialJobs: Math.max(1, n),
         qualified: c.education,
+        payrollCoverage: 1,
       };
     }
     c.qualifiedShare = clamp(0.15 + c.education / 130, 0.2, 0.95);
@@ -533,6 +555,8 @@
     c.tourismPotential = 0;
     c.uncollectedWaste = map(0);
     c.nationalized = {};
+    c.nationalizedResources = map(false);
+    c.blockedRawMaterials = [];
     c.constructionWorkers = 0;
     syncDebt(c);
     updateCapacity(c);
@@ -642,6 +666,15 @@
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
+      c.nationalizedResources ||= map(false);
+      for (const sid of sectors)
+        if (c.nationalized?.[sid])
+          for (const m of materials.filter((m) => m.sector === sid))
+            c.nationalizedResources[m.id] = true;
+      c.blockedRawMaterials =
+        c.id === s.playerCountryId ? [] : dependencyMaterials(c.id);
+      for (const sec of Object.values(c.sectors))
+        sec.payrollCoverage = clamp(finite(sec.payrollCoverage, 1), 0, 1);
       for (const m of materials) {
         if (!m.natural) continue;
         const becameExhausted = syncDepositExplorations(c, m.id);
@@ -893,36 +926,13 @@
       c.initialEnergyDemand *
       (c.population / c.initialPopulation) *
       clamp((c.realGdp / c.initialGdp) ** 0.2, 0.5, 3);
-    // AI governments adjust gradually; the player's policies are never changed here.
-    if (
-      c.id !== s.playerCountryId &&
-      s.tick % 3 === 0 &&
-      c.finance.monthly.income !== undefined
-    ) {
-      const authorized = sectors.reduce((n, id) => n + c.sectors[id].budget, 0),
-        income = c.finance.monthly.income;
-      if (c.debt > 70 && c.fiscalCashFlowMonthly < 0) {
-        const ratio = clamp(
-          ((income - (c.finance.pensions || 0)) * 0.95) /
-            Math.max(1e-12, authorized),
-          0.5,
-          1,
-        );
-        for (const sec of Object.values(c.sectors))
-          sec.budget *= 1 - (1 - ratio) * 0.12;
-      } else if (c.reserves > c.gdp * 0.08 && c.fiscalCashFlowMonthly > 0)
-        for (const sec of Object.values(c.sectors)) sec.budget *= 1.005;
-    }
     syncDemographics(c);
     let free = c.laborSnapshot.unemployed * 1e6;
     const pool = c.laborSnapshot.laborForce * 1e6;
     for (const sec of Object.values(c.sectors)) {
       sec.newFromUnemployment = 0;
       sec.transfers = 0;
-      const cap = Math.min(
-        sec.requested,
-        (sec.budget * 1e9) / Math.max(1, sec.salary),
-      );
+      const cap = sec.requested;
       if (sec.publicWorkers > cap) {
         const lost = sec.publicWorkers - cap;
         sec.publicWorkers = cap;
@@ -940,11 +950,7 @@
             ? 55
             : 30;
       const qualified = clamp(c.education / tSkill, 0.05, 1);
-      const target = Math.min(
-        sec.requested,
-        (sec.budget * 1e9) / Math.max(1, sec.salary),
-        pool * qualified,
-      );
+      const target = Math.min(sec.requested, pool * qualified);
       let vacant = Math.max(0, target - sec.publicWorkers);
       let hire = Math.min(vacant, free * qualified, pool * 0.006);
       sec.publicWorkers += hire;
@@ -1044,43 +1050,18 @@
         let amount =
           (workers * (owner === "public" ? sec.salary : sec.privateSalary)) /
           1e9;
-        if (owner === "public") {
-          amount = Math.min(amount, sec.budget);
+        const expected = amount;
+        if (owner === "public")
           automaticFunding(s, c, amount, "Nómina pública");
-        }
         amount *= affordable(c, owner, amount);
         transfer(s, c, owner, "household", amount, "Salarios");
         if (owner === "public") {
           sec.executed += amount;
+          sec.payrollCoverage = expected > 0 ? amount / expected : 1;
           c.finance.spending += amount;
         } else sec.profit -= amount;
         c.finance.payroll += amount;
       }
-      const operating =
-          Math.max(0, sec.budget - sec.executed) *
-          0.08 *
-          (1 - techBonus(c, sid, "cost")),
-        paid = Math.min(operating, Math.max(0, c.reserves));
-      transfer(
-        s,
-        c,
-        "public",
-        "private",
-        paid,
-        "Funcionamiento y mantenimiento",
-      );
-      sec.executed += paid;
-      c.finance.spending += paid;
-      sec.profit += paid;
-      const subsidy = Math.min(
-        sec.subsidyCap,
-        Math.max(0, sec.budget - sec.executed),
-        Math.max(0, c.reserves),
-      );
-      transfer(s, c, "public", "private", subsidy, "Subsidio sectorial");
-      sec.executed += subsidy;
-      c.finance.spending += subsidy;
-      sec.profit += subsidy;
     }
     const income =
       ((c.finance.payroll * c.taxes.income) / 100) * c.taxEfficiency;
@@ -1145,10 +1126,7 @@
       const credit = c.finance.automaticCredit
         ? Math.max(0, (c.gdp * c.finance.creditLimitShare) / 100 - debtTotal(c))
         : 0;
-      budget = Math.min(
-        Math.max(0, c.sectors[sid].budget - c.sectors[sid].executed),
-        Math.max(0, c.reserves + credit),
-      );
+      budget = Math.max(0, c.reserves + credit);
     }
     return clamp(
       scale *
@@ -1196,15 +1174,7 @@
       const price = s.market.resourcePrices[id];
       const payer = price < 0 ? other : owner;
       if (owner === "public" && price > 0)
-        automaticFunding(
-          s,
-          c,
-          Math.min(
-            missing * price,
-            Math.max(0, c.sectors[sid].budget - c.sectors[sid].executed),
-          ),
-          "Insumos productivos públicos",
-        );
+        automaticFunding(s, c, missing * price, "Insumos productivos públicos");
       const n = Math.min(
         missing,
         stocks(c, other)[id],
@@ -1249,15 +1219,21 @@
     );
   }
   function production(c, owner, m) {
+    if (
+      c.blockedRawMaterials?.includes(m.id) ||
+      (owner === "private" && c.nationalizedResources?.[m.id])
+    )
+      return 0;
     const assets = owner === "public" ? c.buildings : c.privateBuildings;
     const count =
         (assets[m.unlock] || 0) +
         (m.id === "crude_oil" ? (assets.offshore_platform || 0) * 2 : 0),
       sec = c.sectors[m.sector];
-    const filled =
+    let filled =
       owner === "public"
         ? sec.publicWorkers / Math.max(1, sec.requested)
         : sec.privateWorkers / Math.max(1, sec.privateJobs);
+    if (owner === "public") filled *= sec.payrollCoverage ?? 1;
     const tech = scalarTech(c, m.technology);
     return !tech
       ? 0
@@ -1291,11 +1267,12 @@
         const count =
           owner === "public" ? c.buildings[b.id] : c.privateBuildings[b.id];
         if (!count) continue;
-        const sec = c.sectors.energy,
-          fill =
-            owner === "public"
-              ? sec.publicWorkers / Math.max(1, sec.requested)
-              : sec.privateWorkers / Math.max(1, sec.privateJobs);
+        const sec = c.sectors.energy;
+        let fill =
+          owner === "public"
+            ? sec.publicWorkers / Math.max(1, sec.requested)
+            : sec.privateWorkers / Math.max(1, sec.privateJobs);
+        if (owner === "public") fill *= sec.payrollCoverage ?? 1;
         let n =
           ((count * b.energyOutput * 1e6) / 12) *
           clamp(fill, 0, 1) *
@@ -1412,6 +1389,11 @@
     for (const m of ordered) {
       if (m.waste || ["milk", "meat", "raw_leather", "wool"].includes(m.id))
         continue;
+      if (c.blockedRawMaterials?.includes(m.id)) {
+        c.outputReasons[m.id] =
+          "Materia prima no disponible: requiere importación";
+        continue;
+      }
       for (const owner of owners) {
         let output = production(c, owner, m),
           potential = output;
@@ -1517,6 +1499,17 @@
             note(s, c, `El depósito de ${m.label.toLowerCase()} se agotó.`);
         }
       }
+      if (c.nationalizedResources?.[m.id]) {
+        if (c.publicProduction[m.id] > DEPOSIT_EPSILON)
+          c.outputReasons[m.id] = "";
+        else if (!scalarTech(c, m.technology))
+          c.outputReasons[m.id] = "Tecnología pendiente";
+        else if (!(c.buildings[m.unlock] > 0))
+          c.outputReasons[m.id] = "Falta instalación pública";
+        else
+          c.outputReasons[m.id] =
+            "Funcionarios pagos, energía, insumos o capacidad insuficientes";
+      }
       if (m.natural) {
         const remaining = depositRemaining(c, m.id),
           installations =
@@ -1586,10 +1579,11 @@
         herd = c.herds[owner];
       const sec = c.sectors.agriculture,
         assets = owner === "public" ? c.buildings : c.privateBuildings;
-      const fill =
+      let fill =
         owner === "public"
           ? sec.publicWorkers / Math.max(1, sec.requested)
           : sec.privateWorkers / Math.max(1, sec.privateJobs);
+      if (owner === "public") fill *= sec.payrollCoverage ?? 1;
       let processing =
         (assets.slaughterhouse || 0) *
         100 *
@@ -1642,6 +1636,7 @@
         processing -= slaughter * factor * 0.25;
         herd[type] -= slaughter;
         const add = (id, quantity) => {
+          if (owner === "private" && c.nationalizedResources?.[id]) return;
           const m = D.getMaterial(id),
             actual = Math.min(quantity, freeStock(c, owner, m));
           st[id] += actual;
@@ -1972,7 +1967,7 @@
       st.recyclables -= recycled;
       c.materialConsumption.recyclables += recycled;
       const recovered = Math.min(
-        recycled * 0.4,
+        c.blockedRawMaterials?.includes("minerals") ? 0 : recycled * 0.4,
         freeStock(c, owner, D.getMaterial("minerals")),
       );
       st.minerals += recovered;
@@ -2187,14 +2182,9 @@
       const pay =
         ((p.baseCost || 0) * desired) / 100 +
         (hired * c.sectors.infrastructure.salary) / 1e9;
-      f = Math.min(
-        f,
-        affordable(c, "public", pay),
-        Math.max(0, c.sectors[b.sector].budget - c.sectors[b.sector].executed) /
-          Math.max(1e-12, pay),
-      );
+      f = Math.min(f, affordable(c, "public", pay));
       if (!hired) p.blockedBy.push("trabajadores");
-      if (pay > Math.max(0, c.reserves)) p.blockedBy.push("presupuesto");
+      if (pay > Math.max(0, c.reserves)) p.blockedBy.push("tesoro");
       const progress = desired * clamp(f, 0, 1);
       if (progress <= 0) {
         c.constructionWorkers -= hired;
@@ -2304,12 +2294,10 @@
       }
       const wage = (workers * sector.salary) / 1e9,
         base = b.fixedCost * factor,
-        fullCost = wage + base,
-        remainingBudget = Math.max(0, sector.budget - sector.executed);
+        fullCost = wage + base;
       let share = Math.min(
         1,
         budgetCap / Math.max(1e-12, fullCost),
-        remainingBudget / Math.max(1e-12, fullCost),
         Math.max(0, c.reserves) / Math.max(1e-12, fullCost),
       );
       for (const [id, amount] of Object.entries(b.requirements))
@@ -2323,9 +2311,7 @@
           .map(([id]) => D.getMaterial(id)?.label || id);
         program[statusKey] = missing.length
           ? "Faltan materiales: " + missing.join(", ")
-          : remainingBudget <= 0
-            ? "Sin presupuesto disponible de Infraestructura"
-            : "Tesoro insuficiente";
+          : "Tesoro insuficiente";
         return;
       }
       const executedFactor = factor * share,
@@ -2368,7 +2354,7 @@
       }
       program[statusKey] =
         share < 0.999
-          ? "Avance parcial por caja, presupuesto o materiales"
+          ? "Avance parcial por caja, tope del programa o materiales"
           : "Programa ejecutado";
     };
     run("housing", program.buildBudget, program.buildWorkers, "build");
@@ -2410,11 +2396,7 @@
       p.actualStaff = actual;
       const salaryShare = (actual * sec.salary) / 1e9,
         operating = Math.max(0, p.budget - salaryShare),
-        cost = Math.min(
-          operating,
-          Math.max(0, sec.budget - sec.executed),
-          Math.max(0, c.reserves),
-        );
+        cost = Math.min(operating, Math.max(0, c.reserves));
       transfer(
         s,
         c,
@@ -2467,14 +2449,7 @@
     const project = c.research.project;
     if (project) {
       const t = D.getTechnology(project.technology);
-      const budget = Math.min(
-          project.budget,
-          Math.max(
-            0,
-            c.sectors.education.budget - c.sectors.education.executed,
-          ),
-          Math.max(0, c.reserves),
-        ),
+      const budget = Math.min(project.budget, Math.max(0, c.reserves)),
         cost = budget;
       transfer(s, c, "public", "private", cost, "Investigación: " + t.label);
       c.sectors.education.executed += cost;
@@ -2508,14 +2483,7 @@
     }
     for (const ex of active) {
       const monthly = ex.budget,
-        paid = Math.min(
-          monthly,
-          Math.max(
-            0,
-            c.sectors.education.budget - c.sectors.education.executed,
-          ),
-          Math.max(0, c.reserves),
-        );
+        paid = Math.min(monthly, Math.max(0, c.reserves));
       transfer(s, c, "public", "private", paid, "Exploración geológica");
       c.finance.spending += paid;
       c.sectors.education.executed += paid;
@@ -2697,8 +2665,7 @@
     c.fiscalCashFlowMonthly = income - spending - interest;
     c.fiscalBalance = (c.fiscalCashFlowMonthly * 1200) / Math.max(1e-12, c.gdp);
     c.revenueRate = (c.finance.taxes * 1200) / c.gdp;
-    c.spendingTarget =
-      (sectors.reduce((n, id) => n + c.sectors[id].budget, 0) * 1200) / c.gdp;
+    c.spendingTarget = (c.finance.spending * 1200) / c.gdp;
     const pct = (value) => (value * 1200) / c.gdp;
     c.taxRevenueBreakdown = {
       vat: pct((flows.IVA || 0) + (flows["IVA servicios"] || 0)),
@@ -2856,7 +2823,6 @@
     c.privateProjects = c.privateProjects.filter((p) => p.months > 0);
     if (s.tick % 3 !== 0) return;
     for (const sid of sectors) {
-      if (c.nationalized?.[sid]) continue;
       const sec = c.sectors[sid];
       if (
         sec.privateWorkers < sec.privateJobs * 0.6 ||
@@ -2875,6 +2841,8 @@
             m.sector === sid &&
             !m.waste &&
             scalarTech(c, m.technology) &&
+            !c.nationalizedResources?.[m.id] &&
+            !c.blockedRawMaterials?.includes(m.id) &&
             !m.natural,
         )
         .sort(
@@ -2908,6 +2876,10 @@
       if (
         !b ||
         !scalarTech(c, b.technology) ||
+        materials.some(
+          (material) =>
+            material.unlock === b.id && c.nationalizedResources?.[material.id],
+        ) ||
         sec.profit <= 0 ||
         c.privateProjects.length >= 8 ||
         c.taxes.income > 45
@@ -2996,8 +2968,8 @@
   function wellbeing(c) {
     const stock = c.housingStock,
       maintenance = clamp(
-        c.sectors.infrastructure.executed /
-          Math.max(1e-12, c.sectors.infrastructure.budget),
+        c.sectors.infrastructure.publicWorkers /
+          Math.max(1, c.sectors.infrastructure.requested),
         0,
         1,
       ),
@@ -3334,7 +3306,7 @@
         working(s, c);
         wages(s, c);
       }
-      s.dailyStage = "Empleo, salarios y presupuestos";
+      s.dailyStage = "Empleo y salarios";
     } else if (day >= 6 && day <= 9) {
       for (const c of countrySlice(s, day - 6, 4)) produce(s, c);
       s.dailyStage = "Producción nacional";
@@ -3693,7 +3665,7 @@
       sec = c.sectors[id];
     if (!sec) throw Error("Sector no válido.");
     const values = {};
-    for (const key of ["budget", "salary", "requested", "subsidyCap"])
+    for (const key of ["salary", "requested"])
       if (input[key] !== undefined) values[key] = needNumber(input[key]);
     Object.assign(sec, values);
     return sec;
@@ -3739,42 +3711,78 @@
     c.workPolicy = { start, retire };
     syncDemographics(c);
   }
-  function nationalizePreview(s, sid, share = 1) {
+  function productionBuildings(m) {
+    return [m.unlock, ...(m.id === "crude_oil" ? ["offshore_platform"] : [])]
+      .map(D.getBuilding)
+      .filter(Boolean);
+  }
+  function nationalizePreview(s, id, share = 1) {
     const c = s.countries[s.playerCountryId];
-    if (!c.sectors[sid]) throw Error("Sector no válido.");
+    const m = D.getMaterial(id);
+    if (!m) throw Error("Producción no válida.");
     share = needNumber(share, 0, 1);
-    const assets = buildings.filter((b) => b.sector === sid);
-    const cost =
-      assets.reduce(
+    const assets = productionBuildings(m),
+      assetCost = assets.reduce(
         (n, b) => n + c.privateBuildings[b.id] * b.fixedCost * share,
         0,
-      ) +
-      materials
-        .filter((m) => m.sector === sid)
-        .reduce(
-          (n, m) =>
-            n +
-            c.privateStocks[m.id] *
-              Math.max(0, s.market.resourcePrices[m.id]) *
-              share,
-          0,
+      ),
+      stockCost =
+        c.privateStocks[m.id] *
+        Math.max(0, s.market.resourcePrices[m.id]) *
+        share,
+      productive = [
+        ...new Set(
+          materials
+            .filter((item) => item.sector === m.sector)
+            .flatMap((item) => productionBuildings(item).map((b) => b.id)),
+        ),
+      ],
+      weight = (buildingId) => {
+        const b = D.getBuilding(buildingId);
+        return (
+          (c.privateBuildings[buildingId] || 0) * Math.max(1, b?.laborNeed || 1)
         );
-    return { share, cost, workers: c.sectors[sid].privateWorkers * share };
+      },
+      totalWeight = productive.reduce(
+        (n, buildingId) => n + weight(buildingId),
+        0,
+      ),
+      targetWeight = assets.reduce((n, b) => n + weight(b.id), 0),
+      workerShare = totalWeight > 0 ? (targetWeight / totalWeight) * share : 0,
+      sector = c.sectors[m.sector];
+    return {
+      id,
+      material: m,
+      share,
+      cost: assetCost + stockCost,
+      workers: sector.privateWorkers * workerShare,
+      jobs: sector.privateJobs * workerShare,
+      assets: assets.map((b) => ({
+        id: b.id,
+        label: b.label,
+        quantity: c.privateBuildings[b.id] * share,
+      })),
+      stock: c.privateStocks[m.id] * share,
+      alreadyNationalized: !!c.nationalizedResources?.[id],
+      linkedProductions: materials
+        .filter(
+          (item) => item.id !== id && assets.some((b) => b.id === item.unlock),
+        )
+        .map((item) => item.label),
+    };
   }
-  function nationalize(s, sid, share = 1) {
+  function nationalize(s, id, share = 1) {
     const c = player(s),
-      p = nationalizePreview(s, sid, share);
-    const space = Object.fromEntries(
-      D.storageTypes.map((t) => [
-        t.id,
-        {
-          public: storageCapacity(c, "public", t.id),
-          total:
-            storageCapacity(c, "public", t.id) +
-            storageCapacity(c, "private", t.id),
-        },
-      ]),
-    );
+      p = nationalizePreview(s, id, share),
+      m = p.material,
+      storage = {
+        public: storageCapacity(c, "public", m.storage),
+        total:
+          storageCapacity(c, "public", m.storage) +
+          storageCapacity(c, "private", m.storage),
+      };
+    if (p.alreadyNationalized && share === 1)
+      throw Error("Esta producción ya está nacionalizada.");
     if (p.cost > Math.max(0, c.reserves))
       throw Error("No alcanza el Tesoro para transferir los activos.");
     transfer(
@@ -3785,46 +3793,50 @@
       p.cost,
       "Compensación por nacionalización",
     );
-    for (const b of buildings.filter((b) => b.sector === sid)) {
-      const n = c.privateBuildings[b.id] * share;
-      c.privateBuildings[b.id] -= n;
-      c.buildings[b.id] += n;
+    for (const asset of p.assets) {
+      c.privateBuildings[asset.id] -= asset.quantity;
+      c.buildings[asset.id] += asset.quantity;
     }
-    for (const m of materials.filter((m) => m.sector === sid)) {
-      const n = c.privateStocks[m.id] * share;
-      c.privateStocks[m.id] -= n;
-      c.publicStocks[m.id] += n;
-    }
-    if (sid === "agriculture")
-      for (const type of Object.keys(c.herds.private)) {
-        const n = c.herds.private[type] * share;
+    c.privateStocks[m.id] -= p.stock;
+    c.publicStocks[m.id] += p.stock;
+    for (const b of productionBuildings(m))
+      if (b.livestock) {
+        const type = b.livestock,
+          n = c.herds.private[type] * share;
         c.herds.private[type] -= n;
         c.herds.public[type] += n;
       }
     if (share === 1) {
-      c.nationalized[sid] = true;
-      for (const project of c.privateProjects.filter((p) => p.sector === sid))
+      c.nationalizedResources[id] = true;
+      c.productionTargets[id] = 1;
+      const assetIds = new Set(p.assets.map((asset) => asset.id));
+      for (const project of c.privateProjects.filter((project) =>
+        assetIds.has(project.building),
+      ))
         project.owner = "public";
     }
-    const sec = c.sectors[sid];
+    const sec = c.sectors[m.sector];
     sec.privateWorkers -= p.workers;
-    sec.privateJobs *= 1 - share;
+    sec.privateJobs -= p.jobs;
     sec.publicWorkers += p.workers;
     sec.requested += p.workers;
-    // Existing inventories retain access to leased space; no warehouse volume is invented.
-    for (const t of D.storageTypes) {
-      const old = space[t.id],
-        target = clamp(
-          old.public,
-          storageUsed(c, "public", t.id),
-          Math.max(0, old.total - storageUsed(c, "private", t.id)),
-        ),
-        delta = target - storageCapacity(c, "public", t.id);
-      c.storageLease.public[t.id] = (c.storageLease.public[t.id] || 0) + delta;
-      c.storageLease.private[t.id] =
-        (c.storageLease.private[t.id] || 0) - delta;
-    }
+    // Move only the storage access needed by this production's transferred stock.
+    const target = clamp(
+        storage.public,
+        storageUsed(c, "public", m.storage),
+        Math.max(0, storage.total - storageUsed(c, "private", m.storage)),
+      ),
+      delta = target - storageCapacity(c, "public", m.storage);
+    c.storageLease.public[m.storage] =
+      (c.storageLease.public[m.storage] || 0) + delta;
+    c.storageLease.private[m.storage] =
+      (c.storageLease.private[m.storage] || 0) - delta;
     updateCapacity(c);
+    note(
+      s,
+      c,
+      `${m.label}: ${m.natural ? "extracción" : "producción"} nacionalizada al ${Math.round(share * 100)}%.`,
+    );
     return p;
   }
   function startResearch(s, id, budget) {
@@ -4172,7 +4184,6 @@
         100 - p.progress,
         (100 / b.months) * skill * (hired / Math.max(1, need)),
       ),
-      sector = c.sectors[b.sector],
       pay =
         ((p.baseCost || 0) * desired) / 100 +
         (hired * c.sectors.infrastructure.salary) / 1e9,
@@ -4188,7 +4199,6 @@
           };
         })
         .filter((x) => x.missing > 1e-9),
-      budgetAvailable = Math.max(0, sector.budget - sector.executed),
       blockers = [];
     if (!availableWorkers) blockers.push({ type: "workers", amount: need });
     if (materials.length) blockers.push({ type: "materials", materials });
@@ -4197,12 +4207,6 @@
         type: "treasury",
         amount: pay,
         available: Math.max(0, c.reserves),
-      });
-    if (pay > budgetAvailable)
-      blockers.push({
-        type: "sectorBudget",
-        amount: pay,
-        available: budgetAvailable,
       });
     return {
       project: p,
@@ -4213,7 +4217,6 @@
       skill,
       desired,
       pay,
-      budgetAvailable,
       materials,
       blockers,
       status: blockers.length ? "blocked" : "advancing",
@@ -4233,7 +4236,6 @@
         .map((p) => projectDiagnostic(s, p)),
       resources,
       availableWorkers: c.laborSnapshot.unemployed * 1e6,
-      budgetAvailable: Math.max(0, sector.budget - sector.executed),
     };
   }
   return {
