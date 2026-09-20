@@ -1,129 +1,40 @@
 {
-  "version": "7.8.0",
-  "base": "7.7.0",
-  "generatedAt": "2026-09-20T11:16:17.301Z",
-  "engineTestCount": 57,
+  "version": "7.9.0",
+  "base": "7.8.0",
+  "generatedAt": "2026-09-20T20:32:59.947Z",
+  "engineTestCount": 48,
   "checks": {
-    "unit-tests": {
+    "verify-v6": {
       "result": "PASS",
-      "exitCode": 0,
-      "elapsedSeconds": 90.373,
-      "createdAt": "2026-09-20T11:14:41.654Z"
+      "testCount": 41
     },
-    "adjustments-v78": {
+    "research-v76": {
       "result": "PASS",
-      "testCount": 16,
-      "createdAt": "2026-09-20T11:12:55.063Z"
+      "testCount": 5
     },
-    "browser": {
+    "verify-v79": {
       "result": "PASS",
-      "countries": 128,
-      "menus": 16,
-      "screenshots": 8,
-      "offline": true,
-      "saveReload": true,
-      "errors": []
-    },
-    "upgrade": {
-      "result": "PASS",
-      "oldCache": "5.4",
-      "newCache": "7.8",
-      "migration": true,
-      "backupDownload": true,
-      "negativeBalancePreserved": true,
-      "offlineResume": true,
-      "errors": []
-    },
-    "stress": {
-      "result": "PASS",
-      "months": 60,
-      "days": 1826,
-      "countries": 128,
-      "averageMonthMs": 1599.04999,
-      "averageDayMs": 52.54272338444688,
-      "samples": [
-        {
-          "tick": 12,
-          "recessions": 107,
-          "averageCoverage": 0.4855153969315551,
-          "averageEnergy": 0.9458635793290665,
-          "elapsedSeconds": 16.7574368
-        },
-        {
-          "tick": 24,
-          "recessions": 104,
-          "averageCoverage": 0.4600259983319109,
-          "averageEnergy": 0.9424647234042209,
-          "elapsedSeconds": 36.2123059
-        },
-        {
-          "tick": 36,
-          "recessions": 86,
-          "averageCoverage": 0.4159074242272026,
-          "averageEnergy": 0.9565064858916371,
-          "elapsedSeconds": 57.7623186
-        },
-        {
-          "tick": 48,
-          "recessions": 106,
-          "averageCoverage": 0.3931861096370081,
-          "averageEnergy": 0.9384562565067087,
-          "elapsedSeconds": 77.4915773
-        },
-        {
-          "tick": 60,
-          "recessions": 122,
-          "averageCoverage": 0.400257338660114,
-          "averageEnergy": 0.9442570312600651,
-          "elapsedSeconds": 95.9424451
-        }
-      ]
-    },
-    "interaction-v75": {
-      "result": "PASS",
-      "queue": "FIFO, exactly once, captured values",
-      "quantity": 3,
-      "editingPreserved": true,
-      "worker": {
-        "equal": true,
-        "days": 31,
-        "changedCountries": 1024,
-        "fullCountries": 3968
-      },
-      "errors": []
-    },
-    "research-browser-v76": {
-      "result": "PASS",
-      "mixedOrder": true,
-      "queueLength": 47,
-      "pagination": true,
-      "cancel": true,
-      "saveReload": true,
-      "mobile": true,
-      "errors": []
+      "testCount": 2
     }
   },
   "verified": [
-    "One-time v7.8 deposit migration: land, sea and shown discovery amounts x100",
-    "New exploration discoveries use the x100 physical scale",
-    "Migration preserves cash, debt, stocks, work and exhausted fields",
-    "Direct building, repeated exploration, trade thresholds and final good effects",
-    "128 countries, 16 panels, desktop/mobile, offline, save/reload",
-    "60 months, 1,826 days, cash and resource conservation",
-    "Worker and direct engine agree over 31 days"
+    "Research progress is fixed by science capacity, not budget or technology level",
+    "Exploration progress is fixed by science capacity and keeps predictable remaining months",
+    "The queue UI exposes avance previsto and remaining months in the requested wording",
+    "General engine battery remains green after the forecast change"
   ],
   "sourceSha256": {
-    "app.js": "251476ba730fd6f807893c6e159aebfbe882bb5189968bafc7df35889b93b2bf",
-    "catalog-v6.js": "7b35ee2444ebc2e93e0618f56cacc7dc95a3b3f00cdf86e0b94fadcb6477df54",
-    "simulation-v6.js": "6ebe3a8077efc45fa4444c153915a4aa4316daa2f991d61d9ca9d7374614bdb1",
-    "ui-v6.js": "f877f58f1c59e67fcd8a552ff4e39d87729b3870bbb70a703f9a6aa1d998669d",
-    "styles-v6.css": "4f2b2def85e3134cbf4b83ff5d31215d5c87b3226d30afcd8428d6b5e7e64b1e",
-    "sw.js": "0574e3b7d96cd0303774b25ea17c2f909355971570ac28c22eb644559545bab1"
+    "app.js": "6aba141f18cdd177dc541f18d8b65299aaa808b5bfa763943ced1fb8e45c9f0b",
+    "catalog-v6.js": "9a6a6926bcfd2c08add859025ebdb3814cfae02b16762a78d5dbbda91a2b7f24",
+    "simulation-v6.js": "3a024e67a34b09ff48892799eb7967a37236e4f52173269678dedcc267545268",
+    "ui-v6.js": "5edf61eedaefa8c21c6b76b264a7b7b0bbf22f9d3bad7c6112c0274e69d0ff18",
+    "sw.js": "9e74f883456a4365dd44521be90d6dc158661167559c28fa9a25e1206b25ac72",
+    "README.md": "512543a5c2b450ac7b22e063b082425b10d79a7812681d5c4a4d01e488ec24ca",
+    "CAMBIOS-v6.md": "209c875898d58f75105b87855de51417d18d74ed09fbb342e508f30d64107c4d",
+    "VERSION.txt": "2a15e27ff81bb2022b02592198b7467d18a0a8152303c62994d90f26aa752c4c"
   },
   "limits": [
-    "Long-term economic balance remains experimental; scarcity and widespread recession occur in the stress scenario.",
-    "Stress uses Nauru with an artificial treasury of 1000 billion USD to test numerical stability, not playability.",
-    "Local Edge and emulated mobile only; no live GitHub deployment.",
-    "Old v7.5 performance benchmarks were not rerun or claimed for this release."
+    "Changing scientists, labs, education, reserves or research benefit can still change the forecast.",
+    "The budget still limits payment and blocks work when funds are unavailable."
   ]
 }

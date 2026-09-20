@@ -1,3 +1,14 @@
+# Pulso Global 7.9 — avance científico fijo
+
+## Ajuste v7.9
+
+- Investigación y exploración usan avance mensual fijo mientras no cambien científicos, laboratorios, formación o tecnologías activas.
+- Los niveles sucesivos de una tecnología conservan el mismo plazo base; ya no se vuelven más difíciles automáticamente.
+- El presupuesto mensual habilita el trabajo y define el gasto, pero no acelera el porcentaje mensual por encima de la capacidad científica.
+- La cola muestra `avance previsto [numero] puntos porcentuales/mes · restante [numero] meses`.
+
+## Historial v7.8
+
 # Pulso Global 7.8 — depósitos ampliados
 
 ## Ajuste v7.8

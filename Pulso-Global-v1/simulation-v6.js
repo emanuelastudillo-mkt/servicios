@@ -2617,7 +2617,7 @@
           : null,
       task = ex || item,
       t = ex ? null : D.getTechnology(item.technology),
-      months = ex ? (ex.offshore ? 18 : 12) : t.months * item.level,
+      months = ex ? (ex.offshore ? 18 : 12) : t.months,
       skill = ex ? (ex.offshore ? 65 : 40) : t.skill,
       referenceScientists = Math.max(
         1,
@@ -2646,11 +2646,7 @@
         clamp(c.education / skill, 0, 1),
       rate = reasons.length
         ? 0
-        : ((100 / months) *
-            capacity *
-            budget *
-            (c.goodsBenefits?.research || 1)) /
-          referenceBudget,
+        : (100 / months) * capacity * (c.goodsBenefits?.research || 1),
       remaining = Math.max(0, 100 - task.progress),
       progress = Math.min(remaining, rate),
       cost = rate > 0 ? budget * Math.min(1, remaining / rate) : 0;

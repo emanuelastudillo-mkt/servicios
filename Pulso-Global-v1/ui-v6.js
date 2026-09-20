@@ -494,7 +494,7 @@
       })
       .join(
         "",
-      )}${queue.length > 40 ? `<p>Página ${page + 1} / ${Math.ceil(queue.length / 40)}</p>${btn("queue-page", "Anterior", `data-page="${page - 1}"`, page === 0)} ${btn("queue-page", "Siguiente", `data-page="${page + 1}"`, (page + 1) * 40 >= queue.length)}` : ""}<p>Los plazos dependen de científicos, laboratorios, formación, nivel y financiamiento real. Aumentar el presupuesto por encima de la referencia no acelera más ni se cobra ese excedente. La última etapa paga solo el trabajo restante.</p></section>`;
+      )}${queue.length > 40 ? `<p>Página ${page + 1} / ${Math.ceil(queue.length / 40)}</p>${btn("queue-page", "Anterior", `data-page="${page - 1}"`, page === 0)} ${btn("queue-page", "Siguiente", `data-page="${page + 1}"`, (page + 1) * 40 >= queue.length)}` : ""}<p>El avance mensual es fijo mientras no cambien científicos, laboratorios, formación o tecnologías activas. El presupuesto mensual solo habilita el trabajo y define cuánto se paga; si no hay fondos, el proyecto queda detenido. La última etapa paga solo el trabajo restante.</p></section>`;
   }
   function research(s, u) {
     const c = s.countries[s.playerCountryId];
@@ -545,7 +545,7 @@
             D.constructions.some(
               (b) => b.energyOutput && b.technology === t.id,
             );
-          return `<article><h3>${esc(t.label)}</h3><p>Nivel ${level}/4 · ${t.effect === "capacity" ? "Capacidad: 1.000 MWh por unidad de red y nivel." : `${esc(effects[t.effect] || t.effect)}: aporte sectorial de ${amount(t.improvement * 15, "%")} por nivel (tope conjunto 40%).`} ${linked ? "Desde el nivel 2: +8% de capacidad por nivel en la producción vinculada." : ""}</p><p>${t.requires.length ? "Requiere: " + t.requires.map((id) => esc(D.getTechnology(id).label)).join(", ") : "Tecnología de base"} · formación de referencia ${t.skill}/100</p><p>Próximo nivel a encolar: ${planned + 1}. Plazo base: ${t.months * (planned + 1)} meses; depende de formación, recursos y científicos.</p>${reason ? `<p class="method-note">${reason}</p>` : ""}${form("research", `<input type="hidden" name="technology" value="${t.id}">` + field("budget", "Presupuesto mensual US$", Math.max(100, c.gdp * 1e9 * 0.00002).toFixed(2)), `data-blocked="${blocked}"`)}</article>`;
+          return `<article><h3>${esc(t.label)}</h3><p>Nivel ${level}/4 · ${t.effect === "capacity" ? "Capacidad: 1.000 MWh por unidad de red y nivel." : `${esc(effects[t.effect] || t.effect)}: aporte sectorial de ${amount(t.improvement * 15, "%")} por nivel (tope conjunto 40%).`} ${linked ? "Desde el nivel 2: +8% de capacidad por nivel en la producción vinculada." : ""}</p><p>${t.requires.length ? "Requiere: " + t.requires.map((id) => esc(D.getTechnology(id).label)).join(", ") : "Tecnología de base"} · formación de referencia ${t.skill}/100</p><p>Próximo nivel a encolar: ${planned + 1}. Plazo base: ${t.months} meses; depende de científicos, laboratorios, formación y tecnologías activas.</p>${reason ? `<p class="method-note">${reason}</p>` : ""}${form("research", `<input type="hidden" name="technology" value="${t.id}">` + field("budget", "Presupuesto mensual US$", Math.max(100, c.gdp * 1e9 * 0.00002).toFixed(2)), `data-blocked="${blocked}"`)}</article>`;
         })
         .join(
           "",
