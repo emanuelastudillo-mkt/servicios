@@ -14,6 +14,8 @@
   const app = document.querySelector("#app");
   const speedIntervals = { 1: 1000, 3: 360, 6: 170 };
   const interfaceOnlyActions = new Set([
+    "v6-result-page",
+    "v6-queue-page",
     "v6-refresh",
     "v6-build",
     "v6-cancel-confirm",
@@ -207,7 +209,14 @@
     }
     if (current.nodeType !== Node.ELEMENT_NODE) return;
     // Retain user-entered values, selections, focus and quote forms between days.
-    if (current.matches("form,input,select,textarea")) return;
+    if (current.matches("form")) {
+      const buttons = current.querySelectorAll('button[type="submit"]');
+      next.querySelectorAll('button[type="submit"]').forEach((button, i) => {
+        if (buttons[i]) buttons[i].disabled = button.disabled;
+      });
+      return;
+    }
+    if (current.matches("input,select,textarea")) return;
     for (const attr of Array.from(current.attributes)) {
       if (attr.name !== "open" && !next.hasAttribute(attr.name))
         current.removeAttribute(attr.name);
@@ -567,7 +576,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.5</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.6</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}

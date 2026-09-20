@@ -64,7 +64,7 @@
     return `<section class="management-panel system-panel v6-panel"><header class="management-heading"><div class="section-symbol">◈</div><div><p class="panel-kicker">${esc(kicker)}</p><h2>${esc(title)}</h2></div><button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar">×</button></header><div class="panel-body v6-body"><p class="v6-live-note">Datos actualizados durante el avance (cada 2 s); la edición se conserva. ${btn("refresh", "Actualizar datos")}</p>${body}</div></section>`;
   }
   function form(action, body, extra = "") {
-    return `<form class="v6-form" data-v6-form="${action}" ${extra}>${body}<button class="button" type="submit" ${extra.includes('data-blocked="true"') ? "disabled" : ""}>Aplicar</button></form>`;
+    return `<form class="v6-form" data-v6-form="${action}" ${extra}>${body}<button class="button" type="submit" ${extra.includes('data-blocked="true"') ? "disabled" : ""}>${["research", "explore"].includes(action) ? "Agregar a la cola" : "Aplicar"}</button></form>`;
   }
   function tabs(items, selected) {
     return `<div class="v6-tabs">${items.map((x) => btn("tab", x.label, `data-tab="${x.id}" aria-pressed="${x.id === selected}"`)).join("")}</div>`;
@@ -492,16 +492,44 @@
       })
       .join("")}</tbody></table></div></section>`;
   }
-  function research(s, u) {
+  function researchQueue(s, u) {
     const c = s.countries[s.playerCountryId],
-      project = c.research.project;
+      queue = c.research.queue || [],
+      page = Math.max(
+        0,
+        Math.min(u.queuePage || 0, Math.ceil(queue.length / 40) - 1),
+      ),
+      head = queue[0],
+      p = E.researchQueuePreview(c, head);
+    return `<section class="v6-section"><h3>Cola compartida · ${queue.length} proyectos</h3><p>Solo avanza el primero. Los demás esperan sin gastar. El siguiente comienza en la próxima etapa mensual; un bloqueo no permite saltear el orden.</p>${p ? `<h4>${esc(p.label)}</h4><progress max="100" value="${p.currentProgress}"></progress><p>${amount(p.currentProgress, "%")} · avance previsto ${amount(p.rate, "puntos porcentuales/mes")} · restante ${p.remainingMonths === null ? "sin avance" : amount(p.remainingMonths, "meses")}</p><p>Científicos disponibles: ${num(c.researchScientists || 0)} / ${num(p.referenceScientists)} de referencia · formación ${amount(c.education, "/100")} · presupuesto de referencia ${dollars(p.referenceBudget)}/mes · gasto previsto ${dollars(p.cost)}.</p>${p.reasons.length ? `<p class="negative">${esc(p.reasons.join(" · "))}</p>` : ""}` : "<p>No hay proyectos pendientes.</p>"}${queue
+      .slice(page * 40, page * 40 + 40)
+      .map((item, i) => {
+        const d = E.researchQueuePreview(c, item);
+        return `<article class="v6-project"><strong>${page * 40 + i + 1}. ${esc(d.label)}</strong><span>${page * 40 + i === 0 ? "Activo" : "En espera"} · ${amount(d.currentProgress, "%")}</span>${btn("cancel-queue", "Quitar de la cola", `data-queue="${item.queueId}"`)}</article>`;
+      })
+      .join(
+        "",
+      )}${queue.length > 40 ? `<p>Página ${page + 1} / ${Math.ceil(queue.length / 40)}</p>${btn("queue-page", "Anterior", `data-page="${page - 1}"`, page === 0)} ${btn("queue-page", "Siguiente", `data-page="${page + 1}"`, (page + 1) * 40 >= queue.length)}` : ""}<p>Los plazos dependen de científicos, laboratorios, formación, nivel y financiamiento real. Aumentar el presupuesto por encima de la referencia no acelera más ni se cobra ese excedente. La última etapa paga solo el trabajo restante.</p></section>`;
+  }
+  function research(s, u) {
+    const c = s.countries[s.playerCountryId];
     return shell(
       "Investigación y exploración",
-      `<p>El laboratorio utiliza científicos y el financiamiento propio de cada proyecto. Una tecnología habilita instalaciones; la exploración puede terminar sin hallazgo.</p>${project ? `<section class="v6-section"><h3>${esc(D.getTechnology(project.technology).label)} · nivel ${project.level}</h3><progress max="100" value="${project.progress}"></progress><p>${amount(project.progress, "%")} · presupuesto ${dollars(project.budget)}/mes</p>${btn("cancel-research", "Cancelar investigación")}</section>` : ""}<div class="v6-tabs">${D.sectors.map((sec) => btn("research-filter", sec.short, `data-sector="${sec.id}"`)).join("")}</div><div class="v6-buildings">${D.technologies
+      `${researchQueue(s, u)}<div class="v6-tabs">${D.sectors.map((sec) => btn("research-filter", sec.short, `data-sector="${sec.id}"`)).join("")}</div><div class="v6-buildings">${D.technologies
         .filter((t) => !u.researchSector || t.sector === u.researchSector)
         .map((t) => {
           const level = c.research.levels[t.id] || 0,
-            missing = t.requires.filter((id) => !c.research.levels[id]);
+            planned = Math.max(
+              level,
+              ...(c.research.queue || [])
+                .filter((x) => x.technology === t.id)
+                .map((x) => x.level),
+            ),
+            missing = t.requires.filter(
+              (id) =>
+                !c.research.levels[id] &&
+                !(c.research.queue || []).some((x) => x.technology === id),
+            );
           const effects = {
             output: "producción",
             cost: "ahorro de insumos y operación",
@@ -517,25 +545,22 @@
           };
           const blocked =
             missing.length > 0 ||
-            level >= 4 ||
-            !!project ||
+            planned >= t.maxLevel ||
             !c.buildings.research_lab;
           const reason =
-            level >= 4
-              ? "Nivel máximo alcanzado."
-              : project
-                ? "Ya hay otra investigación activa."
-                : !c.buildings.research_lab
-                  ? "Hace falta un laboratorio público."
-                  : missing.length
-                    ? "Completá los requisitos anteriores."
-                    : "";
+            planned >= t.maxLevel
+              ? "Nivel máximo alcanzado o ya en cola."
+              : !c.buildings.research_lab
+                ? "Hace falta un laboratorio público."
+                : missing.length
+                  ? "Completá los requisitos anteriores."
+                  : "";
           const linked =
             D.materials.some((m) => m.technology === t.id) ||
             D.constructions.some(
               (b) => b.energyOutput && b.technology === t.id,
             );
-          return `<article><h3>${esc(t.label)}</h3><p>Nivel ${level}/4 · ${t.effect === "capacity" ? "Capacidad: 1.000 MWh por unidad de red y nivel." : `${esc(effects[t.effect] || t.effect)}: aporte sectorial de ${amount(t.improvement * 15, "%")} por nivel (tope conjunto 40%).`} ${linked ? "Desde el nivel 2: +8% de capacidad por nivel en la producción vinculada." : ""}</p><p>${t.requires.length ? "Requiere: " + t.requires.map((id) => esc(D.getTechnology(id).label)).join(", ") : "Tecnología de base"} · formación de referencia ${t.skill}/100</p><p>Plazo base: ${t.months * (level + 1)} meses; depende de formación, recursos y científicos.</p>${reason ? `<p class="method-note">${reason}</p>` : ""}${form("research", `<input type="hidden" name="technology" value="${t.id}">` + field("budget", "Presupuesto mensual US$", Math.max(100, c.gdp * 1e9 * 0.00002).toFixed(2)), `data-blocked="${blocked}"`)}</article>`;
+          return `<article><h3>${esc(t.label)}</h3><p>Nivel ${level}/4 · ${t.effect === "capacity" ? "Capacidad: 1.000 MWh por unidad de red y nivel." : `${esc(effects[t.effect] || t.effect)}: aporte sectorial de ${amount(t.improvement * 15, "%")} por nivel (tope conjunto 40%).`} ${linked ? "Desde el nivel 2: +8% de capacidad por nivel en la producción vinculada." : ""}</p><p>${t.requires.length ? "Requiere: " + t.requires.map((id) => esc(D.getTechnology(id).label)).join(", ") : "Tecnología de base"} · formación de referencia ${t.skill}/100</p><p>Próximo nivel a encolar: ${planned + 1}. Plazo base: ${t.months * (planned + 1)} meses; depende de formación, recursos y científicos.</p>${reason ? `<p class="method-note">${reason}</p>` : ""}${form("research", `<input type="hidden" name="technology" value="${t.id}">` + field("budget", "Presupuesto mensual US$", Math.max(100, c.gdp * 1e9 * 0.00002).toFixed(2)), `data-blocked="${blocked}"`)}</article>`;
         })
         .join(
           "",
@@ -561,7 +586,16 @@
             "Presupuesto mensual US$",
             Math.max(100, c.gdp * 1e9 * 0.00001).toFixed(2),
           ),
-      )}<p>La probabilidad depende del potencial geológico y tecnología. Reabrir un guardado no vuelve a sortear la campaña.</p>${c.research.explorations.map((x) => `<article class="v6-project"><span>${esc(D.getMaterial(x.resource).label)} · ${x.offshore ? "marítima" : "terrestre"} · ${amount(x.progress, "%")} · ${esc(x.status)}${x.discovered ? " · " + amount(x.discovered, D.getMaterial(x.resource).unit) : ""}</span>${["Sin hallazgo", "Agotado"].includes(x.status) ? btn("remove-exploration", x.status === "Agotado" ? "Borrar depósito agotado" : "Borrar resultado", `data-exploration="${x.id}"`) : ""}</article>`).join("") || "<p>No hay campañas registradas.</p>"}</section>`,
+      )}<p>La probabilidad depende del potencial geológico y tecnología. Reabrir un guardado no vuelve a sortear la campaña.</p>${
+        c.research.explorations
+          .filter((x) => !["En curso", "En espera"].includes(x.status))
+          .slice((u.resultPage || 0) * 40, ((u.resultPage || 0) + 1) * 40)
+          .map(
+            (x) =>
+              `<article class="v6-project"><span>${esc(D.getMaterial(x.resource).label)} · ${x.offshore ? "marítima" : "terrestre"} · ${amount(x.progress, "%")} · ${esc(x.status)}${x.discovered ? " · " + amount(x.discovered, D.getMaterial(x.resource).unit) : ""}</span>${["Sin hallazgo", "Agotado", "Cancelada"].includes(x.status) ? btn("remove-exploration", x.status === "Agotado" ? "Borrar depósito agotado" : "Borrar resultado", `data-exploration="${x.id}"`) : ""}</article>`,
+          )
+          .join("") || "<p>No hay resultados en esta página.</p>"
+      }<p>Resultados · página ${(u.resultPage || 0) + 1}</p>${btn("result-page", "Anteriores", `data-page="${(u.resultPage || 0) - 1}"`, !(u.resultPage > 0))} ${btn("result-page", "Más resultados", `data-page="${(u.resultPage || 0) + 1}"`, c.research.explorations.filter((x) => !["En curso", "En espera"].includes(x.status)).length <= ((u.resultPage || 0) + 1) * 40)}</section>`,
     );
   }
   function modal(s, u) {
@@ -639,7 +673,12 @@
     if (a === "renew-agreement") E.renewAgreement(s, target.dataset.agreement);
     if (a === "remove-exploration")
       E.removeExploration(s, target.dataset.exploration);
-    if (a === "cancel-research") c.research.project = null;
+    if (a === "cancel-research" && c.research.queue?.[0])
+      E.cancelResearchQueue(s, c.research.queue[0].queueId);
+    if (a === "cancel-queue") E.cancelResearchQueue(s, target.dataset.queue);
+    if (a === "queue-page") u.queuePage = Number(target.dataset.page);
+    if (a === "result-page")
+      u.resultPage = Math.max(0, Number(target.dataset.page));
     if (a === "build") {
       const factor = Number(
           target.closest("article")?.querySelector("[data-build-quantity]")
@@ -715,10 +754,14 @@
       E.repayment(s, formElement.dataset.loan, Number(v.amount) / 1e9);
     if (a === "ages") E.setAges(s, Number(v.start), Number(v.retire));
     if (a === "agreement") E.addAgreement(s, v);
-    if (a === "research")
+    if (a === "research") {
       E.startResearch(s, v.technology, Number(v.budget) / 1e9);
-    if (a === "explore")
+      return `Investigación agregada: posición ${s.countries[s.playerCountryId].research.queue.length} de la cola.`;
+    }
+    if (a === "explore") {
       E.explore(s, v.resource, v.site === "sea", Number(v.budget) / 1e9);
+      return `Exploración agregada: posición ${s.countries[s.playerCountryId].research.queue.length} de la cola.`;
+    }
     return "Cambios aplicados.";
   }
   function quote(s, formElement) {

@@ -666,6 +666,7 @@
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
+      normalizeResearchQueue(c);
       // JSON saves break object aliases; keep the public inventory view current.
       c.materialStocks = c.publicStocks;
       c.nationalizedResources ||= map(false);
@@ -2453,37 +2454,130 @@
       100,
     );
   }
-  function research(s, c) {
-    const scientists = c.researchScientists || 0,
-      labs = c.buildings.research_lab;
-    const active = c.research.explorations.filter(
-        (x) => x.status === "En curso",
+  function normalizeResearchQueue(c) {
+    const r = c.research;
+    if (!r.queue) {
+      r.queue = [];
+      if (r.project) r.queue.push({ ...r.project, kind: "research" });
+      for (const ex of r.explorations.filter((x) => x.status === "En curso"))
+        r.queue.push({ kind: "explore", explorationId: ex.id });
+    }
+    r.nextQueueId ||= 1;
+    for (const item of r.queue)
+      if (!item.queueId) item.queueId = r.nextQueueId++;
+    r.project = r.queue[0]?.kind === "research" ? r.queue[0] : null;
+    for (const ex of r.explorations) {
+      if (!["En curso", "En espera"].includes(ex.status)) continue;
+      ex.status =
+        r.queue[0]?.kind === "explore" && r.queue[0].explorationId === ex.id
+          ? "En curso"
+          : "En espera";
+    }
+    return r.queue;
+  }
+  function researchQueuePreview(c, item = c.research.queue?.[0]) {
+    if (!item) return null;
+    const ex =
+        item.kind === "explore"
+          ? c.research.explorations.find((x) => x.id === item.explorationId)
+          : null,
+      task = ex || item,
+      t = ex ? null : D.getTechnology(item.technology),
+      months = ex ? (ex.offshore ? 18 : 12) : t.months * item.level,
+      skill = ex ? (ex.offshore ? 65 : 40) : t.skill,
+      referenceScientists = Math.max(
+        1,
+        population(c) * (ex ? 0.00001 : 0.00002),
       ),
-      division = 1 + active.length;
+      referenceBudget = Math.max(
+        1e-12,
+        c.gdp * (ex ? 0.00001 : 0.00002 * item.level),
+      ),
+      budget = Math.min(task.budget, referenceBudget, Math.max(0, c.reserves));
+    const prerequisites = ex
+      ? [ex.offshore ? "offshore_exploration" : "prospecting"]
+      : t.requires;
+    const reasons = [];
+    if (!c.buildings.research_lab) reasons.push("Sin laboratorio público");
+    if (!(c.researchScientists > 0)) reasons.push("Sin científicos asignados");
+    if (!(c.education > 0)) reasons.push("Sin formación disponible");
+    if (prerequisites.some((id) => !scalarTech(c, id)))
+      reasons.push("Faltan tecnologías previas");
+    if (!ex && scalarTech(c, t.id) < item.level - 1)
+      reasons.push("Falta completar el nivel anterior");
+    if (!(budget > 0)) reasons.push("Sin fondos disponibles");
+    const capacity =
+        clamp((c.researchScientists || 0) / referenceScientists, 0, 1) *
+        clamp(c.buildings.research_lab / 0.1, 0, 1) *
+        clamp(c.education / skill, 0, 1),
+      rate = reasons.length
+        ? 0
+        : ((100 / months) * capacity * budget) / referenceBudget,
+      remaining = Math.max(0, 100 - task.progress),
+      progress = Math.min(remaining, rate),
+      cost = rate > 0 ? budget * Math.min(1, remaining / rate) : 0;
+    return {
+      progress,
+      rate,
+      cost,
+      remainingMonths: rate > 0 ? Math.ceil(remaining / rate) : null,
+      referenceScientists,
+      referenceBudget,
+      months,
+      reasons,
+      currentProgress: task.progress,
+      label: ex
+        ? `Exploración de ${D.getMaterial(ex.resource).label}${ex.offshore ? " (marítima)" : " (terrestre)"}`
+        : `${t.label} · nivel ${item.level}`,
+    };
+  }
+  function cancelResearchQueue(s, id) {
+    const c = player(s),
+      queue = normalizeResearchQueue(c),
+      index = queue.findIndex((x) => x.queueId === Number(id));
+    if (index < 0) throw Error("Proyecto no encontrado en la cola.");
+    const [item] = queue.splice(index, 1);
+    if (item.kind === "explore") {
+      const ex = c.research.explorations.find(
+        (x) => x.id === item.explorationId,
+      );
+      if (ex) ex.status = "Cancelada";
+    }
+    normalizeResearchQueue(c);
+    return item;
+  }
+  function research(s, c) {
+    const queue = normalizeResearchQueue(c),
+      head = queue[0];
+    if (!head) return;
+    if (
+      head.kind === "research" &&
+      scalarTech(c, head.technology) >= head.level
+    ) {
+      queue.shift();
+      note(
+        s,
+        c,
+        `${D.getTechnology(head.technology).label}: el nivel en cola ya está disponible; se retira sin gasto.`,
+      );
+      normalizeResearchQueue(c);
+      return;
+    }
+    const preview = researchQueuePreview(c, head);
+    head.blockedBy = preview.reasons;
+    if (!preview.progress) return;
+    const active =
+      head.kind === "explore"
+        ? [c.research.explorations.find((x) => x.id === head.explorationId)]
+        : [];
     const project = c.research.project;
     if (project) {
       const t = D.getTechnology(project.technology);
-      const budget = Math.min(project.budget, Math.max(0, c.reserves)),
-        cost = budget;
+      const cost = preview.cost;
       transfer(s, c, "public", "private", cost, "Investigación: " + t.label);
       c.sectors.education.executed += cost;
       c.finance.spending += cost;
-      const capacity =
-          clamp(
-            scientists / division / Math.max(1, population(c) * 0.00002),
-            0,
-            1,
-          ) * clamp(labs / 0.1, 0, 1),
-        funded = clamp(
-          budget / Math.max(1e-12, c.gdp * 0.00002 * project.level),
-          0,
-          1,
-        );
-      project.progress +=
-        (100 / (t.months * project.level)) *
-        capacity *
-        clamp(c.education / t.skill, 0.1, 1) *
-        funded;
+      project.progress = Math.min(100, project.progress + preview.progress);
       if (project.progress >= 100) {
         c.research.levels[t.id] = project.level;
         c.research.history.unshift({
@@ -2492,25 +2586,19 @@
           tick: s.tick,
         });
         c.research.project = null;
+        queue.shift();
         note(s, c, `${t.label}: nivel ${project.level} completado.`);
       }
     }
     for (const ex of active) {
-      const monthly = ex.budget,
-        paid = Math.min(monthly, Math.max(0, c.reserves));
+      const paid = preview.cost;
       transfer(s, c, "public", "private", paid, "Exploración geológica");
       c.finance.spending += paid;
       c.sectors.education.executed += paid;
-      ex.progress +=
-        (100 / 12) *
-        clamp(paid / Math.max(1e-12, c.gdp * 0.00001), 0, 1) *
-        clamp(
-          scientists / division / Math.max(1, population(c) * 0.00001),
-          0,
-          1,
-        );
+      ex.progress = Math.min(100, ex.progress + preview.progress);
       if (ex.progress >= 100) {
         ex.progress = 100;
+        queue.shift();
         const known = D.knownFields[ex.resource],
           potential = known
             ? known.split(" ").includes(c.id)
@@ -2545,6 +2633,7 @@
         );
       }
     }
+    normalizeResearchQueue(c);
   }
   function closeFinance(s, c) {
     let principal = 0,
@@ -3857,34 +3946,48 @@
     const c = player(s),
       t = D.getTechnology(id);
     if (!t) throw Error("Tecnología no válida.");
-    if (c.research.project) throw Error("Ya hay una investigación activa.");
+    const queue = normalizeResearchQueue(c);
     if (!c.buildings.research_lab)
       throw Error("Construí un laboratorio de investigación.");
-    if (!t.requires.every((dep) => scalarTech(c, dep)))
+    if (
+      !t.requires.every(
+        (dep) => scalarTech(c, dep) || queue.some((x) => x.technology === dep),
+      )
+    )
       throw Error("Faltan tecnologías previas.");
-    const level = scalarTech(c, id) + 1;
+    const level =
+      Math.max(
+        scalarTech(c, id),
+        ...queue.filter((x) => x.technology === id).map((x) => x.level),
+      ) + 1;
     if (level > t.maxLevel) throw Error("Nivel máximo alcanzado.");
-    c.research.project = {
+    const item = {
+      kind: "research",
+      queueId: c.research.nextQueueId,
       technology: id,
       level,
       progress: 0,
       budget: needNumber(budget, 1e-12),
     };
-    return c.research.project;
+    c.research.nextQueueId++;
+    queue.push(item);
+    normalizeResearchQueue(c);
+    return item;
   }
   function explore(s, id, offshore, budget) {
     const c = player(s),
       m = D.getMaterial(id);
     if (!m?.natural) throw Error("Recurso no explorable.");
-    if (!scalarTech(c, offshore ? "offshore_exploration" : "prospecting"))
+    const queue = normalizeResearchQueue(c),
+      prerequisite = offshore ? "offshore_exploration" : "prospecting";
+    if (
+      !scalarTech(c, prerequisite) &&
+      !queue.some((x) => x.technology === prerequisite)
+    )
       throw Error("Hace falta investigar prospección.");
     if (offshore && (id !== "crude_oil" || D.landlocked.includes(c.id)))
       throw Error("Exploración marítima no disponible.");
     if (!c.buildings.research_lab) throw Error("Hace falta un laboratorio.");
-    if (
-      c.research.explorations.filter((x) => x.status === "En curso").length >= 3
-    )
-      throw Error("Ya hay tres campañas activas.");
     const ex = {
       id: c.research.nextId++,
       resource: id,
@@ -3896,13 +3999,19 @@
       sizeRoll: random(s),
     };
     c.research.explorations.push(ex);
+    queue.push({
+      kind: "explore",
+      explorationId: ex.id,
+      queueId: c.research.nextQueueId++,
+    });
+    normalizeResearchQueue(c);
     return ex;
   }
   function removeExploration(s, id) {
     const list = player(s).research.explorations,
       index = list.findIndex((x) => x.id === Number(id));
     if (index < 0) throw Error("Exploración no válida.");
-    if (!["Sin hallazgo", "Agotado"].includes(list[index].status))
+    if (!["Sin hallazgo", "Agotado", "Cancelada"].includes(list[index].status))
       throw Error(
         "Solo se pueden borrar exploraciones sin hallazgo o agotadas.",
       );
@@ -4285,6 +4394,8 @@
     nationalizePreview,
     nationalize,
     startResearch,
+    researchQueuePreview,
+    cancelResearchQueue,
     explore,
     removeExploration,
     setEducation,

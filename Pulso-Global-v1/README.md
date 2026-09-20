@@ -1,14 +1,14 @@
-# Pulso Global 7.5 — rendimiento, acciones en cola y obras compartidas
+# Pulso Global 7.6 — cola de investigación y exploración
 
-Actualización incremental sobre **v7.4**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.5**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.4, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.5, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.5**; si todavía aparece v7.4, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.6**; si todavía aparece v7.5, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -23,6 +23,16 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
 ## Evolución del motor
+
+## Ajuste 7.6: cola compartida sin límite fijo
+
+- Investigaciones y exploraciones se agregan a una única cola en orden de solicitud. Solo avanza y consume presupuesto el primer proyecto. No existe el anterior máximo de tres exploraciones; la lista muestra 40 elementos por página para mantener la interfaz liviana.
+- Se pueden encolar niveles sucesivos de una tecnología y sus dependencias si estas ya están antes en la cola. Se respeta el nivel máximo del catálogo. Al cancelar un requisito, los dependientes permanecen bloqueados hasta corregir la cola; nunca se saltan proyectos automáticamente.
+- El progreso mensual es `100 / duración base × cobertura de científicos × capacidad de laboratorios × formación × financiamiento`. Cada cobertura llega como máximo al 100% de su referencia; el nivel aumenta la duración de investigación. Una exploración terrestre tiene referencia de 12 meses y una marítima de 18.
+- Sin científicos, laboratorio, formación, fondos o prerrequisitos, el avance es cero y no se cobra presupuesto de proyecto. El financiamiento se limita al presupuesto de referencia; la etapa final cobra solo la fracción necesaria para completar el trabajo. Las nóminas educativas siguen siendo gastos independientes.
+- El panel muestra posición, estado, porcentaje, puntos porcentuales por mes, meses restantes estimados y causas de bloqueo. El plazo cambia al variar los recursos disponibles. Finalizar una exploración no garantiza un descubrimiento.
+- La siguiente tarea empieza en la próxima etapa mensual de investigación. Agregar, cancelar o recargar no vuelve a sortear el resultado de una campaña existente.
+- Al cargar una partida anterior, se conserva el progreso: la investigación activa va primero y luego las exploraciones en el orden en que estaban registradas. Ese es el orden recuperable de los guardados anteriores, que no tenían una cola común.
 
 ## Ajuste 7.5: rendimiento y construcciones
 
