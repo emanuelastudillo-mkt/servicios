@@ -1,3 +1,25 @@
+# Pulso Global 7.7 — comercio automático y bienes finales
+
+## Ajuste 7.7: controles directos y mercado automático
+
+- Exploración conserva recurso, zona y presupuesto tras agregar a la cola. Otro clic repite el pedido durante la sesión.
+- Construcciones de 1 a 999 módulos, sin confirmación. Costo estimado, plazo y conversión de suelo agrícola se muestran antes de construir. Continúan la bolsa compartida y la cola de acciones durante cálculos.
+- Comercio exterior reemplaza los acuerdos por recursos habilitados para vender excedentes, seleccionar todos e importar bajo un umbral. Aplicar guarda los cambios. La venta habilita exportaciones públicas y privadas; las compras automáticas usan solo el stock y las reservas públicos. Las empresas mantienen sus compras privadas.
+- El mercado opera el día 14 mensual. Respeta prohibiciones, reservas, oferta, transporte y almacenes. No toma crédito, pero puede agotar las reservas disponibles. Protege el umbral importado de reventa automática. El stock mínimo de cada ficha sigue vigente.
+- También admite residuos: exportar a precio negativo cuesta dinero. Recibirlos requiere espacio y capacidad de tratamiento. Vender no está garantizado sin demanda.
+- Precio base de productos finales ×10 respecto a v7.6, con fluctuaciones posteriores. No garantiza rentabilidad neta ×10: depende de costos y compradores solventes.
+- Pequeña demanda profesional proporcional a población para maquinaria, baterías, servidores, supercomputadoras, transporte y herramientas. El plutonio tiene demanda industrial especializada muy baja, nunca consumo doméstico.
+- Los duraderos salen del inventario comercial hacia bienes en uso y se desgastan mensualmente (vidas útiles de 3–25 años). Alimentos y lácteos siguen consumiéndose regularmente.
+- Bienes en uso: felicidad hasta ×1,15; producción ×1,25; construcción e investigación ×1,35. Se calculan por cobertura por habitante, sin acumularse exponencialmente. El almacén no da bonificaciones. La ficha de un producto final muestra los multiplicadores nacionales.
+
+### Compatibilidad y límites
+
+Se conservan reservas, deuda, inventarios, obras y cola científica. Los precios se actualizan una sola vez. Los acuerdos del jugador se cierran sin liquidaciones adicionales; se reemplazan por el mercado automático. Las importaciones automáticas comienzan desactivadas. Las exportaciones no residuales continúan habilitadas por defecto, como antes.
+
+Exportá un respaldo antes de actualizar; no abras un guardado v7.7 en versiones anteriores. El equilibrio económico a largo plazo sigue siendo experimental: las pruebas verifican contabilidad y funcionamiento, no garantizan prosperidad para todas las políticas.
+
+## Historial
+
 # Pulso Global 7.6 — investigaciones y exploraciones en cola
 
 Fecha de entrega: 20 de septiembre de 2026. Incremental sobre v7.5. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.

@@ -17,7 +17,6 @@
     "v6-result-page",
     "v6-queue-page",
     "v6-refresh",
-    "v6-build",
     "v6-cancel-confirm",
     "v6-close-resource",
     "v6-go-sector",
@@ -113,7 +112,7 @@
       icon: "⌂",
       label: "El espacio también cuenta",
       title: "Territorio e infraestructura",
-      text: "Las viviendas envejecen y se pueden refaccionar. Las nuevas obras ocupan hectáreas; si necesitan reemplazar suelo agrícola, requieren confirmación. Rutas y trenes se miden en kilómetros, aeropuertos y puertos en instalaciones y riego en hectáreas.",
+      text: "Las viviendas envejecen y se pueden refaccionar. Las nuevas obras ocupan hectáreas; si reemplazan suelo agrícola, revisá el aviso antes de construir. No se pide confirmación. Rutas y trenes se miden en kilómetros, aeropuertos y puertos en instalaciones y riego en hectáreas.",
     },
     {
       icon: "⚗",
@@ -125,7 +124,7 @@
       icon: "$",
       label: "Cuidá las cuentas",
       title: "Impuestos, comercio y deuda",
-      text: "Configurá los cinco impuestos y acuerdos comerciales para vender excedentes reales. Los préstamos ingresan al Tesoro; las cuotas consumen reservas y amortizan capital. Revisá costo y saldo antes de comprar. La partida termina por deuda superior al 205% del PBI con el Tesoro agotado, nunca por una crisis institucional.",
+      text: "Configurá los cinco impuestos y los recursos habilitados para exportar excedentes. Las importaciones automáticas reponen stock público hasta el umbral elegido usando reservas disponibles, sin préstamos. Los préstamos ingresan al Tesoro; las cuotas consumen reservas y amortizan capital. Revisá costo y saldo antes de comprar. La partida termina por deuda superior al 205% del PBI con el Tesoro agotado, nunca por una crisis institucional.",
     },
     {
       icon: "◒",
@@ -576,7 +575,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.6</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.7</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -2078,6 +2077,10 @@
     ) {
       const snapshot = target.cloneNode(true),
         confirmation = ui6.confirm && { ...ui6.confirm };
+      if (action === "v6-build")
+        snapshot.dataset.quantity =
+          target.closest("article")?.querySelector("[data-build-quantity]")
+            ?.value || "1";
       if (action === "apply-taxes")
         snapshot.pendingTaxes = Engine.clone(taxDraft);
       if (action === "v6-confirm" && confirmation) ui6.confirm = null;
@@ -2328,6 +2331,36 @@
         target.outerHTML = renderPurchaseSafety(material, input.value);
       return;
     }
+    if (game && input.matches("[data-build-quantity]")) {
+      const article = input.closest("article"),
+        output = article.querySelector("[data-build-quote]");
+      try {
+        const p = Engine.constructionPreview(
+          game,
+          article.querySelector('[data-action="v6-build"]').dataset.building,
+          Number(input.value),
+        );
+        output.textContent =
+          p.blocked ||
+          "Total estimado: US$ " +
+            (p.totalCost * 1e9).toLocaleString("es-AR", {
+              maximumFractionDigits: 0,
+            }) +
+            ". " +
+            (p.estimatedMonths === null
+              ? "Sin trabajadores."
+              : "Plazo: " + p.estimatedMonths.toFixed(1) + " meses.") +
+            (p.convertAgricultureHa
+              ? " Convierte " +
+                p.convertAgricultureHa.toLocaleString("es-AR") +
+                " ha agrícolas."
+              : "") +
+            " Se paga durante el avance.";
+      } catch (e) {
+        output.textContent = e.message;
+      }
+      return;
+    }
     if (input.dataset.kind === "tax" && game) {
       if (input.value === "" || !Number.isFinite(Number(input.value))) return;
       const tax = DATA.taxes.find((t) => t.id === input.dataset.tax);
@@ -2380,6 +2413,16 @@
     }
   });
 
+  app.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-select-sales]");
+    if (button)
+      button
+        .closest("form")
+        .querySelectorAll('input[name^="sell_"]')
+        .forEach((input) => {
+          input.checked = button.dataset.selectSales === "true";
+        });
+  });
   app.addEventListener("change", (event) => {
     if (game && event.target.closest("[data-v6-form]"))
       UI6.quote(game, event.target.closest("[data-v6-form]"));

@@ -1,14 +1,14 @@
-# Pulso Global 7.6 — cola de investigación y exploración
+# Pulso Global 7.7 — comercio automático y bienes finales
 
-Actualización incremental sobre **v7.5**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.6**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.5, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.6, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.6**; si todavía aparece v7.5, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.7**; si todavía aparece v7.6, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -24,7 +24,25 @@ Después de cargar todos los archivos, funciona sin Internet. No hay avance con 
 
 ## Evolución del motor
 
-## Ajuste 7.6: cola compartida sin límite fijo
+## Ajuste 7.7: controles directos y mercado automático
+
+- Exploración conserva recurso, zona y presupuesto tras agregar a la cola. Otro clic repite el pedido durante la sesión.
+- Construcciones de 1 a 999 módulos, sin confirmación. Costo estimado, plazo y conversión de suelo agrícola se muestran antes de construir. Continúan la bolsa compartida y la cola de acciones durante cálculos.
+- Comercio exterior reemplaza los acuerdos por recursos habilitados para vender excedentes, seleccionar todos e importar bajo un umbral. Aplicar guarda los cambios. La venta habilita exportaciones públicas y privadas; las compras automáticas usan solo el stock y las reservas públicos. Las empresas mantienen sus compras privadas.
+- El mercado opera el día 14 mensual. Respeta prohibiciones, reservas, oferta, transporte y almacenes. No toma crédito, pero puede agotar las reservas disponibles. Protege el umbral importado de reventa automática. El stock mínimo de cada ficha sigue vigente.
+- También admite residuos: exportar a precio negativo cuesta dinero. Recibirlos requiere espacio y capacidad de tratamiento. Vender no está garantizado sin demanda.
+- Precio base de productos finales ×10 respecto a v7.6, con fluctuaciones posteriores. No garantiza rentabilidad neta ×10: depende de costos y compradores solventes.
+- Pequeña demanda profesional proporcional a población para maquinaria, baterías, servidores, supercomputadoras, transporte y herramientas. El plutonio tiene demanda industrial especializada muy baja, nunca consumo doméstico.
+- Los duraderos salen del inventario comercial hacia bienes en uso y se desgastan mensualmente (vidas útiles de 3–25 años). Alimentos y lácteos siguen consumiéndose regularmente.
+- Bienes en uso: felicidad hasta ×1,15; producción ×1,25; construcción e investigación ×1,35. Se calculan por cobertura por habitante, sin acumularse exponencialmente. El almacén no da bonificaciones. La ficha de un producto final muestra los multiplicadores nacionales.
+
+### Compatibilidad y límites
+
+Se conservan reservas, deuda, inventarios, obras y cola científica. Los precios se actualizan una sola vez. Los acuerdos del jugador se cierran sin liquidaciones adicionales; se reemplazan por el mercado automático. Las importaciones automáticas comienzan desactivadas. Las exportaciones no residuales continúan habilitadas por defecto, como antes.
+
+Exportá un respaldo antes de actualizar; no abras un guardado v7.7 en versiones anteriores. El equilibrio económico a largo plazo sigue siendo experimental: las pruebas verifican contabilidad y funcionamiento, no garantizan prosperidad para todas las políticas.
+
+## Historial — Ajuste 7.6: cola compartida sin límite fijo
 
 - Investigaciones y exploraciones se agregan a una única cola en orden de solicitud. Solo avanza y consume presupuesto el primer proyecto. No existe el anterior máximo de tres exploraciones; la lista muestra 40 elementos por página para mantener la interfaz liviana.
 - Se pueden encolar niveles sucesivos de una tecnología y sus dependencias si estas ya están antes en la cola. Se respeta el nivel máximo del catálogo. Al cancelar un requisito, los dependientes permanecen bloqueados hasta corregir la cola; nunca se saltan proyectos automáticamente.
@@ -39,7 +57,7 @@ Después de cargar todos los archivos, funciona sin Internet. No hay avance con 
 - El avance diario actualiza la barra superior sin reconstruir el mapa, botones y formularios. Los detalles se actualizan durante el avance, como máximo cada dos segundos, conservando formularios y campos editados. También podés pulsar **Actualizar datos**. Podés editar con el reloj en marcha, sin pausa automática.
 - Las acciones recibidas durante un cálculo diario se encolan en orden y se validan contra el estado al terminar esa jornada. El aviso y el encabezado indican las acciones pendientes; no hace falta repetir el clic. Si ya faltan fondos, recursos o requisitos, la acción muestra el error correspondiente.
 - El proceso de simulación conserva su estado y devuelve solo los países modificados. Los formatos numéricos se reutilizan y los autoguardados de acciones próximas se agrupan.
-- Cada construcción acepta de 1 a 100 módulos por pedido. El módulo conserva su tamaño físico (viviendas, kilómetros o instalaciones); la revisión muestra cantidad total, costo, trabajadores y plazo estimado.
+- Cada construcción acepta de 1 a 999 módulos por pedido. El módulo conserva su tamaño físico (viviendas, kilómetros o instalaciones); la revisión muestra cantidad total, costo, trabajadores y plazo estimado.
 - No hay límite de ocho obras públicas. Todos los proyectos comparten los trabajadores desocupados disponibles y se reparten la bolsa por igual. La demanda de trabajo crece con módulos y complejidad; la educación mejora el rendimiento. Una obra puede recibir más trabajadores que la dotación de referencia y acelerar proporcionalmente.
 - Diez obras iguales reciben una décima parte cada una y requieren diez veces más tiempo que una sola, con igual bolsa, educación, materiales y Tesoro. La finalización y los pagos se liquidan en la etapa mensual de obras; un plazo teórico menor a un mes se completa en esa etapa.
 - La barra superior muestra la bolsa de personas disponible para construir. Se contabilizan solo las jornadas efectivamente utilizadas; el remanente puede abastecer los programas pasivos de vivienda y la construcción privada, sin duplicar trabajadores.
@@ -106,7 +124,7 @@ Después de cargar todos los archivos, funciona sin Internet. No hay avance con 
 - Almacenes especializados con capacidad compartida por familia. El espacio se reparte entre productos para que los insumos no bloqueen toda la cadena. Las pérdidas y basura sin recoger quedan registradas.
 - Consumo doméstico, reposición y existencias de bienes durables, prohibición de importaciones por recurso/categoría o general, compraventa pública y acuerdos bilaterales.
 - Obras de cantidad física fija: viviendas, km de redes, aeropuertos y puertos por unidad; riego en hectáreas. Costo laboral y plazo dependen del país, sin cambiar el tamaño de una central o fábrica.
-- Territorio, agricultura y vivienda; aviso y confirmación al ocupar suelo agrícola. Viviendas nuevas, normales y a refaccionar.
+- Territorio, agricultura y vivienda; aviso antes de ocupar suelo agrícola. Viviendas nuevas, normales y a refaccionar.
 - Cohortes por edad, edad laboral configurable (18–65 al inicio; extremos permitidos 12–80), pensiones, esperanza de vida y migración entre países. Nauru muestra habitantes e importes pequeños con precisión.
 - Educación primaria, secundaria, técnica/superior y universitaria, más siete ramas de formación. Los docentes e investigadores se asignan desde los funcionarios de Educación, no se duplican.
 - Laboratorios, árbol tecnológico de cuatro niveles y exploración terrestre/marítima con probabilidad de fracaso. Un hallazgo descubre reservas finitas; no crea producción sin construir.

@@ -31,7 +31,61 @@
     electronics: 6,
     appliances: 10,
     jewelry: 25,
+    machinery: 15,
+    batteries: 5,
+    servers: 6,
+    supercomputers: 8,
+    transport_vehicles: 15,
+    diamond_tools: 3,
+    textiles: 3,
   };
+  // Annual professional demand per inhabitant; nuclear material is not household consumption.
+  const professionalUse = {
+    machinery: 0.00008,
+    batteries: 0.004,
+    servers: 0.0001,
+    supercomputers: 0.00000001,
+    transport_vehicles: 0.00004,
+    diamond_tools: 0.001,
+    plutonium: 0.000000002,
+  };
+  function useRate(m) {
+    return m.household || professionalUse[m.id] || 0;
+  }
+  function finalGoodsBenefits(c) {
+    const coverage = (ids) =>
+      ids.reduce((sum, id) => {
+        const m = D.getMaterial(id),
+          target = useRate(m) * population(c) * (durableYears[id] || 1);
+        return (
+          sum +
+          clamp((c.durableOwnership?.[id] || 0) / Math.max(1e-12, target), 0, 1)
+        );
+      }, 0) / ids.length;
+    return {
+      happiness:
+        1 +
+        0.15 *
+          coverage([
+            "automobiles",
+            "appliances",
+            "smartphones",
+            "textiles",
+            "jewelry",
+          ]),
+      production:
+        1 +
+        0.25 *
+          coverage([
+            "machinery",
+            "computers",
+            "transport_vehicles",
+            "diamond_tools",
+          ]),
+      construction: 1 + 0.35 * coverage(["machinery", "transport_vehicles"]),
+      research: 1 + 0.35 * coverage(["computers", "servers", "supercomputers"]),
+    };
+  }
   const tradeDependencyPool = [
     "grains",
     "timber",
@@ -643,6 +697,14 @@
     c.materialStocks = c.publicStocks;
   }
   function initialize(s, legacy = false) {
+    if (!s.finalPricesV77) {
+      for (const m of materials.filter((m) => m.tier === "final")) {
+        for (const key of ["resourcePrices", "previousResourcePrices"])
+          if (Number.isFinite(s.market?.[key]?.[m.id]))
+            s.market[key][m.id] *= 10;
+      }
+      s.finalPricesV77 = true;
+    }
     s.version = 6;
     s.date.day = Math.max(1, Math.min(31, Math.floor(finite(s.date.day, 1))));
     s.dayTick = Math.max(0, Math.floor(finite(s.dayTick, 0)));
@@ -666,6 +728,21 @@
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
+      if (!c.tradePolicies) {
+        c.tradePolicies = map((m) => ({
+          sell: !m.waste,
+          autoImport: false,
+          importBelow: 0,
+        }));
+        for (const a of s.agreements.filter(
+          (a) => [a.from, a.to].includes(c.id) && c.id === s.playerCountryId,
+        )) {
+          a.active = false;
+          a.closed = true;
+          a.status = "Cerrado: migración al mercado automático";
+        }
+      }
+      c.goodsBenefits ||= finalGoodsBenefits(c);
       normalizeResearchQueue(c);
       // JSON saves break object aliases; keep the public inventory view current.
       c.materialStocks = c.publicStocks;
@@ -1244,6 +1321,7 @@
           m.baseOutput *
           clamp(filled, 0, 1) *
           efficiency(c, m.sector, owner) *
+          (c.goodsBenefits?.production || 1) *
           (1 + (tech - 1) * 0.08) *
           (owner === "public" ? c.productionTargets[m.id] : 1);
   }
@@ -1538,7 +1616,7 @@
     husbandry(s, c);
     for (const m of materials) {
       c.householdDemand[m.id] =
-        ((m.household * population(c)) / 12) *
+        ((useRate(m) * population(c)) / 12) *
         clamp(0.45 + (c.realGdp * 1e9) / population(c) / 35000, 0.45, 1.8) *
         clamp(1 + H.activeEventEffects(c, s).demand, 0.3, 1.4);
       if (durableYears[m.id]) {
@@ -1658,24 +1736,30 @@
   function purchaseDomestic(s, c, m, request) {
     let served = 0;
     for (const owner of ["private", "public"]) {
-      const price = s.market.resourcePrices[m.id],
+      const consumer = professionalUse[m.id] ? "private" : "household",
+        price = s.market.resourcePrices[m.id],
         tax = (price * c.taxes.vat) / 100,
         available = stocks(c, owner)[m.id],
         q = Math.min(
           request - served,
           available,
-          Math.max(0, c.finance.householdCash) / Math.max(1e-15, price + tax),
+          Math.max(
+            0,
+            consumer === "private"
+              ? c.finance.privateCash
+              : c.finance.householdCash,
+          ) / Math.max(1e-15, price + tax),
         );
       if (q <= 0) continue;
       stocks(c, owner)[m.id] -= q;
-      transfer(s, c, "household", owner, q * price, "Consumo nacional");
-      transfer(s, c, "household", "public", q * tax, "IVA");
+      transfer(s, c, consumer, owner, q * price, "Consumo nacional");
+      transfer(s, c, consumer, "public", q * tax, "IVA");
       c.finance.taxes += q * tax;
       c.finance.taxBases.vat += q * price;
       c.materialConsumption[m.id] += q;
       c.householdConsumed[m.id] += q;
       if (durableYears[m.id]) c.durableOwnership[m.id] += q;
-      if (owner === "private") {
+      if (owner === "private" && consumer !== "private") {
         c.sectors[m.sector].revenue += q * price;
         c.sectors[m.sector].profit += q * price;
       }
@@ -1685,7 +1769,7 @@
   }
   function consume(s, c, remaining = false) {
     for (const m of materials
-      .filter((m) => m.household > 0)
+      .filter((m) => useRate(m) > 0)
       .sort(
         (a, b) =>
           (a.sector === "agriculture" ? -1 : 1) -
@@ -1711,6 +1795,7 @@
       }
       c.consumptionCoverage = wanted ? got / wanted : 1;
     }
+    c.goodsBenefits = finalGoodsBenefits(c);
   }
   function exportable(c, owner, m) {
     const total = c.publicStocks[m.id] + c.privateStocks[m.id],
@@ -1718,7 +1803,12 @@
     return Math.max(
       0,
       stocks(c, owner)[m.id] -
-        (total ? (protectedStock * stocks(c, owner)[m.id]) / total : 0),
+        Math.max(
+          total ? (protectedStock * stocks(c, owner)[m.id]) / total : 0,
+          owner === "public" && c.tradePolicies?.[m.id]?.autoImport
+            ? c.tradePolicies[m.id].importBelow
+            : 0,
+        ),
     );
   }
   function transportCapacity(c) {
@@ -1879,21 +1969,42 @@
       }
     }
     for (const m of materials) {
-      if (m.waste) continue;
       const sellers = countries
         .flatMap((c) =>
-          owners.map((owner) => ({ c, owner, stock: exportable(c, owner, m) })),
+          owners.map((owner) => ({
+            c,
+            owner,
+            stock:
+              c.tradePolicies?.[m.id]?.sell === false
+                ? 0
+                : exportable(c, owner, m),
+          })),
         )
         .filter((x) => x.stock > 1e-6);
       const buyers = countries
         .filter((c) => !c.importsBanned && !c.importBans[m.id])
-        .map((c) => ({
-          c,
-          need: Math.max(
-            0,
-            c.needs[m.id] * 1.4 - c.publicStocks[m.id] - c.privateStocks[m.id],
-          ),
-        }))
+        .flatMap((c) => [
+          {
+            c,
+            owner: "private",
+            need: Math.max(
+              0,
+              c.needs[m.id] * 1.4 -
+                c.publicStocks[m.id] -
+                c.privateStocks[m.id],
+            ),
+          },
+          {
+            c,
+            owner: "public",
+            need: c.tradePolicies?.[m.id]?.autoImport
+              ? Math.max(
+                  0,
+                  c.tradePolicies[m.id].importBelow - c.publicStocks[m.id],
+                )
+              : 0,
+          },
+        ])
         .filter((x) => x.need > 1e-6)
         .sort((a, b) => b.need / population(b.c) - a.need / population(a.c));
       for (const buyer of buyers) {
@@ -1914,6 +2025,7 @@
             m,
             buyer.need,
             seller.owner,
+            buyer.owner,
           );
         }
       }
@@ -2021,7 +2133,7 @@
     const c = s.countries[s.playerCountryId],
       b = D.getBuilding(id);
     if (!b) throw Error("Construcción no válida.");
-    factor = needNumber(factor, 1, 100);
+    factor = needNumber(factor, 1, 999);
     if (!Number.isInteger(factor)) throw Error("Construí módulos enteros.");
     const land = (b.landHa || b.agricultureHa || 0) * factor;
     let blocked = "";
@@ -2083,7 +2195,9 @@
     const laborNeed = b.laborNeed * 1000 * factor,
       salary = c.sectors.infrastructure.salary,
       wageIndex = clamp(salary / 1000, 0.1, 10),
-      skillMatch = clamp(c.education / Math.max(1, b.skillNeed), 0.2, 1),
+      skillMatch =
+        clamp(c.education / Math.max(1, b.skillNeed), 0.2, 1) *
+        (c.goodsBenefits?.construction || 1),
       laborAvailability = clamp(
         (c.laborSnapshot.unemployed * 1e6) / Math.max(1, laborNeed),
         0.1,
@@ -2176,7 +2290,9 @@
       const b = D.getBuilding(p.typeId),
         factor = p.factor || 1,
         need = p.laborNeed || b.laborNeed * 1000 * factor;
-      const skill = clamp(c.education / b.skillNeed, 0.2, 1),
+      const skill =
+          clamp(c.education / b.skillNeed, 0.2, 1) *
+          (c.goodsBenefits?.construction || 1),
         remainingWork = (need * b.months * (1 - p.progress / 100)) / skill,
         hired = Math.min(allocation, remainingWork, free);
       free -= hired;
@@ -2284,7 +2400,9 @@
         return;
       }
       const workers = Math.min(requested, free),
-        skill = clamp(c.education / b.skillNeed, 0.2, 1);
+        skill =
+          clamp(c.education / b.skillNeed, 0.2, 1) *
+          (c.goodsBenefits?.construction || 1);
       let factor =
         (workers / Math.max(1, b.laborNeed * 1000)) * (skill / b.months);
       if (mode === "build") {
@@ -2512,7 +2630,11 @@
         clamp(c.education / skill, 0, 1),
       rate = reasons.length
         ? 0
-        : ((100 / months) * capacity * budget) / referenceBudget,
+        : ((100 / months) *
+            capacity *
+            budget *
+            (c.goodsBenefits?.research || 1)) /
+          referenceBudget,
       remaining = Math.max(0, 100 - task.progress),
       progress = Math.min(remaining, rate),
       cost = rate > 0 ? budget * Math.min(1, remaining / rate) : 0;
@@ -3105,14 +3227,15 @@
       (stock.new / Math.max(0.000001, sum(stock))) * 3 +
       techBonus(c, "infrastructure", "quality") * 4;
     const target = clamp(
-      20 +
+      (20 +
         c.consumptionCoverage * 28 +
         c.housing * 0.2 +
         (1 - c.unemployment / 100) * 16 +
         c.energy.served * 8 +
         c.infrastructure * 0.06 +
         quality -
-        Math.min(25, c.wasteBurden * 12),
+        Math.min(25, c.wasteBurden * 12)) *
+        (c.goodsBenefits?.happiness || 1),
       0,
       98,
     );
@@ -3801,6 +3924,19 @@
     if (input.target !== undefined)
       c.productionTargets[id] = needNumber(input.target, 0, 1);
   }
+  function setTradePolicies(s, policies) {
+    const c = player(s),
+      validated = {};
+    for (const [id, policy] of Object.entries(policies)) {
+      if (!D.getMaterial(id)) throw Error("Recurso comercial no válido.");
+      validated[id] = {
+        sell: !!policy.sell,
+        autoImport: !!policy.autoImport,
+        importBelow: needNumber(policy.importBelow, 0, 1e15),
+      };
+    }
+    Object.assign(c.tradePolicies, validated);
+  }
   function setAges(s, start, retire) {
     const c = player(s);
     start = needNumber(start, 12, 79);
@@ -4301,7 +4437,9 @@
     const b = D.getBuilding(p.typeId),
       need = p.laborNeed || b.laborNeed * 1000 * (p.factor || 1),
       availableWorkers = constructionWorkforce(c),
-      skill = clamp(c.education / b.skillNeed, 0.2, 1),
+      skill =
+        clamp(c.education / b.skillNeed, 0.2, 1) *
+        (c.goodsBenefits?.construction || 1),
       hired = Math.min(
         availableWorkers /
           Math.max(1, c.projects.filter((x) => x.progress < 100).length),
@@ -4390,6 +4528,8 @@
     setHousingProgram,
     setImportPolicy,
     setResourcePolicy,
+    setTradePolicies,
+    finalGoodsBenefits,
     setAges,
     nationalizePreview,
     nationalize,

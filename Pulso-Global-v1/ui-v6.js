@@ -188,7 +188,7 @@
       .filter((b) => b.sector === id)
       .map((b) => {
         const p = E.constructionPreview(s, b.id);
-        return `<article><div class="v6-title"><h3>${esc(b.label)}</h3><small>Público ${num(c.buildings[b.id], 2)} · Privado ${num(c.privateBuildings[b.id], 2)}</small></div><p>${esc(b.description)}</p><dl class="v6-lines">${row("Módulo", amount(p.quantity, p.unit))}${row("Base y mano de obra", dollars(p.baseCost + p.laborCost))}${row("Materiales (valor estimado)", dollars(p.materialCost))}${row("Trabajadores temporales", num(p.laborNeed))}${row("Cualificación / disponibilidad", amount(p.skillMatch, "%") + " / " + amount(p.laborAvailability, "%"))}${row("Duración estimada", p.estimatedMonths === null ? "Sin trabajadores disponibles" : amount(p.estimatedMonths, "meses de trabajo"))}${row("Suelo", amount(p.landHa, "ha"))}${p.convertAgricultureHa ? row("Convierte agricultura", amount(p.convertAgricultureHa, "ha")) : ""}${b.energyOutput ? row("Generación de referencia", amount(b.energyOutput, "TWh/año")) : ""}${b.storage ? row("Almacenamiento", amount(b.storageAmount, "t equivalentes")) : ""}</dl><p class="${p.blocked ? "negative" : "positive"}">${esc(p.blocked || "Construcción habilitada")}</p>${field("quantity", "Cantidad de módulos (ver tamaño del módulo arriba)", 1, "number", 'data-build-quantity min="1" max="100" step="1"')}${btn("build", "Revisar obra", `data-building="${b.id}"`, !!p.blocked)}</article>`;
+        return `<article><div class="v6-title"><h3>${esc(b.label)}</h3><small>Público ${num(c.buildings[b.id], 2)} · Privado ${num(c.privateBuildings[b.id], 2)}</small></div><p>${esc(b.description)}</p><dl class="v6-lines">${row("Módulo", amount(p.quantity, p.unit))}${row("Base y mano de obra", dollars(p.baseCost + p.laborCost))}${row("Materiales (valor estimado)", dollars(p.materialCost))}${row("Trabajadores temporales", num(p.laborNeed))}${row("Cualificación / disponibilidad", amount(p.skillMatch, "%") + " / " + amount(p.laborAvailability, "%"))}${row("Duración estimada", p.estimatedMonths === null ? "Sin trabajadores disponibles" : amount(p.estimatedMonths, "meses de trabajo"))}${row("Suelo", amount(p.landHa, "ha"))}${p.convertAgricultureHa ? row("Convierte agricultura", amount(p.convertAgricultureHa, "ha")) : ""}${b.energyOutput ? row("Generación de referencia", amount(b.energyOutput, "TWh/año")) : ""}${b.storage ? row("Almacenamiento", amount(b.storageAmount, "t equivalentes")) : ""}</dl><p class="${p.blocked ? "negative" : "positive"}">${esc(p.blocked || "Construcción habilitada")}</p>${field("quantity", "Cantidad de módulos (ver tamaño del módulo arriba)", 1, "number", 'data-build-quantity min="1" max="999" step="1"')}<p data-build-quote>Estimación para 1 módulo: ${dollars(p.totalCost)}. La obra paga durante su avance.</p>${btn("build", "Construir", `data-building="${b.id}"`, !!p.blocked)}</article>`;
       })
       .join("")}</div>`;
   }
@@ -255,7 +255,7 @@
     );
     return shell(
       m.label,
-      `${btn("close-resource", "← Volver")}<p>${esc(m.tier)} · Unidad: ${esc(m.unit)} · ${esc(m.waste ? "Residuo o materia recuperable" : "Producción y consumo mensuales")}</p><div class="v6-grid">${card("Cotización mundial", dollars(s.market.resourcePrices[id]))}${card("Variación mensual", amount((s.market.resourcePrices[id] / (s.market.previousResourcePrices[id] || s.market.resourcePrices[id]) - 1) * 100, "%"))}${card("Pública / privada", amount(r.publicProduction) + " / " + amount(r.privateProduction))}${card("Producción mundial", amount(r.world.production, m.unit), "Puesto " + (r.ranking.find((x) => x.id === c.id)?.position || "—"))}${card("Demanda nacional", amount(c.needs[id], m.unit))}${card("Faltante de hogares", amount(c.shortages[id], m.unit))}${card("Stock público / espacio libre", amount(r.stock) + " / " + amount(r.free))}${card("Excedente público", amount(r.exportable, m.unit))}</div>
+      `${btn("close-resource", "← Volver")}${m.tier === "final" ? `<p>Precio base ×10 respecto a v7.6. Los bienes duraderos se usan durante años; los alimentos se consumen regularmente. Los equipos profesionales tienen demanda pequeña. Al entrar en uso mejoran capacidades (no por almacenarlos). Bonos actuales: felicidad ×${amount(c.goodsBenefits.happiness)}, producción ×${amount(c.goodsBenefits.production)}, construcción ×${amount(c.goodsBenefits.construction)}, investigación ×${amount(c.goodsBenefits.research)}. Topes: ×1,15 / ×1,25 / ×1,35 / ×1,35. No se acumulan exponencialmente. El plutonio solo tiene uso industrial especializado.</p>` : ""}<p>${esc(m.tier)} · Unidad: ${esc(m.unit)} · ${esc(m.waste ? "Residuo o materia recuperable" : "Producción y consumo mensuales")}</p><div class="v6-grid">${card("Cotización mundial", dollars(s.market.resourcePrices[id]))}${card("Variación mensual", amount((s.market.resourcePrices[id] / (s.market.previousResourcePrices[id] || s.market.resourcePrices[id]) - 1) * 100, "%"))}${card("Pública / privada", amount(r.publicProduction) + " / " + amount(r.privateProduction))}${card("Producción mundial", amount(r.world.production, m.unit), "Puesto " + (r.ranking.find((x) => x.id === c.id)?.position || "—"))}${card("Demanda nacional", amount(c.needs[id], m.unit))}${card("Faltante de hogares", amount(c.shortages[id], m.unit))}${card("Stock público / espacio libre", amount(r.stock) + " / " + amount(r.free))}${card("Excedente público", amount(r.exportable, m.unit))}</div>
     <section class="v6-section"><h3>Cómo producirlo</h3><p>${
       Object.keys(m.inputs).length
         ? Object.entries(m.inputs)
@@ -348,36 +348,21 @@
     const c = s.countries[s.playerCountryId];
     return shell(
       "Comercio exterior",
-      `<p>Los acuerdos priorizan la venta de excedentes. El comprador debe necesitar el producto, disponer de fondos y admitir su importación.</p>${btn("ban-all", c.importsBanned ? "Reabrir importaciones" : "Prohibir todas las importaciones")}<p>Estado general: <strong>${c.importsBanned ? "importaciones cerradas" : "importaciones abiertas"}</strong> · Cobertura de consumo: ${amount(c.consumptionCoverage * 100, "%")}</p><details><summary>Restricciones por categoría</summary>${D.resourceTiers.map((t) => `<p>${esc(t.label)} ${btn("ban", "Prohibir", `data-resource="${t.id}" data-banned="true"`)} ${btn("ban", "Permitir", `data-resource="${t.id}" data-banned="false"`)}</p>`).join("")}</details><section class="v6-section"><h3>Crear acuerdo</h3>${form(
-        "agreement",
-        select(
-          "countryId",
-          "País socio",
-          D.countries.filter((x) => x.id !== c.id),
-          D.countries.find((x) => x.id !== c.id).id,
-        ) +
-          select("resource", "Recurso", D.materials, "grains") +
-          select(
-            "direction",
-            "Dirección",
-            [
-              { id: "export", label: "Exportar excedente público" },
-              { id: "import", label: "Importar del socio" },
-            ],
-            "export",
-          ) +
-          field("quantity", "Cantidad máxima mensual", 100) +
-          field("months", "Duración (meses)", 24, "number", 'max="120"') +
-          field("tariff", "Arancel pactado (%)", 5, "number", 'max="40"'),
-      )}</section><section class="v6-section"><h3>Acuerdos del país</h3>${
-        s.agreements
-          .filter((a) => [a.from, a.to].includes(c.id))
-          .map(
-            (a) =>
-              `<article class="v6-project"><strong>${esc(D.getMaterial(a.resource).label)} · ${esc(s.countries[a.from].name)} → ${esc(s.countries[a.to].name)}</strong><span>${amount(a.lastQuantity)} / ${amount(a.quantity)} este mes · ${a.remaining} meses</span><small>${esc(a.status)}</small>${a.active ? btn("close-agreement", "Cerrar acuerdo", `data-agreement="${a.id}"`) : !a.closed ? `${btn("renew-agreement", `Renovar por ${a.duration || 24} meses`, `data-agreement="${a.id}"`)} ${btn("close-agreement", "Cerrar", `data-agreement="${a.id}"`)}` : ""}</article>`,
-          )
-          .join("") || "<p>No hay acuerdos.</p>"
-      }</section><section class="v6-section"><h3>Flujos del último mes</h3><div class="table-wrap"><table class="v6-table"><thead><tr><th>Recurso</th><th>Origen</th><th>Destino</th><th>Cantidad</th><th>Valor</th></tr></thead><tbody>${s.market.trades
+      `<p>Seleccioná los recursos habilitados para exportación automática (pública y privada). Solo se ofrece el excedente; vender exige compradores, transporte y fondos. Las ventas privadas no ingresan al Tesoro.</p>
+      ${btn("ban-all", c.importsBanned ? "Reabrir importaciones" : "Prohibir todas las importaciones")}
+      <p>Importaciones: <strong>${c.importsBanned ? "cerradas" : "abiertas"}</strong>. Las prohibiciones por recurso también se respetan.</p>
+      <section class="v6-section"><h3>Mercado automático por recurso</h3>
+      <p>Importar repone el <strong>stock público</strong> hasta el umbral indicado en cada ciclo comercial mensual. Usa únicamente reservas disponibles, sin pedir préstamos. Puede comprar menos por falta de oferta, espacio o transporte. El umbral importado queda protegido de reventa automática. Las empresas mantienen sus compras privadas. Atención: exportar residuos con precio negativo cuesta dinero; importar residuos requiere capacidad de tratamiento.</p>
+      ${form(
+        "trade-policies",
+        `<div class="v6-tabs"><button type="button" class="button compact" data-select-sales="true">Seleccionar todos para vender</button><button type="button" class="button compact" data-select-sales="false">Desmarcar todos</button></div><p>Estos botones editan la selección: presioná Aplicar para guardarla.</p><div class="table-wrap"><table class="v6-table"><thead><tr><th>Recurso / unidad</th><th>Vender excedente</th><th>Importar automáticamente</th><th>Si stock público baja de</th></tr></thead><tbody>${D.materials
+          .map((m) => {
+            const p = c.tradePolicies[m.id];
+            return `<tr><th>${esc(m.label)}<small>${esc(m.unit)}</small></th><td><input aria-label="Vender ${esc(m.label)}" type="checkbox" name="sell_${m.id}" ${p.sell ? "checked" : ""}></td><td><input aria-label="Importar ${esc(m.label)}" type="checkbox" name="import_${m.id}" ${p.autoImport ? "checked" : ""}></td><td><input aria-label="Umbral ${esc(m.label)}" type="number" name="floor_${m.id}" min="0" max="1000000000000000" step="any" value="${p.importBelow}"></td></tr>`;
+          })
+          .join("")}</tbody></table></div>`,
+      )}
+      <p>Los acuerdos anteriores quedan cerrados al actualizar; el comercio continúa con estas reglas, sin contratos.</p></section><section class="v6-section"><h3>Flujos del último mes</h3><div class="table-wrap"><table class="v6-table"><thead><tr><th>Recurso</th><th>Origen</th><th>Destino</th><th>Cantidad</th><th>Valor</th></tr></thead><tbody>${s.market.trades
         .filter((t) => t.from === c.id || t.to === c.id)
         .slice(0, 60)
         .map(
@@ -392,7 +377,7 @@
       l = c.land;
     return shell(
       "Territorio y vivienda",
-      `<div class="v6-grid">${card("Superficie terrestre", amount(l.areaKm2, "km²"))}${card("Densidad", amount((c.population * 1e6) / l.areaKm2, "hab/km²"))}${card("Techo del escenario", num(l.areaKm2 * 60000) + " habitantes")}${card("Suelo libre", amount(E.availableLand(c), "ha"))}${card("Residencial", amount(l.residentialHa, "ha"))}${card("Agrícola", amount(l.agricultureHa, "ha"))}${card("Irrigado", amount(l.irrigatedHa, "ha"))}${card("Industrial y redes", amount(l.industrialHa, "ha"))}${card("Restringido/no apto", amount(l.restrictedHa, "ha"))}${card("Viviendas nuevas", num(c.housingStock.new * 1e6))}${card("Viviendas normales", num(c.housingStock.normal * 1e6))}${card("A refaccionar", num(c.housingStock.repair * 1e6))}</div><p>Al ocupar suelo agrícola, la obra solicita confirmación y descuenta las hectáreas convertidas una sola vez. Densificar reduce el uso de suelo.</p><section class="v6-section"><h3>Redes e instalaciones iniciales y construidas</h3><dl class="v6-lines">${Object.entries(
+      `<div class="v6-grid">${card("Superficie terrestre", amount(l.areaKm2, "km²"))}${card("Densidad", amount((c.population * 1e6) / l.areaKm2, "hab/km²"))}${card("Techo del escenario", num(l.areaKm2 * 60000) + " habitantes")}${card("Suelo libre", amount(E.availableLand(c), "ha"))}${card("Residencial", amount(l.residentialHa, "ha"))}${card("Agrícola", amount(l.agricultureHa, "ha"))}${card("Irrigado", amount(l.irrigatedHa, "ha"))}${card("Industrial y redes", amount(l.industrialHa, "ha"))}${card("Restringido/no apto", amount(l.restrictedHa, "ha"))}${card("Viviendas nuevas", num(c.housingStock.new * 1e6))}${card("Viviendas normales", num(c.housingStock.normal * 1e6))}${card("A refaccionar", num(c.housingStock.repair * 1e6))}</div><p>Al ocupar suelo agrícola, la obra muestra un aviso previo y descuenta las hectáreas convertidas una sola vez. Densificar reduce el uso de suelo.</p><section class="v6-section"><h3>Redes e instalaciones iniciales y construidas</h3><dl class="v6-lines">${Object.entries(
         c.infrastructureAssets,
       )
         .map(([id, n]) =>
@@ -570,7 +555,7 @@
           "resource",
           "Recurso",
           D.materials.filter((m) => m.natural),
-          "crude_oil",
+          u.exploreDraft?.resource || "crude_oil",
         ) +
           select(
             "site",
@@ -579,12 +564,13 @@
               { id: "land", label: "Terrestre" },
               { id: "sea", label: "Marítima (petróleo)" },
             ],
-            "land",
+            u.exploreDraft?.site || "land",
           ) +
           field(
             "budget",
             "Presupuesto mensual US$",
-            Math.max(100, c.gdp * 1e9 * 0.00001).toFixed(2),
+            u.exploreDraft?.budget ??
+              Math.max(100, c.gdp * 1e9 * 0.00001).toFixed(2),
           ),
       )}<p>La probabilidad depende del potencial geológico y tecnología. Reabrir un guardado no vuelve a sortear la campaña.</p>${
         c.research.explorations
@@ -686,15 +672,9 @@
             target.dataset.quantity ||
             1,
         ),
-        p = E.constructionPreview(s, target.dataset.building, factor),
-        b = D.getBuilding(target.dataset.building);
-      u.confirm = {
-        type: "build",
-        id: b.id,
-        factor,
-        title: b.label,
-        body: `<p>Construir ${amount(p.quantity, p.unit)} (${factor} módulos).</p><p>Asignación estimada: ${num(p.allocatedWorkers)} personas. Plazo: ${p.estimatedMonths === null ? "sin trabajadores disponibles" : amount(p.estimatedMonths, "meses de trabajo")}. Se recalcula al cambiar la bolsa o sumar otras obras.</p><p>Costo estimado total: <strong>${dollars(p.totalCost)}</strong>; incluye el valor del material propio.</p><p>Reservas actuales: ${dollars(c.reserves)}.</p><p>${p.convertAgricultureHa ? `Se convertirán <strong>${amount(p.convertAgricultureHa, "ha agrícolas")}</strong> y se perderá su producción.` : "Suelo requerido: " + amount(p.landHa, "ha")}</p><p>La obra avanza y paga mes a mes; puede detenerse por falta de recursos o dinero.</p>`,
-      };
+        building = target.dataset.building;
+      E.queueConstruction(s, building, factor, true);
+      u.confirm = null;
     }
     if (a === "nationalize") {
       const p = E.nationalizePreview(s, target.dataset.resource);
@@ -753,13 +733,27 @@
     if (a === "repay")
       E.repayment(s, formElement.dataset.loan, Number(v.amount) / 1e9);
     if (a === "ages") E.setAges(s, Number(v.start), Number(v.retire));
-    if (a === "agreement") E.addAgreement(s, v);
+    if (a === "trade-policies")
+      E.setTradePolicies(
+        s,
+        Object.fromEntries(
+          D.materials.map((m) => [
+            m.id,
+            {
+              sell: v["sell_" + m.id] === "on",
+              autoImport: v["import_" + m.id] === "on",
+              importBelow: Number(v["floor_" + m.id]),
+            },
+          ]),
+        ),
+      );
     if (a === "research") {
       E.startResearch(s, v.technology, Number(v.budget) / 1e9);
       return `Investigación agregada: posición ${s.countries[s.playerCountryId].research.queue.length} de la cola.`;
     }
     if (a === "explore") {
       E.explore(s, v.resource, v.site === "sea", Number(v.budget) / 1e9);
+      u.exploreDraft = { ...v };
       return `Exploración agregada: posición ${s.countries[s.playerCountryId].research.queue.length} de la cola.`;
     }
     return "Cambios aplicados.";

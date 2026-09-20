@@ -315,3 +315,17 @@
     padding: 10px;
   }
 }
+/* v7.7: resource policy table is one form, not a row of independent fields. */
+.v6-form[data-v6-form="trade-policies"] { display: block; }
+.v6-form[data-v6-form="trade-policies"] .table-wrap { width: 100%; }
+.v6-form[data-v6-form="trade-policies"] input[type="number"] {
+  width: 150px; padding: 9px; border: 1px solid #345363;
+  border-radius: 6px; color: #e5f5fa; background: #0b202c;
+}
+.v6-form[data-v6-form="trade-policies"] input[type="checkbox"] {
+  width: 20px; height: 20px; accent-color: #43d9c8;
+}
+.v6-form[data-v6-form="trade-policies"] tbody th {
+  font-size: 12px; text-transform: none; letter-spacing: normal;
+}
+.v6-form[data-v6-form="trade-policies"] > button[type="submit"] { margin-top: 16px; }

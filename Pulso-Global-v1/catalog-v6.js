@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (D, FACTS) {
   "use strict";
   D.version = 6;
-  D.release = "7.6.0";
+  D.release = "7.7.0";
   D.facts = FACTS;
   const techs = [];
   function branch(sector, items) {
@@ -861,7 +861,7 @@
       id,
       label,
       tier,
-      value: usd / 1e9,
+      value: (usd * (tier === "final" ? 10 : 1)) / 1e9,
       baseOutput,
       sector,
       technology,
