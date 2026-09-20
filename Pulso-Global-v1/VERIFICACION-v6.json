@@ -1,19 +1,19 @@
 {
-  "version": "7.7.0",
-  "base": "7.6.0",
-  "generatedAt": "2026-09-20T10:59:43.306Z",
-  "engineTestCount": 55,
+  "version": "7.8.0",
+  "base": "7.7.0",
+  "generatedAt": "2026-09-20T11:16:17.301Z",
+  "engineTestCount": 57,
   "checks": {
     "unit-tests": {
       "result": "PASS",
       "exitCode": 0,
-      "elapsedSeconds": 94.295,
-      "createdAt": "2026-09-20T10:59:24.536Z"
+      "elapsedSeconds": 90.373,
+      "createdAt": "2026-09-20T11:14:41.654Z"
     },
-    "adjustments-v77": {
+    "adjustments-v78": {
       "result": "PASS",
-      "testCount": 14,
-      "createdAt": "2026-09-20T10:58:28.061Z"
+      "testCount": 16,
+      "createdAt": "2026-09-20T11:12:55.063Z"
     },
     "browser": {
       "result": "PASS",
@@ -27,7 +27,7 @@
     "upgrade": {
       "result": "PASS",
       "oldCache": "5.4",
-      "newCache": "7.7",
+      "newCache": "7.8",
       "migration": true,
       "backupDownload": true,
       "negativeBalancePreserved": true,
@@ -39,43 +39,43 @@
       "months": 60,
       "days": 1826,
       "countries": 128,
-      "averageMonthMs": 1967.9320066666667,
-      "averageDayMs": 64.66370980284776,
+      "averageMonthMs": 1599.04999,
+      "averageDayMs": 52.54272338444688,
       "samples": [
         {
           "tick": 12,
           "recessions": 107,
           "averageCoverage": 0.4855153969315551,
           "averageEnergy": 0.9458635793290665,
-          "elapsedSeconds": 24.0251703
+          "elapsedSeconds": 16.7574368
         },
         {
           "tick": 24,
           "recessions": 104,
           "averageCoverage": 0.4600259983319109,
           "averageEnergy": 0.9424647234042209,
-          "elapsedSeconds": 48.3105005
+          "elapsedSeconds": 36.2123059
         },
         {
           "tick": 36,
           "recessions": 86,
           "averageCoverage": 0.4159074242272026,
           "averageEnergy": 0.9565064858916371,
-          "elapsedSeconds": 71.50677530000002
+          "elapsedSeconds": 57.7623186
         },
         {
           "tick": 48,
           "recessions": 106,
           "averageCoverage": 0.3931861096370081,
           "averageEnergy": 0.9384562565067087,
-          "elapsedSeconds": 95.71317950000001
+          "elapsedSeconds": 77.4915773
         },
         {
           "tick": 60,
           "recessions": 122,
           "averageCoverage": 0.400257338660114,
           "averageEnergy": 0.9442570312600651,
-          "elapsedSeconds": 118.0754103
+          "elapsedSeconds": 95.9424451
         }
       ]
     },
@@ -104,27 +104,25 @@
     }
   },
   "verified": [
-    "One-time v7.6 price migration preserves cash, debt, inventory and queue",
-    "Direct building, 999 quantity validation, captured actions during worker calculation",
-    "Repeated exploration preserves resource, zone and budget",
-    "Trade policy persistence, thresholds, bans, no borrowing, protected imports",
-    "Professional final demand, durable ownership, bounded bonuses",
+    "One-time v7.8 deposit migration: land, sea and shown discovery amounts x100",
+    "New exploration discoveries use the x100 physical scale",
+    "Migration preserves cash, debt, stocks, work and exhausted fields",
+    "Direct building, repeated exploration, trade thresholds and final good effects",
     "128 countries, 16 panels, desktop/mobile, offline, save/reload",
-    "60 months, 1826 days, cash and resource conservation",
+    "60 months, 1,826 days, cash and resource conservation",
     "Worker and direct engine agree over 31 days"
   ],
   "sourceSha256": {
-    "app.js": "ad86d24f9091b0f8c2752ceedf5532cc13bb53429206eda8a26a6153d332e50c",
-    "catalog-v6.js": "2987612e49d09cc710e74a41a74ec1c7879afe110b8dffad0415b2be303f9fb8",
-    "simulation-v6.js": "8a7947a195f1016decdb7d756d10f806691aeea2ee5a738a224b13d25cd3c2e0",
+    "app.js": "251476ba730fd6f807893c6e159aebfbe882bb5189968bafc7df35889b93b2bf",
+    "catalog-v6.js": "7b35ee2444ebc2e93e0618f56cacc7dc95a3b3f00cdf86e0b94fadcb6477df54",
+    "simulation-v6.js": "6ebe3a8077efc45fa4444c153915a4aa4316daa2f991d61d9ca9d7374614bdb1",
     "ui-v6.js": "f877f58f1c59e67fcd8a552ff4e39d87729b3870bbb70a703f9a6aa1d998669d",
     "styles-v6.css": "4f2b2def85e3134cbf4b83ff5d31215d5c87b3226d30afcd8428d6b5e7e64b1e",
-    "sw.js": "19f6f5401887b62a14897dd3518b7f5c7c7adfff5e7df63c216e39514abc30c1"
+    "sw.js": "0574e3b7d96cd0303774b25ea17c2f909355971570ac28c22eb644559545bab1"
   },
   "limits": [
     "Long-term economic balance remains experimental; scarcity and widespread recession occur in the stress scenario.",
     "Stress uses Nauru with an artificial treasury of 1000 billion USD to test numerical stability, not playability.",
-    "Final prices multiply by ten; net profit depends on buyers and costs.",
     "Local Edge and emulated mobile only; no live GitHub deployment.",
     "Old v7.5 performance benchmarks were not rerun or claimed for this release."
   ]

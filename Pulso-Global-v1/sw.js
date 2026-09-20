@@ -1,4 +1,4 @@
-const CACHE_NAME = "pulso-global-v7.7.0";
+const CACHE_NAME = "pulso-global-v7.8.0";
 const ASSETS = [
   "./",
   "./index.html",

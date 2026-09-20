@@ -1,14 +1,14 @@
-# Pulso Global 7.7 — comercio automático y bienes finales
+# Pulso Global 7.8 — depósitos ampliados
 
-Actualización incremental sobre **v7.6**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.7**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.6, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.7, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.7**; si todavía aparece v7.6, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.8**; si todavía aparece v7.7, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -24,7 +24,13 @@ Después de cargar todos los archivos, funciona sin Internet. No hay avance con 
 
 ## Evolución del motor
 
-## Ajuste 7.7: controles directos y mercado automático
+## Ajuste 7.8: depósitos de recursos ×100
+
+Las reservas físicas de los depósitos naturales se multiplican por **100**. Afecta los depósitos ya descubiertos en partidas existentes y todos los hallazgos nuevos, tanto terrestres como marítimos. El valor mostrado en el resultado de exploración también se actualiza para coincidir con el yacimiento disponible.
+
+La migración se ejecuta una sola vez: cargar o guardar nuevamente no vuelve a multiplicar el depósito. Los yacimientos agotados permanecen agotados. No modifica dinero, deuda, instalaciones, stock almacenado ni el porcentaje de avance de las exploraciones.
+
+## Historial — Ajuste 7.7: controles directos y mercado automático
 
 - Exploración conserva recurso, zona y presupuesto tras agregar a la cola. Otro clic repite el pedido durante la sesión.
 - Construcciones de 1 a 999 módulos, sin confirmación. Costo estimado, plazo y conversión de suelo agrícola se muestran antes de construir. Continúan la bolsa compartida y la cola de acciones durante cálculos.
@@ -40,7 +46,7 @@ Después de cargar todos los archivos, funciona sin Internet. No hay avance con 
 
 Se conservan reservas, deuda, inventarios, obras y cola científica. Los precios se actualizan una sola vez. Los acuerdos del jugador se cierran sin liquidaciones adicionales; se reemplazan por el mercado automático. Las importaciones automáticas comienzan desactivadas. Las exportaciones no residuales continúan habilitadas por defecto, como antes.
 
-Exportá un respaldo antes de actualizar; no abras un guardado v7.7 en versiones anteriores. El equilibrio económico a largo plazo sigue siendo experimental: las pruebas verifican contabilidad y funcionamiento, no garantizan prosperidad para todas las políticas.
+Exportá un respaldo antes de actualizar; no abras un guardado v7.8 en versiones anteriores. El equilibrio económico a largo plazo sigue siendo experimental: las pruebas verifican contabilidad y funcionamiento, no garantizan prosperidad para todas las políticas.
 
 ## Historial — Ajuste 7.6: cola compartida sin límite fijo
 

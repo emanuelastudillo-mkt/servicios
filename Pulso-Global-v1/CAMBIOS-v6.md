@@ -1,4 +1,11 @@
-# Pulso Global 7.7 — comercio automático y bienes finales
+# Pulso Global 7.8 — depósitos ampliados
+
+## Ajuste v7.8
+
+- Reservas físicas de depósitos naturales terrestres y marítimos ×100, incluidas las ya descubiertas y los nuevos resultados de exploración.
+- Migración de una sola ejecución: no altera Tesoro, préstamos, inventarios, obras ni exploraciones; los depósitos agotados siguen agotados.
+
+## Historial v7.7
 
 ## Ajuste 7.7: controles directos y mercado automático
 
@@ -16,7 +23,7 @@
 
 Se conservan reservas, deuda, inventarios, obras y cola científica. Los precios se actualizan una sola vez. Los acuerdos del jugador se cierran sin liquidaciones adicionales; se reemplazan por el mercado automático. Las importaciones automáticas comienzan desactivadas. Las exportaciones no residuales continúan habilitadas por defecto, como antes.
 
-Exportá un respaldo antes de actualizar; no abras un guardado v7.7 en versiones anteriores. El equilibrio económico a largo plazo sigue siendo experimental: las pruebas verifican contabilidad y funcionamiento, no garantizan prosperidad para todas las políticas.
+Exportá un respaldo antes de actualizar; no abras un guardado v7.8 en versiones anteriores. El equilibrio económico a largo plazo sigue siendo experimental: las pruebas verifican contabilidad y funcionamiento, no garantizan prosperidad para todas las políticas.
 
 ## Historial
 

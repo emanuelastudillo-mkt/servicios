@@ -49,6 +49,7 @@
     diamond_tools: 0.001,
     plutonium: 0.000000002,
   };
+  const DISCOVERED_DEPOSIT_SCALE = 100;
   function useRate(m) {
     return m.household || professionalUse[m.id] || 0;
   }
@@ -410,10 +411,10 @@
         scale *= geology;
         if (geology > 0)
           c.naturalDeposits[m.id] = {
-            land: scale * m.baseOutput * 480,
+            land: scale * m.baseOutput * 480 * DISCOVERED_DEPOSIT_SCALE,
             sea:
               !D.landlocked.includes(c.id) && m.id === "crude_oil"
-                ? scale * m.baseOutput * 360
+                ? scale * m.baseOutput * 360 * DISCOVERED_DEPOSIT_SCALE
                 : 0,
             potential: geology,
             studies: 0,
@@ -697,6 +698,21 @@
     c.materialStocks = c.publicStocks;
   }
   function initialize(s, legacy = false) {
+    // v7.8: deposits are intentionally much larger. This migration applies once
+    // to existing remaining reserves and to the exploration result shown to player.
+    if (!s.discoveredDepositsV78) {
+      for (const c of Object.values(s.countries || {})) {
+        for (const dep of Object.values(c.naturalDeposits || {})) {
+          dep.land = Math.max(0, finite(dep.land)) * DISCOVERED_DEPOSIT_SCALE;
+          dep.sea = Math.max(0, finite(dep.sea)) * DISCOVERED_DEPOSIT_SCALE;
+        }
+        for (const ex of c.research?.explorations || [])
+          if (ex.status === "Depósito descubierto")
+            ex.discovered =
+              Math.max(0, finite(ex.discovered)) * DISCOVERED_DEPOSIT_SCALE;
+      }
+      s.discoveredDepositsV78 = true;
+    }
     if (!s.finalPricesV77) {
       for (const m of materials.filter((m) => m.tier === "final")) {
         for (const key of ["resourcePrices", "previousResourcePrices"])
@@ -2736,7 +2752,10 @@
         ex.probability = chance;
         if (ex.roll < chance && potential > 0.04) {
           const m = D.getMaterial(ex.resource),
-            size = m.baseOutput * (24 + ex.sizeRoll * 120);
+            size =
+              m.baseOutput *
+              (24 + ex.sizeRoll * 120) *
+              DISCOVERED_DEPOSIT_SCALE;
           c.naturalDeposits[m.id] ||= {
             land: 0,
             sea: 0,
