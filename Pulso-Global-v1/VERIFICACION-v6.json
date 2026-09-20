@@ -1,12 +1,12 @@
 {
-  "version": "7.4.0",
-  "base": "7.3.0",
-  "generatedAt": "2026-09-15T20:39:55.014Z",
+  "version": "7.5.0",
+  "base": "7.4.0",
+  "generatedAt": "2026-09-20T04:57:12.529Z",
   "engine": {
     "result": "PASS",
     "exitCode": 0,
-    "elapsedSeconds": 100.995,
-    "createdAt": "2026-09-15T20:39:27.128Z",
+    "elapsedSeconds": 113.488,
+    "createdAt": "2026-09-20T04:55:39.453Z",
     "testCount": 41
   },
   "browser": {
@@ -18,10 +18,44 @@
     "saveReload": true,
     "errors": []
   },
+  "interactions": {
+    "result": "PASS",
+    "queue": "FIFO, exactly once, captured values",
+    "quantity": 3,
+    "editingPreserved": true,
+    "worker": {
+      "equal": true,
+      "days": 31,
+      "changedCountries": 1024,
+      "fullCountries": 3968
+    },
+    "errors": []
+  },
+  "construction": {
+    "testCount": 3,
+    "result": "PASS"
+  },
+  "performance": {
+    "before": {
+      "longTasks": 26,
+      "maxMainThreadMs": 126,
+      "totalBlockedMs": 1974,
+      "fullRedraws": 24,
+      "elapsedMs": 7252
+    },
+    "after": {
+      "longTasks": 2,
+      "maxMainThreadMs": 57,
+      "totalBlockedMs": 109,
+      "fullRedraws": 0,
+      "elapsedMs": 3318
+    },
+    "scope": "Local Edge, 24 days, new Nauru game, resources panel; timings vary by device."
+  },
   "upgrade": {
     "result": "PASS",
     "oldCache": "5.4",
-    "newCache": "7.4",
+    "newCache": "7.5",
     "migration": true,
     "backupDownload": true,
     "negativeBalancePreserved": true,
@@ -33,43 +67,43 @@
     "months": 60,
     "days": 1826,
     "countries": 128,
-    "averageMonthMs": 2026.6417350000002,
-    "averageDayMs": 66.5928330230011,
+    "averageMonthMs": 2334.3161483333333,
+    "averageDayMs": 76.7026161555312,
     "samples": [
       {
         "tick": 12,
         "recessions": 108,
-        "averageCoverage": 0.8700762512043767,
-        "averageEnergy": 0.9464608021051526,
-        "elapsedSeconds": 20.134409099999996
+        "averageCoverage": 0.8700762511196097,
+        "averageEnergy": 0.9464608116049076,
+        "elapsedSeconds": 33.7874086
       },
       {
         "tick": 24,
         "recessions": 112,
-        "averageCoverage": 0.6774765642595274,
-        "averageEnergy": 0.9435182342562802,
-        "elapsedSeconds": 53.0217106
+        "averageCoverage": 0.6810526735610023,
+        "averageEnergy": 0.943520197203001,
+        "elapsedSeconds": 62.57248310000001
       },
       {
         "tick": 36,
-        "recessions": 105,
-        "averageCoverage": 0.6623671622522397,
-        "averageEnergy": 0.9638476527184817,
-        "elapsedSeconds": 78.3725205
+        "recessions": 104,
+        "averageCoverage": 0.6661727279383842,
+        "averageEnergy": 0.9638246356156515,
+        "elapsedSeconds": 88.8312119
       },
       {
         "tick": 48,
-        "recessions": 111,
-        "averageCoverage": 0.6141248849429277,
-        "averageEnergy": 0.7174228591773535,
-        "elapsedSeconds": 102.3730297
+        "recessions": 112,
+        "averageCoverage": 0.6153619108411768,
+        "averageEnergy": 0.7457674173273033,
+        "elapsedSeconds": 114.56604519999999
       },
       {
         "tick": 60,
         "recessions": 124,
-        "averageCoverage": 0.5844342496407047,
-        "averageEnergy": 0.8944497281914813,
-        "elapsedSeconds": 121.5979871
+        "averageCoverage": 0.5801262778517606,
+        "averageEnergy": 0.8780949589491707,
+        "elapsedSeconds": 140.0529198
       }
     ],
     "scope": "Numerical/accounting stability, not economic balance approval",
@@ -77,14 +111,15 @@
     "testTreasuryBillions": 1000
   },
   "sourceSha256": {
-    "app.js": "fb25cda3b8b4d5e67a36e13e3308e8df9851624ced58bc8a6c835b686b205586",
+    "app.js": "18076fe53b6d7f1af0a5ac9ace11711e21c2a72da4f7401d382b4ce9580bddf4",
     "engine.js": "7284bc86041dd01614ee642db7d48c76922994197aad26392f9301e2eb10c3d1",
-    "catalog-v6.js": "906aa9ec9dde029d80a78e1971024d55bad0ce69b1df5e89f372aaa27b6c0d06",
-    "simulation-v6.js": "99d06886f07f13e488e16c2c35acf35b41793a9511729f344cace7b35ed4d305",
-    "simulation-worker.js": "8cdb69e98dda815cc17aa75014b7e519e1ccdca8dce76a4ecd8bc9a8227bd9c6",
-    "ui-v6.js": "a730c0099ee5abbb5bc66744f5ca9ddb02f2cdf802b7f4bd45943d404728d625",
+    "catalog-v6.js": "cc9b2e8fa71b4bccf971c774990fae6166c5e8994436f0cf69cd8b0fcf7f418a",
+    "simulation-v6.js": "1be099214cda82ce32a0ea8c0e64b8641c7a0d5acd67833a4a52e28384b30cb6",
+    "simulation-worker.js": "1bdc5d2c524d544a82e7d70f3d028c26c64292bddb2404f7487de9b2e2905f13",
+    "ui-v6.js": "e33db73698b1445dfa2dddf833244a47ac53a0ba820a4ee02d87f59bd663dc2f",
     "styles-v6.css": "8d22d1cc1b212c66d3b8246d0a546661e306a3da797e4b4ed2e679d030537e40",
-    "sw.js": "242e2e8f6714bf097439ac24e4af9df7310858336062b0ec29ae6861f6b1ca79"
+    "styles.css": "d7afb85301ae1b8bef24401136b658efc4af6143317f8537721f1e2a51e88d52",
+    "sw.js": "7c9ef52c3971a8efa029c67f291d78ffd41b06349a31370fdf576bf69e87b741"
   },
   "limits": [
     "Long-term economic balance remains experimental; sustained scarcity observed.",

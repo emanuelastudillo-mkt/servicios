@@ -14,6 +14,7 @@
   const app = document.querySelector("#app");
   const speedIntervals = { 1: 1000, 3: 360, 6: 170 };
   const interfaceOnlyActions = new Set([
+    "v6-refresh",
     "v6-build",
     "v6-cancel-confirm",
     "v6-close-resource",
@@ -98,7 +99,7 @@
       icon: "⌂",
       label: "Convertí planes en obras",
       title: "Construcciones",
-      text: "Viviendas, rutas, aeropuertos, trenes, fábricas y centrales consumen recursos y mano de obra. Revisá plazo, costo y materiales antes de iniciar hasta ocho obras activas.",
+      text: "Viviendas, rutas, aeropuertos, trenes, fábricas y centrales consumen recursos y mano de obra. Revisá plazo, costo y materiales antes de iniciar las obras. La bolsa nacional de trabajadores se reparte entre todos los proyectos activos.",
     },
     {
       icon: "▦",
@@ -164,6 +165,149 @@
   let simulationRequestId = 0;
   let simulationMode = "Preparando segundo plano";
   let lastSimulationMs = 0;
+  let workerNeedsSync = true;
+  let actionQueue = [];
+  let drainingActions = false;
+  let lastPanelRefresh = 0;
+  let autosaveTimer = null;
+
+  function scheduleAutosave() {
+    workerNeedsSync = true;
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(
+      () =>
+        saveGame("autosave", false).catch((error) =>
+          showToast(error.message, "error"),
+        ),
+      800,
+    );
+  }
+
+  function enqueueAction(run, label) {
+    actionQueue.push({ run, label });
+    showToast(
+      `${label}: en cola (${actionQueue.length}). Se aplicará al terminar el día en curso.`,
+      "success",
+    );
+    updateDailyDisplay();
+  }
+
+  function patchLiveNode(current, next) {
+    if (
+      current.nodeType !== next.nodeType ||
+      current.nodeName !== next.nodeName
+    ) {
+      current.replaceWith(next.cloneNode(true));
+      return;
+    }
+    if (current.nodeType === Node.TEXT_NODE) {
+      if (current.nodeValue !== next.nodeValue)
+        current.nodeValue = next.nodeValue;
+      return;
+    }
+    if (current.nodeType !== Node.ELEMENT_NODE) return;
+    // Retain user-entered values, selections, focus and quote forms between days.
+    if (current.matches("form,input,select,textarea")) return;
+    for (const attr of Array.from(current.attributes)) {
+      if (attr.name !== "open" && !next.hasAttribute(attr.name))
+        current.removeAttribute(attr.name);
+    }
+    for (const attr of Array.from(next.attributes)) {
+      if (
+        attr.name !== "open" &&
+        current.getAttribute(attr.name) !== attr.value
+      )
+        current.setAttribute(attr.name, attr.value);
+    }
+    const children = Array.from(next.childNodes);
+    for (let i = 0; i < children.length; i++) {
+      if (current.childNodes[i])
+        patchLiveNode(current.childNodes[i], children[i]);
+      else current.appendChild(children[i].cloneNode(true));
+    }
+    while (current.childNodes.length > children.length)
+      current.lastChild.remove();
+  }
+
+  // Preserve the current DOM, pointer targets and partially edited forms during ticks.
+  function updateDailyDisplay(refreshPanel = false) {
+    if (!game) return;
+    const c = playerCountry();
+    if (!c || !document.querySelector(".game-shell")) return;
+    const put = (selector, value) => {
+      const el = document.querySelector(selector);
+      if (el && el.textContent !== value) el.textContent = value;
+    };
+    put(".date-block strong", Engine.dateLabel(game.date));
+    put(
+      ".date-block small",
+      `${game.dailyStage || "Inicio del mes"} · ${actionQueue.length ? actionQueue.length + " acciones pendientes" : simulationMode}`,
+    );
+    put(
+      ".mandate-time",
+      `Día ${game.dayTick || 0} · Mes ${game.tick} · Sin límite`,
+    );
+    put(".hud-population strong", people(c.population));
+    put(".hud-reserves strong", money(c.reserves));
+    put(".hud-reserves small", `Deuda ${fmt(c.debt, 1)}% PBI`);
+    const reserves = document.querySelector(".hud-reserves");
+    if (reserves) {
+      reserves.title = `Tesoro disponible: US$ ${fmt(c.reserves * 1e9, 2)}`;
+      reserves
+        .querySelector("strong")
+        ?.classList.toggle("negative", c.reserves < 0);
+    }
+    put(
+      ".hud-workers strong",
+      `${fmt(Engine.constructionWorkforce(c), 0)} personas`,
+    );
+    put(
+      ".hud-workers small",
+      `${activeProjects(c).length} obras · bolsa compartida`,
+    );
+    const stats = document.querySelectorAll(".hud-stats > div");
+    if (stats[1]) {
+      stats[1].querySelector("strong").textContent = money(c.gdp);
+      stats[1].querySelector("small").textContent = signed(c.growth, "%");
+    }
+    if (stats[3])
+      stats[3].querySelector("strong").textContent = `${fmt(c.happiness)}%`;
+    if (stats[3])
+      stats[3].querySelector("small").textContent =
+        `${fmt(c.popularity)}% apoyo`;
+    if (stats[4]) {
+      stats[4].querySelector("strong").textContent =
+        `${fmt(100 - c.unemployment)}%`;
+      stats[4].querySelector("small").textContent =
+        `${fmt(c.unemployment)}% desocupación`;
+    }
+    if (stats[6]) {
+      const low = DATA.materials.filter(
+        (m) => c.materialStocks[m.id] / c.materialCapacity[m.id] < 0.18,
+      ).length;
+      stats[6].querySelector("strong").textContent = low
+        ? `${low} críticos`
+        : "Estables";
+      stats[6].querySelector("small").textContent =
+        `${activeProjects(c).length} obras activas`;
+    }
+    // Refresh data at most every two seconds without rebuilding interactive nodes.
+    if (
+      refreshPanel &&
+      !ui6.confirm &&
+      !document.activeElement?.matches("input,select,textarea") &&
+      performance.now() - lastPanelRefresh > 2000
+    ) {
+      const panel = document.querySelector(".management-panel");
+      if (panel) {
+        const template = document.createElement("template");
+        template.innerHTML = renderCurrentPanel();
+        if (template.content.firstElementChild)
+          patchLiveNode(panel, template.content.firstElementChild);
+      }
+      lastPanelRefresh = performance.now();
+    }
+  }
 
   const SaveStore = {
     dbPromise: null,
@@ -249,11 +393,18 @@
         })[char],
     );
   }
+  const numberFormats = new Map();
   function fmt(value, digits) {
-    return new Intl.NumberFormat("es-AR", {
-      minimumFractionDigits: digits == null ? 1 : digits,
-      maximumFractionDigits: digits == null ? 1 : digits,
-    }).format(Number(value) || 0);
+    const precision = digits == null ? 1 : digits;
+    if (!numberFormats.has(precision))
+      numberFormats.set(
+        precision,
+        new Intl.NumberFormat("es-AR", {
+          minimumFractionDigits: precision,
+          maximumFractionDigits: precision,
+        }),
+      );
+    return numberFormats.get(precision).format(Number(value) || 0);
   }
   function compactAbsolute(value) {
     const numeric = Number(value) || 0;
@@ -416,7 +567,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.4</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.5</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -556,7 +707,7 @@
               <div class="hud-reserves" title="Tesoro disponible: US$ ${fmt(country.reserves * 1e9, 2)}"><span>Reservas</span><strong class="${country.reserves < 0 ? "negative" : ""}">${money(country.reserves)}</strong><small>Deuda ${fmt(country.debt, 1)}% PBI</small></div>
               <div><span>Felicidad</span><strong>${fmt(country.happiness)}%</strong><small>${fmt(country.popularity)}% apoyo</small></div>
               <div><span>Empleo</span><strong>${fmt(100 - country.unemployment)}%</strong><small>${fmt(country.unemployment)}% desocupación</small></div>
-              <div><span>Insumos</span><strong>${lowStock ? `${lowStock} críticos` : "Estables"}</strong><small>${activeProjects(country).length} obras activas</small></div>
+              <div class="hud-workers" title="Personas disponibles en la bolsa compartida de construcción"><span>Mano de obra</span><strong>${fmt(Engine.constructionWorkforce(country), 0)} personas</strong><small>${activeProjects(country).length} obras · bolsa compartida</small></div><div><span>Insumos</span><strong>${lowStock ? `${lowStock} críticos` : "Estables"}</strong><small>${activeProjects(country).length} obras activas</small></div>
             </div>
             <div class="time-controls" aria-label="Controles de tiempo">
               <button class="icon-button ${speed === 0 ? "active" : ""}" type="button" data-action="speed" data-speed="0" aria-label="Pausa">Ⅱ</button>
@@ -1608,7 +1759,12 @@
       };
       worker.onerror = (event) =>
         reject(new Error(event.message || "Falló el cálculo en segundo plano"));
-      worker.postMessage({ type: "advance-day", id, state });
+      worker.postMessage({
+        type: "advance-day",
+        id,
+        state: workerNeedsSync ? state : undefined,
+      });
+      workerNeedsSync = false;
     });
   }
 
@@ -1619,7 +1775,15 @@
     if (game && game.gameOver) speed = 0;
     if (speedIntervals[speed])
       timer = setInterval(stepGame, speedIntervals[speed]);
-    if (game) renderGame();
+    if (game)
+      app
+        .querySelectorAll('[data-action="speed"]')
+        .forEach((button) =>
+          button.classList.toggle(
+            "active",
+            Number(button.dataset.speed) === speed,
+          ),
+        );
   }
 
   async function stepGame() {
@@ -1627,7 +1791,7 @@
       setSpeed(0);
       return;
     }
-    if (simulationBusy) return;
+    if (simulationBusy || drainingActions) return;
     simulationBusy = true;
     const started = performance.now();
     try {
@@ -1648,24 +1812,43 @@
             game.date.month !== beforeMonth || game.date.year !== beforeYear,
         };
       }
-      game = result.state;
+      game = result.incremental
+        ? {
+            ...result.state,
+            countries: { ...game.countries, ...result.state.countries },
+          }
+        : result.state;
       lastSimulationMs = performance.now() - started;
       if (!draftDirty) draftFromGame();
       if (result.monthClosed && game.tick % 3 === 0)
         await saveGame("autosave", false);
+      if (result.monthClosed) drawWorldMap();
       if (game.gameOver) {
         clearInterval(timer);
         timer = null;
         speed = 0;
       }
-      renderGame();
+      if (game.gameOver) renderGame();
+      else updateDailyDisplay(true);
     } finally {
       simulationBusy = false;
+      drainingActions = true;
+      while (actionQueue.length) {
+        const item = actionQueue.shift();
+        try {
+          await item.run();
+        } catch (error) {
+          showToast(`${item.label}: ${error.message}`, "error");
+        }
+      }
+      drainingActions = false;
+      updateDailyDisplay();
     }
   }
 
   async function saveGame(slot, notify) {
     if (!game) return;
+    workerNeedsSync = true;
     const payload = await SaveStore.put(slot, game);
     game.savedAt = payload.savedAt;
     lastSaveLabel = `Guardado ${new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(new Date(payload.savedAt))}`;
@@ -1764,6 +1947,8 @@
           dailyStage: game.dailyStage,
           simulationMode,
           lastSimulationMs,
+          pendingActions: actionQueue.length,
+          simulationBusy,
           month: game.tick,
           openEnded: game.openEnded,
           country: c.name,
@@ -1779,6 +1964,8 @@
           tourism: c.tourism,
           migration: c.migration,
           activeProjects: activeProjects(c).length,
+          projects: c.projects,
+          constructionWorkforce: Engine.constructionWorkforce(c),
           materialStocks: c.materialStocks,
           reserves: c.reserves,
           debt: c.debt,
@@ -1809,6 +1996,10 @@
       annotations: { readOnlyHint: false, untrustedContentHint: false },
       async execute(input) {
         if (!game) throw new Error("No hay una partida activa.");
+        if (simulationBusy || drainingActions)
+          throw new Error(
+            "Esperá a que termine la jornada y sus acciones pendientes.",
+          );
         const months = Number(input && input.months);
         if (!Number.isInteger(months) || months < 1 || months > 12)
           throw new Error("months debe ser un entero entre 1 y 12.");
@@ -1845,6 +2036,10 @@
       annotations: { readOnlyHint: false, untrustedContentHint: false },
       async execute(input) {
         if (!game) throw new Error("No hay una partida activa.");
+        if (simulationBusy || drainingActions)
+          throw new Error(
+            "Esperá a que termine la jornada y sus acciones pendientes.",
+          );
         const project = Engine.queueConstruction(game, input.constructionId);
         await saveGame("autosave", false);
         renderGame();
@@ -1857,7 +2052,7 @@
     });
   }
 
-  app.addEventListener("click", async (event) => {
+  async function handleGameClick(event) {
     const target = event.target.closest("[data-action]");
     if (!target) return;
     const action = target.dataset.action;
@@ -1872,15 +2067,27 @@
       ].includes(action) &&
       !interfaceOnlyActions.has(action)
     ) {
-      showToast("Terminando el cálculo de este día…", "success");
+      const snapshot = target.cloneNode(true),
+        confirmation = ui6.confirm && { ...ui6.confirm };
+      if (action === "apply-taxes")
+        snapshot.pendingTaxes = Engine.clone(taxDraft);
+      if (action === "v6-confirm" && confirmation) ui6.confirm = null;
+      enqueueAction(async () => {
+        if (confirmation && action === "v6-confirm") ui6.confirm = confirmation;
+        await handleGameClick({ target: snapshot });
+      }, target.textContent.trim() || "Acción");
+      if (action === "v6-confirm") renderGame();
       return;
     }
     if (action.startsWith("v6-") && game) {
       try {
+        if (action === "v6-refresh") {
+          renderGame();
+          return;
+        }
         const result = UI6.action(game, ui6, target);
         if (result?.view) currentView = result.view;
-        if (!interfaceOnlyActions.has(action))
-          await saveGame("autosave", false);
+        if (!interfaceOnlyActions.has(action)) scheduleAutosave();
         renderGame();
       } catch (error) {
         showToast(error.message, "error");
@@ -1948,7 +2155,7 @@
       draftFromGame();
       renderGame();
     } else if (action === "apply-taxes") {
-      Engine.applyTaxes(game, taxDraft);
+      Engine.applyTaxes(game, target.pendingTaxes || taxDraft);
       taxDraftDirty = false;
       taxDraft = Engine.clone(playerCountry().taxes);
       await saveGame("autosave", false);
@@ -2047,10 +2254,14 @@
       document.querySelector("#import-file").click();
     else if (action === "new-game") {
       setSpeed(0);
+      actionQueue = [];
+      clearTimeout(autosaveTimer);
+      workerNeedsSync = true;
       game = null;
       await renderStart();
     }
-  });
+  }
+  app.addEventListener("click", handleGameClick);
 
   app.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && (ui6.confirm || ui6.resource)) {
@@ -2171,40 +2382,33 @@
     if (event.target.dataset.kind === "tax")
       event.target.value = taxDraft[event.target.dataset.tax];
   });
-  app.addEventListener("focusin", (event) => {
-    if (
-      game &&
-      event.target.matches("input,select,textarea") &&
-      event.target.closest(".v6-panel") &&
-      speed
-    ) {
-      clearInterval(timer);
-      timer = null;
-      speed = 0;
-      app
-        .querySelectorAll('[data-action="speed"]')
-        .forEach((button) =>
-          button.classList.toggle("active", button.dataset.speed === "0"),
-        );
-    }
-  });
   app.addEventListener("submit", async (event) => {
     const form = event.target.closest("[data-v6-form]");
     if (!form || !game) return;
     event.preventDefault();
     if (simulationBusy) {
-      showToast("Terminando el cálculo de este día…", "success");
+      const snapshot = form.cloneNode(true);
+      for (const [index, input] of Array.from(form.elements).entries()) {
+        if (snapshot.elements[index]) {
+          snapshot.elements[index].value = input.value;
+          snapshot.elements[index].checked = input.checked;
+        }
+      }
+      enqueueAction(() => applyForm(snapshot), "Aplicar cambios");
       return;
     }
+    applyForm(form);
+  });
+  function applyForm(form) {
     try {
       const message = UI6.submit(game, ui6, form);
-      await saveGame("autosave", false);
+      scheduleAutosave();
       renderGame();
       showToast(message || "Cambios aplicados", "success");
     } catch (error) {
       showToast(error.message, "error");
     }
-  });
+  }
   document.addEventListener("click", (event) => {
     const menu = document.querySelector("#save-menu");
     if (menu && !menu.hidden && !event.target.closest(".save-cluster"))

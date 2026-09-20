@@ -915,7 +915,7 @@
         population: 46.6,
         gdp: 640,
         education: 73,
-        unemployment: 7.4,
+        unemployment: 7.5,
         infrastructure: 64,
         debt: 86,
         inflation: 21,
@@ -2295,7 +2295,7 @@
 
     return {
       version: 6,
-      release: "7.4.0",
+      release: "7.5.0",
       disclaimer:
         "Escenario hipotético. Los perfiles y valores son abstracciones de juego, no evaluaciones ni estadísticas oficiales.",
       sectors: SECTORS,

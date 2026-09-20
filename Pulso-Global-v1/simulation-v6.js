@@ -666,6 +666,8 @@
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
+      // JSON saves break object aliases; keep the public inventory view current.
+      c.materialStocks = c.publicStocks;
       c.nationalizedResources ||= map(false);
       for (const sid of sectors)
         if (c.nationalized?.[sid])
@@ -2008,6 +2010,12 @@
         l.restrictedHa,
     );
   }
+  function constructionWorkforce(c) {
+    return Math.max(
+      0,
+      c.laborSnapshot.unemployed * 1e6 + (c.constructionWorkers || 0),
+    );
+  }
   function constructionPreview(s, id, factor = 1) {
     const c = s.countries[s.playerCountryId],
       b = D.getBuilding(id);
@@ -2080,8 +2088,12 @@
         0.1,
         1,
       );
-    const estimatedMonths = b.months / skillMatch;
-    const laborCost = ((laborNeed * salary) / 1e9) * estimatedMonths;
+    const concurrent = c.projects.filter((p) => p.progress < 100).length + 1,
+      allocatedWorkers = constructionWorkforce(c) / concurrent,
+      workMonths = (laborNeed * b.months) / skillMatch,
+      estimatedMonths =
+        allocatedWorkers > 0 ? workMonths / allocatedWorkers : null;
+    const laborCost = (workMonths * salary) / 1e9;
     return {
       id,
       factor,
@@ -2098,7 +2110,8 @@
       laborAvailability: laborAvailability * 100,
       wageIndex,
       estimatedMonths,
-      speed: 100 / estimatedMonths,
+      allocatedWorkers,
+      speed: estimatedMonths ? 100 / estimatedMonths : 0,
       energyShare: b.energyOutput
         ? ((b.energyOutput * factor) /
             Math.max(0.00001, c.electricityDemandTWh)) *
@@ -2120,8 +2133,6 @@
       throw Error(
         `Esta obra convierte ${p.convertAgricultureHa.toFixed(2)} ha agrícolas. Confirmá la conversión.`,
       );
-    if (c.projects.filter((p) => p.progress < 100).length >= 8)
-      throw Error("Se admiten hasta ocho obras activas.");
     if (p.convertAgricultureHa) {
       const share = c.land.irrigatedHa / Math.max(1, c.land.agricultureHa);
       c.land.agricultureHa -= p.convertAgricultureHa;
@@ -2155,19 +2166,22 @@
     return project;
   }
   function projects(s, c) {
-    let free = c.laborSnapshot.unemployed * 1e6;
+    let free = constructionWorkforce(c);
+    const active = c.projects.filter((p) => p.progress < 100),
+      allocation = free / Math.max(1, active.length);
     c.constructionWorkers = 0;
     for (const p of c.projects) {
       if (p.progress >= 100) continue;
       const b = D.getBuilding(p.typeId),
         factor = p.factor || 1,
         need = p.laborNeed || b.laborNeed * 1000 * factor;
-      const hired = Math.min(need, free);
+      const skill = clamp(c.education / b.skillNeed, 0.2, 1),
+        remainingWork = (need * b.months * (1 - p.progress / 100)) / skill,
+        hired = Math.min(allocation, remainingWork, free);
       free -= hired;
       c.constructionWorkers += hired;
       p.workers = hired;
       const laborRatio = hired / Math.max(1, need),
-        skill = clamp(c.education / b.skillNeed, 0.2, 1),
         desired = Math.min(
           100 - p.progress,
           (100 / b.months) * skill * laborRatio,
@@ -4177,9 +4191,13 @@
     if (!p) throw Error("Obra no encontrada.");
     const b = D.getBuilding(p.typeId),
       need = p.laborNeed || b.laborNeed * 1000 * (p.factor || 1),
-      availableWorkers = Math.max(0, c.laborSnapshot.unemployed * 1e6),
-      hired = Math.min(need, availableWorkers),
+      availableWorkers = constructionWorkforce(c),
       skill = clamp(c.education / b.skillNeed, 0.2, 1),
+      hired = Math.min(
+        availableWorkers /
+          Math.max(1, c.projects.filter((x) => x.progress < 100).length),
+        (need * b.months * (1 - p.progress / 100)) / skill,
+      ),
       desired = Math.min(
         100 - p.progress,
         (100 / b.months) * skill * (hired / Math.max(1, need)),
@@ -4257,6 +4275,7 @@
     importResource: (s, id, q) => tradeResource(s, id, "buy", q),
     sellResource: (s, id, q) => tradeResource(s, id, "sell", q),
     constructionPreview,
+    constructionWorkforce,
     queueConstruction,
     setSector,
     setHousingProgram,

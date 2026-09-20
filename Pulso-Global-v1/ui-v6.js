@@ -14,10 +14,15 @@
           "'": "&#39;",
         })[x],
     );
-  const num = (n, d = 0) =>
-    new Intl.NumberFormat("es-AR", { maximumFractionDigits: d }).format(
-      Number.isFinite(n) ? n : 0,
-    );
+  const numberFormats = new Map();
+  const num = (n, d = 0) => {
+    if (!numberFormats.has(d))
+      numberFormats.set(
+        d,
+        new Intl.NumberFormat("es-AR", { maximumFractionDigits: d }),
+      );
+    return numberFormats.get(d).format(Number.isFinite(n) ? n : 0);
+  };
   const dollars = (n) => {
     const value = (Number(n) || 0) * 1e9,
       absolute = Math.abs(value),
@@ -56,7 +61,7 @@
   const row = (label, value) =>
     `<div><dt>${esc(label)}</dt><dd>${value}</dd></div>`;
   function shell(title, body, kicker = "Gestión nacional · v6") {
-    return `<section class="management-panel system-panel v6-panel"><header class="management-heading"><div class="section-symbol">◈</div><div><p class="panel-kicker">${esc(kicker)}</p><h2>${esc(title)}</h2></div><button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar">×</button></header><div class="panel-body v6-body">${body}</div></section>`;
+    return `<section class="management-panel system-panel v6-panel"><header class="management-heading"><div class="section-symbol">◈</div><div><p class="panel-kicker">${esc(kicker)}</p><h2>${esc(title)}</h2></div><button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar">×</button></header><div class="panel-body v6-body"><p class="v6-live-note">Datos actualizados durante el avance (cada 2 s); la edición se conserva. ${btn("refresh", "Actualizar datos")}</p>${body}</div></section>`;
   }
   function form(action, body, extra = "") {
     return `<form class="v6-form" data-v6-form="${action}" ${extra}>${body}<button class="button" type="submit" ${extra.includes('data-blocked="true"') ? "disabled" : ""}>Aplicar</button></form>`;
@@ -179,11 +184,11 @@
   }
   function constructionList(s, id, u) {
     const c = s.countries[s.playerCountryId];
-    return `<p>Cada proyecto muestra su cantidad física, costo y requisitos. Los importes son estimaciones; el material propio se consume sin comprarlo de nuevo.</p><div class="v6-buildings">${D.constructions
+    return `<p>Bolsa compartida: <strong>${num(E.constructionWorkforce(c))} personas</strong>. Se reparte por igual entre las obras activas de todos los ministerios. Más obras o módulos aumentan el plazo; materiales y Tesoro también lo condicionan. El avance se liquida en la etapa mensual de obras.</p><p>Cada proyecto muestra su cantidad física, costo y requisitos. Los importes son estimaciones; el material propio se consume sin comprarlo de nuevo.</p><div class="v6-buildings">${D.constructions
       .filter((b) => b.sector === id)
       .map((b) => {
         const p = E.constructionPreview(s, b.id);
-        return `<article><div class="v6-title"><h3>${esc(b.label)}</h3><small>Público ${num(c.buildings[b.id], 2)} · Privado ${num(c.privateBuildings[b.id], 2)}</small></div><p>${esc(b.description)}</p><dl class="v6-lines">${row("Módulo", amount(p.quantity, p.unit))}${row("Base y mano de obra", dollars(p.baseCost + p.laborCost))}${row("Materiales (valor estimado)", dollars(p.materialCost))}${row("Trabajadores temporales", num(p.laborNeed))}${row("Cualificación / disponibilidad", amount(p.skillMatch, "%") + " / " + amount(p.laborAvailability, "%"))}${row("Duración estimada", amount(p.estimatedMonths, "meses"))}${row("Suelo", amount(p.landHa, "ha"))}${p.convertAgricultureHa ? row("Convierte agricultura", amount(p.convertAgricultureHa, "ha")) : ""}${b.energyOutput ? row("Generación de referencia", amount(b.energyOutput, "TWh/año")) : ""}${b.storage ? row("Almacenamiento", amount(b.storageAmount, "t equivalentes")) : ""}</dl><p class="${p.blocked ? "negative" : "positive"}">${esc(p.blocked || "Construcción habilitada")}</p>${btn("build", "Revisar obra", `data-building="${b.id}"`, !!p.blocked)}</article>`;
+        return `<article><div class="v6-title"><h3>${esc(b.label)}</h3><small>Público ${num(c.buildings[b.id], 2)} · Privado ${num(c.privateBuildings[b.id], 2)}</small></div><p>${esc(b.description)}</p><dl class="v6-lines">${row("Módulo", amount(p.quantity, p.unit))}${row("Base y mano de obra", dollars(p.baseCost + p.laborCost))}${row("Materiales (valor estimado)", dollars(p.materialCost))}${row("Trabajadores temporales", num(p.laborNeed))}${row("Cualificación / disponibilidad", amount(p.skillMatch, "%") + " / " + amount(p.laborAvailability, "%"))}${row("Duración estimada", p.estimatedMonths === null ? "Sin trabajadores disponibles" : amount(p.estimatedMonths, "meses de trabajo"))}${row("Suelo", amount(p.landHa, "ha"))}${p.convertAgricultureHa ? row("Convierte agricultura", amount(p.convertAgricultureHa, "ha")) : ""}${b.energyOutput ? row("Generación de referencia", amount(b.energyOutput, "TWh/año")) : ""}${b.storage ? row("Almacenamiento", amount(b.storageAmount, "t equivalentes")) : ""}</dl><p class="${p.blocked ? "negative" : "positive"}">${esc(p.blocked || "Construcción habilitada")}</p>${field("quantity", "Cantidad de módulos (ver tamaño del módulo arriba)", 1, "number", 'data-build-quantity min="1" max="100" step="1"')}${btn("build", "Revisar obra", `data-building="${b.id}"`, !!p.blocked)}</article>`;
       })
       .join("")}</div>`;
   }
@@ -213,7 +218,7 @@
                     return x.type;
                   })
                   .join(". ");
-              return `<div class="v6-project ${d.status === "blocked" ? "v6-project-blocked" : ""}"><strong>${esc(D.getBuilding(p.typeId)?.label || p.typeId)}</strong><progress max="100" value="${p.progress}"></progress><span>${num(p.progress, 1)}% · ${num(p.workers || 0)} trabajadores asignados · ${dollars(p.spent)} ejecutados</span><small class="${d.status === "blocked" ? "negative" : "positive"}">${esc(
+              return `<div class="v6-project ${d.status === "blocked" ? "v6-project-blocked" : ""}"><strong>${esc(D.getBuilding(p.typeId)?.label || p.typeId)} · ${p.factor || 1} módulos</strong><progress max="100" value="${p.progress}"></progress><span>${num(p.progress, 1)}% · ${num(p.workers || 0)} trabajadores asignados · ${dollars(p.spent)} ejecutados</span><small class="${d.status === "blocked" ? "negative" : "positive"}">${esc(
                 d.status === "blocked"
                   ? "No avanzará en la próxima etapa de obras: " + blockers
                   : "Avanzará aproximadamente " +
@@ -636,13 +641,20 @@
       E.removeExploration(s, target.dataset.exploration);
     if (a === "cancel-research") c.research.project = null;
     if (a === "build") {
-      const p = E.constructionPreview(s, target.dataset.building),
+      const factor = Number(
+          target.closest("article")?.querySelector("[data-build-quantity]")
+            ?.value ||
+            target.dataset.quantity ||
+            1,
+        ),
+        p = E.constructionPreview(s, target.dataset.building, factor),
         b = D.getBuilding(target.dataset.building);
       u.confirm = {
         type: "build",
         id: b.id,
+        factor,
         title: b.label,
-        body: `<p>Construir ${amount(p.quantity, p.unit)}.</p><p>Costo estimado total: <strong>${dollars(p.totalCost)}</strong>; incluye el valor del material propio.</p><p>Reservas actuales: ${dollars(c.reserves)}.</p><p>${p.convertAgricultureHa ? `Se convertirán <strong>${amount(p.convertAgricultureHa, "ha agrícolas")}</strong> y se perderá su producción.` : "Suelo requerido: " + amount(p.landHa, "ha")}</p><p>La obra avanza y paga mes a mes; puede detenerse por falta de recursos o dinero.</p>`,
+        body: `<p>Construir ${amount(p.quantity, p.unit)} (${factor} módulos).</p><p>Asignación estimada: ${num(p.allocatedWorkers)} personas. Plazo: ${p.estimatedMonths === null ? "sin trabajadores disponibles" : amount(p.estimatedMonths, "meses de trabajo")}. Se recalcula al cambiar la bolsa o sumar otras obras.</p><p>Costo estimado total: <strong>${dollars(p.totalCost)}</strong>; incluye el valor del material propio.</p><p>Reservas actuales: ${dollars(c.reserves)}.</p><p>${p.convertAgricultureHa ? `Se convertirán <strong>${amount(p.convertAgricultureHa, "ha agrícolas")}</strong> y se perderá su producción.` : "Suelo requerido: " + amount(p.landHa, "ha")}</p><p>La obra avanza y paga mes a mes; puede detenerse por falta de recursos o dinero.</p>`,
       };
     }
     if (a === "nationalize") {
@@ -657,7 +669,7 @@
     if (a === "cancel-confirm") u.confirm = null;
     if (a === "confirm" && u.confirm) {
       if (u.confirm.type === "build")
-        E.queueConstruction(s, u.confirm.id, 1, true);
+        E.queueConstruction(s, u.confirm.id, u.confirm.factor || 1, true);
       else if (u.confirm.type === "loan") E.takeLoan(s, u.confirm.id);
       else E.nationalize(s, u.confirm.id);
       u.confirm = null;

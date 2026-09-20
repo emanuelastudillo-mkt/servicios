@@ -9,6 +9,8 @@ importScripts(
   "./engine.js",
 );
 
+let state = null;
+let countrySnapshots = new Map();
 self.onmessage = (event) => {
   const message = event.data || {};
   if (message.type === "ping") {
@@ -17,16 +19,32 @@ self.onmessage = (event) => {
   }
   if (message.type !== "advance-day") return;
   try {
-    const beforeMonth = message.state.date.month,
-      beforeYear = message.state.date.year;
-    self.PulsoEngine.advanceDay(message.state);
+    if (message.state) {
+      state = message.state;
+      countrySnapshots = new Map(
+        Object.entries(state.countries).map(([id, c]) => [
+          id,
+          JSON.stringify(c),
+        ]),
+      );
+    }
+    if (!state) throw Error("Falta sincronizar la partida.");
+    const beforeMonth = state.date.month,
+      beforeYear = state.date.year;
+    self.PulsoEngine.advanceDay(state);
+    const changedCountries = {};
+    for (const [id, country] of Object.entries(state.countries)) {
+      const snapshot = JSON.stringify(country);
+      if (snapshot !== countrySnapshots.get(id)) changedCountries[id] = country;
+      countrySnapshots.set(id, snapshot);
+    }
     self.postMessage({
       type: "day-complete",
       id: message.id,
-      state: message.state,
+      state: { ...state, countries: changedCountries },
+      incremental: true,
       monthClosed:
-        message.state.date.month !== beforeMonth ||
-        message.state.date.year !== beforeYear,
+        state.date.month !== beforeMonth || state.date.year !== beforeYear,
     });
   } catch (error) {
     self.postMessage({

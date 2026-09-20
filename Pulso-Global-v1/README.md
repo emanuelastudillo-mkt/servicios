@@ -1,14 +1,14 @@
-# Pulso Global 7.4 — revisión de nacionalización inmediata
+# Pulso Global 7.5 — rendimiento, acciones en cola y obras compartidas
 
-Actualización incremental sobre **v7.2**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.4**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.2, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.4, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.4**; si todavía aparece v7.3, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.5**; si todavía aparece v7.4, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -23,6 +23,16 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
 ## Evolución del motor
+
+## Ajuste 7.5: rendimiento y construcciones
+
+- El avance diario actualiza la barra superior sin reconstruir el mapa, botones y formularios. Los detalles se actualizan durante el avance, como máximo cada dos segundos, conservando formularios y campos editados. También podés pulsar **Actualizar datos**. Podés editar con el reloj en marcha, sin pausa automática.
+- Las acciones recibidas durante un cálculo diario se encolan en orden y se validan contra el estado al terminar esa jornada. El aviso y el encabezado indican las acciones pendientes; no hace falta repetir el clic. Si ya faltan fondos, recursos o requisitos, la acción muestra el error correspondiente.
+- El proceso de simulación conserva su estado y devuelve solo los países modificados. Los formatos numéricos se reutilizan y los autoguardados de acciones próximas se agrupan.
+- Cada construcción acepta de 1 a 100 módulos por pedido. El módulo conserva su tamaño físico (viviendas, kilómetros o instalaciones); la revisión muestra cantidad total, costo, trabajadores y plazo estimado.
+- No hay límite de ocho obras públicas. Todos los proyectos comparten los trabajadores desocupados disponibles y se reparten la bolsa por igual. La demanda de trabajo crece con módulos y complejidad; la educación mejora el rendimiento. Una obra puede recibir más trabajadores que la dotación de referencia y acelerar proporcionalmente.
+- Diez obras iguales reciben una décima parte cada una y requieren diez veces más tiempo que una sola, con igual bolsa, educación, materiales y Tesoro. La finalización y los pagos se liquidan en la etapa mensual de obras; un plazo teórico menor a un mes se completa en esa etapa.
+- La barra superior muestra la bolsa de personas disponible para construir. Se contabilizan solo las jornadas efectivamente utilizadas; el remanente puede abastecer los programas pasivos de vivienda y la construcción privada, sin duplicar trabajadores.
 
 ## Ajuste 7.4: revisión de nacionalización sin clics perdidos
 

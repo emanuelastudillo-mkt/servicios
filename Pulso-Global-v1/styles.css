@@ -900,7 +900,7 @@ th { color: var(--muted); font-size: 0.53rem; letter-spacing: 0.05em; text-trans
 .date-block strong { font-size: .875rem; }
 .time-controls { grid-column: 2; grid-row: 1; margin: 0; }
 .save-cluster { grid-column: 3; grid-row: 1; }
-.hud-stats { grid-column: 1 / -1; grid-row: 2; grid-template-columns: repeat(6,minmax(0,1fr)); height: auto; }
+.hud-stats { grid-column: 1 / -1; grid-row: 2; grid-template-columns: repeat(7,minmax(0,1fr)); height: auto; }
 .hud-stats > div { padding: 7px 12px; }
 .hud-stats span { font-size: .75rem; }
 .hud-stats strong { font-size: .94rem; }

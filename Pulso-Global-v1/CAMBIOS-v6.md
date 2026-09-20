@@ -1,6 +1,15 @@
-# Pulso Global 7.4 — revisión de nacionalización inmediata
+# Pulso Global 7.5 — rendimiento y construcción por cantidades
 
-Fecha de entrega: 15 de septiembre de 2026. Incremental sobre v7.3. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
+Fecha de entrega: 20 de septiembre de 2026. Incremental sobre v7.4. Motor jugable de gestión nacional, con balance de largo plazo experimental. No es una previsión económica ni una reproducción exacta de cada país.
+
+## Ajuste 7.5
+
+- Actualización diaria parcial de indicadores: evita reconstruir mapa y formularios durante el avance. Detalles actualizados cada dos segundos, sin reemplazar formularios; la edición ya no pausa automáticamente.
+- Cola FIFO de acciones recibidas durante un cálculo, con captura de cantidades/formularios, validación al ejecutar y avisos de pendientes o errores.
+- Estado persistente en el Worker, envío de países modificados y reutilización de formatos numéricos. Autoguardados próximos agrupados.
+- Cantidad de módulos por construcción, revisión de totales y plazo según mano de obra compartida. Sin límite de ocho obras públicas.
+- Reparto igualitario de la bolsa entre obras activas; aceleración por concentración de personal, costos proporcionales al trabajo realizado y disponibilidad siempre visible.
+- El avance de obras conserva la liquidación mensual del motor; el plazo teórico puede ser inferior a un mes pero la entrega ocurre en esa etapa.
 
 ## Ajuste 7.4
 
@@ -81,13 +90,15 @@ El inventario inicial de fábricas, almacenes, viviendas, tecnologías, ganado, 
 
 ## Verificación de la entrega
 
+Validación específica v7.5: tres pruebas de bolsa compartida y cantidades, cola FIFO con valores capturados y aplicación única, edición a velocidad 6× y equivalencia completa de 31 días entre Worker incremental y motor directo. En una partida nueva de Nauru con 24 días y el panel de recursos abierto, las tareas largas del hilo principal acumularon 1.974 ms antes y 109 ms después; las reconstrucciones completas bajaron de 24 a cero. Es una medición local en Edge, no una garantía de tiempos para todos los dispositivos o guardados.
+
 Los resultados exactos se incluyen en `VERIFICACION-v6.json`, generado desde las ejecuciones locales. La revisión abarca:
 
 - Pruebas de motor: dinero, deuda, nacionalización, límites físicos, población, producción, investigación, importaciones, rankings y guardado reproducible.
 - Migración de un guardado v5.4 situado en noviembre de 2205, con préstamo, obra en curso y saldo negativo exacto.
 - Navegación de los 16 menús, selección de Nauru, controles monetarios, préstamo/compra, guardado, recarga y modo offline en Edge.
 - Vista de escritorio y móvil de 390 × 844, sin desbordamiento de página; las tablas anchas se desplazan horizontalmente dentro de su contenedor.
-- Actualización real de caché v5.4 a v7.4, exportación del respaldo antiguo y reapertura offline.
+- Actualización real de caché v5.4 a v7.5, exportación del respaldo antiguo y reapertura offline.
 - Simulación actual de 60 meses (1.826 jornadas) con 128 países: valores finitos, conciliación de dinero y recursos y empleo no superior a la población disponible. Esta prueba financia artificialmente el país del jugador para que una derrota por falta de gestión no detenga el ensayo; no prueba que una partida normal se sostenga sin intervenir.
 - ZIP incremental contrastado por hash con la base preservada y aplicado a una copia nueva: el resultado debe coincidir byte a byte con la carpeta final del juego.
 
@@ -95,6 +106,6 @@ Los resultados exactos se incluyen en `VERIFICACION-v6.json`, generado desde las
 
 ## Uso y conservación de partidas
 
-Aplicá todos los archivos del incremental sobre v7.3, conservando los que no vienen en el ZIP. Exportá antes tu partida. Recargá con conexión hasta ver **Motor económico v7.4** y luego continuá. No hay fecha de finalización ni derrota institucional; sigue existiendo cesación de pagos cuando la deuda supera 205% del PBI y el Tesoro está agotado.
+Aplicá todos los archivos del incremental sobre v7.4, conservando los que no vienen en el ZIP. Exportá antes tu partida. Recargá con conexión hasta ver **Motor económico v7.5** y luego continuá. No hay fecha de finalización ni derrota institucional; sigue existiendo cesación de pagos cuando la deuda supera 205% del PBI y el Tesoro está agotado.
 
 La carpeta base anterior y los guardados de prueba se preservaron. No se publicó el proyecto ni se eliminaron archivos del usuario.
