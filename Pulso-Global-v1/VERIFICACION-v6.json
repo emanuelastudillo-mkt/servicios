@@ -1,40 +1,60 @@
 {
-  "version": "7.9.0",
-  "base": "7.8.0",
-  "generatedAt": "2026-09-20T20:32:59.947Z",
-  "engineTestCount": 48,
+  "version": "7.10.0",
+  "base": "7.9.0",
+  "generatedAt": "2026-09-23T00:54:00.990Z",
+  "engineTestCount": 61,
   "checks": {
-    "verify-v6": {
+    "engine": {
       "result": "PASS",
-      "testCount": 41
+      "testCount": 61
     },
-    "research-v76": {
+    "browser": {
       "result": "PASS",
-      "testCount": 5
+      "worker": true,
+      "forms": true,
+      "saveReload": true,
+      "mobile": true,
+      "errors": []
     },
-    "verify-v79": {
+    "offlineUpgrade": {
       "result": "PASS",
-      "testCount": 2
+      "oldCache": "5.4",
+      "newCache": "7.10",
+      "migration": true,
+      "backupDownload": true,
+      "negativeBalancePreserved": true,
+      "offlineResume": true,
+      "errors": []
+    },
+    "v79MidmonthMigration": {
+      "result": "PASS",
+      "preservedCountries": 128
     }
   },
   "verified": [
-    "Research progress is fixed by science capacity, not budget or technology level",
-    "Exploration progress is fixed by science capacity and keeps predictable remaining months",
-    "The queue UI exposes avance previsto and remaining months in the requested wording",
-    "General engine battery remains green after the forecast change"
+    "Equivalent food rations and substitution",
+    "Affordable basic food before costly preferences",
+    "Gradual hunger and recovery",
+    "Public aid cash/stock conservation and budget caps",
+    "Export reserve protection",
+    "Happiness breakdown and work-age effects",
+    "Twelve-month all-country food conservation",
+    "Actual v7.9 midmonth migration with a loan",
+    "Worker, forms, reload, mobile layout and offline upgrade"
   ],
   "sourceSha256": {
-    "app.js": "6aba141f18cdd177dc541f18d8b65299aaa808b5bfa763943ced1fb8e45c9f0b",
-    "catalog-v6.js": "9a6a6926bcfd2c08add859025ebdb3814cfae02b16762a78d5dbbda91a2b7f24",
-    "simulation-v6.js": "3a024e67a34b09ff48892799eb7967a37236e4f52173269678dedcc267545268",
-    "ui-v6.js": "5edf61eedaefa8c21c6b76b264a7b7b0bbf22f9d3bad7c6112c0274e69d0ff18",
-    "sw.js": "9e74f883456a4365dd44521be90d6dc158661167559c28fa9a25e1206b25ac72",
-    "README.md": "512543a5c2b450ac7b22e063b082425b10d79a7812681d5c4a4d01e488ec24ca",
-    "CAMBIOS-v6.md": "209c875898d58f75105b87855de51417d18d74ed09fbb342e508f30d64107c4d",
-    "VERSION.txt": "2a15e27ff81bb2022b02592198b7467d18a0a8152303c62994d90f26aa752c4c"
+    "app.js": "c26de08be1e33efe9ba93f2225e9bac0d59bbc9f2f64f2056c48e90f95c6d27e",
+    "catalog-v6.js": "0382faf72316f28d182b0bae2d0fc23d230809ed1663a22487c973732a4bb6af",
+    "simulation-v6.js": "7420f1572f00d3272e20e8734ee01bc7a5c672531ca1ecac56e52691634d6c2e",
+    "ui-v6.js": "f391923302c88beddd664d697951b01cf7dad3b410c76415a5f25c0f1edbc4bb",
+    "sw.js": "c445b65735e15d5ab77b8c35845dfea248d5971c8138c9135000fcd2080c86c2",
+    "README.md": "4bd609cd734ac3ab03c663454a443ba2407109f766f4ec69a593b3f5640c078d",
+    "CAMBIOS-v6.md": "64571c26ab2c8db43c564910f30dfe95e78bb59f9089df87296cee39c7c81826",
+    "VERSION.txt": "e56cf86fa9eb304c393df841ea3d337c1591f8d12b56311c53de8f5a0cb943b6"
   },
   "limits": [
-    "Changing scientists, labs, education, reserves or research benefit can still change the forecast.",
-    "The budget still limits payment and blocks work when funds are unavailable."
+    "Nutrition coefficients are game rules, not nutritional statistics.",
+    "Cross-continent migration rules, diplomacy and military mechanics are outside this delivery.",
+    "Long-term balance remains subject to playtesting, especially heavily modified old economies."
   ]
 }

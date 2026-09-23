@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (D, FACTS) {
   "use strict";
   D.version = 6;
-  D.release = "7.9.0";
+  D.release = "7.10.0";
   D.facts = FACTS;
   const techs = [];
   function branch(sector, items) {
@@ -904,6 +904,15 @@
       ].includes(id),
     }),
   );
+  // Game-equivalent daily rations per tonne, not real nutritional advice.
+  // Processing preserves the ration content of its recipe's edible inputs.
+  D.foodProfiles = {
+    grains: { rations: 1500, group: "staple", quality: 35, spoilage: 0.005 },
+    food_products: { rations: 1650, group: "staple", quality: 65, spoilage: 0.002 },
+    milk: { rations: 250, group: "dairy", quality: 65, spoilage: 0.06 },
+    dairy: { rations: 350, group: "dairy", quality: 80, spoilage: 0.015 },
+    meat: { rations: 800, group: "protein", quality: 75, spoilage: 0.03 },
+  };
   function building(id, label, sector, tech, meta = {}) {
     return {
       id,

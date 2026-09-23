@@ -1,3 +1,16 @@
+# Pulso Global 7.10 — alimentación y bienestar
+
+## Primera entrega v7.10
+
+- Cobertura alimentaria por raciones equivalentes, sustitución, calidad de dieta y merma por alimento.
+- Hambre gradual con efectos productivos, sanitarios y demográficos, y recuperación gradual.
+- Distribución pública con presupuesto monetario, consumo real, registro contable y límite de caja sin nuevo crédito.
+- Reservas alimentarias en días y protección configurable de exportaciones automáticas.
+- Panel de diagnóstico y tutorial, causas de felicidad, impuestos y duración de vida laboral.
+- Guardados anteriores inicializan el sistema sin hambre retroactiva. Avance diario y procesamiento en segundo plano conservados.
+
+## Historial v7.9
+
 # Pulso Global 7.9 — avance científico fijo
 
 ## Ajuste v7.9

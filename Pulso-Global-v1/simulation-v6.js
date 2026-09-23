@@ -50,6 +50,172 @@
     plutonium: 0.000000002,
   };
   const DISCOVERED_DEPOSIT_SCALE = 100;
+  const foods = materials.filter((m) => D.foodProfiles[m.id]);
+  const foodBasket = foods.reduce((n, m) => n + m.household * D.foodProfiles[m.id].rations, 0);
+  function initializeNutrition(c, s) {
+    if (c.nutrition?.version === 1) return;
+    c.nutrition = {
+      version: 1, hunger: 0, coverage: 1, quality: 50, deficitMonths: 0,
+      aidEnabled: false, aidBudget: 0, protectedDays: 30,
+      need: population(c) * daysInMonth(s.date), days: daysInMonth(s.date),
+      aidSpent: 0, aidRations: 0, aidStockValue: 0, spoilageRations: 0,
+      shortfall: 0, unaffordable: 0, unavailable: 0,
+      measured: false, closedTick: -1, hungerChange: 0, hungerDeaths: 0,
+    };
+  }
+  const eatenRations = (c) => foods.reduce((n, m) =>
+    n + (c.householdConsumed[m.id] || 0) * D.foodProfiles[m.id].rations, 0);
+  const storedRations = (c, owner) => foods.reduce((n, m) =>
+    n + (owner ? stocks(c, owner)[m.id] : c.publicStocks[m.id] + c.privateStocks[m.id]) * D.foodProfiles[m.id].rations, 0);
+  function setFoodPolicy(s, input) {
+    const c = player(s);
+    const budget = needNumber(input.aidBudget, 0, 1e6);
+    const days = needNumber(input.protectedDays, 0, 365);
+    Object.assign(c.nutrition, { aidEnabled: input.aidEnabled === true, aidBudget: budget, protectedDays: days });
+  }
+  function publicFoodAid(s, c) {
+    const n = c.nutrition;
+    if (!n.aidEnabled || n.aidBudget <= 0) return;
+    // Public stocks are already paid for. Only distribution is a cash expense;
+    // private food requires a real purchase. Neither path borrows money.
+    const offers = foods.flatMap((m) => owners.map((owner) => ({
+      m, owner, price: s.market.resourcePrices[m.id],
+      cost: s.market.resourcePrices[m.id] * (owner === "public" ? 0.02 : 1.02),
+    }))).sort((a, b) => a.cost / D.foodProfiles[a.m.id].rations - b.cost / D.foodProfiles[b.m.id].rations);
+    for (const { m, owner, price, cost } of offers) {
+      const ration = D.foodProfiles[m.id].rations;
+      const q = Math.max(0, Math.min(
+        (n.need - eatenRations(c)) / ration,
+        stocks(c, owner)[m.id],
+        Math.min(Math.max(0, c.reserves), Math.max(0, n.aidBudget - n.aidSpent)) / Math.max(1e-15, cost),
+      ));
+      if (q <= 0) continue;
+      stocks(c, owner)[m.id] -= q;
+      c.materialConsumption[m.id] += q;
+      c.householdConsumed[m.id] += q;
+      transfer(s, c, "public", "private", q * cost, "Ayuda alimentaria");
+      if (owner === "private") {
+        c.sectors.agriculture.revenue += q * price;
+        c.sectors.agriculture.profit += q * price;
+      } else n.aidStockValue += q * price;
+      c.sectors.services.revenue += q * price * 0.02;
+      c.sectors.services.profit += q * price * 0.02;
+      c.finance.spending += q * cost;
+      n.aidSpent += q * cost;
+      n.aidRations += q * ration;
+    }
+  }
+  function consumeFood(s, c, remaining) {
+    const n = c.nutrition;
+    const substitutes = [...foods].sort((a, b) =>
+      s.market.resourcePrices[a.id] / D.foodProfiles[a.id].rations - s.market.resourcePrices[b.id] / D.foodProfiles[b.id].rations);
+    const unitPrice = (m) => s.market.resourcePrices[m.id] * (1 + c.taxes.vat / 100);
+    const minimumBill = (missing, selected, quantity = 0) => {
+      let bill = 0;
+      for (const m of substitutes) {
+        const q = Math.min(Math.max(0, missing) / D.foodProfiles[m.id].rations,
+          Math.max(0, c.publicStocks[m.id] + c.privateStocks[m.id] - (m.id === selected ? quantity : 0)));
+        bill += q * unitPrice(m);
+        missing -= q * D.foodProfiles[m.id].rations;
+      }
+      return missing > 0.00001 ? Infinity : bill;
+    };
+    // Variety may use only cash left after reserving the cheapest complete basket.
+    // Poor households must not spend their staple-food money on costly preferences.
+    for (const m of foods) {
+      const missing = Math.max(0, n.need - eatenRations(c));
+      let q = Math.max(0, Math.min(c.householdDemand[m.id] - c.householdConsumed[m.id],
+        missing / D.foodProfiles[m.id].rations, c.publicStocks[m.id] + c.privateStocks[m.id]));
+      const canBuy = (amount) => amount * unitPrice(m) +
+        minimumBill(missing - amount * D.foodProfiles[m.id].rations, m.id, amount) <= c.finance.householdCash + 1e-15;
+      if (!canBuy(0)) continue;
+      if (!canBuy(q)) {
+        let lo = 0, hi = q;
+        for (let i = 0; i < 16; i++) { const mid = (lo + hi) / 2; if (canBuy(mid)) lo = mid; else hi = mid; }
+        q = lo;
+      }
+      purchaseDomestic(s, c, m, q);
+    }
+    for (const m of substitutes) purchaseDomestic(s, c, m,
+      Math.max(0, n.need - eatenRations(c)) / D.foodProfiles[m.id].rations);
+    if (remaining) publicFoodAid(s, c);
+    const missing = Math.max(0, n.need - eatenRations(c));
+    for (const m of foods) {
+      const demand = c.householdConsumed[m.id] + missing * m.household / foodBasket;
+      c.needs[m.id] = Math.max(0, c.needs[m.id] + demand - c.householdDemand[m.id]);
+      c.householdDemand[m.id] = demand;
+      c.shortages[m.id] = Math.max(0, demand - c.householdConsumed[m.id]);
+    }
+    if (!remaining || n.closedTick === s.tick) return;
+    const eaten = eatenRations(c), groups = {};
+    let quality = 0;
+    for (const m of foods) {
+      const f = D.foodProfiles[m.id], q = c.householdConsumed[m.id] * f.rations;
+      groups[f.group] = (groups[f.group] || 0) + q;
+      quality += q * f.quality;
+    }
+    n.coverage = n.need > 0 ? clamp(eaten / n.need, 0, 1) : 1;
+    const diversity = Object.values(groups).filter((q) => q >= eaten * 0.05 && q > 0).length;
+    n.quality = eaten > 0 ? clamp(quality / eaten + Math.max(0, diversity - 1) * 12, 0, 100) : 0;
+    n.shortfall = missing;
+    n.unaffordable = Math.min(missing, storedRations(c));
+    n.unavailable = Math.max(0, missing - n.unaffordable);
+    const oldHunger = n.hunger, target = (1 - n.coverage) * 100;
+    n.hunger = clamp(oldHunger + (target > oldHunger
+      ? Math.min(target - oldHunger, (1 - n.coverage) * 20)
+      : -Math.min(oldHunger - target, 12 * n.coverage)), 0, 100);
+    n.hungerChange = n.hunger - oldHunger;
+    n.deficitMonths = n.coverage < 0.65 ? n.deficitMonths + 1 : Math.max(0, n.deficitMonths - 1);
+    n.spoilageRations = 0;
+    for (const m of foods) for (const owner of owners) {
+      const loss = stocks(c, owner)[m.id] * D.foodProfiles[m.id].spoilage;
+      stocks(c, owner)[m.id] -= loss;
+      c.monthlyResourceLedger.losses[m.id] += loss;
+      n.spoilageRations += loss * D.foodProfiles[m.id].rations;
+    }
+    n.measured = true;
+    n.closedTick = s.tick;
+    if (c.id === s.playerCountryId && oldHunger < 40 && n.hunger >= 40)
+      note(s, c, "Hambre elevada: revisá Alimentación y bienestar, habilitá importaciones o financiá ayuda alimentaria.");
+  }
+  function wellbeingReport(c) {
+    const n = c.nutrition, span = c.workPolicy.retire - c.workPolicy.start;
+    const duration = span < 38 ? Math.min(8, (38 - span) * 0.4) : -Math.min(18, Math.max(0, span - 47) * 0.6);
+    const items = [
+      ["base", "Bienestar básico", 36],
+      ["food", "Cobertura alimentaria", (n.coverage - 1) * 32],
+      ["diet", "Calidad de la dieta", n.quality / 100 * 5 * n.coverage],
+      ["goods", "Acceso a otros bienes", c.consumptionCoverage * 20],
+      ["housing", "Vivienda adecuada", c.housing * 0.2],
+      ["unemployment", "Desocupación", -c.unemployment * 0.16],
+      ["energy", "Abastecimiento eléctrico", c.energy.served * 8],
+      ["infrastructure", "Infraestructura", c.infrastructure * 0.06],
+      ["housingQuality", "Calidad de viviendas", c.housingStock.new / Math.max(0.000001, sum(c.housingStock)) * 3 + techBonus(c, "infrastructure", "quality") * 4],
+      ["waste", "Residuos acumulados", -Math.min(25, (c.wasteBurden || 0) * 12)],
+      ["tax", "Carga de IVA y ganancias", -Math.min(18, c.taxes.vat * 0.22 + c.taxes.income * 0.1)],
+      ["career", "Duración de la vida laboral", duration],
+      ["earlyWork", "Ingreso laboral temprano", -Math.max(0, 18 - c.workPolicy.start) * 1.5],
+      ["lateRetirement", "Retiro tardío", -Math.max(0, c.workPolicy.retire - 67) * 0.5],
+      ["durables", "Bienes duraderos en uso", ((c.goodsBenefits?.happiness || 1) - 1) * 40],
+      ["hunger", "Hambre acumulada", -n.hunger * 0.4],
+    ].map(([id, label, points]) => ({ id, label, points }));
+    const raw = items.reduce((sum, x) => sum + x.points, 0);
+    const cap = 98 - n.hunger * 0.65;
+    const target = clamp(raw, 0, cap);
+    items.push({ id: "limit", label: "Ajuste por límites y hambre", points: target - raw });
+    return { items, target, cap, span, monthlyChange: (target - c.happiness) * 0.08 };
+  }
+  function nutritionReport(s, c = s.countries[s.playerCountryId]) {
+    const n = c.nutrition, total = storedRations(c), publicTotal = storedRations(c, "public");
+    const unitCost = Math.min(...foods.map((m) => s.market.resourcePrices[m.id] / D.foodProfiles[m.id].rations));
+    return { ...n, stockDays: total / Math.max(1, population(c)),
+      publicDays: publicTotal / Math.max(1, population(c)),
+      privateDays: (total - publicTotal) / Math.max(1, population(c)),
+      estimatedPurchaseCost: n.shortfall * unitCost * 1.02,
+      productivity: 1 - n.hunger * 0.0025,
+      wellbeing: wellbeingReport(c),
+    };
+  }
   function useRate(m) {
     return m.household || professionalUse[m.id] || 0;
   }
@@ -744,6 +910,7 @@
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
+      initializeNutrition(c, s);
       if (!c.tradePolicies) {
         c.tradePolicies = map((m) => ({
           sell: !m.waste,
@@ -1189,7 +1356,7 @@
   function efficiency(c, sid, owner) {
     const sec = c.sectors[sid],
       base = owner === "public" ? sec.efficiencyPublic : sec.efficiencyPrivate;
-    return clamp(
+    return (1 - (c.nutrition?.hunger || 0) * 0.0025) * clamp(
       0.65 +
         base * 0.5 +
         techBonus(c, sid, "output") +
@@ -1630,11 +1797,17 @@
       }
     }
     husbandry(s, c);
+    Object.assign(c.nutrition, {
+      need: population(c) * daysInMonth(s.date), days: daysInMonth(s.date),
+      aidSpent: 0, aidRations: 0, aidStockValue: 0,
+    });
     for (const m of materials) {
       c.householdDemand[m.id] =
         ((useRate(m) * population(c)) / 12) *
         clamp(0.45 + (c.realGdp * 1e9) / population(c) / 35000, 0.45, 1.8) *
         clamp(1 + H.activeEventEffects(c, s).demand, 0.3, 1.4);
+      if (D.foodProfiles[m.id])
+        c.householdDemand[m.id] = c.nutrition.need * m.household / foodBasket;
       if (durableYears[m.id]) {
         const flow = c.householdDemand[m.id],
           held = c.durableOwnership[m.id],
@@ -1784,8 +1957,9 @@
     return served;
   }
   function consume(s, c, remaining = false) {
+    consumeFood(s, c, remaining);
     for (const m of materials
-      .filter((m) => useRate(m) > 0)
+      .filter((m) => useRate(m) > 0 && !D.foodProfiles[m.id])
       .sort(
         (a, b) =>
           (a.sector === "agriculture" ? -1 : 1) -
@@ -1800,7 +1974,7 @@
     if (remaining) {
       let wanted = 0,
         got = 0;
-      for (const m of materials.filter((m) => m.household > 0)) {
+      for (const m of materials.filter((m) => m.household > 0 && !D.foodProfiles[m.id])) {
         const essential = m.sector === "agriculture" ? 3 : 1;
         const demand = c.householdDemand[m.id];
         wanted += essential;
@@ -1815,7 +1989,10 @@
   }
   function exportable(c, owner, m) {
     const total = c.publicStocks[m.id] + c.privateStocks[m.id],
-      protectedStock = Math.max(c.stockMinimum[m.id], c.needs[m.id] || 0);
+      foodReserve = D.foodProfiles[m.id] && c.nutrition
+        ? total * Math.min(1, population(c) * c.nutrition.protectedDays / Math.max(1, storedRations(c)))
+        : 0,
+      protectedStock = Math.max(c.stockMinimum[m.id], c.needs[m.id] || 0, foodReserve);
     return Math.max(
       0,
       stocks(c, owner)[m.id] -
@@ -3238,22 +3415,7 @@
       5,
       100,
     );
-    const quality =
-      (stock.new / Math.max(0.000001, sum(stock))) * 3 +
-      techBonus(c, "infrastructure", "quality") * 4;
-    const target = clamp(
-      (20 +
-        c.consumptionCoverage * 28 +
-        c.housing * 0.2 +
-        (1 - c.unemployment / 100) * 16 +
-        c.energy.served * 8 +
-        c.infrastructure * 0.06 +
-        quality -
-        Math.min(25, c.wasteBurden * 12)) *
-        (c.goodsBenefits?.happiness || 1),
-      0,
-      98,
-    );
+    const target = wellbeingReport(c).target;
     c.happiness += (target - c.happiness) * 0.08;
     const hospitals =
         c.buildings.clinics +
@@ -3274,7 +3436,9 @@
         ) *
         staff *
         (1 + techBonus(c, "health", "health")) -
-        c.wasteBurden * 4,
+        c.wasteBurden * 4 - c.nutrition.hunger * 0.25 +
+        (c.nutrition.quality - 50) * 0.04 * c.nutrition.coverage -
+        Math.max(0, c.workPolicy.retire - 67) * 0.3,
       15,
       98,
     );
@@ -3289,7 +3453,7 @@
       c.initialLifeExpectancy +
         (c.health - c.initialHealth) * 0.12 +
         (c.happiness - 50) * 0.015 -
-        c.wasteBurden * 0.1,
+        c.wasteBurden * 0.1 - c.nutrition.hunger * 0.03,
       35,
       98,
     );
@@ -3341,7 +3505,10 @@
       const shock =
         H.activeEventEffects(c, s).mortality *
         (1 - techBonus(c, "health", "health"));
+      c.nutrition.hungerDeaths = 0;
       for (let age = 0; age <= 100; age++) {
+        const hungerRisk = Math.max(0, c.nutrition.hunger - 60) / 40 * 0.0015 *
+          Math.min(1, c.nutrition.deficitMonths / 6) * (age < 5 || age >= 65 ? 1.5 : 1);
         const risk = clamp(
             ((age < 5
               ? 0.003
@@ -3350,18 +3517,19 @@
                 : 0.0002 * Math.exp((age - 50) / 9)) *
               Math.exp((75 - c.lifeExpectancy) / 15)) /
               12 +
-              shock / 12000,
+              shock / 12000 + hungerRisk,
             0,
             0.3,
           ),
           dead = a[age] * risk,
           alive = a[age] - dead;
         deaths += dead;
+        c.nutrition.hungerDeaths += a[age] * Math.min(risk, hungerRisk);
         const next = age === 100 ? 0 : alive / 12;
         newA[age] += alive - next;
         if (age < 100) newA[age + 1] += next;
-        if (age === 17) enter = next;
-        if (age === 64) retire = next;
+        if (age === c.workPolicy.start - 1) enter = next;
+        if (age === c.workPolicy.retire - 1) retire = next;
       }
       const cap = c.land.areaKm2 * 60000;
       const births = Math.min(
@@ -3636,10 +3804,22 @@
         c.electricityDemandTWh,
         c.land.areaKm2,
         c.lifeExpectancy,
+        c.nutrition.hunger,
+        c.nutrition.coverage,
+        c.nutrition.quality,
+        c.nutrition.aidBudget,
+        c.nutrition.protectedDays,
+        c.nutrition.need,
+        c.nutrition.deficitMonths,
         ...c.ageCohorts,
       ])
         if (!Number.isFinite(value))
           throw Error("Guardado con datos económicos inválidos.");
+      if (c.nutrition.hunger < 0 || c.nutrition.hunger > 100 ||
+          c.nutrition.coverage < 0 || c.nutrition.coverage > 1 ||
+          c.nutrition.aidBudget < 0 || c.nutrition.protectedDays < 0 || c.nutrition.protectedDays > 365 ||
+          c.nutrition.need < 0 || c.nutrition.deficitMonths < 0)
+        throw Error("Guardado con datos alimentarios inválidos.");
       if (
         c.ageCohorts.length !== 101 ||
         c.ageCohorts.some((n) => n < 0) ||
@@ -4405,7 +4585,7 @@
         groups.inputs += amount;
       else if (
         kind === "Funcionamiento y mantenimiento" ||
-        kind === "Subsidio sectorial"
+        kind === "Subsidio sectorial" || kind === "Ayuda alimentaria"
       )
         groups.operations += amount;
       else groups.otherExpense += amount;
@@ -4541,6 +4721,9 @@
     queueConstruction,
     setSector,
     setHousingProgram,
+    setFoodPolicy,
+    nutritionReport,
+    wellbeingReport,
     setImportPolicy,
     setResourcePolicy,
     setTradePolicies,

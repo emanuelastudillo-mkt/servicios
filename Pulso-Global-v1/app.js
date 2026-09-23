@@ -37,6 +37,7 @@
     { id: "taxes", label: "Impuestos", icon: "$" },
     { id: "trade", label: "Comercio exterior", icon: "↔" },
     { id: "demographics", label: "Demografía", icon: "◒" },
+    { id: "nutrition", label: "Alimentación y bienestar", icon: "◉" },
     { id: "territory", label: "Territorio y vivienda", icon: "⌂" },
     { id: "research", label: "Investigación", icon: "⚗" },
     { id: "indicators", label: "Indicadores", icon: "▧" },
@@ -575,7 +576,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.9</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.10</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -713,7 +714,7 @@
               <div class="hud-population"><span>Población</span><strong>${people(country.population)}</strong><small>${e(country.name)}</small></div>
               <div><span>PBI</span><strong>${money(country.gdp)}</strong><small class="${country.growth < 0 ? "negative" : "positive"}">${signed(country.growth, "%")}</small></div>
               <div class="hud-reserves" title="Tesoro disponible: US$ ${fmt(country.reserves * 1e9, 2)}"><span>Reservas</span><strong class="${country.reserves < 0 ? "negative" : ""}">${money(country.reserves)}</strong><small>Deuda ${fmt(country.debt, 1)}% PBI</small></div>
-              <div><span>Felicidad</span><strong>${fmt(country.happiness)}%</strong><small>${fmt(country.popularity)}% apoyo</small></div>
+              <div data-action="view" data-view="nutrition" title="Abrir Alimentación y bienestar"><span>Felicidad</span><strong>${fmt(country.happiness)}%</strong><small>Hambre ${fmt(country.nutrition.hunger, 1)}/100</small></div>
               <div><span>Empleo</span><strong>${fmt(100 - country.unemployment)}%</strong><small>${fmt(country.unemployment)}% desocupación</small></div>
               <div class="hud-workers" title="Personas disponibles en la bolsa compartida de construcción"><span>Mano de obra</span><strong>${fmt(Engine.constructionWorkforce(country), 0)} personas</strong><small>${activeProjects(country).length} obras · bolsa compartida</small></div><div><span>Insumos</span><strong>${lowStock ? `${lowStock} críticos` : "Estables"}</strong><small>${activeProjects(country).length} obras activas</small></div>
             </div>
@@ -1966,6 +1967,7 @@
           taxes: c.taxes,
           revenueRate: c.revenueRate,
           happiness: c.happiness,
+          nutrition: Engine.nutritionReport(game),
           gdp: c.gdp,
           growth: c.growth,
           unemployment: c.unemployment,

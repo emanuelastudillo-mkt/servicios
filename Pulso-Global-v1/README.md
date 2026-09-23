@@ -1,14 +1,14 @@
-# Pulso Global 7.9 — avance científico fijo
+# Pulso Global 7.10 — alimentación y bienestar
 
-Actualización incremental sobre **v7.8**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.9**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.8, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.9, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.9**; si todavía aparece v7.8, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.10**; si todavía aparece v7.9, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
 
@@ -23,6 +23,20 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
 ## Evolución del motor
+
+## Actualización 7.10: alimentación y bienestar
+
+Abrí **Alimentación y bienestar** en el menú lateral. La barra superior muestra el hambre junto a felicidad.
+
+- La necesidad alimentaria depende de habitantes y días del mes, no del PBI. Granos, elaborados, carne, leche y lácteos se sustituyen hasta cubrir las raciones necesarias. La variedad mejora la calidad de dieta, salud y felicidad.
+- El hambre va de 0 a 100: aumenta hasta 20 puntos/mes ante falta total y se recupera hasta 12/mes con cobertura completa. Reduce la eficiencia productiva hasta 25%; si es grave y prolongada, afecta salud y mortalidad. No agrega un nuevo fin de partida.
+- La distribución pública es opcional y arranca desactivada. Su tope se ingresa en US$/mes: compra alimentos privados o distribuye stock público, con gasto logístico de 2% de su valor. Nunca vuelve a pagar el stock público ni toma deuda automática; se limita al presupuesto y al Tesoro disponible. El gasto aparece como Ayuda alimentaria en Economía y deuda.
+- Reserva alimentaria configurable de 0 a 365 días para limitar ventas automáticas, inicialmente 30. No bloquea consumo ni ventas manuales. Los alimentos tienen mermas mensuales diferenciadas y registradas en el balance físico.
+- Felicidad muestra cada contribución en puntos, el objetivo y el ajuste mensual previsto. IVA/ganancias y desempleo penalizan; vivienda, servicios y bienes ayudan. El hambre limita cuánto pueden compensar los lujos.
+- Vida laboral neutral entre 38 y 47 años; fuera de ese intervalo hay premios o penalizaciones limitados. Se consideran por separado el trabajo antes de los 18 y el retiro después de los 67. La entrada/salida demográfica laboral respeta las edades elegidas.
+- Los guardados anteriores conservan dinero, deuda, población, inventarios y colas. Inicializan hambre en cero sin penalización retroactiva; el primer cierre calcula los nuevos indicadores. No se altera el sistema de relaciones ni se agrega guerra: corresponden a futuras entregas.
+
+Las raciones, mermas y coeficientes son reglas de juego, no estadísticas nutricionales reales. La lectura del consumo se cierra una vez al mes en las etapas de días 15–22; el avance continúa diario y usa el mismo trabajador en segundo plano. Una reserva nacional incluye stock privado: su existencia no implica que los hogares puedan pagarlo. La previsión de felicidad supone que los demás indicadores no cambien.
 
 ## Actualización 7.9: investigación y exploración previsible
 

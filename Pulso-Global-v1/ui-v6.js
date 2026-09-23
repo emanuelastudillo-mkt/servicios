@@ -21,7 +21,7 @@
         d,
         new Intl.NumberFormat("es-AR", { maximumFractionDigits: d }),
       );
-    return numberFormats.get(d).format(Number.isFinite(n) ? n : 0);
+    return numberFormats.get(d).format(Number.isFinite(n) && n !== 0 ? n : 0);
   };
   const dollars = (n) => {
     const value = (Number(n) || 0) * 1e9,
@@ -60,7 +60,7 @@
     `<article class="v6-stat"><small>${esc(label)}</small><strong>${value}</strong><span>${detail}</span></article>`;
   const row = (label, value) =>
     `<div><dt>${esc(label)}</dt><dd>${value}</dd></div>`;
-  function shell(title, body, kicker = "Gestión nacional · v6") {
+  function shell(title, body, kicker = `Gestión nacional · v${D.release}`) {
     return `<section class="management-panel system-panel v6-panel"><header class="management-heading"><div class="section-symbol">◈</div><div><p class="panel-kicker">${esc(kicker)}</p><h2>${esc(title)}</h2></div><button class="panel-close" type="button" data-action="view" data-view="map" aria-label="Cerrar">×</button></header><div class="panel-body v6-body"><p class="v6-live-note">Datos actualizados durante el avance (cada 2 s); la edición se conserva. ${btn("refresh", "Actualizar datos")}</p>${body}</div></section>`;
   }
   function form(action, body, extra = "") {
@@ -394,6 +394,46 @@
         )}</dl><p class="method-note">${c.dataSources.areaKm2 ? "Superficie: Banco Mundial " + c.dataSources.areaKm2.year + ". " : ""}Las cantidades equivalentes de instalaciones son estimaciones de escenario; ferrocarriles con fuente cuando hay datos.</p></section>${btn("go-sector", "Construir viviendas e infraestructura", 'data-sector="infrastructure"')} ${btn("go-sector", "Ampliar agro y riego", 'data-sector="agriculture"')}`,
     );
   }
+  function nutrition(s) {
+    const c = s.countries[s.playerCountryId], n = E.nutritionReport(s), w = n.wellbeing;
+    const foodRows = Object.entries(D.foodProfiles).map(([id, p]) => {
+      const m = D.getMaterial(id);
+      return `<tr><th>${btn("resource", m.label, `data-resource="${id}"`)}</th><td>${num(p.rations)}</td><td>${amount(c.publicStocks[id])} / ${amount(c.privateStocks[id])}</td><td>${amount(c.householdConsumed[id])}</td><td>${dollars(s.market.resourcePrices[id])}</td><td>${amount(p.spoilage * 100, "%/mes")}</td></tr>`;
+    }).join("");
+    const advice = !n.measured ? "El primer cierre de consumo calculará cobertura, calidad y hambre. Actualizar una partida no aplica hambre retroactiva."
+      : n.shortfall < 1 ? "Necesidades básicas cubiertas. Conservá reservas y mejorá la variedad para aumentar la calidad de la dieta."
+      : `${n.unavailable > 0 ? "Faltan existencias: aumentá producción, habilitá importaciones o comprá alimentos. " : ""}${n.unaffordable > 0 ? "Hay alimentos que los hogares no pudieron pagar: revisá empleo, salarios e impuestos, o activá la distribución pública. " : ""}El efecto se mide en el siguiente cierre de consumo.`;
+    return shell("Alimentación y bienestar", `
+      <p>Unidades de juego: una ración diaria equivalente cubre las necesidades básicas de una persona durante un día. Se calculan con los días reales de cada mes. Último cierre alimentario: ${n.measured ? "mes " + n.closedTick : "pendiente"}.</p>
+      <div class="v6-grid">
+        ${card("Cobertura alimentaria", n.measured ? amount(n.coverage * 100, "%") : "Pendiente", "Consumo efectivo; los alimentos se sustituyen")}
+        ${card("Hambre", amount(n.hunger, "/100"), `${n.hungerChange >= 0 ? "+" : ""}${amount(n.hungerChange)} puntos en el último cierre`)}
+        ${card("Calidad de dieta", n.measured ? amount(n.quality, "/100") : "Pendiente", "Variedad y calidad, separadas de la cantidad")}
+        ${card("Reservas alimentarias", amount(n.stockDays, "días"), `Públicas ${amount(n.publicDays)} · privadas ${amount(n.privateDays)}`)}
+        ${card("Faltante del último cierre", num(n.shortfall) + " raciones", `Sin acceso económico ${num(n.unaffordable)} · sin existencias ${num(n.unavailable)}`)}
+        ${card("Efecto sobre producción", amount((n.productivity - 1) * 100, "%"), "El hambre reduce la eficiencia productiva")}
+        ${card("Ayuda entregada este ciclo", num(n.aidRations) + " raciones", `Gasto efectivo ${dollars(n.aidSpent)}`)}
+        ${card("Muertes por hambre", num(n.hungerDeaths, 2), "Último cálculo demográfico; solo hambre grave y prolongada")}
+      </div><p class="method-note">${esc(advice)}</p>
+      <section class="v6-section"><h3>Distribución pública de emergencia</h3>
+        <p>Cubre únicamente las raciones que faltan tras las compras de los hogares. Usa stock público y puede comprar stock privado nacional. El presupuesto paga compras y distribución (2% del valor de mercado). Se limita al dinero disponible; no pide préstamos. Las importaciones se gestionan en Comercio exterior.</p>
+        ${form("food-policy",
+          select("aidEnabled", "Distribución", [{ id: "false", label: "Desactivada" }, { id: "true", label: "Activada" }], String(n.aidEnabled)) +
+          field("aidBudget", "Tope mensual de gasto (US$)", n.aidBudget * 1e9) +
+          field("protectedDays", "Reserva protegida de exportación automática (días)", n.protectedDays, "number", 'min="0" max="365"'))}
+        <p>Tesoro actual: ${dollars(c.reserves)}. Stock público entregado este ciclo: ${dollars(n.aidStockValue)} de valor de mercado, sin volver a cobrar su compra. Referencia mínima para comprar el faltante al precio actual más barato: ${dollars(n.estimatedPurchaseCost)}; no garantiza vendedores ni incluye aranceles de importación.</p>
+        <p>Proteger reservas restringe las ventas automáticas, no el consumo ni las ventas manuales. El stock privado sigue necesitando compradores con dinero. Presupuesto cero o Tesoro agotado detienen la ayuda.</p>
+      </section>
+      <section class="v6-section"><h3>Alimentos y existencias actuales</h3><div class="table-wrap"><table class="v6-table"><thead><tr><th>Alimento</th><th>Raciones/t</th><th>Stock público / privado (t)</th><th>Consumido este ciclo (t)</th><th>Precio/t</th><th>Merma de stock</th></tr></thead><tbody>${foodRows}</tbody></table></div><p>Procesar mejora calidad o conservación sin crear alimento de la nada. La merma se aplica una vez al cierre del consumo. Última pérdida: ${num(n.spoilageRations)} raciones equivalentes. Son coeficientes de equilibrio del juego, no datos nutricionales reales.</p></section>
+      <section class="v6-section"><h3>Por qué cambia la felicidad</h3>
+        <p>Actual: ${amount(c.happiness, "%")} · objetivo con los indicadores actuales: ${amount(w.target, "%")} · ajuste previsto: ${w.monthlyChange >= 0 ? "+" : ""}${amount(w.monthlyChange, "puntos/mes")}. Se recorre el 8% de la diferencia en cada cierre; no es una suma aplicada inmediatamente.</p>
+        <dl class="v6-lines">${w.items.map((x) => row(x.label, `<span class="${x.points < 0 ? "negative" : "positive"}">${x.points >= 0 ? "+" : ""}${amount(x.points, "puntos")}</span>`)).join("")}</dl>
+        <p>La suma es el objetivo. Los bienes de lujo no pueden compensar el hambre grave. IVA y ganancias tienen una penalización directa; aranceles y herencias afectan el acceso a bienes y el dinero disponible por sus circuitos económicos.</p>
+        <p>Vida laboral: ${w.span} años. Entre 38 y 47 es neutral; menos mejora ese componente hasta +8 puntos y más lo penaliza hasta −18. Empezar antes de los 18 afecta educación y bienestar; retirarse después de los 67 agrega desgaste de salud. Una brecha corta reduce trabajadores y aumenta la carga previsional.</p>
+      </section>
+      <details class="v6-section"><summary>Cómo recuperar un país con hambre</summary><ol><li>Compará stock con acceso económico: un almacén lleno no garantiza que los hogares puedan comprar.</li><li>Para falta física, producí o importá alimentos. Para falta de dinero, mejorá empleo e ingresos o distribuí ayuda pública.</li><li>Protegé una reserva y revisá la caducidad. Granos y elaborados duran más que leche y carne.</li><li>El hambre sube como máximo 20 puntos mensuales ante falta total y baja hasta 12 con cobertura completa. Una dieta variada mejora salud y bienestar.</li><li>El hambre acumulada afecta producción y salud; los casos graves y prolongados aumentan mortalidad. La felicidad ya influye en la emigración del motor existente.</li></ol></details>
+    `);
+  }
   function demographics(s, u) {
     const c = s.countries[s.playerCountryId],
       p = c.laborSnapshot;
@@ -597,6 +637,7 @@
     else if (view === "economy") html = economy(s);
     else if (view === "trade") html = trade(s);
     else if (view === "demographics") html = demographics(s, u);
+    else if (view === "nutrition") html = nutrition(s);
     else if (view === "indicators")
       html = shell("Indicadores comparados", rankingTable(s, u));
     else if (view === "territory") html = territory(s);
@@ -733,6 +774,11 @@
     if (a === "repay")
       E.repayment(s, formElement.dataset.loan, Number(v.amount) / 1e9);
     if (a === "ages") E.setAges(s, Number(v.start), Number(v.retire));
+    if (a === "food-policy") E.setFoodPolicy(s, {
+      aidEnabled: v.aidEnabled === "true",
+      aidBudget: Number(v.aidBudget) / 1e9,
+      protectedDays: Number(v.protectedDays),
+    });
     if (a === "trade-policies")
       E.setTradePolicies(
         s,
