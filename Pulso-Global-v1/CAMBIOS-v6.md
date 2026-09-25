@@ -1,4 +1,13 @@
-# Pulso Global 7.12 — modo admin
+# Pulso Global 7.13 — cadena de producción
+
+## Incremental v7.13 sobre v7.12
+
+- Se aplican los 48 recursos y 30 recetas del documento editable `CADENA-DE-PRODUCCION.md`: las cifras de las tablas son la referencia, incluidas capacidades y coeficientes cambiados en filas que antes decían «Conservar».
+- Aumenta la capacidad por instalación de diez materias primas, leche y carne. Las recetas de cemento, acero, combustible, químicos, componentes, litio refinado, balanceado, alimentos, plutonio, lácteos, cuero y textiles usan los nuevos coeficientes.
+- Los recursos a granel se presentan en unidades de juego (`u`), preservando números guardados y capacidad de almacenes. La ficha informa receta base, insumos disponibles, techo teórico y producción operativa y efectiva.
+- Precios, demanda, costos de obra y depósitos existentes no se reescalan; se mantienen límites por personal, energía, instalación y almacén. La extracción ampliada puede agotar más rápido un depósito si funciona a plena carga.
+
+## Historial v7.12
 
 ## Incremental v7.12 sobre v7.11
 

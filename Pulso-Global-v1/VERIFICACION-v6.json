@@ -1,29 +1,30 @@
 {
   "result": "PASS",
-  "version": "7.12.0",
-  "base": "7.11.0",
-  "generatedAt": "2026-09-25T04:36:37.727Z",
-  "engineTestCount": 76,
+  "version": "7.13.0",
+  "base": "7.12.0",
+  "generatedAt": "2026-09-25T06:00:23.914Z",
+  "engineTestCount": 81,
   "checks": {
     "engine": {
       "result": "PASS",
-      "testCount": 76
+      "testCount": 81
     },
     "browser": {
       "result": "PASS",
       "errors": [],
-      "version": "7.12",
+      "version": "7.13",
       "forms": 3,
       "storeQuote": true,
       "tradeDiagnostics": true,
       "mobile": true,
       "admin": true,
-      "screenshots": 6
+      "productionPlan": true,
+      "screenshots": 7
     },
     "offlineUpgrade": {
       "result": "PASS",
       "oldCache": "5.4",
-      "newCache": "7.12",
+      "newCache": "7.13",
       "migration": true,
       "backupDownload": true,
       "negativeBalancePreserved": true,
@@ -32,30 +33,28 @@
     }
   },
   "verified": [
-    "Separate resource storage and idempotent save hydration",
-    "Pension expense and coverage",
-    "Per-save admin mode and free immediate construction and research",
-    "Public resource staffing without new workers",
-    "Demographic controls and age-cohort conservation",
-    "Wood fuel and compost mass balance",
-    "Construction quote cash versus economic cost",
-    "Nauru browser forms and offline cache"
+    "Editable production-chain table matches all source and recipe values",
+    "Resource detail exposes base recipe, stocks and installed/operational limits",
+    "Extraction consumes deposits and factories consume recipe inputs",
+    "Saved stocks, deposits, cash and loans preserve numeric values",
+    "Previous offline save and service-worker upgrade remain usable"
   ],
   "sourceSha256": {
-    "app.js": "3ed3b505e464ede7338c2c737474b7f174a414879d07dadeab976c0d46dd33cd",
-    "catalog-v6.js": "c935ae85610faafa12a9341cd9f5cef54f31e65d9837b4025179b64b42a0963b",
-    "simulation-v6.js": "4bf5822feea573e334fd0b2e9f27c8bb6e1fa6710e996736907630f2f657e91f",
-    "ui-v6.js": "ba4f3b59a6c9772e46b8d9063f5769ec46e0f7ead0e0f1d218b1406a5be6ced4",
+    "app.js": "6de8dc6c60ec37e6ee8fc89145d7a79c5a0025b31319325fca872e56c64ae6e9",
+    "catalog-v6.js": "24110ac9147c0433a2c938569fc3b8565538dd4209ba4fc2d49f0355863bc3ca",
+    "simulation-v6.js": "21cd3842bcf4b5a18c864a146935159680c018964d37de41b46737289181eed0",
+    "ui-v6.js": "993248eb66a1152332c708d2c8a9b249fdca99216a20886483d3d6521cc30562",
     "styles.css": "a24d483e506477e6ceec2155176452f94510cc1fba0e2d2f06672bb4a3d614ab",
     "styles-v6.css": "4ebf7d430e7f78b6de736ee4a5f2bdaad6e9aa87ecea296e36d83a6a27cf2e32",
-    "sw.js": "8f35dd11083642865b2a9dd213a072e55a3df53e1a74ad0c9710721248ad5d3d",
-    "README.md": "a7369eb85fb96199fbaf094b84e9b9170eb3bae4f3eed2f07a2cf2f9b13f603b",
-    "CAMBIOS-v6.md": "2d5b001800539569889e2b5c043d089391f76e3ee387bec3cf3e494f717be5ad",
-    "VERSION.txt": "17ac6729d48a0343556a158d25794b14c37ef46c5e48a835a2f06bf8eff7b3ec"
+    "sw.js": "d46547a64433e02c7f5802e0e858b2bd8beef981b7604ef8df77fe47ebe07c4d",
+    "README.md": "5b35d611a973d53b2c2b562137ab5c2d90f7ae07e3b47c1afd2bc556806424b8",
+    "CAMBIOS-v6.md": "c2a64cc04e62598914c2150986a6a1224040d91673801c6d291ad4c2e71c3c86",
+    "VERSION.txt": "87fd98c4a882bd55dc9c4c1c40b525ff53449cff26c62e0be88d510834e70ddb",
+    "CADENA-DE-PRODUCCION.md": "b627c6b749f5e03ce43221845b802c9adfe1a5d1c05a5de4956679c88e2c82ca"
   },
   "limits": [
-    "Coefficients are game rules, not official economic statistics.",
-    "Automatic sales still require real counterpart demand and funding.",
-    "Long-run balance is subject to continued playtesting."
+    "Recipes and capacities are game balance, not physical yield or official economic statistics.",
+    "Source output rises up to 10x while deposit sizes and prices remain unchanged.",
+    "The game's long-run economic balance needs continued playtesting."
   ]
 }

@@ -822,7 +822,7 @@
     return Math.max(0, finite(v));
   }
   function volumePerUnit(m) {
-    return m.unit === "t"
+    return m.unit === "u" || m.unit === "t"
       ? 1
       : [
             "automobiles",
@@ -1997,7 +1997,7 @@
       if (owner === "public") fill *= sec.payrollCoverage ?? 1;
       let processing =
         (assets.slaughterhouse || 0) *
-        100 *
+        D.getMaterial("meat").baseOutput *
         clamp(fill, 0, 1) *
         efficiency(c, "agriculture", owner) *
         Math.max(0.05, c.energy.served);
@@ -2058,7 +2058,14 @@
         };
         add("meat", slaughter * factor * 0.25);
         add("raw_leather", slaughter * factor * 0.015);
-        if (type === "cattle") add("milk", n * 0.08 * fed);
+        if (type === "cattle") {
+          const milk = D.getMaterial("milk"),
+            monthlyYield = n * 0.08 * fed * (milk.baseOutput / 250),
+            ranchCapacity = (assets.cattle_ranch || 0) * milk.baseOutput *
+              clamp(fill, 0, 1) * efficiency(c, "agriculture", owner) *
+              Math.max(0.05, c.energy.served);
+          add("milk", Math.min(monthlyYield, ranchCapacity));
+        }
         if (type === "sheep") add("wool", n * 0.0003 * fed);
       }
     }
@@ -4798,6 +4805,21 @@
     const c = s.countries[s.playerCountryId],
       m = D.getMaterial(id);
     if (!m) throw Error("Recurso no válido.");
+    const effectiveInputs = recipe(c, m);
+    const installedCapacity = owners.reduce((total, owner) => {
+      const assets = owner === "public" ? c.buildings : c.privateBuildings;
+      const sites = (assets[m.unlock] || 0) +
+        (id === "crude_oil" ? (assets.offshore_platform || 0) * 2 : 0);
+      return total + sites * m.baseOutput;
+    }, 0);
+    const inputAvailability = effectiveInputs.map(([resource, coefficient]) => ({
+      id: resource,
+      coefficient,
+      stock: (c.publicStocks[resource] || 0) + (c.privateStocks[resource] || 0),
+    }));
+    const inputLimit = inputAvailability.length
+      ? Math.min(...inputAvailability.map((input) => input.stock / input.coefficient))
+      : null;
     const totals = Object.values(s.countries).reduce(
       (r, x) => ({
         production: r.production + x.materialProduction[id],
@@ -4807,7 +4829,11 @@
       { production: 0, demand: 0, consumption: 0 },
     );
     return {
-      material: { ...m, inputs: Object.fromEntries(recipe(c, m)) },
+      material: { ...m, inputs: Object.fromEntries(effectiveInputs) },
+      baseInputs: { ...m.inputs },
+      inputAvailability,
+      inputLimit,
+      installedCapacity,
       publicProduction: c.publicProduction[id],
       privateProduction: c.privateProduction[id],
       capacity: production(c, "public", m) + production(c, "private", m),
