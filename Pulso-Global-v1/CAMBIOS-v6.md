@@ -1,4 +1,13 @@
-# Pulso Global 7.10 — alimentación y bienestar
+# Pulso Global 7.11 — producción, almacenes y demografía
+
+## Incremental v7.11 sobre v7.10
+
+- Diagnóstico de exportación automática por recurso: oferta, ventas, comprador, cobro público/privado, impuestos y bloqueo; la oferta queda acotada para impedir reexportar en el mismo ciclo lo recién importado. Pensión mensual editable y lectura de cobertura.
+- Costos desglosados de obras, stock comprometido y compras faltantes; límites de funcionarios por producción y estimación de insumos, capacidad y empleo.
+- Almacenes exclusivos para cada recurso con migración conservadora de capacidad antigua y excedente heredado visible.
+- Políticas de natalidad, entradas y salidas con niveles de fomento a prohibición, costo y eficacia; solicitudes y movimientos separados.
+- Centrales de madera, compostaje de orgánicos, valorización de reciclables y explicación de residuos y costo de disposición.
+- Conserva avance diario, guardado local, proceso en segundo plano y modo sin conexión.
 
 ## Primera entrega v7.10
 

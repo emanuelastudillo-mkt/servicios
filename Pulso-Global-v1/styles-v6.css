@@ -329,3 +329,6 @@
   font-size: 12px; text-transform: none; letter-spacing: normal;
 }
 .v6-form[data-v6-form="trade-policies"] > button[type="submit"] { margin-top: 16px; }
+.v6-panel [data-build-quote] li.positive { color: #45c98c !important; }
+.v6-panel [data-build-quote] li.negative { color: #f47c7c !important; }
+.v6-panel [data-build-quote] ul { padding-left: 1.3rem; margin: .5rem 0; }

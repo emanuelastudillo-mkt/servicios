@@ -1,16 +1,16 @@
-# Pulso Global 7.10 — alimentación y bienestar
+# Pulso Global 7.11 — producción, almacenes y demografía
 
-Actualización incremental sobre **v7.9**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.10**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.9, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.10, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.10**; si todavía aparece v7.9, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.11**; si todavía aparece v7.10, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
-La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios públicos y avance de obras. Inicializa los sistemas nuevos con capacidades equivalentes estimadas. Guarda una copia previa a v6 en el navegador, pero ese respaldo no sustituye tu exportación externa. No puede reconstruir dinero que una versión anterior ya hubiera descontado incorrectamente y guardado: preserva el saldo existente, sin inventar compensaciones.
+La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios y avance de obras. Reparte la capacidad de antiguos almacenes familiares entre recursos sin multiplicarla; si una partida excepcional ya excedía esa capacidad, conserva el stock como excedente visible hasta venderlo, usarlo o construir un almacén exclusivo. La pensión inicial se deriva de la fórmula anterior y no cambia al cargarla de nuevo. Exportá un respaldo JSON igualmente: una actualización no puede reconstruir dinero perdido y guardado por una versión anterior.
 
 No importes una partida v6 en v5.4. Para volver, usá una copia de v5.4 y el JSON anterior a la actualización.
 
@@ -23,6 +23,16 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
 ## Evolución del motor
+
+## Actualización 7.11: decisiones productivas verificables
+
+- Economía muestra la pensión mensual editable en US$ por jubilado, gasto solicitado/pagado, cobertura y efecto sobre consumo y bienestar. Comercio exterior y cada recurso informan excedente, ventas automáticas, cobro público/privado, impuesto y motivo de falta de venta.
+- Las obras muestran materiales requeridos, stock libre, stock comprometido, faltantes y compras estimadas para la cantidad elegida. El valor de material propio es costo económico, no un segundo pago. En cada recurso se fija un máximo de funcionarios de producción y se ven puestos asignados, capacidad e insumos por instalación.
+- Cada uno de los 48 recursos tiene almacén exclusivo construible desde su ficha. Un almacén de hierro no añade capacidad al cobre. Las partidas existentes se migran una vez conservando existencias y propiedad.
+- Natalidad, ingreso y egreso tienen cinco niveles: fomento, neutralidad, restricción moderada, cuota estricta y prohibición. Se distinguen solicitudes, movimientos aceptados, rechazos y espera; vivienda, suelo, atractivo y destino continental limitan las mudanzas. Los controles cuestan dinero y pierden eficacia si no se pagan.
+- La central de madera usa 0,9 t/MWh, compite con otros usos de la madera y genera una pequeña penalización ambiental. El compostaje convierte 3 t orgánicas en hasta 1 t de biomasa con energía, personal, espacio y gasto. La ficha de residuos explica reciclado, tratamiento y costo de exportación.
+
+Los coeficientes son reglas de juego calibrables, no estadísticas reales. El ciclo sigue diario, con cálculo mensual en segundo plano y sin fecha final ni nuevo fin de partida. El balance a 10–30 años requiere pruebas de juego adicionales.
 
 ## Actualización 7.10: alimentación y bienestar
 

@@ -576,7 +576,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.10</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.11</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -2342,22 +2342,8 @@
           article.querySelector('[data-action="v6-build"]').dataset.building,
           Number(input.value),
         );
-        output.textContent =
-          p.blocked ||
-          "Total estimado: US$ " +
-            (p.totalCost * 1e9).toLocaleString("es-AR", {
-              maximumFractionDigits: 0,
-            }) +
-            ". " +
-            (p.estimatedMonths === null
-              ? "Sin trabajadores."
-              : "Plazo: " + p.estimatedMonths.toFixed(1) + " meses.") +
-            (p.convertAgricultureHa
-              ? " Convierte " +
-                p.convertAgricultureHa.toLocaleString("es-AR") +
-                " ha agrícolas."
-              : "") +
-            " Se paga durante el avance.";
+        if (p.blocked) output.textContent = p.blocked;
+        else output.innerHTML = window.PulsoUI6.constructionQuote(p);
       } catch (e) {
         output.textContent = e.message;
       }

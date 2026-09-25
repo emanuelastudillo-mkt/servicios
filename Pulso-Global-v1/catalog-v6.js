@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (D, FACTS) {
   "use strict";
   D.version = 6;
-  D.release = "7.10.0";
+  D.release = "7.11.0";
   D.facts = FACTS;
   const techs = [];
   function branch(sector, items) {
@@ -1148,6 +1148,7 @@
     ["geothermal_plant", "Central geotérmica", "geothermal", 0.4, "geothermal"],
     ["fossil_plant", "Central fósil", "thermal", 2, "fossil"],
     ["biomass_plant", "Central de biomasa", "biomass", 0.15, "biomass"],
+    ["wood_plant", "Central de madera", "thermal", 0.12, "wood"],
   ];
   for (const [id, label, tech, energyOutput, kind] of energy)
     D.constructions.push(
@@ -1208,6 +1209,22 @@
     b.storage = type.id;
     b.storageAmount = type.capacity;
   }
+  for (const m of D.materials) {
+    const family = D.storageTypes.find((type) => type.id === m.storage);
+    const familyCount = D.materials.filter((item) => item.storage === m.storage).length;
+    D.constructions.push(building(
+      `store_${m.id}`, `Almacén de ${m.label.toLowerCase()}`, "services",
+      m.id === "plutonium" ? "nuclear_safety" : m.storage === "cold" ? "cold_chain" : "civil",
+      { storageFor: m.id, storageAmount: m.id === "plutonium" ? 20 : Math.max(100, Math.round(family.capacity / familyCount)),
+        fixedCost: m.id === "plutonium" ? 0.12 : m.storage === "strategic" ? 0.018 : 0.008,
+        skillNeed: m.id === "plutonium" ? 75 : m.storage === "strategic" ? 55 : 45,
+        requirements: m.id === "plutonium" ? { cement: 500, steel: 300, fuel: 10 }
+          : { cement: 200, steel: 50, fuel: 10 },
+        landHa: m.storage === "strategic" ? 5 : 3,
+        description: `Capacidad exclusiva para ${m.label.toLowerCase()}.`,
+        unit: "almacenes" },
+    ));
+  }
   D.constructions.push(
     building(
       "recycling_plant",
@@ -1223,6 +1240,9 @@
       "waste_collection",
       { treatment: 20000, landHa: 6 },
     ),
+    building("compost_plant", "Planta de compostaje", "services", "biomass",
+      { treatment: 9000, landHa: 5, fixedCost: 0.012,
+        description: "Convierte 3 t de residuo orgánico en hasta 1 t de biomasa; necesita energía y personal." }),
     building("primary_school", "Escuela primaria", "education", "primary", {
       educationLevel: "primary",
       seats: 600,

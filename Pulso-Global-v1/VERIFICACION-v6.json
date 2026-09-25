@@ -1,60 +1,58 @@
 {
-  "version": "7.10.0",
-  "base": "7.9.0",
-  "generatedAt": "2026-09-23T00:54:00.990Z",
-  "engineTestCount": 61,
+  "result": "PASS",
+  "version": "7.11.0",
+  "base": "7.10.0",
+  "generatedAt": "2026-09-25T03:48:06.871Z",
+  "engineTestCount": 71,
   "checks": {
     "engine": {
       "result": "PASS",
-      "testCount": 61
+      "testCount": 71
     },
     "browser": {
       "result": "PASS",
-      "worker": true,
-      "forms": true,
-      "saveReload": true,
+      "errors": [],
+      "version": "7.11",
+      "forms": 3,
+      "storeQuote": true,
+      "tradeDiagnostics": true,
       "mobile": true,
-      "errors": []
+      "screenshots": 5
     },
     "offlineUpgrade": {
       "result": "PASS",
       "oldCache": "5.4",
-      "newCache": "7.10",
+      "newCache": "7.11",
       "migration": true,
       "backupDownload": true,
       "negativeBalancePreserved": true,
       "offlineResume": true,
       "errors": []
-    },
-    "v79MidmonthMigration": {
-      "result": "PASS",
-      "preservedCountries": 128
     }
   },
   "verified": [
-    "Equivalent food rations and substitution",
-    "Affordable basic food before costly preferences",
-    "Gradual hunger and recovery",
-    "Public aid cash/stock conservation and budget caps",
-    "Export reserve protection",
-    "Happiness breakdown and work-age effects",
-    "Twelve-month all-country food conservation",
-    "Actual v7.9 midmonth migration with a loan",
-    "Worker, forms, reload, mobile layout and offline upgrade"
+    "Separate resource storage and idempotent save hydration",
+    "Pension expense and coverage",
+    "Public resource staffing without new workers",
+    "Demographic controls and age-cohort conservation",
+    "Wood fuel and compost mass balance",
+    "Construction quote cash versus economic cost",
+    "Nauru browser forms and offline cache"
   ],
   "sourceSha256": {
-    "app.js": "c26de08be1e33efe9ba93f2225e9bac0d59bbc9f2f64f2056c48e90f95c6d27e",
-    "catalog-v6.js": "0382faf72316f28d182b0bae2d0fc23d230809ed1663a22487c973732a4bb6af",
-    "simulation-v6.js": "7420f1572f00d3272e20e8734ee01bc7a5c672531ca1ecac56e52691634d6c2e",
-    "ui-v6.js": "f391923302c88beddd664d697951b01cf7dad3b410c76415a5f25c0f1edbc4bb",
-    "sw.js": "c445b65735e15d5ab77b8c35845dfea248d5971c8138c9135000fcd2080c86c2",
-    "README.md": "4bd609cd734ac3ab03c663454a443ba2407109f766f4ec69a593b3f5640c078d",
-    "CAMBIOS-v6.md": "64571c26ab2c8db43c564910f30dfe95e78bb59f9089df87296cee39c7c81826",
-    "VERSION.txt": "e56cf86fa9eb304c393df841ea3d337c1591f8d12b56311c53de8f5a0cb943b6"
+    "app.js": "ae40ec7095f02e68e479bfd8acae80ed4da0de197ced14d8dd6ea1aa95386c1a",
+    "catalog-v6.js": "eb5050cdb524e203ca3ffe44f7ad439df257283bbffc8192946777b8c1b6831b",
+    "simulation-v6.js": "27465babd7722b00134edb1e8a4b0ab40704e11994e811a8b5f61c9a0fbff8b9",
+    "ui-v6.js": "8a807a037097f67230418bd6174b0804f070c16682f93960b97208ee6422a452",
+    "styles-v6.css": "4ebf7d430e7f78b6de736ee4a5f2bdaad6e9aa87ecea296e36d83a6a27cf2e32",
+    "sw.js": "d1b4e0401a2c788c615f82107df3209719c2be4f337eea0018dcc1860f15c783",
+    "README.md": "0b047d4b349b8442cb012faab43695a7018450ff1ad8a3ab26af36cb6a8f4d82",
+    "CAMBIOS-v6.md": "71c630e34c52f2ce35ddae4b34d906d2e6ed37a74bb3fd1cff0d79a2a8cbdf68",
+    "VERSION.txt": "e2b11b0b0d8da6d9a99ccb6e0079294e457728ef387ddadb160c51a044df7596"
   },
   "limits": [
-    "Nutrition coefficients are game rules, not nutritional statistics.",
-    "Cross-continent migration rules, diplomacy and military mechanics are outside this delivery.",
-    "Long-term balance remains subject to playtesting, especially heavily modified old economies."
+    "Coefficients are game rules, not official economic statistics.",
+    "Automatic sales still require real counterpart demand and funding.",
+    "Long-run balance is subject to continued playtesting."
   ]
 }

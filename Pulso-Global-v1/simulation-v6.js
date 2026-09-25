@@ -23,6 +23,9 @@
       buildings.find((b) => b.storage === t.id),
     ]),
   );
+  const dedicatedStores = Object.fromEntries(
+    materials.map((m) => [m.id, buildings.find((b) => b.storageFor === m.id)]),
+  );
   const durableYears = {
     automobiles: 12,
     electric_vehicles: 12,
@@ -180,6 +183,9 @@
   }
   function wellbeingReport(c) {
     const n = c.nutrition, span = c.workPolicy.retire - c.workPolicy.start;
+    const pension = c.pensionPolicy;
+    const pensionRatio = pension?.referenceUsd > 0
+      ? (pension.paidPerRetireeUsd || 0) / pension.referenceUsd : 1;
     const duration = span < 38 ? Math.min(8, (38 - span) * 0.4) : -Math.min(18, Math.max(0, span - 47) * 0.6);
     const items = [
       ["base", "Bienestar básico", 36],
@@ -192,11 +198,16 @@
       ["infrastructure", "Infraestructura", c.infrastructure * 0.06],
       ["housingQuality", "Calidad de viviendas", c.housingStock.new / Math.max(0.000001, sum(c.housingStock)) * 3 + techBonus(c, "infrastructure", "quality") * 4],
       ["waste", "Residuos acumulados", -Math.min(25, (c.wasteBurden || 0) * 12)],
+      ["woodSmoke", "Emisiones por quema de madera", -Math.min(3, (c.woodBurned || 0) / Math.max(1, population(c)) * 0.1)],
       ["tax", "Carga de IVA y ganancias", -Math.min(18, c.taxes.vat * 0.22 + c.taxes.income * 0.1)],
       ["career", "Duración de la vida laboral", duration],
       ["earlyWork", "Ingreso laboral temprano", -Math.max(0, 18 - c.workPolicy.start) * 1.5],
       ["lateRetirement", "Retiro tardío", -Math.max(0, c.workPolicy.retire - 67) * 0.5],
       ["durables", "Bienes duraderos en uso", ((c.goodsBenefits?.happiness || 1) - 1) * 40],
+      ["pensions", "Cobertura de pensiones", clamp((pensionRatio - 1) * (c.laborSnapshot?.retired || 0) / Math.max(1, population(c)) * 45, -15, 8)],
+      ["migrationPolicy", "Controles migratorios", (populationPolicyLevels[c.demographicPolicy?.entry] || populationPolicyLevels.neutral).happiness * 0.4 + (populationPolicyLevels[c.demographicPolicy?.exit] || populationPolicyLevels.neutral).happiness],
+      ["birthPolicy", "Política de natalidad", (populationPolicyLevels[c.demographicPolicy?.birth] || populationPolicyLevels.neutral).happiness * 0.4],
+      ["foodSecurity", "Reserva alimentaria accesible", Math.min(3, Math.max(0, (storedRations(c) / Math.max(1, population(c)) - 30) / 30))],
       ["hunger", "Hambre acumulada", -n.hunger * 0.4],
     ].map(([id, label, points]) => ({ id, label, points }));
     const raw = items.reduce((sum, x) => sum + x.points, 0);
@@ -261,6 +272,21 @@
     "copper",
     "minerals",
   ];
+  const populationPolicyLevels = {
+    promote: { birth: 1.25, entry: 1.35, exit: 1.3, happiness: 1, cost: 2 },
+    neutral: { birth: 1, entry: 1, exit: 1, happiness: 0, cost: 0 },
+    restrict: { birth: 0.75, entry: 0.55, exit: 0.55, happiness: -2, cost: 1 },
+    quota: { birth: 0.35, entry: 0.2, exit: 0.2, happiness: -5, cost: 3 },
+    ban: { birth: 0, entry: 0, exit: 0, happiness: -10, cost: 5 },
+  };
+  function continent(c) {
+    const region = c.region || "";
+    if (/América|Andina|Caribe/i.test(region)) return "America";
+    if (/[ÁA]frica/i.test(region)) return "Africa";
+    if (["AUS", "NZL", "PNG", "FJI", "VUT", "SLB", "WSM", "TON", "NRU", "KIR", "TUV"].includes(c.id) || /Pacífico/i.test(region)) return "Oceania";
+    if (/Europa/i.test(region) || ["MLT", "CYP", "TUR", "RUS"].includes(c.id)) return "Europe";
+    return "Asia";
+  }
   for (const t of D.technologies)
     (techGroups[t.sector + "|" + t.effect] ||= []).push(t);
   const map = (v) =>
@@ -811,7 +837,7 @@
             ? 10
             : 0.02;
   }
-  function storageCapacity(c, owner, type) {
+  function legacyStorageCapacity(c, owner, type) {
     const b = warehouses[type];
     return (
       c.storageBase[owner][type] +
@@ -821,6 +847,15 @@
           b.storageAmount
         : 0)
     );
+  }
+  function resourceStorageCapacity(c, owner, m) {
+    const b = dedicatedStores[m.id];
+    return Math.max(0, (c.resourceStorageBase?.[owner]?.[m.id] || 0) +
+      (owner === "public" ? c.buildings[b.id] || 0 : c.privateBuildings[b.id] || 0) * b.storageAmount);
+  }
+  function storageCapacity(c, owner, type) {
+    if (!c.resourceStorageBase) return legacyStorageCapacity(c, owner, type);
+    return storageFamilies[type].reduce((n,m)=>n+resourceStorageCapacity(c,owner,m),0);
   }
   function storageUsed(c, owner, type) {
     return storageFamilies[type].reduce(
@@ -832,6 +867,9 @@
     return owner === "public" ? c.publicStocks : c.privateStocks;
   }
   function freeStock(c, owner, m) {
+    if (c.resourceStorageBase)
+      return Math.max(0, resourceStorageCapacity(c, owner, m) /
+        volumePerUnit(m) - stocks(c, owner)[m.id]);
     // Reserve room across the production chain: intermediates must not fill all
     // shared space before the final products get their turn to be manufactured.
     const family = storageFamilies[m.storage],
@@ -856,6 +894,33 @@
         ),
       ) / volumePerUnit(m)
     );
+  }
+  function spreadLegacySpace(c, owner, type, capacity) {
+    const family = storageFamilies[type];
+    if (!family?.length || capacity <= 0) return;
+    const weights = family.map((m) => Math.max(1,
+      (c.needs?.[m.id] || 0) * volumePerUnit(m),
+      stocks(c, owner)[m.id] * volumePerUnit(m)));
+    const total = weights.reduce((n,v)=>n+v,0);
+    family.forEach((m,i)=>{c.resourceStorageBase[owner][m.id] += capacity * weights[i] / total;});
+  }
+  function migrateResourceStorage(c) {
+    const old = {public:{},private:{}};
+    for (const owner of owners) for (const t of D.storageTypes)
+      old[owner][t.id] = legacyStorageCapacity(c,owner,t.id);
+    c.resourceStorageBase = {public:map(0),private:map(0)};
+    c.resourceStorageOverflow = {public:{},private:{}};
+    for (const owner of owners) for (const t of D.storageTypes) {
+      const family = storageFamilies[t.id];
+      const occupied = family.reduce((n,m)=>n+stocks(c,owner)[m.id]*volumePerUnit(m),0);
+      const preserved = Math.min(occupied, old[owner][t.id]);
+      c.resourceStorageOverflow[owner][t.id] = Math.max(0, occupied - old[owner][t.id]);
+      for (const m of family)
+        c.resourceStorageBase[owner][m.id] = occupied > 0
+          ? stocks(c,owner)[m.id]*volumePerUnit(m) * preserved / occupied : 0;
+      spreadLegacySpace(c,owner,t.id,Math.max(0,old[owner][t.id]-preserved));
+    }
+    updateCapacity(c);
   }
   function updateCapacity(c) {
     for (const m of materials)
@@ -911,6 +976,16 @@
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
       initializeNutrition(c, s);
+      if (!c.pensionPolicy) {
+        const rate = (c.gdp * 1e9 / Math.max(1, population(c))) * 0.2 / 12;
+        c.pensionPolicy = { monthlyUsd: rate, referenceUsd: rate, paidPerRetireeUsd: rate, requested: 0, paid: 0, measured: false };
+      }
+      c.demographicPolicy ||= { birth: "neutral", entry: "neutral", exit: "neutral" };
+      for (const key of ["birth", "entry", "exit"])
+        if (!populationPolicyLevels[c.demographicPolicy[key]]) c.demographicPolicy[key] = "neutral";
+      c.demographicRequests ||= { exit: 0, entry: 0, accepted: 0, departed: 0, rejected: 0, waiting: 0 };
+      c.autoTradeReport ||= {};
+      c.resourceStaffLimits ||= {};
       if (!c.tradePolicies) {
         c.tradePolicies = map((m) => ({
           sell: !m.waste,
@@ -958,7 +1033,22 @@
     }
     if (!s.v6Seeded) {
       seedSupplyChains(s, legacy);
+      if (!legacy) for (const c of Object.values(s.countries))
+        for (const id of c.blockedRawMaterials || []) {
+          c.publicStocks[id] = Math.min(c.publicStocks[id], (c.needs[id] || 0) * 0.1);
+          c.privateStocks[id] = Math.min(c.privateStocks[id], (c.needs[id] || 0) * 0.2);
+        }
       s.v6Seeded = true;
+    }
+    if (!s.resourceStoresV711) {
+      for (const c of Object.values(s.countries)) {
+        for (const m of materials) {
+          c.buildings[`store_${m.id}`] ||= 0;
+          c.privateBuildings[`store_${m.id}`] ||= 0;
+        }
+        migrateResourceStorage(c);
+      }
+      s.resourceStoresV711 = true;
     }
     return s;
   }
@@ -1338,18 +1428,29 @@
     );
     c.finance.taxes += income;
     c.finance.taxBases.income += c.finance.payroll * c.taxEfficiency;
-    const pensions =
-      (c.laborSnapshot.retired *
-        1e6 *
-        ((c.gdp * 1e9) / Math.max(1, population(c))) *
-        0.2) /
-      12 /
-      1e9;
+    const pensions = c.laborSnapshot.retired * 1e6 * c.pensionPolicy.monthlyUsd / 1e9;
     automaticFunding(s, c, pensions, "Pensiones");
     const paid = Math.min(pensions, Math.max(0, c.reserves));
     transfer(s, c, "public", "household", paid, "Pensiones");
     c.finance.spending += paid;
     c.finance.pensions = paid;
+    c.pensionPolicy.requested = pensions;
+    c.pensionPolicy.paid = paid;
+    c.pensionPolicy.paidPerRetireeUsd = c.laborSnapshot.retired > 0
+      ? paid * 1e9 / (c.laborSnapshot.retired * 1e6) : c.pensionPolicy.monthlyUsd;
+    c.pensionPolicy.measured = true;
+    const policyIntensity = ["birth", "entry", "exit"].reduce((n, key) =>
+      n + (populationPolicyLevels[c.demographicPolicy[key]]?.cost || 0), 0);
+    const policyCost = c.gdp * policyIntensity * 0.000003 / 12;
+    automaticFunding(s, c, policyCost, "Administración demográfica");
+    const policyPaid = Math.min(policyCost, Math.max(0, c.reserves));
+    if (policyPaid) {
+      book(s, c, "Administración demográfica", -policyPaid, "public", "Natalidad y fronteras");
+      s.financeWorld.bank += policyPaid;
+      c.finance.spending += policyPaid;
+    }
+    c.demographicPolicy.cost = policyPaid;
+    c.demographicPolicy.efficacy = policyCost > 0 ? policyPaid / policyCost : 1;
     c.finance.lastPayroll = c.finance.payroll;
     c.incomePulse = last > 0 ? clamp(c.finance.payroll / last, 0.5, 1.5) : 1;
   }
@@ -1496,7 +1597,11 @@
       owner === "public"
         ? sec.publicWorkers / Math.max(1, sec.requested)
         : sec.privateWorkers / Math.max(1, sec.privateJobs);
-    if (owner === "public") filled *= sec.payrollCoverage ?? 1;
+    if (owner === "public") {
+      filled *= sec.payrollCoverage ?? 1;
+      const staff = resourceStaffing(c, m);
+      filled *= staff.expected > 0 ? staff.assigned / staff.expected : 0;
+    }
     const tech = scalarTech(c, m.technology);
     return !tech
       ? 0
@@ -1508,7 +1613,38 @@
           (1 + (tech - 1) * 0.08) *
           (owner === "public" ? c.productionTargets[m.id] : 1);
   }
+  const staffingCache = new WeakMap();
+  function resourceStaffing(c, m) {
+    const sec = c.sectors[m.sector];
+    let cache = staffingCache.get(c);
+    if (!cache) { cache = {}; staffingCache.set(c, cache); }
+    let entry = cache[m.sector];
+    if (!entry || entry.workers !== sec.publicWorkers ||
+        entry.salary !== sec.salary || entry.version !== (c.staffingVersion || 0)) {
+      const peers = materials.filter((x) => x.sector === m.sector &&
+        (c.buildings[x.unlock] || 0) > 0 && !c.blockedRawMaterials?.includes(x.id));
+      const weights = peers.map((x) => (c.buildings[x.unlock] || 0) *
+        Math.max(1, D.getBuilding(x.unlock)?.laborNeed || 1) /
+        Math.max(1, materials.filter((y) => y.sector === x.sector && y.unlock === x.unlock).length));
+      const total = weights.reduce((n, x) => n + x, 0);
+      const byId = {};
+      peers.forEach((x, index) => {
+        const expected = total > 0 ? sec.publicWorkers * weights[index] / total : 0;
+        const operatingMax = Math.max(expected, (c.buildings[x.unlock] || 0) *
+          Math.max(1, D.getBuilding(x.unlock)?.laborNeed || 1) * 1000);
+        const requested = c.resourceStaffLimits?.[x.id] ?? operatingMax;
+        byId[x.id] = { expected, operatingMax, requested,
+          assigned: Math.min(expected, operatingMax, requested), salary: sec.salary };
+      });
+      entry = { workers: sec.publicWorkers, salary: sec.salary,
+        version: c.staffingVersion || 0, byId };
+      cache[m.sector] = entry;
+    }
+    return entry.byId[m.id] || { expected: 0, operatingMax: 0,
+      requested: c.resourceStaffLimits?.[m.id] || 0, assigned: 0, salary: sec.salary };
+  }
   function runEnergy(s, c) {
+    c.woodBurned = 0;
     const demand =
       Math.max(0.00001, (c.electricityDemandTWh * 1e6) / 12) *
       (1 + Math.max(-0.5, c.growth / 1200)) *
@@ -1523,8 +1659,8 @@
       .filter((b) => b.energyOutput)
       .sort(
         (a, b) =>
-          Number(["fossil", "nuclear", "biomass"].includes(a.energyKind)) -
-          Number(["fossil", "nuclear", "biomass"].includes(b.energyKind)),
+          Number(["fossil", "nuclear", "biomass", "wood"].includes(a.energyKind)) -
+          Number(["fossil", "nuclear", "biomass", "wood"].includes(b.energyKind)),
       );
     for (const b of plants)
       for (const owner of owners) {
@@ -1562,9 +1698,11 @@
                 ? "fuel"
                 : kind === "biomass"
                   ? "organic_waste"
+                  : kind === "wood"
+                    ? "timber"
                   : null,
           ratio =
-            kind === "nuclear" ? 0.000003 : kind === "fossil" ? 0.18 : 1.5;
+            kind === "nuclear" ? 0.000003 : kind === "fossil" ? 0.18 : kind === "wood" ? 0.9 : 1.5;
         if (input) {
           if (kind === "biomass") {
             const organic = Math.min(
@@ -1597,6 +1735,7 @@
           } else {
             n *= inputScale(s, c, owner, [[input, n * ratio]], "energy");
             n = spendInput(s, c, owner, input, n * ratio, "energy") / ratio;
+            if (kind === "wood") c.woodBurned += n * ratio;
           }
         }
         generated += n;
@@ -2017,6 +2156,15 @@
         techBonus(c, "infrastructure", "logistics"))
     );
   }
+  function wasteReceptionCapacity(c, m) {
+    if (!m.waste) return 0;
+    const total = (m.id === "recyclables" ? 0 :
+      (c.buildings.waste_treatment + c.privateBuildings.waste_treatment) * 20000)
+      + (m.id === "organic_waste" ? (c.buildings.biomass_plant + c.privateBuildings.biomass_plant) * 20000
+        + (c.buildings.compost_plant + c.privateBuildings.compost_plant) * 9000 : 0)
+      + (m.id === "recyclables" ? (c.buildings.recycling_plant + c.privateBuildings.recycling_plant) * 12000 : 0);
+    return Math.max(0, total - c.publicStocks[m.id] - c.privateStocks[m.id]);
+  }
   function exchange(
     s,
     from,
@@ -2026,6 +2174,7 @@
     ownerFrom = "private",
     ownerTo = "private",
     agreement = null,
+    automatic = false,
   ) {
     if (from.id === to.id || to.importsBanned || to.importBans[m.id]) return 0;
     const price = s.market.resourcePrices[m.id],
@@ -2042,20 +2191,7 @@
         volumePerUnit(m),
     );
     if (m.waste) {
-      const treatment =
-        (to.buildings.waste_treatment + to.privateBuildings.waste_treatment) *
-          20000 +
-        (m.id === "organic_waste"
-          ? (to.buildings.biomass_plant + to.privateBuildings.biomass_plant) *
-            20000
-          : 0);
-      q = Math.min(
-        q,
-        Math.max(
-          0,
-          treatment - (to.publicStocks[m.id] + to.privateStocks[m.id]),
-        ),
-      );
+      q = Math.min(q, wasteReceptionCapacity(to, m));
     }
     if (price >= 0)
       q = Math.min(
@@ -2116,7 +2252,15 @@
       quantity: q,
       value,
       agreement: agreement?.id || null,
+      automatic, ownerFrom, ownerTo,
     });
+    if (automatic && from.id === s.playerCountryId && from.autoTradeReport?.[m.id]) {
+      const report = from.autoTradeReport[m.id];
+      report[ownerFrom === "public" ? "soldPublic" : "soldPrivate"] += q;
+      report[ownerFrom === "public" ? "receivedPublic" : "receivedPrivate"] += value;
+      report.tax += ownerFrom === "private" ? exportTax : 0;
+      report.buyer = to.id;
+    }
     return q;
   }
   function trade(s) {
@@ -2125,6 +2269,13 @@
     );
     s.market.trades = [];
     for (const c of countries) c.transported = 0;
+    const userCountry = s.countries[s.playerCountryId];
+    userCountry.autoTradeReport = map((m) => ({
+      offeredPublic: userCountry.tradePolicies?.[m.id]?.sell === false ? 0 : exportable(userCountry, "public", m),
+      offeredPrivate: userCountry.tradePolicies?.[m.id]?.sell === false ? 0 : exportable(userCountry, "private", m),
+      soldPublic: 0, soldPrivate: 0, receivedPublic: 0, receivedPrivate: 0,
+      tax: 0, buyer: null, tick: s.tick,
+    }));
     for (const a of s.agreements.filter((a) => a.active && a.remaining > 0)) {
       a.lastQuantity = 0;
       const from = s.countries[a.from],
@@ -2151,6 +2302,7 @@
         a.owner || "public",
         "private",
         a,
+        true,
       );
       a.status = a.lastQuantity
         ? "Operativo"
@@ -2180,9 +2332,8 @@
           {
             c,
             owner: "private",
-            need: Math.max(
-              0,
-              c.needs[m.id] * 1.4 -
+            need: m.waste ? wasteReceptionCapacity(c, m) : Math.max(
+              0, c.needs[m.id] * 1.4 -
                 c.publicStocks[m.id] -
                 c.privateStocks[m.id],
             ),
@@ -2210,22 +2361,27 @@
         });
         for (const seller of sellers) {
           if (buyer.need <= 1e-6) break;
-          if (seller.c.id === buyer.c.id) continue;
-          buyer.need -= exchange(
+          if (seller.c.id === buyer.c.id || seller.stock <= 1e-6) continue;
+          const sold = exchange(
             s,
             seller.c,
             buyer.c,
             m,
-            buyer.need,
+            Math.min(buyer.need, seller.stock),
             seller.owner,
             buyer.owner,
+            null,
+            true,
           );
+          buyer.need -= sold;
+          seller.stock -= sold;
         }
       }
     }
   }
   function waste(s, c) {
     c.uncollectedWaste ||= map(0);
+    c.composted = 0;
     for (const [id, weight] of [
       ["organic_waste", 0.014],
       ["recyclables", 0.009],
@@ -2255,6 +2411,24 @@
       const st = stocks(c, owner),
         bs = owner === "public" ? c.buildings : c.privateBuildings,
         treat = bs.waste_treatment * 20000 * staffing * boost;
+      const compostMax = Math.min(st.organic_waste / 3,
+        bs.compost_plant * 3000 * staffing * boost * clamp(c.energy.served, 0, 1),
+        freeStock(c, owner, D.getMaterial("biomass")));
+      const compostCost = compostMax * 0.00000001;
+      const composted = Math.min(compostMax,
+        Math.max(0, cash(c, owner)) / Math.max(1e-15, compostCost / Math.max(1, compostMax)));
+      if (composted > 0) {
+        st.organic_waste -= composted * 3;
+        st.biomass += composted;
+        c.composted += composted;
+        c.materialConsumption.organic_waste += composted * 3;
+        c.materialProduction.biomass += composted;
+        (owner === "public" ? c.publicProduction : c.privateProduction).biomass += composted;
+        const paid = composted * 0.00000001;
+        book(s, c, "Operación de compostaje", -paid, owner, "Residuos orgánicos");
+        s.financeWorld.bank += paid;
+        if (owner === "public") c.finance.spending += paid;
+      }
       for (const id of ["waste", "organic_waste"]) {
         let n = Math.min(st[id], treat / 2);
         st[id] -= n;
@@ -2326,6 +2500,8 @@
     const c = s.countries[s.playerCountryId],
       b = D.getBuilding(id);
     if (!b) throw Error("Construcción no válida.");
+    if (b.storage && !b.storageFor)
+      throw Error("Ese almacén antiguo fue distribuido entre recursos. Construí el almacén específico desde la ficha del recurso.");
     factor = needNumber(factor, 1, 999);
     if (!Number.isInteger(factor)) throw Error("Construí módulos enteros.");
     const land = (b.landHa || b.agricultureHa || 0) * factor;
@@ -2385,6 +2561,18 @@
       (n, [id, q]) => n + q * Math.max(0, s.market.resourcePrices[id]),
       0,
     );
+    const materialQuote = Object.entries(requests).map(([resource, required]) => {
+      const stock = c.publicStocks[resource] || 0;
+      const committed = c.projects.filter((p) => p.progress < 100).reduce((n, p) =>
+        n + (p.requirements?.[resource] || 0) * (1 - p.progress / 100), 0);
+      const free = Math.max(0, stock - committed);
+      const missing = Math.max(0, required - free);
+      const price = Math.max(0, s.market.resourcePrices[resource]);
+      return { id: resource, required, stock, committed, free, missing,
+        purchaseCost: missing * price, ownValue: Math.min(required, free) * price };
+    });
+    const purchaseCost = materialQuote.reduce((n, x) => n + x.purchaseCost, 0);
+    const ownMaterialValue = materialQuote.reduce((n, x) => n + x.ownValue, 0);
     const laborNeed = b.laborNeed * 1000 * factor,
       salary = c.sectors.infrastructure.salary,
       wageIndex = clamp(salary / 1000, 0.1, 10),
@@ -2409,6 +2597,10 @@
       laborCost,
       totalCost: b.fixedCost * factor + laborCost + materialCost,
       materialCost,
+      materialQuote,
+      purchaseCost,
+      ownMaterialValue,
+      treasuryEstimate: b.fixedCost * factor + laborCost + purchaseCost,
       landHa: land,
       convertAgricultureHa: convertible,
       requirements: requests,
@@ -2426,6 +2618,12 @@
           100
         : null,
       unlocks: materials.filter((m) => m.unlock === id).map((m) => m.id),
+      productionImpact: materials.filter((m) => m.unlock === id).map((m) => ({
+        id: m.id, monthly: m.baseOutput * factor,
+        inputs: Object.fromEntries(recipe(c, m).map(([key, value]) => [key, value * m.baseOutput * factor])),
+        operators: b.laborNeed * 1000 * factor /
+          Math.max(1, materials.filter((x) => x.unlock === id).length),
+      })),
       blocked,
       quantity: (b.quantity || 1) * factor,
       unit: b.unit || "instalaciones",
@@ -2546,6 +2744,9 @@
         p.progress = 100;
         p.completedAt = L.monthLabel(s.date);
         c.buildings[b.id] += factor;
+        c.staffingVersion = (c.staffingVersion || 0) + 1;
+        if (b.storage && !b.storageFor)
+          spreadLegacySpace(c,"public",b.storage,b.storageAmount*factor);
         if (b.housingUnits) c.housingStock.new += b.housingUnits * factor;
         if (b.housingRepairUnits) {
           const repaired = Math.min(
@@ -3220,11 +3421,14 @@
         const b = D.getBuilding(project.building);
         if (project.owner === "public") {
           c.buildings[project.building] += project.factor;
+          c.staffingVersion = (c.staffingVersion || 0) + 1;
           c.sectors[project.sector].requested += project.jobs;
         } else {
           c.privateBuildings[project.building] += project.factor;
           c.sectors[project.sector].privateJobs += project.jobs;
         }
+        if (b.storage && !b.storageFor && c.resourceStorageBase)
+          spreadLegacySpace(c, project.owner, b.storage, b.storageAmount * project.factor);
         if (b.housingUnits)
           c.housingStock.new += b.housingUnits * project.factor;
         if (b.livestock)
@@ -3281,14 +3485,13 @@
         services: "tourism_district",
         energy: c.energy.served < 0.95 ? "wind_farm" : null,
       }[sid];
-      const fullStore = D.storageTypes.find(
-        (t) =>
-          storageUsed(c, "private", t.id) >
-          storageCapacity(c, "private", t.id) * 0.92,
-      );
+      const fullStore = materials.find((m) =>
+        stocks(c,"private")[m.id] * volumePerUnit(m) >
+        resourceStorageCapacity(c,"private",m) * 0.92 &&
+        scalarTech(c, D.getBuilding(`store_${m.id}`).technology));
       let b =
         sid === "services" && fullStore
-          ? buildings.find((b) => b.storage === fullStore.id)
+          ? D.getBuilding(`store_${fullStore.id}`)
           : D.getBuilding(serviceChoice) || D.getBuilding(m?.unlock);
       if (
         !b ||
@@ -3315,10 +3518,10 @@
           1,
           (c.population / 3.2 - sum(c.housingStock)) / b.housingUnits,
         );
-      else if (b.storage)
+      else if (b.storageFor)
         wanted = Math.max(
           1,
-          (storageUsed(c, "private", b.storage) * 0.15) / b.storageAmount,
+          (stocks(c,"private")[b.storageFor] * volumePerUnit(D.getMaterial(b.storageFor)) * 0.15) / b.storageAmount,
         );
       else if (m && b.id === m.unlock)
         wanted = Math.max(
@@ -3532,8 +3735,10 @@
         if (age === c.workPolicy.retire - 1) retire = next;
       }
       const cap = c.land.areaKm2 * 60000;
+      const birthRule = populationPolicyLevels[c.demographicPolicy.birth];
+      const birthMultiplier = 1 + (birthRule.birth - 1) * (c.demographicPolicy.efficacy ?? 1);
       const births = Math.min(
-        (old * c.birthRate) / 12000,
+        (old * c.birthRate * birthMultiplier) / 12000,
         Math.max(0, cap - sum(newA)),
       );
       newA[0] += births;
@@ -3545,12 +3750,15 @@
         enteringWorkAge: enter / 1e6,
         retiring: retire / 1e6,
       };
+      c.demographicRequests = { exit: 0, entry: 0, accepted: 0, departed: 0, rejected: 0, waiting: 0 };
       syncDemographics(c);
     }
     const receivers = cs
       .map((c) => ({
         c,
-        score: c.happiness + c.lifeExpectancy * 0.3 - c.unemployment * 0.5,
+        score: c.happiness + c.lifeExpectancy * 0.3 - c.unemployment * 0.5
+          + c.housing * 0.08 + (c.nutrition?.coverage || 0) * 8
+          + c.infrastructure * 0.03 - (c.nutrition?.hunger || 0) * 0.2,
         free: Math.min(
           Math.max(
             0,
@@ -3564,37 +3772,55 @@
       .filter((x) => x.free > 0)
       .sort((a, b) => b.score - a.score || a.c.id.localeCompare(b.c.id));
     for (const c of cs) {
-      let leaving =
+      const desired =
         population(c) *
         clamp(
-          (55 - c.happiness) / 100000 +
+          (55 - c.happiness) / 100000 + c.unemployment / 200000
+            + (c.nutrition?.hunger || 0) / 200000
+            + Math.max(0, 85 - c.housing) / 200000 +
             H.activeEventEffects(c, s).migrationPush / 12000,
           0,
           0.002,
         );
-      for (const r of receivers) {
-        if (!leaving) break;
+      c.demographicRequests.exit = desired;
+      const exitRule = populationPolicyLevels[c.demographicPolicy.exit];
+      let leaving = desired * (1 + (exitRule.exit - 1) * (c.demographicPolicy.efficacy ?? 1));
+      const destinations = receivers.filter((r) => r.c.id !== c.id)
+        .sort((a, b) => (continent(a.c) === continent(c) ? -1 : 1)
+          - (continent(b.c) === continent(c) ? -1 : 1)
+          || b.score - a.score || a.c.id.localeCompare(b.c.id));
+      let remote = desired * 0.12;
+      for (const r of destinations) {
+        if (leaving <= 1e-9) break;
         if (
-          r.c.id === c.id ||
           r.score < c.happiness + c.lifeExpectancy * 0.3 + 5
         )
           continue;
-        const amount = Math.min(leaving, r.free),
-          adult = c.ageCohorts.slice(18, 65).reduce((a, b) => a + b, 0),
-          n = Math.min(amount, adult * 0.01);
+        const sameContinent = continent(c) === continent(r.c);
+        const request = Math.min(leaving, sameContinent ? leaving : remote);
+        r.c.demographicRequests.entry += request;
+        const entryRule = populationPolicyLevels[r.c.demographicPolicy.entry];
+        const entryFactor = 1 + (entryRule.entry - 1) * (r.c.demographicPolicy.efficacy ?? 1);
+        const available = c.ageCohorts.reduce((a, b) => a + b, 0);
+        const n = Math.min(request * entryFactor, r.free, available * 0.01);
         if (!n) continue;
-        for (let age = 18; age < 65; age++) {
-          const share = (c.ageCohorts[age] / adult) * n;
+        for (let age = 0; age <= 100; age++) {
+          const share = (c.ageCohorts[age] / available) * n;
           c.ageCohorts[age] -= share;
           r.c.ageCohorts[age] += share;
         }
         leaving -= n;
+        if (!sameContinent) remote -= n;
         r.free -= n;
+        r.c.demographicRequests.accepted += n;
+        c.demographicRequests.departed += n;
         c.demographicFlows.migration -= n / 1e6;
         r.c.demographicFlows.migration += n / 1e6;
       }
+      c.demographicRequests.waiting = Math.max(0, desired - c.demographicRequests.departed);
     }
     for (const c of cs) {
+      c.demographicRequests.rejected = Math.max(0, c.demographicRequests.entry - c.demographicRequests.accepted);
       syncDemographics(c);
       c.migration =
         (c.demographicFlows.migration / Math.max(0.000001, c.population)) *
@@ -3811,6 +4037,13 @@
         c.nutrition.protectedDays,
         c.nutrition.need,
         c.nutrition.deficitMonths,
+        c.pensionPolicy.monthlyUsd,
+        c.pensionPolicy.referenceUsd,
+        c.demographicPolicy.cost || 0,
+        c.demographicPolicy.efficacy ?? 1,
+        ...Object.values(c.resourceStaffLimits || {}),
+        ...Object.values(c.resourceStorageBase?.public || {}),
+        ...Object.values(c.resourceStorageBase?.private || {}),
         ...c.ageCohorts,
       ])
         if (!Number.isFinite(value))
@@ -3826,6 +4059,11 @@
         c.finance.baseDebt < 0
       )
         throw Error("Guardado con población o deuda inválida.");
+      if (c.pensionPolicy.monthlyUsd < 0 ||
+        Object.values(c.resourceStaffLimits || {}).some((n) => n < 0) ||
+        Object.values(c.resourceStorageBase?.public || {}).some((n) => n < -1e-6) ||
+        Object.values(c.resourceStorageBase?.private || {}).some((n) => n < -1e-6))
+        throw Error("Guardado con política o almacenes inválidos.");
       for (const owner of owners)
         if (
           Object.values(stocks(c, owner)).some(
@@ -4089,6 +4327,7 @@
     for (const key of ["salary", "requested"])
       if (input[key] !== undefined) values[key] = needNumber(input[key]);
     Object.assign(sec, values);
+    c.staffingVersion = (c.staffingVersion || 0) + 1;
     return sec;
   }
   function setHousingProgram(s, input) {
@@ -4114,10 +4353,19 @@
   function setResourcePolicy(s, id, input) {
     const c = player(s);
     if (!D.getMaterial(id)) throw Error("Recurso no válido.");
+    const changes = {};
     if (input.minimum !== undefined)
-      c.stockMinimum[id] = needNumber(input.minimum);
+      changes.minimum = needNumber(input.minimum);
     if (input.target !== undefined)
-      c.productionTargets[id] = needNumber(input.target, 0, 1);
+      changes.target = needNumber(input.target, 0, 1);
+    if (input.staffLimit !== undefined)
+      changes.staffLimit = needNumber(input.staffLimit, 0, 1e12);
+    if (changes.minimum !== undefined) c.stockMinimum[id] = changes.minimum;
+    if (changes.target !== undefined) c.productionTargets[id] = changes.target;
+    if (changes.staffLimit !== undefined) {
+      c.resourceStaffLimits[id] = changes.staffLimit;
+      c.staffingVersion = (c.staffingVersion || 0) + 1;
+    }
   }
   function setTradePolicies(s, policies) {
     const c = player(s),
@@ -4144,6 +4392,68 @@
       throw Error("La edad inicial debe ser menor que la edad de retiro.");
     c.workPolicy = { start, retire };
     syncDemographics(c);
+  }
+  function setDemographicPolicy(s, input) {
+    const c = player(s), changes = {};
+    for (const key of ["birth", "entry", "exit"])
+      if (input[key] !== undefined) {
+        if (!populationPolicyLevels[input[key]]) throw Error("Nivel demográfico no válido.");
+        changes[key] = input[key];
+      }
+    Object.assign(c.demographicPolicy, changes);
+    return c.demographicPolicy;
+  }
+  function setPension(s, monthlyUsd) {
+    const c = player(s);
+    c.pensionPolicy.monthlyUsd = needNumber(monthlyUsd, 0, 1e9);
+    return pensionPreview(c);
+  }
+  function pensionPreview(c) {
+    const people = (c.laborSnapshot?.retired || 0) * 1e6;
+    const monthly = people * c.pensionPolicy.monthlyUsd / 1e9;
+    return { people, monthly, annual: monthly * 12,
+      previousMonthly: c.pensionPolicy.requested || 0,
+      projectedReserves: c.reserves - monthly,
+      coverage: c.reserves >= monthly ? 1 : clamp(Math.max(0, c.reserves) / Math.max(monthly, 1e-12), 0, 1),
+    };
+  }
+  function automaticExportReport(s, id) {
+    const c = s.countries[s.playerCountryId], m = D.getMaterial(id);
+    if (!m) throw Error("Recurso no válido.");
+    const report = c.autoTradeReport[id], policy = c.tradePolicies[id];
+    if (!report) return { reason:"Pendiente del próximo ciclo comercial", enabled:!!policy.sell,
+      offeredPublic:0,offeredPrivate:0,soldPublic:0,soldPrivate:0,
+      receivedPublic:0,receivedPrivate:0,tax:0,buyer:null,
+      stockPublic:c.publicStocks[id],stockPrivate:c.privateStocks[id],
+      currentExportablePublic:exportable(c,"public",m),
+      currentExportablePrivate:exportable(c,"private",m) };
+    let reason = "Venta realizada";
+    if (!policy.sell) reason = "Venta automática desactivada";
+    else if (report.soldPublic + report.soldPrivate > 0) reason = "Venta realizada";
+    else if (!(report.offeredPublic + report.offeredPrivate > 1e-6))
+      reason = (c.publicStocks[id] + c.privateStocks[id]) > 1e-6
+        ? "Stock reservado para consumo, insumos o mínimo protegido" : "Sin stock disponible";
+    else if (transportCapacity(c) - (c.transported || 0) <= 1e-6) reason = "Transporte nacional agotado";
+    else if (m.waste && s.market.resourcePrices[id] < 0 &&
+      Math.max(0, c.reserves) + Math.max(0, c.finance.privateCash) <= 0)
+      reason = "La disposición de residuos requiere fondos del exportador";
+    else {
+      const candidates = Object.values(s.countries).filter((x) => x.id !== c.id &&
+        !x.importsBanned && !x.importBans[id] &&
+        (m.waste ? wasteReceptionCapacity(x, m) > 1e-6 :
+          x.needs[id] * 1.4 > x.publicStocks[id] + x.privateStocks[id] ||
+          x.tradePolicies?.[id]?.autoImport && x.tradePolicies[id].importBelow > x.publicStocks[id]));
+      if (!candidates.length) reason = "No hay países con demanda elegible";
+      else if (!candidates.some((x) => freeStock(x, "private", m) > 1e-6 || freeStock(x, "public", m) > 1e-6))
+        reason = "Los compradores no tienen almacén libre";
+      else if (s.market.resourcePrices[id] >= 0 && !candidates.some((x) => x.finance.privateCash > 0 || x.reserves > 0))
+        reason = "Los compradores no tienen fondos";
+      else reason = "Sin operación: revisá demanda, fondos, espacio, transporte y aranceles";
+    }
+    return { ...report, reason, enabled: !!policy.sell,
+      stockPublic: c.publicStocks[id], stockPrivate: c.privateStocks[id],
+      currentExportablePublic: exportable(c,"public",m),
+      currentExportablePrivate: exportable(c,"private",m) };
   }
   function productionBuildings(m) {
     return [m.unlock, ...(m.id === "crude_oil" ? ["offshore_platform"] : [])]
@@ -4208,13 +4518,7 @@
   function nationalize(s, id, share = 1) {
     const c = player(s),
       p = nationalizePreview(s, id, share),
-      m = p.material,
-      storage = {
-        public: storageCapacity(c, "public", m.storage),
-        total:
-          storageCapacity(c, "public", m.storage) +
-          storageCapacity(c, "private", m.storage),
-      };
+      m = p.material;
     if (p.alreadyNationalized && share === 1)
       throw Error("Esta producción ya está nacionalizada.");
     if (p.cost > Math.max(0, c.reserves))
@@ -4254,17 +4558,12 @@
     sec.privateJobs -= p.jobs;
     sec.publicWorkers += p.workers;
     sec.requested += p.workers;
-    // Move only the storage access needed by this production's transferred stock.
-    const target = clamp(
-        storage.public,
-        storageUsed(c, "public", m.storage),
-        Math.max(0, storage.total - storageUsed(c, "private", m.storage)),
-      ),
-      delta = target - storageCapacity(c, "public", m.storage);
-    c.storageLease.public[m.storage] =
-      (c.storageLease.public[m.storage] || 0) + delta;
-    c.storageLease.private[m.storage] =
-      (c.storageLease.private[m.storage] || 0) - delta;
+    // Transfer only this resource's occupied space; preserve total capacity.
+    const delta = Math.min(Math.max(0, c.resourceStorageBase.private[id] || 0),
+      Math.max(0, c.publicStocks[id] * volumePerUnit(m) - resourceStorageCapacity(c,"public",m)));
+    c.resourceStorageBase.public[id] += delta;
+    c.resourceStorageBase.private[id] -= delta;
+    c.staffingVersion = (c.staffingVersion || 0) + 1;
     updateCapacity(c);
     note(
       s,
@@ -4499,6 +4798,13 @@
       stock: c.publicStocks[id],
       privateStock: c.privateStocks[id],
       free: freeStock(c, "public", m),
+      storage: { public: resourceStorageCapacity(c, "public", m) / volumePerUnit(m),
+        private: resourceStorageCapacity(c, "private", m) / volumePerUnit(m),
+        publicModules: c.buildings[`store_${id}`] || 0,
+        privateModules: c.privateBuildings[`store_${id}`] || 0,
+        module: D.getBuilding(`store_${id}`)?.storageAmount / volumePerUnit(m) },
+      staff: resourceStaffing(c, m),
+      automaticTrade: automaticExportReport(s, id),
       world: totals,
       ranking: rank(s, "production", "desc", id),
       exportable: exportable(c, "public", m),
@@ -4585,7 +4891,8 @@
         groups.inputs += amount;
       else if (
         kind === "Funcionamiento y mantenimiento" ||
-        kind === "Subsidio sectorial" || kind === "Ayuda alimentaria"
+        kind === "Subsidio sectorial" || kind === "Ayuda alimentaria" ||
+        kind === "Administración demográfica" || kind === "Operación de compostaje"
       )
         groups.operations += amount;
       else groups.otherExpense += amount;
@@ -4721,6 +5028,11 @@
     queueConstruction,
     setSector,
     setHousingProgram,
+    setPension,
+    pensionPreview,
+    automaticExportReport,
+    wasteReceptionCapacity,
+    resourceStorageCapacity,
     setFoodPolicy,
     nutritionReport,
     wellbeingReport,
@@ -4729,6 +5041,9 @@
     setTradePolicies,
     finalGoodsBenefits,
     setAges,
+    setDemographicPolicy,
+    populationPolicyLevels,
+    resourceStaffing,
     nationalizePreview,
     nationalize,
     startResearch,
