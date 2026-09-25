@@ -1,4 +1,13 @@
-# Pulso Global 7.11 — producción, almacenes y demografía
+# Pulso Global 7.12 — modo admin
+
+## Incremental v7.12 sobre v7.11
+
+- Switch Admin en barra superior, persistido en la partida y desactivado por defecto en guardados anteriores.
+- Construcciones nuevas inmediatas y gratuitas: no gastan dinero, materias primas, tiempo ni mano de obra; sí respetan terreno, depósitos y desbloqueos. Las instalaciones completadas actualizan vivienda, infraestructura, capacidad y puestos igual que una obra normal.
+- Investigaciones nuevas inmediatas y gratuitas, un nivel por acción; respetan tecnologías previas y no requieren laboratorio ni científicos. Una investigación ya en cola para ese nivel se retira para evitar duplicación.
+- Obras previamente iniciadas y exploraciones mantienen su comportamiento normal. Operación y mantenimiento posteriores no son gratuitos.
+
+## Historial v7.11
 
 ## Incremental v7.11 sobre v7.10
 

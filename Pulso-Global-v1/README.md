@@ -1,14 +1,14 @@
-# Pulso Global 7.11 — producción, almacenes y demografía
+# Pulso Global 7.12 — modo admin
 
-Actualización incremental sobre **v7.10**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.11**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.10, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.11, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.11**; si todavía aparece v7.10, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.12**; si todavía aparece v7.11, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios y avance de obras. Reparte la capacidad de antiguos almacenes familiares entre recursos sin multiplicarla; si una partida excepcional ya excedía esa capacidad, conserva el stock como excedente visible hasta venderlo, usarlo o construir un almacén exclusivo. La pensión inicial se deriva de la fórmula anterior y no cambia al cargarla de nuevo. Exportá un respaldo JSON igualmente: una actualización no puede reconstruir dinero perdido y guardado por una versión anterior.
 
@@ -21,6 +21,12 @@ Con Python instalado, ejecutá `python -m http.server 4173` desde la carpeta del
 Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece a esa dirección. Cambiarla no borra la partida original, pero la nueva dirección no puede verla: trasladala mediante exportar/importar. Borrar datos del sitio o usar navegación privada puede hacerte perder guardados.
 
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
+
+## Modo admin
+
+El switch **Admin** aparece en la barra superior durante la partida. Al activarlo, las construcciones nuevas se completan en el acto y las investigaciones nuevas otorgan un nivel al pulsar **Investigar ahora**. No descuentan reservas ni materias primas ni requieren mano de obra, científicos o laboratorio. El estado del switch se guarda por partida y está desactivado de forma predeterminada, incluso en partidas antiguas.
+
+Los requisitos de tecnología, depósitos, costa y suelo siguen vigentes. Las obras y exploraciones que ya estaban en cola conservan su avance; las exploraciones nuevas no reciben el efecto admin. La producción y el mantenimiento posteriores siguen sus reglas y costos normales. En la investigación, los niveles y tecnologías previas deben completarse en orden.
 
 ## Evolución del motor
 

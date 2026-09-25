@@ -576,7 +576,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.11</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.12</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -709,7 +709,7 @@
         <section class="workspace">
           <header class="command-bar">
             <div class="mobile-brand"><div class="brand-mark small"><span></span></div><strong>Pulso Global</strong></div>
-            <div class="date-block"><span>Fecha de gobierno</span><strong>${e(Engine.dateLabel(game.date))}</strong><small>${e(game.dailyStage || "Inicio del mes")} · ${e(simulationMode)}</small></div>
+            <div class="date-block"><span>Fecha de gobierno</span><strong>${e(Engine.dateLabel(game.date))}</strong><small>${e(game.dailyStage || "Inicio del mes")} · ${e(simulationMode)}${game.adminMode ? " · MODO ADMIN" : ""}</small></div>
             <div class="hud-stats">
               <div class="hud-population"><span>Población</span><strong>${people(country.population)}</strong><small>${e(country.name)}</small></div>
               <div><span>PBI</span><strong>${money(country.gdp)}</strong><small class="${country.growth < 0 ? "negative" : "positive"}">${signed(country.growth, "%")}</small></div>
@@ -726,6 +726,7 @@
               <button class="icon-button next" type="button" data-action="step">+1 día</button>
             </div>
             <div class="save-cluster">
+              <button class="admin-switch ${game.adminMode ? "active" : ""}" type="button" role="switch" aria-checked="${game.adminMode ? "true" : "false"}" data-action="toggle-admin" title="Construcciones e investigaciones nuevas, inmediatas y gratis. No afecta exploraciones ni obras ya iniciadas."><span class="admin-switch-track" aria-hidden="true"><i></i></span>Admin</button>
               <span>${e(lastSaveLabel)}</span><button class="button compact" type="button" data-action="save">Guardar</button>
               <button class="menu-button" type="button" data-action="toggle-menu" aria-label="Más opciones">•••</button>
               <div id="save-menu" class="save-menu" hidden>
@@ -2243,6 +2244,11 @@
       } catch (error) {
         showToast(error.message, "error");
       }
+    } else if (action === "toggle-admin") {
+      const enabled = Engine.setAdminMode(game, !game.adminMode);
+      await saveGame("autosave", false);
+      renderGame();
+      showToast(enabled ? "Modo admin activo: obras e investigaciones nuevas se completan sin costo" : "Modo admin desactivado", "success");
     } else if (action === "save") {
       await saveGame("manual", true);
       renderGame();
@@ -2343,7 +2349,7 @@
           Number(input.value),
         );
         if (p.blocked) output.textContent = p.blocked;
-        else output.innerHTML = window.PulsoUI6.constructionQuote(p);
+        else output.innerHTML = window.PulsoUI6.constructionQuote(p, game.adminMode);
       } catch (e) {
         output.textContent = e.message;
       }

@@ -269,6 +269,13 @@ h1, h2, h3, p { margin-top: 0; }
 .icon-button.next { min-width: 62px; padding-inline: 8px; color: var(--ink); }
 .save-cluster { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 .save-cluster > span { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: none; }
+.admin-switch { display: inline-flex; align-items: center; gap: 6px; padding: 6px; border: 1px solid var(--line); border-radius: 8px; background: rgba(20, 40, 56, 0.76); color: var(--muted); font: inherit; font-size: .7rem; font-weight: 800; cursor: pointer; }
+.admin-switch.active { color: #ffd38a; border-color: #d7a34c; background: rgba(215, 163, 76, .13); }
+.admin-switch:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+.admin-switch-track { position: relative; display: inline-block; width: 24px; height: 14px; border-radius: 9px; background: #4b6170; transition: background .15s ease; }
+.admin-switch-track i { position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: #fff; transition: transform .15s ease; }
+.admin-switch.active .admin-switch-track { background: #d7a34c; }
+.admin-switch.active .admin-switch-track i { transform: translateX(10px); }
 .save-menu {
   position: absolute;
   z-index: 70;

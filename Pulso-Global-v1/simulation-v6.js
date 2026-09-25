@@ -929,6 +929,8 @@
     c.materialStocks = c.publicStocks;
   }
   function initialize(s, legacy = false) {
+    // Older saves have no admin flag; it is opt-in and belongs to this save.
+    s.adminMode = s.adminMode === true;
     // v7.8: deposits are intentionally much larger. This migration applies once
     // to existing remaining reserves and to the exploration result shown to player.
     if (!s.discoveredDepositsV78) {
@@ -2668,8 +2670,35 @@
       laborNeed: p.laborNeed,
     };
     c.projects.push(project);
-    note(s, c, `${b.label}: obra iniciada (${p.quantity} ${p.unit}).`);
+    if (s.adminMode) {
+      finishConstruction(s, c, project, b);
+      const completed = c.projects.filter((item) => item.progress === 100).slice(-40);
+      c.projects = c.projects.filter((item) => item.progress < 100 || completed.includes(item));
+      note(s, c, `${b.label}: construcción inmediata en modo admin, sin costo ni materiales (${p.quantity} ${p.unit}).`);
+    } else note(s, c, `${b.label}: obra iniciada (${p.quantity} ${p.unit}).`);
     return project;
+  }
+  function finishConstruction(s, c, p, b) {
+    const factor = p.factor || 1;
+    p.progress = 100;
+    p.completedAt = L.monthLabel(s.date);
+    c.buildings[b.id] += factor;
+    c.staffingVersion = (c.staffingVersion || 0) + 1;
+    if (b.storage && !b.storageFor)
+      spreadLegacySpace(c, "public", b.storage, b.storageAmount * factor);
+    if (b.housingUnits) c.housingStock.new += b.housingUnits * factor;
+    if (b.housingRepairUnits) {
+      const repaired = Math.min(c.housingStock.repair, b.housingRepairUnits * factor);
+      c.housingStock.repair -= repaired;
+      c.housingStock.normal += repaired;
+    }
+    if (b.irrigatedHa) c.land.irrigatedHa += b.irrigatedHa * factor;
+    if (c.infrastructureAssets[b.id] !== undefined)
+      c.infrastructureAssets[b.id] += (b.quantity || 1) * factor;
+    if (b.livestock) c.herds.public[b.livestock] += b.heads * factor;
+    c.sectors[b.sector].requested += Math.max(2, b.laborNeed * 200 * factor);
+    updateCapacity(c);
+    note(s, c, `${b.label} terminada; la capacidad entra en operación el próximo mes.`);
   }
   function projects(s, c) {
     let free = constructionWorkforce(c);
@@ -2741,32 +2770,7 @@
       p.progress = Math.min(100, p.progress + progress);
       p.monthsActive++;
       if (p.progress >= 99.999999) {
-        p.progress = 100;
-        p.completedAt = L.monthLabel(s.date);
-        c.buildings[b.id] += factor;
-        c.staffingVersion = (c.staffingVersion || 0) + 1;
-        if (b.storage && !b.storageFor)
-          spreadLegacySpace(c,"public",b.storage,b.storageAmount*factor);
-        if (b.housingUnits) c.housingStock.new += b.housingUnits * factor;
-        if (b.housingRepairUnits) {
-          const repaired = Math.min(
-            c.housingStock.repair,
-            b.housingRepairUnits * factor,
-          );
-          c.housingStock.repair -= repaired;
-          c.housingStock.normal += repaired;
-        }
-        if (b.irrigatedHa) c.land.irrigatedHa += b.irrigatedHa * factor;
-        if (c.infrastructureAssets[b.id] !== undefined)
-          c.infrastructureAssets[b.id] += (b.quantity || 1) * factor;
-        if (b.livestock) c.herds.public[b.livestock] += b.heads * factor;
-        const sec = c.sectors[b.sector];
-        sec.requested += Math.max(2, b.laborNeed * 200 * factor);
-        note(
-          s,
-          c,
-          `${b.label} terminada; la capacidad entra en operación el próximo mes.`,
-        );
+        finishConstruction(s, c, p, b);
       }
     }
     syncDemographics(c);
@@ -4577,14 +4581,26 @@
       t = D.getTechnology(id);
     if (!t) throw Error("Tecnología no válida.");
     const queue = normalizeResearchQueue(c);
-    if (!c.buildings.research_lab)
+    if (!s.adminMode && !c.buildings.research_lab)
       throw Error("Construí un laboratorio de investigación.");
     if (
       !t.requires.every(
-        (dep) => scalarTech(c, dep) || queue.some((x) => x.technology === dep),
+        (dep) => scalarTech(c, dep) || (!s.adminMode && queue.some((x) => x.technology === dep)),
       )
     )
       throw Error("Faltan tecnologías previas.");
+    if (s.adminMode) {
+      const level = scalarTech(c, id) + 1;
+      if (level > t.maxLevel) throw Error("Nivel máximo alcanzado.");
+      c.research.levels[id] = level;
+      c.research.history.unshift({ label: t.label, level, tick: s.tick });
+      const pending = queue.findIndex((item) => item.kind === "research" &&
+        item.technology === id && item.level === level);
+      if (pending >= 0) queue.splice(pending, 1);
+      normalizeResearchQueue(c);
+      note(s, c, `${t.label}: nivel ${level} completado en modo admin, sin costo.`);
+      return { kind: "research", technology: id, level, progress: 100, admin: true };
+    }
     const level =
       Math.max(
         scalarTech(c, id),
@@ -5026,6 +5042,7 @@
     constructionPreview,
     constructionWorkforce,
     queueConstruction,
+    setAdminMode: (s, enabled) => { s.adminMode = enabled === true; return s.adminMode; },
     setSector,
     setHousingProgram,
     setPension,
