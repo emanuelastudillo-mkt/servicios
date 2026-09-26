@@ -1,14 +1,14 @@
-# Pulso Global 7.13 — cadena de producción
+# Pulso Global 7.14 — árbol de tecnologías
 
-Actualización incremental sobre **v7.12**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.13**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.12, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.13, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.13**; si todavía aparece v7.12, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.14**; si todavía aparece v7.13, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios y avance de obras. Reparte la capacidad de antiguos almacenes familiares entre recursos sin multiplicarla; si una partida excepcional ya excedía esa capacidad, conserva el stock como excedente visible hasta venderlo, usarlo o construir un almacén exclusivo. La pensión inicial se deriva de la fórmula anterior y no cambia al cargarla de nuevo. Exportá un respaldo JSON igualmente: una actualización no puede reconstruir dinero perdido y guardado por una versión anterior.
 
@@ -21,6 +21,12 @@ Con Python instalado, ejecutá `python -m http.server 4173` desde la carpeta del
 Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece a esa dirección. Cambiarla no borra la partida original, pero la nueva dirección no puede verla: trasladala mediante exportar/importar. Borrar datos del sitio o usar navegación privada puede hacerte perder guardados.
 
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
+
+## Árbol de tecnologías v7.14
+
+En Investigación, la pestaña «Investigaciones posibles» ofrece solo tecnologías nuevas con prerrequisitos completados. Las mejoras de nivel se muestran aparte; una investigación ya en cola no se ofrece de nuevo. El «Árbol de tecnologías» permite recorrer verticalmente todas las ramas y distingue investigadas, disponibles y bloqueadas, indicando los requisitos pendientes. Una tecnología hija se habilita cuando se completa su requisito, no al encolarlo.
+
+El [modelo editable del árbol](ARBOL-TECNOLOGIAS.md) documenta el criterio visual y funcional. La imagen original aportada como referencia está en `referencias/arbol-tecnologico-modelo.png`; no se carga durante el juego ni se precachea para no afectar el rendimiento.
 
 ## Cadena de producción v7.13
 

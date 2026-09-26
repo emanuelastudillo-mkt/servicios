@@ -1,4 +1,13 @@
-# Pulso Global 7.13 — cadena de producción
+# Pulso Global 7.14 — árbol de tecnologías
+
+## Incremental v7.14 sobre v7.13
+
+- Se conserva la imagen original como referencia futura y se documenta el diseño vertical de 124 tecnologías en 41 ramas.
+- La investigación común muestra únicamente nuevas tecnologías con requisitos completados; las mejoras de niveles existentes aparecen separadas. Los niveles ya realizados y las tecnologías bloqueadas permanecen visibles en el árbol.
+- El árbol indica «Investigada», «Sin investigar» y «Faltan otras investigaciones», además de requisitos, nivel y estado de cola.
+- Completar un prerrequisito desbloquea su sucesor; solo agregarlo a la cola ya no permite iniciar el sucesor. Se conservan niveles, progreso y cola de partidas anteriores.
+
+## Historial v7.13
 
 ## Incremental v7.13 sobre v7.12
 

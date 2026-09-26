@@ -4590,11 +4590,7 @@
     const queue = normalizeResearchQueue(c);
     if (!s.adminMode && !c.buildings.research_lab)
       throw Error("Construí un laboratorio de investigación.");
-    if (
-      !t.requires.every(
-        (dep) => scalarTech(c, dep) || (!s.adminMode && queue.some((x) => x.technology === dep)),
-      )
-    )
+    if (!t.requires.every((dep) => scalarTech(c, dep) > 0))
       throw Error("Faltan tecnologías previas.");
     if (s.adminMode) {
       const level = scalarTech(c, id) + 1;

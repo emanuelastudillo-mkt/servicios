@@ -12,17 +12,20 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (D, FACTS) {
   "use strict";
   D.version = 6;
-  D.release = "7.13.0";
+  D.release = "7.14.0";
   D.facts = FACTS;
   const techs = [];
   function branch(sector, items) {
     let previous = null;
-    for (const item of items) {
+    const branchId = items[0][0];
+    for (const [depth, item] of items.entries()) {
       const [id, label, skill = 40, effect = "output"] = item;
       techs.push({
         id,
         label,
         sector,
+        branchId,
+        depth,
         skill,
         requires: previous ? [previous] : [],
         months: 6 + Math.round(skill / 8),

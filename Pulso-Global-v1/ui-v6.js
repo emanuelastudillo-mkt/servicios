@@ -601,65 +601,63 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
         "",
       )}${queue.length > 40 ? `<p>Página ${page + 1} / ${Math.ceil(queue.length / 40)}</p>${btn("queue-page", "Anterior", `data-page="${page - 1}"`, page === 0)} ${btn("queue-page", "Siguiente", `data-page="${page + 1}"`, (page + 1) * 40 >= queue.length)}` : ""}<p>El avance mensual es fijo mientras no cambien científicos, laboratorios, formación o tecnologías activas. El presupuesto mensual solo habilita el trabajo y define cuánto se paga; si no hay fondos, el proyecto queda detenido. La última etapa paga solo el trabajo restante.</p></section>`;
   }
+  function technologyState(c, t) {
+    const level = c.research.levels[t.id] || 0;
+    const missing = t.requires.filter((id) => !(c.research.levels[id] > 0));
+    const queued = (c.research.queue || []).filter((x) =>
+      x.kind === "research" && x.technology === t.id);
+    return {
+      level, missing, queued,
+      status: level > 0 ? "Investigada" : missing.length
+        ? "Faltan otras investigaciones" : "Sin investigar",
+    };
+  }
+  const researchEffects = {
+    output: "producción", cost: "ahorro de insumos y operación",
+    quality: "calidad", logistics: "logística", resilience: "resiliencia",
+    education: "educación", health: "salud", services: "servicios",
+    waste: "tratamiento", tax: "recaudación", capacity: "capacidad",
+  };
+  function researchCard(s, t) {
+    const c = s.countries[s.playerCountryId],
+      state = technologyState(c, t),
+      admin = s.adminMode,
+      linked = D.materials.some((m) => m.technology === t.id) ||
+        D.constructions.some((b) => b.energyOutput && b.technology === t.id),
+      blocked = !admin && !c.buildings.research_lab;
+    return `<article data-tech="${esc(t.id)}"><h3>${state.level ? "Mejora de " : "Investigar "}${esc(t.label)}</h3><p>Nivel ${state.level}/${t.maxLevel} · ${t.effect === "capacity" ? "Capacidad: 1.000 MWh por unidad de red y nivel." : `${esc(researchEffects[t.effect] || t.effect)}: aporte sectorial de ${amount(t.improvement * 15, "%")} por nivel (tope conjunto 40%).`} ${linked ? "Desde el nivel 2: +8% de capacidad por nivel en la producción vinculada." : ""}</p><p>${t.requires.length ? "Requiere: " + t.requires.map((id) => esc(D.getTechnology(id).label)).join(", ") : "Tecnología de base"} · formación de referencia ${t.skill}/100</p><p>${admin ? `Próximo nivel: ${state.level + 1}. Modo admin: inmediato y gratis, sin científicos ni laboratorio.` : `Próximo nivel a encolar: ${state.level + 1}. Plazo base: ${t.months} meses; depende de científicos, laboratorios, formación y tecnologías activas.`}</p>${blocked ? `<p class="method-note">Construí un laboratorio público para iniciar esta investigación.</p>` : ""}${form("research", `<input type="hidden" name="technology" value="${t.id}">` + (admin ? `<input type="hidden" name="budget" value="0">` : field("budget", "Presupuesto mensual US$", Math.max(100, c.gdp * 1e9 * 0.00002).toFixed(2))), `data-blocked="${blocked}"`, admin ? "Investigar ahora" : "")}</article>`;
+  }
+  function researchChoices(s, u) {
+    const c = s.countries[s.playerCountryId];
+    const offered = D.technologies.filter((t) =>
+      (!u.researchSector || t.sector === u.researchSector) &&
+      technologyState(c, t).missing.length === 0 &&
+      technologyState(c, t).queued.length === 0 &&
+      (c.research.levels[t.id] || 0) < t.maxLevel);
+    const newTech = offered.filter((t) => !(c.research.levels[t.id] > 0));
+    const upgrades = offered.filter((t) => c.research.levels[t.id] > 0);
+    return `<section class="v6-section"><h3>Investigaciones disponibles · ${newTech.length}</h3><p>Solo aparecen tecnologías cuyos requisitos ya fueron completados. Al terminar una investigación, se desbloquea la siguiente y esta desaparece de la lista inicial.</p><div class="v6-buildings">${newTech.length ? newTech.map((t) => researchCard(s, t)).join("") : "<p>No hay nuevas investigaciones disponibles en este sector. Revisá el árbol para ver requisitos pendientes.</p>"}</div></section><section class="v6-section"><h3>Mejoras disponibles · ${upgrades.length}</h3><p>Son niveles nuevos de tecnologías ya investigadas; los niveles completados solo figuran en el árbol.</p><div class="v6-buildings">${upgrades.length ? upgrades.map((t) => researchCard(s, t)).join("") : "<p>No hay mejoras disponibles en este sector.</p>"}</div></section>`;
+  }
+  function technologyTree(s, u) {
+    const c = s.countries[s.playerCountryId], branches = new Map();
+    for (const t of D.technologies) {
+      if (u.researchSector && t.sector !== u.researchSector) continue;
+      if (!branches.has(t.branchId)) branches.set(t.branchId, []);
+      branches.get(t.branchId).push(t);
+    }
+    return `<section class="v6-section"><h3>Árbol de tecnologías</h3><p>Leé cada rama de arriba hacia abajo: las tecnologías más complejas aparecen debajo de sus requisitos. El estado «Sin investigar» indica que ya se puede comenzar; «Faltan otras investigaciones» muestra qué debe completarse antes.</p><div class="v6-tech-legend"><span class="v6-tech-badge researched">Investigada</span><span class="v6-tech-badge available">Sin investigar</span><span class="v6-tech-badge locked">Faltan otras investigaciones</span></div>${[...branches.entries()].map(([root, list]) => `<section class="v6-tech-branch"><h4>Rama: ${esc(D.getTechnology(root).label)}</h4><ol class="v6-tech-tree">${list.map((t) => {
+      const state = technologyState(c, t);
+      const kind = state.level > 0 ? "researched" : state.missing.length ? "locked" : "available";
+      const queued = state.queued.length ? ` · En cola: nivel ${Math.max(...state.queued.map((x) => x.level))}` : "";
+      const requirements = t.requires.length ? t.requires.map((id) => `${esc(D.getTechnology(id).label)} ${c.research.levels[id] > 0 ? "✓" : "pendiente"}`).join(" · ") : "Tecnología de base";
+      return `<li class="v6-tech-node ${kind}" style="--tech-depth:${Math.min(5, t.depth)}" data-tech="${esc(t.id)}"><div><strong>${esc(t.label)}</strong><span class="v6-tech-badge ${kind}">${state.status}</span></div><small>Nivel ${state.level}/${t.maxLevel}${queued} · ${requirements}</small></li>`;
+    }).join("")}</ol></section>`).join("")}</section>`;
+  }
   function research(s, u) {
     const c = s.countries[s.playerCountryId];
     return shell(
       "Investigación y exploración",
-      `${researchQueue(s, u)}<div class="v6-tabs">${D.sectors.map((sec) => btn("research-filter", sec.short, `data-sector="${sec.id}"`)).join("")}</div><div class="v6-buildings">${D.technologies
-        .filter((t) => !u.researchSector || t.sector === u.researchSector)
-        .map((t) => {
-          const level = c.research.levels[t.id] || 0,
-            planned = Math.max(
-              level,
-              ...(c.research.queue || [])
-                .filter((x) => x.technology === t.id)
-                .map((x) => x.level),
-            ),
-            missing = t.requires.filter(
-              (id) =>
-                !c.research.levels[id] &&
-                !(c.research.queue || []).some((x) => x.technology === id),
-            );
-          const effects = {
-            output: "producción",
-            cost: "ahorro de insumos y operación",
-            quality: "calidad",
-            logistics: "logística",
-            resilience: "resiliencia",
-            education: "educación",
-            health: "salud",
-            services: "servicios",
-            waste: "tratamiento",
-            tax: "recaudación",
-            capacity: "capacidad",
-          };
-          const admin = s.adminMode;
-          const effectivePlanned = admin ? level : planned;
-          const effectiveMissing = admin
-            ? t.requires.filter((id) => !c.research.levels[id])
-            : missing;
-          const blocked =
-            effectiveMissing.length > 0 ||
-            effectivePlanned >= t.maxLevel ||
-            (!admin && !c.buildings.research_lab);
-          const reason =
-            effectivePlanned >= t.maxLevel
-              ? "Nivel máximo alcanzado o ya en cola."
-              : !admin && !c.buildings.research_lab
-                ? "Hace falta un laboratorio público."
-                : effectiveMissing.length
-                  ? "Completá los requisitos anteriores."
-                  : "";
-          const linked =
-            D.materials.some((m) => m.technology === t.id) ||
-            D.constructions.some(
-              (b) => b.energyOutput && b.technology === t.id,
-            );
-          return `<article><h3>${esc(t.label)}</h3><p>Nivel ${level}/4 · ${t.effect === "capacity" ? "Capacidad: 1.000 MWh por unidad de red y nivel." : `${esc(effects[t.effect] || t.effect)}: aporte sectorial de ${amount(t.improvement * 15, "%")} por nivel (tope conjunto 40%).`} ${linked ? "Desde el nivel 2: +8% de capacidad por nivel en la producción vinculada." : ""}</p><p>${t.requires.length ? "Requiere: " + t.requires.map((id) => esc(D.getTechnology(id).label)).join(", ") : "Tecnología de base"} · formación de referencia ${t.skill}/100</p><p>${admin ? `Próximo nivel: ${level + 1}. Modo admin: inmediato y gratis, sin científicos ni laboratorio.` : `Próximo nivel a encolar: ${planned + 1}. Plazo base: ${t.months} meses; depende de científicos, laboratorios, formación y tecnologías activas.`}</p>${reason ? `<p class="method-note">${reason}</p>` : ""}${form("research", `<input type="hidden" name="technology" value="${t.id}">` + (admin ? `<input type="hidden" name="budget" value="0">` : field("budget", "Presupuesto mensual US$", Math.max(100, c.gdp * 1e9 * 0.00002).toFixed(2))), `data-blocked="${blocked}"`, admin ? "Investigar ahora" : "")}</article>`;
-        })
-        .join(
-          "",
-        )}</div><section class="v6-section"><h3>Exploración de recursos</h3>${form(
+      `<div class="v6-tabs">${btn("research-tab", "Investigaciones posibles", 'data-tab="available" aria-pressed="' + (!u.researchTab || u.researchTab === "available") + '"')}${btn("research-tab", "Árbol de tecnologías", 'data-tab="tree" aria-pressed="' + (u.researchTab === "tree") + '"')}</div>${u.researchTab === "tree" ? "" : researchQueue(s, u)}<div class="v6-tabs">${btn("research-filter", "Todas", 'data-sector="all" aria-pressed="' + (!u.researchSector) + '"')}${D.sectors.map((sec) => btn("research-filter", sec.short, `data-sector="${sec.id}" aria-pressed="${u.researchSector === sec.id}"`)).join("")}</div>${u.researchTab === "tree" ? technologyTree(s, u) : researchChoices(s, u)}${u.researchTab === "tree" ? "" : `<section class="v6-section"><h3>Exploración de recursos</h3>${form(
         "explore",
         select(
           "resource",
@@ -691,7 +689,7 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
               `<article class="v6-project"><span>${esc(D.getMaterial(x.resource).label)} · ${x.offshore ? "marítima" : "terrestre"} · ${amount(x.progress, "%")} · ${esc(x.status)}${x.discovered ? " · " + amount(x.discovered, D.getMaterial(x.resource).unit) : ""}</span>${["Sin hallazgo", "Agotado", "Cancelada"].includes(x.status) ? btn("remove-exploration", x.status === "Agotado" ? "Borrar depósito agotado" : "Borrar resultado", `data-exploration="${x.id}"`) : ""}</article>`,
           )
           .join("") || "<p>No hay resultados en esta página.</p>"
-      }<p>Resultados · página ${(u.resultPage || 0) + 1}</p>${btn("result-page", "Anteriores", `data-page="${(u.resultPage || 0) - 1}"`, !(u.resultPage > 0))} ${btn("result-page", "Más resultados", `data-page="${(u.resultPage || 0) + 1}"`, c.research.explorations.filter((x) => !["En curso", "En espera"].includes(x.status)).length <= ((u.resultPage || 0) + 1) * 40)}</section>`,
+      }<p>Resultados · página ${(u.resultPage || 0) + 1}</p>${btn("result-page", "Anteriores", `data-page="${(u.resultPage || 0) - 1}"`, !(u.resultPage > 0))} ${btn("result-page", "Más resultados", `data-page="${(u.resultPage || 0) + 1}"`, c.research.explorations.filter((x) => !["En curso", "En espera"].includes(x.status)).length <= ((u.resultPage || 0) + 1) * 40)}</section>`}`,
     );
   }
   function modal(s, u) {
@@ -730,6 +728,7 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
     if (a === "view-research") {
       view = "research";
       u.resource = null;
+      u.researchTab = "available";
       u.researchSector = D.getTechnology(target.dataset.tech).sector;
     }
     if (a === "resource-sort") {
@@ -747,7 +746,8 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
           : "desc";
       u.sortKey = target.dataset.sort;
     }
-    if (a === "research-filter") u.researchSector = target.dataset.sector;
+    if (a === "research-tab") u.researchTab = target.dataset.tab;
+    if (a === "research-filter") u.researchSector = target.dataset.sector === "all" ? null : target.dataset.sector;
     if (a === "ban")
       E.setImportPolicy(
         s,
