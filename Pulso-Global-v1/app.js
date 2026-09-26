@@ -28,14 +28,19 @@
     "v6-sort",
     "v6-tab",
     "v6-view-research",
+    "v6-diplomacy-country",
+    "v6-attack",
+    "v6-open-training",
   ]);
   const mapViews = [
     { id: "map", label: "Mapa mundial", icon: "◎" },
     ...DATA.sectors,
+    { id: "military", label: "Ejército", icon: "⚑" },
     { id: "resources", label: "Recursos y producción", icon: "▦" },
     { id: "economy", label: "Economía y deuda", icon: "¤" },
     { id: "taxes", label: "Impuestos", icon: "$" },
     { id: "trade", label: "Comercio exterior", icon: "↔" },
+    { id: "diplomacy", label: "Relaciones y ataques", icon: "◇" },
     { id: "demographics", label: "Demografía", icon: "◒" },
     { id: "nutrition", label: "Alimentación y bienestar", icon: "◉" },
     { id: "territory", label: "Territorio y vivienda", icon: "⌂" },
@@ -576,7 +581,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.15</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.16</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -696,7 +701,7 @@
             ${mapViews
               .map(
                 (item, index) => `
-              ${index === 1 ? '<span class="nav-divider">Ministerios</span>' : index === DATA.sectors.length + 1 ? '<span class="nav-divider">Sistema</span>' : ""}
+              ${index === 1 ? '<span class="nav-divider">Ministerios</span>' : index === DATA.sectors.length + 2 ? '<span class="nav-divider">Sistema</span>' : ""}
               <button class="nav-button ${currentView === item.id ? "active" : ""}" type="button" data-action="view" data-view="${item.id}">
                 <span>${e(item.icon || item.short.slice(0, 1))}</span><b>${e(item.short || item.label)}</b>
               </button>`,

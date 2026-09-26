@@ -1,26 +1,23 @@
 {
   "result": "PASS",
-  "version": "7.15.0",
-  "base": "7.14.0",
-  "generatedAt": "2026-09-26T05:28:34.279Z",
-  "engineTestCount": 91,
+  "version": "7.16.0",
+  "base": "7.15.0",
+  "generatedAt": "2026-09-26T20:25:11.511Z",
+  "engineTestCount": 97,
   "checks": {
     "engine": {
       "result": "PASS",
-      "testCount": 91
+      "testCount": 97
     },
     "browser": {
       "result": "PASS",
+      "version": "7.16",
       "errors": [],
-      "version": "7.15",
-      "forms": 3,
-      "storeQuote": true,
-      "tradeDiagnostics": true,
-      "mobile": true,
-      "admin": true,
-      "productionPlan": true,
-      "constructionLabor": true,
-      "screenshots": 8
+      "military": true,
+      "education": true,
+      "diplomacy": true,
+      "attack": true,
+      "mobile": true
     },
     "technologyTree": {
       "result": "PASS",
@@ -34,7 +31,7 @@
     "offlineUpgrade": {
       "result": "PASS",
       "oldCache": "5.4",
-      "newCache": "7.15",
+      "newCache": "7.16",
       "migration": true,
       "backupDownload": true,
       "negativeBalancePreserved": true,
@@ -43,31 +40,33 @@
     }
   },
   "verified": [
-    "124 technology nodes in 41 ordered branches",
-    "New research appears only after completed prerequisites",
-    "Completed initial levels are hidden from new choices and remain in the tree",
-    "Three visible technology states plus queued levels",
-    "Research levels and queue persist in old saves; mobile has no horizontal overflow",
-    "Paid infrastructure staff and temporary unemployed share the construction pool across ministries",
-    "Construction wages are paid only for temporary labor beyond the public payroll"
+    "Soldiers are distinct from civil security employment and constrained by bases",
+    "Military payroll is counted in fiscal flows and saved games",
+    "Military training uses education instructors, budget and academies",
+    "Attacks respect naval reach, losses, building and stock damage, loot and relations",
+    "Trade improves relations and hostile AI has a bounded monthly retaliation chance",
+    "Existing saves migrate without losing treasury, loans, stock or projects",
+    "Desktop and mobile military/diplomacy screens are usable without page overflow"
   ],
   "sourceSha256": {
-    "app.js": "b095463553254d3aea0f8895f0f6c49ee25b85c8093d7e6d2ed0404546c6c5e6",
-    "catalog-v6.js": "cae0db26af59e3a23d205f671e196baed3c5a7fd76bbd6ff0fb7606f23b6958c",
-    "simulation-v6.js": "455ecef6fb437fb1c96293f02e902e38f172ba974a79345d785c327ba9acf443",
-    "ui-v6.js": "641bc2aeb1af87e8d045873823b5058abb54c2c24259e2aae35194f7448fd77b",
+    "app.js": "3f4e9b0821b6cbc17ee151150b15bf1783b5255938df7880dd4a5e5b3c9222be",
+    "catalog-v6.js": "18d2120598aaaf2aaa79a9dfa54e0e417f979495c15900e905587b9b74d32ed7",
+    "simulation-v6.js": "bd3fbfa32847804831017e54ded76a1000adba5d9131166358a9ccae06cebccc",
+    "ui-v6.js": "7abf5056c77bc40f941853216f341506ddacb4b2773f707e8757c60395b6abfe",
     "styles.css": "a24d483e506477e6ceec2155176452f94510cc1fba0e2d2f06672bb4a3d614ab",
     "styles-v6.css": "1b2f5316cb989b2c0844488bfaa328a5dc38c5d746c88df067a678550e7784a3",
-    "sw.js": "221a3b8c5e2cf1b0025abea60bdefa6d117c07db7a417dd0c62a66fef822cc07",
-    "README.md": "c820871831a32513960fbe9212b4b04cf1c70ff98b2c4622aa8e8c831d75bf77",
-    "CAMBIOS-v6.md": "92014d9b94f5657f5510495c9ef91e3c852ac4b43097e9b2bdcc04bff9905656",
-    "VERSION.txt": "e3598cb884eacec74568e1fc9253e902159a3276e597615d14c2bf0ff971241a",
+    "sw.js": "69e8d948a198792d3dc3ef695172ba76599e7cc3f9dd31a8de343f519f7e1d9d",
+    "README.md": "11538f0961d040a4954f4ff4e5b3cc47242f09ef1b6a760eb3e82894b2484220",
+    "CAMBIOS-v6.md": "81caab9f09d887bc27558ddcb6aba7b81f0e687613be88ada70c9810ba33f3a9",
+    "VERSION.txt": "79a82d67e116e5853182d4a3a8a14396d6394a9811ce09b1511e1b2755c21d0d",
     "CADENA-DE-PRODUCCION.md": "b627c6b749f5e03ce43221845b802c9adfe1a5d1c05a5de4956679c88e2c82ca",
-    "ARBOL-TECNOLOGIAS.md": "a1319cbc47d9c8356215b7d0c25f75487568ca668d4338ec64be4e47568f208e",
+    "ARBOL-TECNOLOGIAS.md": "e89807fdb7c62c2b0da8e343922598a821ecf5684a9a263f823559bf26ac9647",
+    "SISTEMA-MILITAR.md": "ee19a79bc54c719178b4f7056a821026a510f8ca256560a7248c2e7289d500ab",
     "referencias/arbol-tecnologico-modelo.png": "6bb5e43c8bd3e27fa53c1427a6522c3765189a329e60bc87becffa0f5c0db7fa"
   },
   "limits": [
-    "The reference image is preserved but not loaded during gameplay.",
-    "Existing four-level technology balance and effects were not redesigned."
+    "Military counts and combat coefficients are game balance, not official country statistics.",
+    "Continental reach is simplified: no border graph or fleet logistics model.",
+    "Long-term geopolitical balance still requires playtesting over many years."
   ]
 }

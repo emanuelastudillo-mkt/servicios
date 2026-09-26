@@ -699,6 +699,33 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
     const item = u.confirm;
     return `<div class="v6-overlay" role="dialog" aria-modal="true" aria-labelledby="v6-confirm-title"><section class="v6-dialog"><h2 id="v6-confirm-title">${esc(item.title)}</h2>${item.body}<div class="v6-tabs">${btn("confirm", "Confirmar")} ${btn("cancel-confirm", "Cancelar")}</div></section></div>`;
   }
+  function military(s) {
+    const c = s.countries[s.playerCountryId], a = c.military;
+    const academy = c.educationBranches.military;
+    const capacity = E.militaryCapacity(c);
+    const monthlyPay = (a.requested * a.salary) / 1e9;
+    return shell("Ejército y formación militar",
+      `<p>Los soldados son empleo público separado de la seguridad civil. Se reclutan de la población desocupada hasta el límite de las bases; los nuevos reclutas son menos eficaces hasta completar formación. Bajas no mortales vuelven a la fuerza laboral.</p>` +
+      `<div class="v6-grid">${card("Soldados activos", num(a.soldiers), `Solicitados ${num(a.requested)} · capacidad ${num(capacity)}`)}${card("Formados", num(a.trained), `${amount(a.soldiers ? a.trained / a.soldiers * 100 : 0, "%")} de la fuerza`)}${card("Reclutados este mes", num(a.newRecruits || 0))}${card("Formados este mes", num(a.trainedThisMonth || 0))}${card("Nómina militar", dollars(a.soldiers * a.salary / 1e9), `Cobertura pagada ${amount(a.payrollCoverage * 100, "%")}`)}${card("Potencia defensiva", num(E.militaryPower(c, true)))}</div>` +
+      `<section class="v6-section"><h3>Puestos y salario</h3><p>Se contrata durante la etapa mensual de empleo. Pedir más puestos que capacidad no crea soldados; un sueldo impago reduce la eficacia.</p>${form("military", field("requested", "Soldados solicitados", Math.round(a.requested), "number", 'min="0" step="1"') + field("salary", "Sueldo mensual por soldado (US$)", a.salary.toFixed(2)))}<p>Si se cubrieran todos los puestos: ${dollars(monthlyPay)}/mes. Reservas actuales: ${dollars(c.reserves)}. La nómina puede activar crédito automático si está habilitado.</p></section>` +
+      `<section class="v6-section"><h3>Capacidad y formación</h3><p>Bases militares: ${num(c.buildings.military_base)} × 5.000 soldados. Bases navales: ${num(c.buildings.naval_base)}; necesarias para atacar fuera del continente. Escuelas militares: ${num(c.buildings.military_academy)} × 2.000 plazas mensuales de formación. La enseñanza requiere funcionarios y presupuesto en Educación.</p><p>Formación militar: ${num(academy.actualStaff || 0)} instructores asignados de ${num(academy.staff)} solicitados · presupuesto ${dollars(academy.budget)} · egresados ${num(academy.graduates || 0)}.</p>${btn("go-sector", "Construir bases", 'data-sector="security"')} ${btn("go-sector", "Construir escuela militar", 'data-sector="education"')} ${btn("open-training", "Gestionar formación militar")}</section>`);
+  }
+  function diplomacy(s, u) {
+    const c = s.countries[s.playerCountryId];
+    const countries = Object.values(s.countries).filter((x) => x.id !== c.id)
+      .sort((a, b) => E.relationScore(c, a) - E.relationScore(c, b) || a.name.localeCompare(b.name, "es"));
+    const selected = s.countries[u.diplomacyCountry] && u.diplomacyCountry !== c.id
+      ? s.countries[u.diplomacyCountry] : countries[0];
+    const p = E.attackPreview(s, c.id, selected.id);
+    const history = (s.militaryHistory || []).filter((x) => [x.attackerId, x.defenderId].includes(c.id)).slice(0, 15);
+    const lastEncounter = history.find((x) => [x.attackerId, x.defenderId].includes(selected.id));
+    return shell("Relaciones y ataques",
+      `<p>El comercio ejecutado mejora gradualmente la relación. Atacar la empeora en 30 puntos. Si cae por debajo de 25, un país con capacidad ofensiva puede lanzar una incursión contra vos en el futuro. No hay anexión territorial.</p>` +
+      `<div class="v6-grid">${card("País seleccionado", esc(selected.name))}${card("Relación bilateral", amount(p.relation, "/100"))}${card("Tu potencia ofensiva", num(p.attackerPower))}${card("Potencia defensiva rival", num(p.defenderPower))}${card("Relación de fuerzas", amount(p.ratio, "×"), p.ratio < 1 ? "Alto riesgo de ser repelido" : "Ventaja estimada")}</div>` +
+      `<section class="v6-section"><h3>Ofensiva contra ${esc(selected.name)}</h3>${lastEncounter ? `<div class="v6-alert"><strong>Último enfrentamiento:</strong> ${esc(lastEncounter.date)} · ${lastEncounter.success ? "ataque exitoso" : "ataque repelido"} · bajas ${num(lastEncounter.attackerLosses)} / ${num(lastEncounter.defenderLosses)} · relación ${amount(lastEncounter.relation, "/100")}.</div>` : ""}<p>${p.distant ? "Destino fuera del continente: requiere base naval y sufre penalidad logística." : "Destino dentro del continente: operación terrestre regional."} La relación de fuerzas y el azar determinan el resultado. Hay bajas en ambos ejércitos; un éxito puede destruir instalaciones y stocks y traer parte del recurso saqueado, limitada por tus almacenes. Cada país puede atacar una vez por mes.</p>${p.reason ? `<p class="negative">${esc(p.reason)}</p>` : `<p class="${p.ratio < 1 ? "negative" : "positive"}">Posibilidad estimada: ${p.ratio < 1 ? "inferioridad militar" : "superioridad militar"}. El resultado no está garantizado.</p>`}${btn("attack", "Preparar ataque", `data-country="${esc(selected.id)}"`, !!p.reason)}</section>` +
+      `<section class="v6-section"><h3>Países y relación</h3><div class="table-wrap"><table class="v6-table"><thead><tr><th>País</th><th>Región</th><th>Relación</th><th>Soldados</th><th></th></tr></thead><tbody>${countries.map((x) => `<tr class="${x.id === selected.id ? "v6-player" : ""}"><td>${esc(x.name)}</td><td>${esc(x.region)}</td><td>${amount(E.relationScore(c, x), "/100")}</td><td>${num(x.military.soldiers)}</td><td>${btn("diplomacy-country", "Ver", `data-country="${esc(x.id)}"`)}</td></tr>`).join("")}</tbody></table></div></section>` +
+      `<section class="v6-section"><h3>Historial de enfrentamientos</h3>${history.length ? history.map((x) => `<p>${esc(x.date)} · ${esc(s.countries[x.attackerId]?.name || x.attackerId)} → ${esc(s.countries[x.defenderId]?.name || x.defenderId)} · ${x.success ? "ataque exitoso" : "repelido"} · bajas ${num(x.attackerLosses)} / ${num(x.defenderLosses)} · instalaciones dañadas: ${esc(x.destroyed.join(", ") || "ninguna")}${x.loot.length ? " · saqueo: " + x.loot.map((v) => `${amount(v.quantity)} ${esc(D.getMaterial(v.id)?.label || v.id)}`).join(", ") : ""}</p>`).join("") : "<p>No hay ataques registrados.</p>"}</section>`);
+  }
   function render(s, view, u) {
     if (u.resource) return resourceDetail(s, u.resource, u) + modal(s, u);
     let html;
@@ -712,6 +739,8 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
       html = shell("Indicadores comparados", rankingTable(s, u));
     else if (view === "territory") html = territory(s);
     else if (view === "research") html = research(s, u);
+    else if (view === "military") html = military(s);
+    else if (view === "diplomacy") html = diplomacy(s, u);
     else return null;
     return html + modal(s, u);
   }
@@ -726,6 +755,16 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
       view = target.dataset.sector;
       u.resource = null;
       u.tab = "build";
+    }
+    if (a === "open-training") { view = "education"; u.tab = "summary"; }
+    if (a === "diplomacy-country") u.diplomacyCountry = target.dataset.country;
+    if (a === "attack") {
+      const p = E.attackPreview(s, c.id, target.dataset.country);
+      if (p.reason) throw Error(p.reason);
+      u.confirm = { type: "attack", id: p.defender.id,
+        title: `Atacar a ${p.defender.name}`,
+        body: `<p>Potencia propia ${num(p.attackerPower)} frente a defensa ${num(p.defenderPower)} (${amount(p.ratio, "×")}). Las bajas, daños y recursos dependen del resultado efectivo. La relación caerá 30 puntos y puede provocar represalias.</p>`,
+      };
     }
     if (a === "view-research") {
       view = "research";
@@ -803,6 +842,7 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
       if (u.confirm.type === "build")
         E.queueConstruction(s, u.confirm.id, u.confirm.factor || 1, true);
       else if (u.confirm.type === "loan") E.takeLoan(s, u.confirm.id);
+      else if (u.confirm.type === "attack") E.attackCountry(s, u.confirm.id);
       else E.nationalize(s, u.confirm.id);
       u.confirm = null;
     }
@@ -816,6 +856,9 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
         requested: Number(v.requested),
         salary: Number(v.salary),
       });
+    if (a === "military") E.setMilitary(s, {
+      requested: Number(v.requested), salary: Number(v.salary),
+    });
     if (a === "housing-program")
       E.setHousingProgram(s, {
         buildBudget: Number(v.buildBudget) / 1e9,

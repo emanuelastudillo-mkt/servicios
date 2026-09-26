@@ -1,4 +1,14 @@
-# Pulso Global 7.15 — mano de obra de construcción
+# Pulso Global 7.16 — ejército y relaciones
+
+## Incremental v7.16 sobre v7.15
+
+- Ejército propio separado de Seguridad: soldados, puestos solicitados, sueldo, capacidad de bases, reclutamiento desde desocupación, nómina y formación militar con escuelas, docentes y presupuesto de Educación.
+- Relaciones bilaterales visibles. El comercio realizado las mejora y las ofensivas las empeoran. Bases navales necesarias para ataques fuera del continente; los continentales pueden ser terrestres.
+- Ataques con potencia basada en soldados, formación, sueldo, cobertura de nómina y tecnología. Una ofensiva fallida castiga más al atacante; la exitosa puede causar bajas, destruir instalaciones y recursos y saquear existencias dentro de la capacidad de almacén.
+- Países hostiles con alcance y fuerza suficientes pueden atacar al jugador pasivamente. No hay conquista territorial, decisión obligatoria ni fin de partida nuevo.
+- Migración compatible de partidas: instalaciones y tropa inicial estimadas sin costo ni recursos, descontando los soldados del plantel de seguridad civil para no duplicar empleo. Historial de ataques persistente.
+
+## Historial v7.15
 
 ## Incremental v7.15 sobre v7.14
 

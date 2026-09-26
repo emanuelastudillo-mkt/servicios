@@ -1,14 +1,14 @@
-# Pulso Global 7.15 — mano de obra de construcción
+# Pulso Global 7.16 — ejército y relaciones
 
-Actualización incremental sobre **v7.14**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.15**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.14, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.15, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.15**; si todavía aparece v7.14, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.16**; si todavía aparece v7.15, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios y avance de obras. Reparte la capacidad de antiguos almacenes familiares entre recursos sin multiplicarla; si una partida excepcional ya excedía esa capacidad, conserva el stock como excedente visible hasta venderlo, usarlo o construir un almacén exclusivo. La pensión inicial se deriva de la fórmula anterior y no cambia al cargarla de nuevo. Exportá un respaldo JSON igualmente: una actualización no puede reconstruir dinero perdido y guardado por una versión anterior.
 
@@ -22,6 +22,14 @@ Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece
 
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
 
+## Ejército y relaciones v7.16
+
+El menú **Ejército** separa soldados de funcionarios de seguridad civil: muestra puestos solicitados y cubiertos, sueldo, nómina, porcentaje formado y potencia defensiva. Las bases militares alojan hasta 5.000 soldados por módulo; las escuelas militares forman hasta 2.000 por módulo y mes, siempre que la rama **Formación militar** de Educación tenga docentes y presupuesto. Los reclutas no formados son menos eficaces. La nómina militar figura en Economía y deuda.
+
+El menú **Relaciones y ataques** muestra la relación bilateral, ejércitos, potencia estimada, países y registro de enfrentamientos. El comercio efectivamente realizado mejora gradualmente la relación; un ataque la reduce 30 puntos. La ofensiva terrestre se permite dentro del continente; para otra región continental hace falta una base naval, además de soldados y base militar. Un ataque puede fracasar y causa bajas; al tener éxito puede dañar instalaciones y recursos y traer una parte del stock como saqueo, limitada por el almacén propio. No ocupa territorio. Cada país puede lanzar una ofensiva por mes. Por debajo de 25/100 de relación, otros países pueden atacar al jugador si tienen fuerza y alcance; no aparece una decisión obligatoria ni un nuevo fin de partida.
+
+Al cargar una partida anterior se estiman instalaciones y soldados ya existentes a partir de su población y sector de seguridad, sin descontar dinero ni recursos y sin duplicar puestos. Se conservan reservas, deuda, inventarios, investigaciones, obras y fecha. Las cifras militares son parámetros de juego, no datos oficiales de fuerzas armadas. Los coeficientes están explicados en [SISTEMA-MILITAR.md](SISTEMA-MILITAR.md).
+
 ## Mano de obra de construcción v7.15
 
 Los puestos públicos solicitados en **Vivienda y Transporte** forman la dotación compartida de las obras de todos los ministerios. Solo los funcionarios efectivamente contratados y con nómina cubierta trabajan; las cuadrillas de vivienda y refacción reservan personas de esa misma bolsa. Los desocupados pueden sumarse temporalmente a obras y cuadrillas si falta personal. Al cesar el trabajo, dejan de contarse como trabajadores de construcción y vuelven a la bolsa de desempleo, salvo que hayan conseguido otro puesto.
@@ -30,7 +38,7 @@ Los funcionarios cobran su salario ordinario por nómina, sin un segundo salario
 
 ## Árbol de tecnologías v7.14
 
-En Investigación, la pestaña «Investigaciones posibles» ofrece solo tecnologías nuevas con prerrequisitos completados. Las mejoras de nivel se muestran aparte; una investigación ya en cola no se ofrece de nuevo. El «Árbol de tecnologías» permite recorrer verticalmente todas las ramas y distingue investigadas, disponibles y bloqueadas, indicando los requisitos pendientes. Una tecnología hija se habilita cuando se completa su requisito, no al encolarlo.
+En Investigación, la pestaña «Investigaciones posibles» ofrece solo tecnologías nuevas con prerrequisitos completados. Las mejoras de nivel se muestran aparte; una investigación ya en cola no se ofrece de nuevo. El «Árbol de tecnologías» permite recorrer verticalmente todas las ramas y distingue investigadas, disponibles y bloqueadas, indicando los requisitos pendientes. Una tecnología hija se habilita cuando se completa su requisito, no al encolarlo. V7.16 incorpora las ramas de organización y formación militar.
 
 El [modelo editable del árbol](ARBOL-TECNOLOGIAS.md) documenta el criterio visual y funcional. La imagen original aportada como referencia está en `referencias/arbol-tecnologico-modelo.png`; no se carga durante el juego ni se precachea para no afectar el rendimiento.
 

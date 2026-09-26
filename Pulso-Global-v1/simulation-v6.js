@@ -281,10 +281,11 @@
   };
   function continent(c) {
     const region = c.region || "";
+    if (["MLT", "CYP", "TUR", "RUS"].includes(c.id)) return "Europe";
     if (/América|Andina|Caribe/i.test(region)) return "America";
     if (/[ÁA]frica/i.test(region)) return "Africa";
     if (["AUS", "NZL", "PNG", "FJI", "VUT", "SLB", "WSM", "TON", "NRU", "KIR", "TUV"].includes(c.id) || /Pacífico/i.test(region)) return "Oceania";
-    if (/Europa/i.test(region) || ["MLT", "CYP", "TUR", "RUS"].includes(c.id)) return "Europe";
+    if (/Europa/i.test(region)) return "Europe";
     return "Asia";
   }
   for (const t of D.technologies)
@@ -928,6 +929,49 @@
         c.publicStocks[m.id] + freeStock(c, "public", m);
     c.materialStocks = c.publicStocks;
   }
+  function militaryCapacity(c) {
+    return Math.max(0, finite(c.buildings.military_base)) * 5000;
+  }
+  function initializeMilitary(c) {
+    const p = population(c);
+    for (const id of ["military_base", "naval_base", "military_academy"]) {
+      c.buildings[id] = Math.max(0, finite(c.buildings[id]));
+      c.privateBuildings[id] = Math.max(0, finite(c.privateBuildings[id]));
+    }
+    if (!c.military) {
+      // Pre-existing installations and personnel are inferred once for old saves.
+      c.buildings.military_base = Math.max(c.buildings.military_base,
+        p >= 100000 ? Math.max(1, Math.ceil(p / 5000000)) : 0);
+      c.buildings.military_academy = Math.max(c.buildings.military_academy,
+        p >= 500000 ? Math.ceil(p / 20000000) : 0);
+      c.buildings.naval_base = Math.max(c.buildings.naval_base,
+        !D.landlocked.includes(c.id) && p >= 5000000 ? Math.ceil(p / 30000000) : 0);
+      if (c.buildings.military_base) grant(c, "military_organization");
+      if (c.buildings.military_academy) grant(c, "military_education");
+      if (c.buildings.naval_base) grant(c, "naval_operations");
+      const security = c.sectors.security;
+      const soldiers = Math.min(militaryCapacity(c), security.publicWorkers * 0.18, p * 0.0008);
+      security.publicWorkers -= soldiers;
+      security.requested = Math.max(0, security.requested - soldiers);
+      c.military = {
+        requested: soldiers, soldiers, trained: soldiers * clamp(c.education / 120, 0.25, 0.7),
+        salary: security.salary, payrollCoverage: 1, newRecruits: 0,
+        trainedThisMonth: 0, lastAttackTick: -1,
+      };
+    }
+    const army = c.military;
+    army.requested = Math.max(0, finite(army.requested));
+    army.soldiers = clamp(finite(army.soldiers), 0, militaryCapacity(c));
+    army.trained = clamp(finite(army.trained), 0, army.soldiers);
+    army.salary = Math.max(0, finite(army.salary, c.sectors.security.salary));
+    army.payrollCoverage = clamp(finite(army.payrollCoverage, 1), 0, 1);
+    army.lastAttackTick = Number.isInteger(army.lastAttackTick) ? army.lastAttackTick : -1;
+    const branch = c.educationBranches;
+    if (!branch.military) branch.military = {
+      budget: c.gdp * 0.00003, staff: Math.max(1, p * 0.00015),
+      salary: c.sectors.education.salary, progress: 0, graduates: 0, skill: c.education,
+    };
+  }
   function initialize(s, legacy = false) {
     // Older saves have no admin flag; it is opt-in and belongs to this save.
     s.adminMode = s.adminMode === true;
@@ -975,9 +1019,11 @@
       if (!a.active && !a.closed && a.remaining <= 0) a.status = "Finalizado";
     }
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
+    s.militaryHistory = Array.isArray(s.militaryHistory) ? s.militaryHistory.slice(-80) : [];
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
       initializeNutrition(c, s);
+      initializeMilitary(c);
       if (!c.pensionPolicy) {
         const rate = (c.gdp * 1e9 / Math.max(1, population(c))) * 0.2 / 12;
         c.pensionPolicy = { monthlyUsd: rate, referenceUsd: rate, paidPerRetireeUsd: rate, requested: 0, paid: 0, measured: false };
@@ -1241,12 +1287,16 @@
     let employed = sectors.reduce(
       (n, id) => n + c.sectors[id].publicWorkers + c.sectors[id].privateWorkers,
       0,
-    );
+    ) + (c.military?.soldiers || 0);
     if (employed > force) {
       const f = force / Math.max(1, employed);
       for (const sector of Object.values(c.sectors)) {
         sector.publicWorkers *= f;
         sector.privateWorkers *= f;
+      }
+      if (c.military) {
+        c.military.soldiers *= f;
+        c.military.trained = Math.min(c.military.soldiers, c.military.trained * f);
       }
       employed = force;
     }
@@ -1369,6 +1419,17 @@
       sec.inputRevenue = 0;
       sec.inputExpense = 0;
     }
+    const army = c.military;
+    const adultLabor = c.ageCohorts.slice(18, Math.min(81, c.workPolicy.retire))
+      .reduce((n, v) => n + v, 0) * 0.72;
+    const target = Math.min(army.requested, militaryCapacity(c), adultLabor);
+    if (army.soldiers > target) {
+      army.trained = Math.min(army.trained, target);
+      army.soldiers = target;
+    }
+    const adultFree = Math.max(0, adultLabor - (pool - free));
+    army.newRecruits = Math.min(Math.max(0, target - army.soldiers), free, adultFree, pool * 0.004);
+    army.soldiers += army.newRecruits;
     syncDemographics(c);
   }
   function automaticFunding(s, c, amount, reason) {
@@ -1422,6 +1483,14 @@
         c.finance.payroll += amount;
       }
     }
+    const army = c.military;
+    const expectedArmyPay = (army.soldiers * army.salary) / 1e9;
+    automaticFunding(s, c, expectedArmyPay, "Nómina militar");
+    const armyPay = expectedArmyPay * affordable(c, "public", expectedArmyPay);
+    transfer(s, c, "public", "household", armyPay, "Salarios militares");
+    army.payrollCoverage = expectedArmyPay > 0 ? armyPay / expectedArmyPay : 1;
+    c.finance.spending += armyPay;
+    c.finance.payroll += armyPay;
     const income =
       ((c.finance.payroll * c.taxes.income) / 100) * c.taxEfficiency;
     transfer(
@@ -2276,6 +2345,34 @@
     }
     return q;
   }
+  function relationScore(a, b) {
+    return clamp((finite(a.relations[b.id], 50) + finite(b.relations[a.id], 50)) / 2, 0, 100);
+  }
+  function changeRelation(a, b, delta) {
+    const next = clamp(relationScore(a, b) + delta, 0, 100);
+    a.relations[b.id] = next;
+    b.relations[a.id] = next;
+    return next;
+  }
+  function improveTradeRelations(s, trades = s.market.trades) {
+    const pairs = new Map();
+    if (s.militaryTradeGain?.tick !== s.tick)
+      s.militaryTradeGain = { tick: s.tick, pairs: {} };
+    for (const trade of trades) {
+      const key = [trade.from, trade.to].sort().join("|");
+      pairs.set(key, (pairs.get(key) || 0) + Math.abs(trade.value));
+    }
+    for (const [pair, value] of pairs) {
+      const [a, b] = pair.split("|");
+      const used = s.militaryTradeGain.pairs[pair] || 0;
+      const gain = Math.min(0.55 - used,
+        clamp(0.1 + Math.log10(1 + value * 1e9) / 20, 0.1, 0.55));
+      if (gain > 0) {
+        changeRelation(s.countries[a], s.countries[b], gain);
+        s.militaryTradeGain.pairs[pair] = used + gain;
+      }
+    }
+  }
   function trade(s) {
     const countries = Object.values(s.countries).sort((a, b) =>
       a.id.localeCompare(b.id),
@@ -2960,7 +3057,11 @@
   function education(s, c) {
     c.educationGraduates = 0;
     const sec = c.sectors.education;
-    let remaining = sec.publicWorkers;
+    const militaryPlan = c.educationBranches.military;
+    const militaryReserved = Math.min(militaryPlan.staff, sec.publicWorkers * 0.1,
+      population(c) * 0.005 / 25,
+      (militaryPlan.budget * 1e9) / Math.max(1, militaryPlan.salary));
+    let remaining = Math.max(0, sec.publicWorkers - militaryReserved);
     const programs = [
       ...D.educationLevels.map((d) => ({
         d,
@@ -2976,13 +3077,13 @@
     // This is a subdivision of the ministry's existing personnel, never additional workers.
     for (const { d, p, b } of programs) {
       const seats = b ? c.buildings[b.id] * b.seats : population(c) * 0.005;
-      const actual = Math.min(
+      const actual = d.id === "military" ? militaryReserved : Math.min(
         p.staff,
         remaining,
         seats / 25,
         (p.budget * 1e9) / Math.max(1, p.salary),
       );
-      remaining -= actual;
+      if (d.id !== "military") remaining -= actual;
       p.actualStaff = actual;
       const salaryShare = (actual * sec.salary) / 1e9,
         operating = Math.max(0, p.budget - salaryShare),
@@ -3028,6 +3129,135 @@
       15,
       100,
     );
+    trainMilitary(c);
+  }
+  function trainMilitary(c) {
+    const army = c.military;
+    const academySeats = c.buildings.military_academy * 2000;
+    const instructors = c.educationBranches.military?.actualStaff || 0;
+    const monthly = Math.min(
+      Math.max(0, army.soldiers - army.trained), academySeats,
+      instructors * 12,
+    ) * army.payrollCoverage * clamp(c.education / 65, 0.2, 1.2);
+    army.trainedThisMonth = Math.max(0, monthly);
+    army.trained = Math.min(army.soldiers, army.trained + army.trainedThisMonth);
+  }
+  function militaryPower(c, defending = false) {
+    const army = c.military;
+    const trained = army.soldiers ? army.trained / army.soldiers : 0;
+    const doctrine = scalarTech(c, "combined_operations");
+    const wageMotivation = clamp(army.salary / Math.max(1, c.sectors.security.privateSalary), 0.25, 1.25);
+    return army.soldiers * (0.38 + trained * 0.62) *
+      (0.55 + army.payrollCoverage * 0.45) * (1 + doctrine * 0.07) *
+      (0.6 + wageMotivation * 0.4) *
+      (defending ? 1.18 + Math.min(0.25, c.buildings.military_base * 0.004) : 1);
+  }
+  function attackPreview(s, attackerId, defenderId) {
+    const from = s.countries[attackerId], to = s.countries[defenderId];
+    if (!from || !to || from.id === to.id) throw Error("País de ataque no válido.");
+    const distant = continent(from) !== continent(to);
+    const reason = from.military.lastAttackTick === s.tick
+      ? "Este país ya lanzó una ofensiva este mes."
+      : from.military.soldiers < 200
+        ? "Se necesitan al menos 200 soldados en servicio."
+        : from.buildings.military_base < 1
+          ? "Se necesita una base militar."
+          : distant && from.buildings.naval_base < 1
+            ? "Para atacar fuera del continente se necesita una base naval."
+            : "";
+    const attackerPower = militaryPower(from) * (distant ? 0.8 : 1);
+    const defenderPower = militaryPower(to, true);
+    return { attacker: from, defender: to, distant, reason,
+      relation: relationScore(from, to), attackerPower, defenderPower,
+      ratio: attackerPower / Math.max(1, defenderPower) };
+  }
+  function setMilitary(s, input) {
+    const army = player(s).military;
+    army.requested = Math.floor(needNumber(input.requested, 0, 1e9));
+    army.salary = needNumber(input.salary, 0, 1e9);
+    return army;
+  }
+  function militaryLoss(c, count) {
+    const army = c.military;
+    const lost = Math.min(army.soldiers, Math.max(0, Math.round(count)));
+    if (!lost) return 0;
+    const trainedRatio = army.trained / army.soldiers;
+    army.soldiers -= lost;
+    army.trained = Math.min(army.soldiers, Math.max(0, army.trained - lost * trainedRatio));
+    // A quarter of losses are fatalities; the rest leave the army and re-enter
+    // the civilian labor pool. This keeps population and employment consistent.
+    const deaths = lost * 0.25;
+    const lastAge = Math.min(80, c.workPolicy.retire);
+    const eligible = c.ageCohorts.slice(18, lastAge).reduce((n, v) => n + v, 0);
+    if (eligible > 0)
+      for (let age = 18; age < lastAge; age++)
+        c.ageCohorts[age] = Math.max(0, c.ageCohorts[age] - deaths * c.ageCohorts[age] / eligible);
+    syncDemographics(c);
+    return lost;
+  }
+  function resolveAttack(s, attackerId, defenderId) {
+    const preview = attackPreview(s, attackerId, defenderId);
+    if (preview.reason) throw Error(preview.reason);
+    const from = preview.attacker, to = preview.defender;
+    const ratio = preview.ratio * (0.88 + random(s) * 0.24);
+    const success = ratio >= 1;
+    const attackerLosses = militaryLoss(from, from.military.soldiers *
+      (success ? clamp(0.015 / Math.max(0.7, ratio), 0.003, 0.022) : clamp(0.035 / Math.max(0.3, ratio), 0.035, 0.08)));
+    const defenderLosses = militaryLoss(to, to.military.soldiers *
+      (success ? clamp(0.02 * ratio, 0.01, 0.07) : 0.004));
+    const destroyed = [], loot = [];
+    if (success) {
+      const candidates = buildings.filter((b) => !b.housingUnits && !b.housingRepairUnits &&
+        (to.buildings[b.id] || 0) >= 1);
+      for (let i = 0; i < Math.min(2, Math.floor(ratio)); i++) {
+        if (!candidates.length) break;
+        const index = Math.floor(random(s) * candidates.length);
+        const b = candidates.splice(index, 1)[0];
+        to.buildings[b.id] = Math.max(0, to.buildings[b.id] - 1);
+        if (to.infrastructureAssets[b.id] !== undefined)
+          to.infrastructureAssets[b.id] = Math.max(0, to.infrastructureAssets[b.id] - (b.quantity || 1));
+        destroyed.push(b.label);
+      }
+      const stocked = materials.filter((m) => !m.waste &&
+        (to.publicStocks[m.id] + to.privateStocks[m.id]) > 1e-9);
+      for (let i = 0; i < Math.min(3, stocked.length); i++) {
+        const index = Math.floor(random(s) * stocked.length);
+        const m = stocked.splice(index, 1)[0];
+        const owner = to.publicStocks[m.id] >= to.privateStocks[m.id] ? "public" : "private";
+        const source = stocks(to, owner);
+        const removed = Math.min(source[m.id], source[m.id] * clamp(0.015 * ratio, 0.01, 0.05));
+        source[m.id] -= removed;
+        const taken = Math.min(removed * 0.5, freeStock(from, "public", m));
+        from.publicStocks[m.id] += taken;
+        if (taken > 0) loot.push({ id: m.id, quantity: taken });
+      }
+      updateCapacity(to);
+      initializeMilitary(to);
+      syncDemographics(to);
+    }
+    const relation = changeRelation(from, to, -30);
+    from.military.lastAttackTick = s.tick;
+    const outcome = { tick: s.tick, date: dateLabel(s.date), attackerId, defenderId,
+      success, attackerLosses, defenderLosses, destroyed, loot, relation };
+    s.militaryHistory.unshift(outcome);
+    s.militaryHistory.length = Math.min(80, s.militaryHistory.length);
+    const summary = `${from.name} atacó a ${to.name}: ${success ? "ofensiva exitosa" : "ofensiva repelida"}. Bajas militares ${attackerLosses} / ${defenderLosses}; relación ${relation.toFixed(0)}/100.`;
+    note(s, from, summary);
+    if (to.id === s.playerCountryId) note(s, to, summary);
+    return outcome;
+  }
+  function attackCountry(s, targetId) {
+    const c = player(s);
+    return resolveAttack(s, c.id, targetId);
+  }
+  function aiMilitaryAction(s) {
+    const defender = s.countries[s.playerCountryId];
+    const hostile = Object.values(s.countries).filter((c) => c.id !== defender.id &&
+      relationScore(c, defender) < 25 && !attackPreview(s, c.id, defender.id).reason &&
+      militaryPower(c) >= militaryPower(defender, true) * 0.55);
+    if (!hostile.length || random(s) >= 0.08) return;
+    hostile.sort((a, b) => relationScore(a, defender) - relationScore(b, defender));
+    resolveAttack(s, hostile[0].id, defender.id);
   }
   function normalizeResearchQueue(c) {
     const r = c.research;
@@ -4013,6 +4243,7 @@
       s.dailyStage = "Consumo interno";
     } else if (day === 14) {
       trade(s);
+      improveTradeRelations(s);
       s.dailyStage = "Comercio mundial";
     } else if (day >= 15 && day <= 22) {
       for (const c of countrySlice(s, day - 15, 8)) {
@@ -4032,6 +4263,9 @@
     } else if (day === 24) {
       prices(s);
       s.dailyStage = "Precios y mercado mundial";
+    } else if (day === 25) {
+      aiMilitaryAction(s);
+      s.dailyStage = "Relaciones y seguridad exterior";
     } else s.dailyStage = "Consolidación mensual";
     s.dayTick++;
     if (day >= lastDay) {
@@ -4102,6 +4336,11 @@
         c.nutrition.deficitMonths,
         c.pensionPolicy.monthlyUsd,
         c.pensionPolicy.referenceUsd,
+        c.military.requested,
+        c.military.soldiers,
+        c.military.trained,
+        c.military.salary,
+        c.military.payrollCoverage,
         c.demographicPolicy.cost || 0,
         c.demographicPolicy.efficacy ?? 1,
         ...Object.values(c.resourceStaffLimits || {}),
@@ -4116,6 +4355,11 @@
           c.nutrition.aidBudget < 0 || c.nutrition.protectedDays < 0 || c.nutrition.protectedDays > 365 ||
           c.nutrition.need < 0 || c.nutrition.deficitMonths < 0)
         throw Error("Guardado con datos alimentarios inválidos.");
+      if (c.military.requested < 0 || c.military.soldiers < 0 ||
+          c.military.soldiers > militaryCapacity(c) + 1e-6 ||
+          c.military.trained < 0 || c.military.trained > c.military.soldiers + 1e-6 ||
+          c.military.salary < 0 || c.military.payrollCoverage < 0 || c.military.payrollCoverage > 1)
+        throw Error("Guardado con datos militares inválidos.");
       if (
         c.ageCohorts.length !== 101 ||
         c.ageCohorts.some((n) => n < 0) ||
@@ -4280,6 +4524,7 @@
         "Reservas insuficientes: reducí la cantidad o solicitá un préstamo. No se efectuó la operación.",
       );
     const before = c.reserves;
+    const priorTrades = s.market.trades.length;
     let remaining = p.quantity,
       done = 0;
     for (const other of Object.values(s.countries).sort((a, b) =>
@@ -4319,6 +4564,7 @@
       throw Error(
         "No hay contraparte con demanda, fondos y capacidad suficientes.",
       );
+    improveTradeRelations(s, s.market.trades.slice(priorTrades));
     updateCapacity(c);
     return {
       direction,
@@ -4343,7 +4589,7 @@
           c.sectors[id].privateWorkers * c.sectors[id].privateSalary) /
           1e9,
       0,
-    );
+    ) + c.military.soldiers * c.military.salary / 1e9;
     const bases = c.finance.taxBases || {
       vat:
         materials.reduce(
@@ -4969,7 +5215,7 @@
         continue;
       }
       const amount = -value;
-      if (kind === "Salarios" || kind === "Salarios de obra")
+      if (kind === "Salarios" || kind === "Salarios de obra" || kind === "Salarios militares")
         groups.payroll += amount;
       else if (kind === "Pensiones") groups.pensions += amount;
       else if (kind.startsWith("Obra:") || kind.startsWith("Investigación"))
@@ -5123,6 +5369,12 @@
     setAdminMode: (s, enabled) => { s.adminMode = enabled === true; return s.adminMode; },
     setSector,
     setHousingProgram,
+    setMilitary,
+    militaryCapacity,
+    militaryPower,
+    attackPreview,
+    attackCountry,
+    relationScore,
     setPension,
     pensionPreview,
     automaticExportReport,

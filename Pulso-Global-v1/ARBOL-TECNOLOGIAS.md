@@ -8,7 +8,7 @@ Referencia visual aportada por el usuario: [imagen original de árbol horizontal
 - Cada nodo indica el nivel logrado (0 a 4), sus prerrequisitos y uno de tres estados: **Investigada**, **Sin investigar** (requisitos completados), **Faltan otras investigaciones** (requisitos pendientes). Un proyecto en cola se señala aparte, sin alterar el estado.
 - La vista **Investigaciones posibles** muestra solo tecnologías nuevas cuyos prerrequisitos ya fueron completados y que no estén en cola. Separa las **mejoras disponibles** de tecnologías existentes: investigar un nuevo nivel no vuelve a mostrar como pendiente el nivel ya investigado. Las bloqueadas y las completadas se consultan en el árbol.
 - Una tecnología hija se desbloquea cuando la anterior está **completada**, no solo agregada a la cola. El laboratorio, los científicos, la educación y el presupuesto afectan la ejecución; la falta de laboratorio aparece como bloqueo operativo de una tecnología ya desbloqueada.
-- El árbol muestra todo el catálogo del sector elegido (o todos los sectores), incluso los nodos completados y los lejanos. Las 124 tecnologías actuales se agrupan en 41 ramas de 8 sectores; esta estructura es extensible.
+- El árbol muestra todo el catálogo del sector elegido (o todos los sectores), incluso los nodos completados y los lejanos. Las 129 tecnologías actuales se agrupan en 43 ramas de 8 sectores; esta estructura es extensible. V7.16 añade dos ramas militares, visibles progresivamente según sus requisitos.
 
 ## Datos y compatibilidad
 

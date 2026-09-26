@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (D, FACTS) {
   "use strict";
   D.version = 6;
-  D.release = "7.15.0";
+  D.release = "7.16.0";
   D.facts = FACTS;
   const techs = [];
   function branch(sector, items) {
@@ -226,6 +226,15 @@
     ["seismic", "Monitoreo sísmico", 65, "resilience"],
     ["emergencies", "Coordinación de emergencias", 65, "resilience"],
   ]);
+  branch("security", [
+    ["military_organization", "Organización militar", 35, "security"],
+    ["naval_operations", "Operaciones navales", 55, "security"],
+    ["combined_operations", "Operaciones combinadas", 70, "security"],
+  ]);
+  branch("education", [
+    ["military_education", "Formación militar", 40, "education"],
+    ["advanced_military_training", "Entrenamiento militar avanzado", 65, "education"],
+  ]);
   D.technologies = techs;
   D.educationLevels = [
     ["primary", "Primaria", 36, 18],
@@ -241,6 +250,7 @@
     ["medicine", "Medicina"],
     ["economics", "Economía"],
     ["tourism", "Turismo"],
+    ["military", "Formación militar"],
   ].map(([id, label]) => ({ id, label }));
   D.storageTypes = [
     ["silo", "Silos", 50000],
@@ -1144,6 +1154,23 @@
       ),
     );
   D.constructions.push(...infrastructure);
+  D.constructions.push(
+    building("military_base", "Base militar", "security", "military_organization", {
+      fixedCost: 0.075, months: 18, landHa: 35, soldierCapacity: 5000,
+      requirements: { cement: 700, steel: 180, fuel: 35 },
+      description: "Aloja hasta 5.000 soldados. El personal y su salario se administran desde Ejército.",
+    }),
+    building("naval_base", "Base naval", "security", "naval_operations", {
+      fixedCost: 0.32, months: 30, landHa: 60, coastal: true,
+      requirements: { cement: 2400, steel: 850, fuel: 130 },
+      description: "Permite ofensivas fuera de la región propia; requiere costa.",
+    }),
+    building("military_academy", "Escuela militar", "education", "military_education", {
+      fixedCost: 0.06, months: 18, landHa: 12, trainingCapacity: 2000,
+      requirements: { cement: 550, steel: 100, fuel: 25 },
+      description: "Amplía la capacidad mensual de formación de soldados.",
+    }),
+  );
   const energy = [
     ["hydro_plant", "Central hidroeléctrica", "hydro", 1.6, "hydro"],
     ["wind_farm", "Parque eólico terrestre", "wind", 0.3, "wind"],
