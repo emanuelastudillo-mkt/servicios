@@ -1,14 +1,14 @@
-# Pulso Global 7.14 — árbol de tecnologías
+# Pulso Global 7.15 — mano de obra de construcción
 
-Actualización incremental sobre **v7.13**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.14**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.13, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.14, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.14**; si todavía aparece v7.13, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.15**; si todavía aparece v7.14, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios y avance de obras. Reparte la capacidad de antiguos almacenes familiares entre recursos sin multiplicarla; si una partida excepcional ya excedía esa capacidad, conserva el stock como excedente visible hasta venderlo, usarlo o construir un almacén exclusivo. La pensión inicial se deriva de la fórmula anterior y no cambia al cargarla de nuevo. Exportá un respaldo JSON igualmente: una actualización no puede reconstruir dinero perdido y guardado por una versión anterior.
 
@@ -21,6 +21,12 @@ Con Python instalado, ejecutá `python -m http.server 4173` desde la carpeta del
 Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece a esa dirección. Cambiarla no borra la partida original, pero la nueva dirección no puede verla: trasladala mediante exportar/importar. Borrar datos del sitio o usar navegación privada puede hacerte perder guardados.
 
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
+
+## Mano de obra de construcción v7.15
+
+Los puestos públicos solicitados en **Vivienda y Transporte** forman la dotación compartida de las obras de todos los ministerios. Solo los funcionarios efectivamente contratados y con nómina cubierta trabajan; las cuadrillas de vivienda y refacción reservan personas de esa misma bolsa. Los desocupados pueden sumarse temporalmente a obras y cuadrillas si falta personal. Al cesar el trabajo, dejan de contarse como trabajadores de construcción y vuelven a la bolsa de desempleo, salvo que hayan conseguido otro puesto.
+
+Los funcionarios cobran su salario ordinario por nómina, sin un segundo salario de obra. La obra paga salarios adicionales solo a los temporarios. La ficha de la obra y el programa pasivo muestran funcionarios y temporarios por separado. La contratación, los salarios y las cantidades guardadas de partidas anteriores se conservan; el nuevo reparto se aplica al siguiente ciclo de obras.
 
 ## Árbol de tecnologías v7.14
 
@@ -113,7 +119,7 @@ Exportá un respaldo antes de actualizar; no abras un guardado v7.8 en versiones
 - Las acciones recibidas durante un cálculo diario se encolan en orden y se validan contra el estado al terminar esa jornada. El aviso y el encabezado indican las acciones pendientes; no hace falta repetir el clic. Si ya faltan fondos, recursos o requisitos, la acción muestra el error correspondiente.
 - El proceso de simulación conserva su estado y devuelve solo los países modificados. Los formatos numéricos se reutilizan y los autoguardados de acciones próximas se agrupan.
 - Cada construcción acepta de 1 a 999 módulos por pedido. El módulo conserva su tamaño físico (viviendas, kilómetros o instalaciones); la revisión muestra cantidad total, costo, trabajadores y plazo estimado.
-- No hay límite de ocho obras públicas. Todos los proyectos comparten los trabajadores desocupados disponibles y se reparten la bolsa por igual. La demanda de trabajo crece con módulos y complejidad; la educación mejora el rendimiento. Una obra puede recibir más trabajadores que la dotación de referencia y acelerar proporcionalmente.
+- No hay límite de ocho obras públicas. Todos los proyectos comparten funcionarios pagos de Vivienda y Transporte más desocupados contratados temporalmente; las cuadrillas de vivienda y refacción reservan su cupo antes del reparto entre obras. La demanda de trabajo crece con módulos y complejidad; la educación mejora el rendimiento. Una obra puede recibir más trabajadores que la dotación de referencia y acelerar proporcionalmente.
 - Diez obras iguales reciben una décima parte cada una y requieren diez veces más tiempo que una sola, con igual bolsa, educación, materiales y Tesoro. La finalización y los pagos se liquidan en la etapa mensual de obras; un plazo teórico menor a un mes se completa en esa etapa.
 - La barra superior muestra la bolsa de personas disponible para construir. Se contabilizan solo las jornadas efectivamente utilizadas; el remanente puede abastecer los programas pasivos de vivienda y la construcción privada, sin duplicar trabajadores.
 
@@ -156,7 +162,7 @@ Exportá un respaldo antes de actualizar; no abras un guardado v7.8 en versiones
 
 ## Ajuste 6.4: vivienda pasiva
 
-- Infraestructura permite asignar por separado un tope mensual y cuadrillas temporales para construcción y refacción de viviendas.
+- Vivienda y Transporte permite asignar por separado un tope mensual y cuadrillas reservadas para construcción y refacción de viviendas. Estas usan los mismos funcionarios que las demás obras y pueden sumar desocupados temporarios.
 - El programa se ejecuta cada mes con el presupuesto realmente disponible, desempleados, materiales, Tesoro y suelo residencial libre. Informa producción, refacciones y causa concreta de una pausa; no convierte agricultura automáticamente.
 
 ## Ajuste 6.3: tutorial de Economía y deuda
@@ -168,7 +174,7 @@ Exportá un respaldo antes de actualizar; no abras un guardado v7.8 en versiones
 
 - Economía y deuda abre con un resumen de un mes: impuestos, ventas públicas, salarios, pensiones, funcionamiento, obra/investigación, intereses, amortización y cambio efectivo de reservas. Los importes se muestran en escala compacta.
 - El panel indica el plazo estimado de reservas si hay pérdida mensual, la proporción de ingresos absorbida por intereses y los tres mayores pagos. Es una lectura del último mes, no una previsión garantizada.
-- Cada obra activa explica si avanzará el mes siguiente o cuál es el bloqueo exacto: materiales y faltante, Tesoro o falta de desocupados.
+- Cada obra activa explica si avanzará el mes siguiente o cuál es el bloqueo exacto: materiales y faltante, Tesoro o falta de funcionarios pagos y desocupados disponibles.
 - La situación de cada ministerio muestra los recursos que hoy impiden producir; no presenta una instalación aún en construcción como producción ya disponible.
 - Impuestos ahora enseña la base gravada del último mes y el cambio monetario estimado frente al esquema vigente. La alícuota se cobra en la próxima etapa fiscal aplicable y no recauda si no existen operaciones gravadas.
 

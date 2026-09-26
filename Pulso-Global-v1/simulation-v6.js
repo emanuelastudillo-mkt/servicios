@@ -1030,6 +1030,10 @@
       p.repairWorkers = Math.max(0, finite(p.repairWorkers, 0));
       p.lastBuildUnits = Math.max(0, finite(p.lastBuildUnits, 0));
       p.lastRepairUnits = Math.max(0, finite(p.lastRepairUnits, 0));
+      p.lastBuildPublic = Math.max(0, finite(p.lastBuildPublic, 0));
+      p.lastBuildTemporary = Math.max(0, finite(p.lastBuildTemporary, 0));
+      p.lastRepairPublic = Math.max(0, finite(p.lastRepairPublic, 0));
+      p.lastRepairTemporary = Math.max(0, finite(p.lastRepairTemporary, 0));
       p.lastBuildStatus = p.lastBuildStatus || "Sin programa activo";
       p.lastRepairStatus = p.lastRepairStatus || "Sin programa activo";
     }
@@ -2499,11 +2503,26 @@
         l.restrictedHa,
     );
   }
+  function paidConstructionStaff(c) {
+    const sec = c.sectors.infrastructure;
+    return Math.max(0, sec.publicWorkers * clamp(sec.payrollCoverage ?? 1, 0, 1));
+  }
+  function requestedHousingCrews(c) {
+    const p = c.housingProgram;
+    return (p.buildBudget > 0 ? p.buildWorkers : 0) +
+      (p.repairBudget > 0 ? p.repairWorkers : 0);
+  }
+  function constructionLaborPool(c) {
+    return {
+      public: paidConstructionStaff(c),
+      temporary: Math.max(0, c.laborSnapshot.unemployed * 1e6),
+    };
+  }
   function constructionWorkforce(c) {
-    return Math.max(
-      0,
-      c.laborSnapshot.unemployed * 1e6 + (c.constructionWorkers || 0),
-    );
+    const pool = constructionLaborPool(c);
+    // Temporary workers are removed from unemployment after the monthly works.
+    // Add them back only for the next-cycle capacity preview, never as extra jobs.
+    return pool.public + pool.temporary + (c.constructionWorkers || 0);
   }
   function constructionPreview(s, id, factor = 1) {
     const c = s.countries[s.playerCountryId],
@@ -2589,16 +2608,19 @@
         clamp(c.education / Math.max(1, b.skillNeed), 0.2, 1) *
         (c.goodsBenefits?.construction || 1),
       laborAvailability = clamp(
-        (c.laborSnapshot.unemployed * 1e6) / Math.max(1, laborNeed),
-        0.1,
+        constructionWorkforce(c) / Math.max(1, laborNeed),
+        0,
         1,
       );
     const concurrent = c.projects.filter((p) => p.progress < 100).length + 1,
-      allocatedWorkers = constructionWorkforce(c) / concurrent,
+      allocatedWorkers = Math.max(0, constructionWorkforce(c) - requestedHousingCrews(c)) / concurrent,
       workMonths = (laborNeed * b.months) / skillMatch,
       estimatedMonths =
         allocatedWorkers > 0 ? workMonths / allocatedWorkers : null;
-    const laborCost = (workMonths * salary) / 1e9;
+    const pool = constructionLaborPool(c);
+    pool.temporary += c.constructionWorkers || 0;
+    const temporaryShare = pool.temporary / Math.max(1, pool.public + pool.temporary),
+      laborCost = (workMonths * salary * temporaryShare) / 1e9;
     return {
       id,
       factor,
@@ -2708,9 +2730,18 @@
     note(s, c, `${b.label} terminada; la capacidad entra en operación el próximo mes.`);
   }
   function projects(s, c) {
-    let free = constructionWorkforce(c);
+    const available = constructionLaborPool(c),
+      reserved = Math.min(requestedHousingCrews(c), available.public + available.temporary),
+      housingPool = {
+        public: Math.min(available.public, reserved),
+        temporary: Math.max(0, reserved - available.public),
+      },
+      pool = {
+        public: available.public - housingPool.public,
+        temporary: available.temporary - housingPool.temporary,
+      };
     const active = c.projects.filter((p) => p.progress < 100),
-      allocation = free / Math.max(1, active.length);
+      allocation = (pool.public + pool.temporary) / Math.max(1, active.length);
     c.constructionWorkers = 0;
     for (const p of c.projects) {
       if (p.progress >= 100) continue;
@@ -2721,10 +2752,9 @@
           clamp(c.education / b.skillNeed, 0.2, 1) *
           (c.goodsBenefits?.construction || 1),
         remainingWork = (need * b.months * (1 - p.progress / 100)) / skill,
-        hired = Math.min(allocation, remainingWork, free);
-      free -= hired;
-      c.constructionWorkers += hired;
-      p.workers = hired;
+        hired = Math.min(allocation, remainingWork, pool.public + pool.temporary),
+        publicCandidate = Math.min(hired, pool.public),
+        temporaryCandidate = hired - publicCandidate;
       const laborRatio = hired / Math.max(1, need),
         desired = Math.min(
           100 - p.progress,
@@ -2739,22 +2769,25 @@
       }
       const pay =
         ((p.baseCost || 0) * desired) / 100 +
-        (hired * c.sectors.infrastructure.salary) / 1e9;
+        (temporaryCandidate * c.sectors.infrastructure.salary) / 1e9;
       f = Math.min(f, affordable(c, "public", pay));
       if (!hired) p.blockedBy.push("trabajadores");
       if (pay > Math.max(0, c.reserves)) p.blockedBy.push("tesoro");
       const progress = desired * clamp(f, 0, 1);
       if (progress <= 0) {
-        c.constructionWorkers -= hired;
-        free += hired;
         p.workers = 0;
+        p.publicWorkers = 0;
+        p.temporaryWorkers = 0;
         continue;
       }
-      c.constructionWorkers -= hired * (1 - f);
-      free += hired * (1 - f);
-      p.workers = hired * f;
+      p.publicWorkers = publicCandidate * f;
+      p.temporaryWorkers = temporaryCandidate * f;
+      p.workers = p.publicWorkers + p.temporaryWorkers;
+      pool.public -= p.publicWorkers;
+      pool.temporary -= p.temporaryWorkers;
+      c.constructionWorkers += p.temporaryWorkers;
       const cost = ((p.baseCost || 0) * progress) / 100,
-        wage = ((hired * c.sectors.infrastructure.salary) / 1e9) * f;
+        wage = (p.temporaryWorkers * c.sectors.infrastructure.salary) / 1e9;
       transfer(
         s,
         c,
@@ -2785,26 +2818,41 @@
     c.projects = c.projects.filter(
       (p) => p.progress < 100 || completed.includes(p),
     );
-    return free;
+    return {
+      public: housingPool.public + pool.public,
+      temporary: housingPool.temporary + pool.temporary,
+    };
   }
-  function passiveHousing(s, c, freeWorkers) {
+  function passiveHousing(s, c, laborPool) {
     const program = c.housingProgram,
       sector = c.sectors.infrastructure;
-    let free = Math.max(0, freeWorkers || 0);
+    const pool = laborPool || { public: 0, temporary: 0 };
     const run = (buildingId, budgetCap, requested, mode) => {
       const b = D.getBuilding(buildingId),
         statusKey = mode === "build" ? "lastBuildStatus" : "lastRepairStatus",
-        outputKey = mode === "build" ? "lastBuildUnits" : "lastRepairUnits";
+        outputKey = mode === "build" ? "lastBuildUnits" : "lastRepairUnits",
+        publicKey = mode === "build" ? "lastBuildPublic" : "lastRepairPublic",
+        temporaryKey = mode === "build" ? "lastBuildTemporary" : "lastRepairTemporary";
       program[outputKey] = 0;
+      program[publicKey] = 0;
+      program[temporaryKey] = 0;
       if (budgetCap <= 0 || requested <= 0) {
         program[statusKey] = "Sin presupuesto o cuadrilla asignada";
         return;
       }
-      if (!free) {
-        program[statusKey] = "Sin desocupados disponibles";
+      const available = pool.public + pool.temporary;
+      if (!available) {
+        program[statusKey] = "Sin funcionarios ni desocupados disponibles";
         return;
       }
-      const workers = Math.min(requested, free),
+      const repairRequest = program.repairBudget > 0 ? program.repairWorkers : 0,
+        shareOfPool = mode === "build" && repairRequest > 0
+          ? available * requested / (requested + repairRequest)
+          : available,
+        workers = Math.min(requested, shareOfPool),
+        publicCandidate = Math.min(workers, mode === "build" && repairRequest > 0
+          ? pool.public * requested / (requested + repairRequest) : pool.public),
+        temporaryCandidate = workers - publicCandidate,
         skill =
           clamp(c.education / b.skillNeed, 0.2, 1) *
           (c.goodsBenefits?.construction || 1);
@@ -2830,7 +2878,7 @@
             : "No hay viviendas pendientes de refacción";
         return;
       }
-      const wage = (workers * sector.salary) / 1e9,
+      const wage = (temporaryCandidate * sector.salary) / 1e9,
         base = b.fixedCost * factor,
         fullCost = wage + base;
       let share = Math.min(
@@ -2853,11 +2901,15 @@
         return;
       }
       const executedFactor = factor * share,
-        executedWorkers = workers * share,
+        executedPublic = publicCandidate * share,
+        executedTemporary = temporaryCandidate * share,
         executedWage = wage * share,
         executedBase = base * share;
-      free -= executedWorkers;
-      c.constructionWorkers += executedWorkers;
+      pool.public -= executedPublic;
+      pool.temporary -= executedTemporary;
+      c.constructionWorkers += executedTemporary;
+      program[publicKey] = executedPublic;
+      program[temporaryKey] = executedTemporary;
       transfer(
         s,
         c,
@@ -2903,7 +2955,7 @@
       "repair",
     );
     syncDemographics(c);
-    return free;
+    return pool;
   }
   function education(s, c) {
     c.educationGraduates = 0;
@@ -4976,7 +5028,7 @@
     if (!p) throw Error("Obra no encontrada.");
     const b = D.getBuilding(p.typeId),
       need = p.laborNeed || b.laborNeed * 1000 * (p.factor || 1),
-      availableWorkers = constructionWorkforce(c),
+      availableWorkers = Math.max(0, constructionWorkforce(c) - requestedHousingCrews(c)),
       skill =
         clamp(c.education / b.skillNeed, 0.2, 1) *
         (c.goodsBenefits?.construction || 1),
@@ -4989,9 +5041,13 @@
         100 - p.progress,
         (100 / b.months) * skill * (hired / Math.max(1, need)),
       ),
+      activeCount = Math.max(1, c.projects.filter((x) => x.progress < 100).length),
+      reservedStaff = Math.min(paidConstructionStaff(c), requestedHousingCrews(c)),
+      publicShare = Math.max(0, paidConstructionStaff(c) - reservedStaff) / activeCount,
+      temporaryHired = Math.max(0, hired - Math.min(hired, publicShare)),
       pay =
         ((p.baseCost || 0) * desired) / 100 +
-        (hired * c.sectors.infrastructure.salary) / 1e9,
+        (temporaryHired * c.sectors.infrastructure.salary) / 1e9,
       materials = Object.entries(p.requirements)
         .map(([id, total]) => {
           const required = (total * desired) / 100,
@@ -5040,7 +5096,7 @@
         .filter((p) => p.sector === id && p.progress < 100)
         .map((p) => projectDiagnostic(s, p)),
       resources,
-      availableWorkers: c.laborSnapshot.unemployed * 1e6,
+      availableWorkers: id === "infrastructure" ? constructionWorkforce(c) : c.laborSnapshot.unemployed * 1e6,
     };
   }
   return {

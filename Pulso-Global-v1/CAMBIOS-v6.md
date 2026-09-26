@@ -1,4 +1,13 @@
-# Pulso Global 7.14 — árbol de tecnologías
+# Pulso Global 7.15 — mano de obra de construcción
+
+## Incremental v7.15 sobre v7.14
+
+- Los funcionarios pagos de Vivienda y Transporte trabajan en obras de cualquier ministerio; las cuadrillas de construcción y refacción de vivienda reservan personas de esa misma bolsa.
+- Desocupados se incorporan temporalmente si falta personal. No se convierten en puestos públicos permanentes por participar en una obra y dejan de contarse como temporarios cuando cesa la actividad.
+- El sueldo mensual de los funcionarios se paga una vez por nómina. Las obras y cuadrillas solo añaden salarios para temporarios; la interfaz distingue ambos grupos y el costo incremental.
+- La disponibilidad y los plazos estimados consideran funcionarios pagos y desocupados, sin multiplicar personas entre proyectos. Las partidas anteriores conservan su progreso y nóminas.
+
+## Historial v7.14
 
 ## Incremental v7.14 sobre v7.13
 

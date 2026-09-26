@@ -576,7 +576,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.14</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.15</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
@@ -716,7 +716,7 @@
               <div class="hud-reserves" title="Tesoro disponible: US$ ${fmt(country.reserves * 1e9, 2)}"><span>Reservas</span><strong class="${country.reserves < 0 ? "negative" : ""}">${money(country.reserves)}</strong><small>Deuda ${fmt(country.debt, 1)}% PBI</small></div>
               <div data-action="view" data-view="nutrition" title="Abrir Alimentación y bienestar"><span>Felicidad</span><strong>${fmt(country.happiness)}%</strong><small>Hambre ${fmt(country.nutrition.hunger, 1)}/100</small></div>
               <div><span>Empleo</span><strong>${fmt(100 - country.unemployment)}%</strong><small>${fmt(country.unemployment)}% desocupación</small></div>
-              <div class="hud-workers" title="Personas disponibles en la bolsa compartida de construcción"><span>Mano de obra</span><strong>${fmt(Engine.constructionWorkforce(country), 0)} personas</strong><small>${activeProjects(country).length} obras · bolsa compartida</small></div><div><span>Insumos</span><strong>${lowStock ? `${lowStock} críticos` : "Estables"}</strong><small>${activeProjects(country).length} obras activas</small></div>
+              <div class="hud-workers" title="Funcionarios de Vivienda y Transporte más desocupados temporarios para obras de todos los ministerios"><span>Mano de obra</span><strong>${fmt(Engine.constructionWorkforce(country), 0)} personas</strong><small>${fmt(country.sectors.infrastructure.publicWorkers * (country.sectors.infrastructure.payrollCoverage ?? 1), 0)} funcionarios · ${activeProjects(country).length} obras</small></div><div><span>Insumos</span><strong>${lowStock ? `${lowStock} críticos` : "Estables"}</strong><small>${activeProjects(country).length} obras activas</small></div>
             </div>
             <div class="time-controls" aria-label="Controles de tiempo">
               <button class="icon-button ${speed === 0 ? "active" : ""}" type="button" data-action="speed" data-speed="0" aria-label="Pausa">Ⅱ</button>

@@ -1,25 +1,26 @@
 {
   "result": "PASS",
-  "version": "7.14.0",
-  "base": "7.13.0",
-  "generatedAt": "2026-09-26T04:41:13.533Z",
-  "engineTestCount": 84,
+  "version": "7.15.0",
+  "base": "7.14.0",
+  "generatedAt": "2026-09-26T05:28:34.279Z",
+  "engineTestCount": 91,
   "checks": {
     "engine": {
       "result": "PASS",
-      "testCount": 84
+      "testCount": 91
     },
     "browser": {
       "result": "PASS",
       "errors": [],
-      "version": "7.14",
+      "version": "7.15",
       "forms": 3,
       "storeQuote": true,
       "tradeDiagnostics": true,
       "mobile": true,
       "admin": true,
       "productionPlan": true,
-      "screenshots": 7
+      "constructionLabor": true,
+      "screenshots": 8
     },
     "technologyTree": {
       "result": "PASS",
@@ -33,7 +34,7 @@
     "offlineUpgrade": {
       "result": "PASS",
       "oldCache": "5.4",
-      "newCache": "7.14",
+      "newCache": "7.15",
       "migration": true,
       "backupDownload": true,
       "negativeBalancePreserved": true,
@@ -46,19 +47,21 @@
     "New research appears only after completed prerequisites",
     "Completed initial levels are hidden from new choices and remain in the tree",
     "Three visible technology states plus queued levels",
-    "Research levels and queue persist in old saves; mobile has no horizontal overflow"
+    "Research levels and queue persist in old saves; mobile has no horizontal overflow",
+    "Paid infrastructure staff and temporary unemployed share the construction pool across ministries",
+    "Construction wages are paid only for temporary labor beyond the public payroll"
   ],
   "sourceSha256": {
-    "app.js": "bc45db83ec253b942a1011deace4d1799e04e666e33061960a9d219093adda12",
-    "catalog-v6.js": "b8a230ff41337fa0d2ac3ad99a78529eb15ff5de3b57b534ea9aec1f0d77deef",
-    "simulation-v6.js": "891364308159a4fe93cd9256f1af8da73b9d2ad7c590eb34ec7ca547f9f01e64",
-    "ui-v6.js": "d2f82e04a512aba174d427bf9e9734a41fb6482a825335b47c1359f9f4081c16",
+    "app.js": "b095463553254d3aea0f8895f0f6c49ee25b85c8093d7e6d2ed0404546c6c5e6",
+    "catalog-v6.js": "cae0db26af59e3a23d205f671e196baed3c5a7fd76bbd6ff0fb7606f23b6958c",
+    "simulation-v6.js": "455ecef6fb437fb1c96293f02e902e38f172ba974a79345d785c327ba9acf443",
+    "ui-v6.js": "641bc2aeb1af87e8d045873823b5058abb54c2c24259e2aae35194f7448fd77b",
     "styles.css": "a24d483e506477e6ceec2155176452f94510cc1fba0e2d2f06672bb4a3d614ab",
     "styles-v6.css": "1b2f5316cb989b2c0844488bfaa328a5dc38c5d746c88df067a678550e7784a3",
-    "sw.js": "341e06049f52ee81c9cddc626caafb9484d961470c153b8c9bd821c05c82c1cb",
-    "README.md": "205fe40207befb0cff62054f16e872bf03f84f68b3060fcd11988b3dea7c51ec",
-    "CAMBIOS-v6.md": "fb1f00eeb6ca4e657ae2e80e26f9f9ba86baa1314429e8482f013548760c6791",
-    "VERSION.txt": "1e3c451587167143bdeeba493510dfa18f8c4348054705cf483ef0fa2a339b88",
+    "sw.js": "221a3b8c5e2cf1b0025abea60bdefa6d117c07db7a417dd0c62a66fef822cc07",
+    "README.md": "c820871831a32513960fbe9212b4b04cf1c70ff98b2c4622aa8e8c831d75bf77",
+    "CAMBIOS-v6.md": "92014d9b94f5657f5510495c9ef91e3c852ac4b43097e9b2bdcc04bff9905656",
+    "VERSION.txt": "e3598cb884eacec74568e1fc9253e902159a3276e597615d14c2bf0ff971241a",
     "CADENA-DE-PRODUCCION.md": "b627c6b749f5e03ce43221845b802c9adfe1a5d1c05a5de4956679c88e2c82ca",
     "ARBOL-TECNOLOGIAS.md": "a1319cbc47d9c8356215b7d0c25f75487568ca668d4338ec64be4e47568f208e",
     "referencias/arbol-tecnologico-modelo.png": "6bb5e43c8bd3e27fa53c1427a6522c3765189a329e60bc87becffa0f5c0db7fa"

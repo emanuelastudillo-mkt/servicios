@@ -89,7 +89,7 @@
     );
     if (tab === "manage") {
       body +=
-        `<p>Definí cuántos puestos públicos querés cubrir y el sueldo ofrecido. La nómina se paga directamente desde el Tesoro; las vacantes dependen de desempleo, cualificación y competencia con empleadores privados.</p>` +
+        `<p>Definí cuántos puestos públicos querés cubrir y el sueldo ofrecido. La nómina se paga directamente desde el Tesoro; las vacantes dependen de desempleo, cualificación y competencia con empleadores privados.</p>${id === "infrastructure" ? `<p class="method-note">Los funcionarios de Vivienda y Transporte son la dotación compartida para obras de <strong>todos los ministerios</strong>. Las cuadrillas de vivienda y refacción se reservan de esa misma dotación. Si falta personal, se contratan desocupados temporalmente; al terminar la obra o el programa vuelven al desempleo. Los funcionarios cobran su sueldo mensual una vez: no se les paga un segundo salario por la obra.</p>` : ""}` +
         form(
           "sector",
           field(
@@ -107,7 +107,7 @@
         `<div class="v6-grid">${card("Ejecutado este mes", dollars(v.executed))}${card("Vacantes", num(Math.max(0, v.requested - v.publicWorkers)))}${card("Nómina potencial", dollars((v.requested * v.salary) / 1e9))}${card("Desde desempleo", num(v.newFromUnemployment || 0), "Contrataciones del mes")}${card("Desde privados", num(v.transfers || 0), "Cambios de empleador")}</div>`;
       if (id === "infrastructure") {
         const p = c.housingProgram;
-        body += `<section class="v6-section"><h3>Programa pasivo de vivienda</h3><p>Definí un tope propio y cuadrillas temporales para construir y refaccionar todos los meses, sin iniciar una obra manual. El programa usa solo suelo libre no agrícola; se detiene o avanza parcialmente si faltan Tesoro, materiales o desocupados.</p>${form(
+        body += `<section class="v6-section"><h3>Programa pasivo de vivienda</h3><p>Definí un tope y cuadrillas para construir y refaccionar cada mes, sin iniciar una obra manual. Estas cuadrillas se reservan de la misma bolsa de Vivienda y Transporte; pueden sumar desocupados temporalmente. El programa se detiene o avanza parcialmente si faltan Tesoro, materiales, suelo o personal.</p>${form(
           "housing-program",
           field(
             "buildBudget",
@@ -129,7 +129,7 @@
               "Refacción: cuadrilla solicitada",
               Math.round(p.repairWorkers),
             ),
-        )}<div class="v6-grid">${card("Viviendas construidas último mes", num(p.lastBuildUnits))}${card("Viviendas refaccionadas último mes", num(p.lastRepairUnits))}${card("Estado de construcción", p.lastBuildStatus)}${card("Estado de refacción", p.lastRepairStatus)}</div></section>`;
+        )}<div class="v6-grid">${card("Viviendas construidas último mes", num(p.lastBuildUnits), `${num(p.lastBuildPublic || 0)} funcionarios · ${num(p.lastBuildTemporary || 0)} temporarios`)}${card("Viviendas refaccionadas último mes", num(p.lastRepairUnits), `${num(p.lastRepairPublic || 0)} funcionarios · ${num(p.lastRepairTemporary || 0)} temporarios`)}${card("Estado de construcción", p.lastBuildStatus)}${card("Estado de refacción", p.lastRepairStatus)}</div></section>`;
       }
     } else if (tab === "build") body += constructionList(s, id, u);
     else if (tab === "stock")
@@ -194,12 +194,14 @@
       .join("")}</section>`;
   }
   function constructionList(s, id, u) {
-    const c = s.countries[s.playerCountryId];
-    return `<p>Bolsa compartida: <strong>${num(E.constructionWorkforce(c))} personas</strong>. Se reparte por igual entre las obras activas de todos los ministerios. Más obras o módulos aumentan el plazo; materiales y Tesoro también lo condicionan. El avance se liquida en la etapa mensual de obras.</p><p>Cada proyecto muestra su cantidad física, costo y requisitos. Los importes son estimaciones; el material propio se consume sin comprarlo de nuevo.</p><div class="v6-buildings">${D.constructions
+    const c = s.countries[s.playerCountryId],
+      staff = c.sectors.infrastructure.publicWorkers * (c.sectors.infrastructure.payrollCoverage ?? 1),
+      temporary = c.laborSnapshot.unemployed * 1e6 + (c.constructionWorkers || 0);
+    return `<p>Bolsa compartida: <strong>${num(E.constructionWorkforce(c))} personas</strong> (${num(staff)} funcionarios pagos de Vivienda y Transporte + hasta ${num(temporary)} desocupados temporarios). Las cuadrillas de vivienda y refacción reservan sus puestos antes de repartir el resto entre obras activas de todos los ministerios. Al finalizar una obra, los temporarios vuelven a estar disponibles como desempleados. El avance se liquida en la etapa mensual de obras.</p><p>Cada proyecto muestra su cantidad física, costo y requisitos. El salario ordinario de los funcionarios ya está en la nómina; el costo laboral de la obra estima solo temporarios. El material propio se consume sin comprarlo de nuevo.</p><div class="v6-buildings">${D.constructions
       .filter((b) => b.sector === id && !b.storage)
       .map((b) => {
         const p = E.constructionPreview(s, b.id);
-        return `<article><div class="v6-title"><h3>${esc(b.label)}</h3><small>Público ${num(c.buildings[b.id], 2)} · Privado ${num(c.privateBuildings[b.id], 2)}</small></div><p>${esc(b.description)}</p><dl class="v6-lines">${row("Módulo", amount(p.quantity, p.unit))}${row("Costo fijo", dollars(p.baseCost))}${row("Salarios previstos", dollars(p.laborCost))}${row("Material propio: costo económico, no segundo pago", dollars(p.ownMaterialValue))}${row("Compra estimada de faltantes", dollars(p.purchaseCost))}${row("Trabajadores temporales", num(p.laborNeed))}${row("Cualificación / disponibilidad", amount(p.skillMatch, "%") + " / " + amount(p.laborAvailability, "%"))}${row("Duración estimada", p.estimatedMonths === null ? "Sin trabajadores disponibles" : amount(p.estimatedMonths, "meses de trabajo"))}${row("Suelo", amount(p.landHa, "ha"))}${p.convertAgricultureHa ? row("Convierte agricultura", amount(p.convertAgricultureHa, "ha")) : ""}${b.energyOutput ? row("Generación de referencia", amount(b.energyOutput, "TWh/año")) : ""}</dl><p class="${p.blocked ? "negative" : "positive"}">${esc(p.blocked || "Construcción habilitada")}</p>${oneModuleMaterials(p)}${field("quantity", "Cantidad de módulos", 1, "number", 'data-build-quantity min="1" max="999" step="1"')}<div data-build-quote>${constructionQuote(p, s.adminMode)}</div>${btn("build", "Construir", `data-building="${b.id}"`, !!p.blocked)}</article>`;
+        return `<article><div class="v6-title"><h3>${esc(b.label)}</h3><small>Público ${num(c.buildings[b.id], 2)} · Privado ${num(c.privateBuildings[b.id], 2)}</small></div><p>${esc(b.description)}</p><dl class="v6-lines">${row("Módulo", amount(p.quantity, p.unit))}${row("Costo fijo", dollars(p.baseCost))}${row("Salarios temporarios estimados", dollars(p.laborCost))}${row("Material propio: costo económico, no segundo pago", dollars(p.ownMaterialValue))}${row("Compra estimada de faltantes", dollars(p.purchaseCost))}${row("Personas necesarias por módulo", num(p.laborNeed))}${row("Cualificación / disponibilidad", amount(p.skillMatch, "%") + " / " + amount(p.laborAvailability, "%"))}${row("Duración estimada", p.estimatedMonths === null ? "Sin trabajadores disponibles" : amount(p.estimatedMonths, "meses de trabajo"))}${row("Suelo", amount(p.landHa, "ha"))}${p.convertAgricultureHa ? row("Convierte agricultura", amount(p.convertAgricultureHa, "ha")) : ""}${b.energyOutput ? row("Generación de referencia", amount(b.energyOutput, "TWh/año")) : ""}</dl><p class="${p.blocked ? "negative" : "positive"}">${esc(p.blocked || "Construcción habilitada")}</p>${oneModuleMaterials(p)}${field("quantity", "Cantidad de módulos", 1, "number", 'data-build-quantity min="1" max="999" step="1"')}<div data-build-quote>${constructionQuote(p, s.adminMode)}</div>${btn("build", "Construir", `data-building="${b.id}"`, !!p.blocked)}</article>`;
       })
       .join("")}</div>`;
   }
@@ -210,7 +212,7 @@
     return `<p><strong>${p.factor} módulo(s): salida de caja estimada ${dollars(p.treasuryEstimate)}</strong>; costo económico total ${dollars(p.totalCost)}. La obra paga por avance, no todo al crearla.</p><ul>${rows || "<li>Sin materiales de construcción.</li>"}</ul><p>Operación adicional teórica: ${outputs || "infraestructura o servicio, sin producto material directo"}. Mantenimiento estimado ${dollars(p.maintenance)}/mes; producción efectiva depende de empleo, tecnología, energía, insumos, demanda y almacén.</p>`;
   }
   function oneModuleMaterials(p) {
-    return `<p><strong>Referencia de 1 módulo:</strong> ${p.materialQuote.map(x => `${amount(x.required)} ${esc(D.getMaterial(x.id)?.label || x.id)}`).join(" · ") || "sin materiales adicionales"}; ${num(p.laborNeed)} trabajadores temporales.</p>`;
+    return `<p><strong>Referencia de 1 módulo:</strong> ${p.materialQuote.map(x => `${amount(x.required)} ${esc(D.getMaterial(x.id)?.label || x.id)}`).join(" · ") || "sin materiales adicionales"}; ${num(p.laborNeed)} personas de la bolsa compartida.</p>`;
   }
   function projects(s, id) {
     const c = s.countries[s.playerCountryId],
@@ -231,14 +233,14 @@
                 blockers = d.blockers
                   .map((x) => {
                     if (x.type === "workers")
-                      return `sin desocupados disponibles (se requieren ${num(x.amount)})`;
+                      return `sin funcionarios ni desocupados disponibles (se requieren ${num(x.amount)})`;
                     if (x.type === "materials") return materialText;
                     if (x.type === "treasury")
                       return `Tesoro insuficiente: necesita ${dollars(x.amount)} y hay ${dollars(x.available)}`;
                     return x.type;
                   })
                   .join(". ");
-              return `<div class="v6-project ${d.status === "blocked" ? "v6-project-blocked" : ""}"><strong>${esc(D.getBuilding(p.typeId)?.label || p.typeId)} · ${p.factor || 1} módulos</strong><progress max="100" value="${p.progress}"></progress><span>${num(p.progress, 1)}% · ${num(p.workers || 0)} trabajadores asignados · ${dollars(p.spent)} ejecutados</span><small class="${d.status === "blocked" ? "negative" : "positive"}">${esc(
+              return `<div class="v6-project ${d.status === "blocked" ? "v6-project-blocked" : ""}"><strong>${esc(D.getBuilding(p.typeId)?.label || p.typeId)} · ${p.factor || 1} módulos</strong><progress max="100" value="${p.progress}"></progress><span>${num(p.progress, 1)}% · ${num(p.workers || 0)} personas asignadas (${num(p.publicWorkers || 0)} funcionarios + ${num(p.temporaryWorkers || 0)} temporarios) · ${dollars(p.spent)} ejecutados</span><small class="${d.status === "blocked" ? "negative" : "positive"}">${esc(
                 d.status === "blocked"
                   ? "No avanzará en la próxima etapa de obras: " + blockers
                   : "Avanzará aproximadamente " +
