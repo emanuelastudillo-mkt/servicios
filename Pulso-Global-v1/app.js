@@ -31,12 +31,16 @@
     "v6-diplomacy-country",
     "v6-attack",
     "v6-open-training",
+    "v6-production-tab",
+    "v6-demolish",
+    "v6-research-tab",
   ]);
   const mapViews = [
     { id: "map", label: "Mapa mundial", icon: "◎" },
     ...DATA.sectors,
     { id: "military", label: "Ejército", icon: "⚑" },
     { id: "resources", label: "Recursos y producción", icon: "▦" },
+    { id: "buildings", label: "Edificios", icon: "▤" },
     { id: "economy", label: "Economía y deuda", icon: "¤" },
     { id: "taxes", label: "Impuestos", icon: "$" },
     { id: "trade", label: "Comercio exterior", icon: "↔" },
@@ -581,7 +585,7 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.16</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v7.17</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}

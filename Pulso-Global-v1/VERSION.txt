@@ -1,3 +1,3 @@
-Pulso Global v7.16.0
-Actualización incremental sobre v7.15 para GitHub Pages / localhost
-Fecha: 2026-09-26
+Pulso Global v7.17.0
+Actualización incremental sobre v7.16 para GitHub Pages / localhost
+Fecha: 2026-09-29

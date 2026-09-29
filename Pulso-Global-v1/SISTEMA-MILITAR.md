@@ -19,3 +19,14 @@ Este documento describe reglas de juego, no estadísticas reales. Si cambiás un
 La relación geográfica usa continentes simplificados: dentro del mismo continente se puede realizar una ofensiva terrestre sin datos de fronteras; fuera se requiere base naval. Malta, Chipre, Turquía y Rusia se agrupan con Europa para esta regla. Es una simplificación de jugabilidad, no una afirmación geográfica exhaustiva.
 
 La partida conserva como máximo 80 enfrentamientos recientes. Los coeficientes se aplican desde esta versión; los guardados previos reciben una dotación inicial proporcional a población y empleo de seguridad, sin gasto nuevo.
+
+## Recursos estratégicos (v7.17)
+
+La IA también puede atacar a otra IA. Tras el mes 24 (o tres meses de gracia para partidas antiguas avanzadas), una escasez primaria de al menos 45% durante tres meses habilita la evaluación. Se consideran las necesidades directas, el consumo industrial y el equivalente primario de productos faltantes, descartando carencias económicamente insignificantes. Importar y mantener stocks reduce esa presión.
+
+Se busca un país con stock útil, relación menor de 75/100 y potencia defensiva al menos 10% inferior. Rigen las bases y la restricción naval fuera del continente. La probabilidad mensual por candidato va de 12,5% a 18% para presiones 45–100, hasta dos ataques automáticos mundiales por mes y una incursión por atacante. No se ordenan ofensivas del jugador automáticamente. La relación comercial puede impedir ataques por recursos si alcanza 75.
+
+El bot prioriza el recurso que necesita. La carga máxima es 0,05 unidades de volumen por soldado superviviente, además del espacio de almacén y del stock saqueable. Lo saqueado cambia de dueño; solo el resto destruido desaparece. Las pérdidas y transferencias militares se registran separadas del comercio. El historial mundial muestra el motivo, los bandos y el botín. No hay conquista territorial.
+
+Estos coeficientes son balance de juego. No se garantiza que estalle una guerra en cada partida: comercio, abundancia o fuerzas equilibradas pueden evitarla.
+

@@ -15,3 +15,18 @@ Referencia visual aportada por el usuario: [imagen original de árbol horizontal
 El catálogo de `catalog-v6.js` mantiene identificadores estables. Cada tecnología tiene `requires` (prerrequisitos), `sector`, `branchId` y `depth` (posición vertical). Los niveles ya guardados, colas y avances no se convierten ni se borran. La interfaz calcula el estado a partir de la partida; no añade campos al guardado.
 
 Para una ampliación futura, primero se definirá para cada nueva tecnología: rama/sector, prerrequisitos concretos, efecto o desbloqueo, niveles máximos, coste/tiempo de investigación y tratamiento de partidas anteriores. No basta con agregar un icono al árbol: cada nodo debe tener utilidad verificable en el motor.
+
+## Conexiones entre ramas (v7.17)
+
+- Perforación depende de Geología; litio y metales preciosos, de Prospección.
+- Cemento requiere Minería y Refinación; acero, Minería; petroquímica, Refinación.
+- Electrónica requiere Petroquímica y Refinación de minerales; celdas solares, Electrónica y Refinación de minerales.
+- Vehículos requieren Acero y Electrónica; electrodomésticos también. Vehículos eléctricos requieren Baterías.
+- Computadoras requieren Semiconductores; robótica, Chips avanzados.
+- Alimentos procesados requieren Agricultura y Refinación; lácteos, Ganadería.
+- Física nuclear requiere Universidades, antes de investigar Fisión y sus mejoras.
+
+Estas conexiones se agregan a las anteriores, no las sustituyen. La profundidad se calcula sobre el grafo completo; el origen de una rama puede depender de otra. Cada ficha y nodo muestran los edificios y productos que habilitan. La producción sigue exigiendo insumos, energía, trabajadores y almacenamiento.
+
+Los niveles ya completados se respetan aunque cambien sus antecedentes. Los proyectos pendientes conservan progreso y orden; si falta un requisito nuevo, se detienen hasta completarlo. Podés cancelar y reencolar para resolver un prerrequisito, conservando en el guardado los demás proyectos.
+

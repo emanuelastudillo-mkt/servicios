@@ -326,6 +326,20 @@
       )
       .slice(0, count);
   }
+  const primaryEndowments = Object.fromEntries(
+    D.countries.slice().sort((a, b) => a.id.localeCompare(b.id)).map((c, index) => {
+      const ids = Object.keys(D.minimumPrimary), chosen = {};
+      for (const offset of [0, 3]) {
+        for (let step = 0; step < ids.length; step++) {
+          const id = ids[(index + offset + step) % ids.length];
+          if (!(id in chosen) && !dependencyMaterials(c.id).includes(id)) {
+            chosen[id] = D.minimumPrimary[id]; break;
+          }
+        }
+      }
+      return [c.id, chosen];
+    }),
+  );
   function depositRemaining(c, id, site) {
     const dep = c.naturalDeposits?.[id];
     if (!dep) return 0;
@@ -1020,10 +1034,15 @@
     }
     s.financeWorld = s.financeWorld || { bank: 0, migrants: 0 };
     s.militaryHistory = Array.isArray(s.militaryHistory) ? s.militaryHistory.slice(-80) : [];
+    s.resourceConflictReadyTick ??= Math.max(24, s.tick + 3);
     for (const c of Object.values(s.countries)) {
       initCountry(c, legacy);
       initializeNutrition(c, s);
       initializeMilitary(c);
+      c.buildingLand ||= { public: {}, private: {} };
+      c.primaryEndowment ||= { ...primaryEndowments[c.id] };
+      c.primaryProduction ||= map(0);
+      c.resourcePressure ||= { score: 0, months: 0, scarcities: [], lastTick: -1 };
       if (!c.pensionPolicy) {
         const rate = (c.gdp * 1e9 / Math.max(1, population(c))) * 0.2 / 12;
         c.pensionPolicy = { monthlyUsd: rate, referenceUsd: rate, paidPerRetireeUsd: rate, requested: 0, paid: 0, measured: false };
@@ -1101,6 +1120,14 @@
         migrateResourceStorage(c);
       }
       s.resourceStoresV711 = true;
+    }
+    for (const c of Object.values(s.countries)) if (!c.primarySupplyInitialized) {
+      // Space for a six-month basic reserve, not stock or a new industrial plant.
+      for (const [id, rate] of Object.entries(c.primaryEndowment))
+        c.resourceStorageBase.public[id] = Math.max(c.resourceStorageBase.public[id] || 0,
+          rate * 6 * volumePerUnit(D.getMaterial(id)));
+      c.primarySupplyInitialized = true;
+      updateCapacity(c);
     }
     return s;
   }
@@ -1855,15 +1882,19 @@
           (c.uncollectedWaste?.[m.id] || 0),
       ),
       losses: map(0),
+      militaryTransfers: map(0),
     };
+    c.primaryProduction = map(0);
+    for (const [id, quota] of Object.entries(c.primaryEndowment)) {
+      const m = D.getMaterial(id), actual = Math.min(quota, freeStock(c, "public", m));
+      c.publicStocks[id] += actual;
+      c.primaryProduction[id] = actual;
+      c.publicProduction[id] += actual;
+      c.materialProduction[id] += actual;
+      c.gdpValueAdded += actual * m.value;
+    }
     runEnergy(s, c);
-    const ordered = [];
-    const visit = (m) => {
-      if (ordered.includes(m)) return;
-      for (const id of Object.keys(m.inputs || {})) visit(D.getMaterial(id));
-      ordered.push(m);
-    };
-    materials.forEach(visit);
+    const ordered = D.productionOrder;
     for (const m of ordered) {
       if (m.waste || ["milk", "meat", "raw_leather", "wool"].includes(m.id))
         continue;
@@ -1944,7 +1975,7 @@
         }
         st[m.id] += output;
         c.materialProduction[m.id] += output;
-        (owner === "public" ? c.publicProduction : c.privateProduction)[m.id] =
+        (owner === "public" ? c.publicProduction : c.privateProduction)[m.id] +=
           output;
         (owner === "public" ? c.publicUtilization : c.privateUtilization)[
           m.id
@@ -2758,6 +2789,62 @@
       maintenance: b.fixedCost * factor * 0.002,
     };
   }
+  function demolitionPreview(s, id, quantity = 1) {
+    const c = s.countries[s.playerCountryId], b = D.getBuilding(id);
+    if (!b) throw Error("Construcción no válida.");
+    quantity = needNumber(quantity, 0.000001, 999);
+    const owned = c.buildings[id] || 0;
+    const cost = s.adminMode ? 0 : b.fixedCost * quantity * 0.02;
+    let blocked = quantity > owned + 1e-9 ? "No tenés esa cantidad de instalaciones públicas." : "";
+    if (b.housingRepairUnits || (b.storage && !b.storageFor))
+      blocked = "Es un servicio histórico, no un edificio demolible.";
+    if (b.storageFor) {
+      const m = D.getMaterial(b.storageFor);
+      if (resourceStorageCapacity(c, "public", m) - quantity * b.storageAmount + 1e-8 <
+          c.publicStocks[m.id] * volumePerUnit(m))
+        blocked = "Vendé o utilizá el stock antes de retirar ese almacén.";
+    }
+    if (cost > Math.max(0, c.reserves)) blocked = "Reservas insuficientes para la demolición.";
+    return { building: b, quantity, owned, cost, blocked,
+      freedLand: (c.buildingLand.public[id] || 0) * Math.min(1, quantity / Math.max(1e-12, owned)),
+      housingLost: (b.housingUnits || 0) * quantity * 1e6,
+      soldierCapacityLost: (b.soldierCapacity || 0) * quantity };
+  }
+  function removeBuilding(c, b, quantity, owner = "public") {
+    const assets = owner === "public" ? c.buildings : c.privateBuildings;
+    const before = assets[b.id] || 0, removed = Math.min(before, quantity);
+    if (removed <= 0) return 0;
+    const land = (c.buildingLand[owner][b.id] || 0) * removed / before;
+    c.buildingLand[owner][b.id] = Math.max(0, (c.buildingLand[owner][b.id] || 0) - land);
+    const bucket = b.housingUnits ? "residentialHa" : b.agricultureHa ? "agricultureHa" : "industrialHa";
+    c.land[bucket] = Math.max(0, c.land[bucket] - land);
+    assets[b.id] = Math.max(0, before - removed);
+    if (b.housingUnits) {
+      let units = b.housingUnits * removed;
+      for (const type of ["repair", "normal", "new"]) {
+        const n = Math.min(units, c.housingStock[type]);
+        c.housingStock[type] -= n; units -= n;
+      }
+    }
+    if (b.irrigatedHa) c.land.irrigatedHa = Math.max(0, c.land.irrigatedHa - b.irrigatedHa * removed);
+    c.land.irrigatedHa = Math.min(c.land.irrigatedHa, c.land.agricultureHa);
+    if (b.livestock) c.herds[owner][b.livestock] = Math.max(0, c.herds[owner][b.livestock] - b.heads * removed);
+    if (c.infrastructureAssets[b.id] !== undefined)
+      c.infrastructureAssets[b.id] = Math.max(0, c.infrastructureAssets[b.id] - (b.quantity || 1) * removed);
+    c.staffingVersion = (c.staffingVersion || 0) + 1;
+    initializeMilitary(c);
+    syncDemographics(c);
+    updateCapacity(c);
+    return removed;
+  }
+  function demolishBuilding(s, id, quantity = 1) {
+    const c = player(s), p = demolitionPreview(s, id, quantity);
+    if (p.blocked) throw Error(p.blocked);
+    transfer(s, c, "public", "private", p.cost, "Demolición", p.building.label);
+    removeBuilding(c, p.building, p.quantity);
+    note(s, c, `${p.building.label}: retirados ${p.quantity} módulos. Costo de demolición US$ ${(p.cost * 1e9).toFixed(0)}.`);
+    return p;
+  }
   function queueConstruction(s, id, factor = 1, acceptConversion = false) {
     const c = player(s),
       b = D.getBuilding(id),
@@ -2809,6 +2896,7 @@
     p.progress = 100;
     p.completedAt = L.monthLabel(s.date);
     c.buildings[b.id] += factor;
+    c.buildingLand.public[b.id] = (c.buildingLand.public[b.id] || 0) + (b.landHa || b.agricultureHa || 0) * factor;
     c.staffingVersion = (c.staffingVersion || 0) + 1;
     if (b.storage && !b.storageFor)
       spreadLegacySpace(c, "public", b.storage, b.storageAmount * factor);
@@ -3177,7 +3265,7 @@
     army.salary = needNumber(input.salary, 0, 1e9);
     return army;
   }
-  function militaryLoss(c, count) {
+  function militaryLoss(s, c, count) {
     const army = c.military;
     const lost = Math.min(army.soldiers, Math.max(0, Math.round(count)));
     if (!lost) return 0;
@@ -3186,26 +3274,36 @@
     army.trained = Math.min(army.soldiers, Math.max(0, army.trained - lost * trainedRatio));
     // A quarter of losses are fatalities; the rest leave the army and re-enter
     // the civilian labor pool. This keeps population and employment consistent.
-    const deaths = lost * 0.25;
+    const requestedDeaths = lost * 0.25;
     const lastAge = Math.min(80, c.workPolicy.retire);
     const eligible = c.ageCohorts.slice(18, lastAge).reduce((n, v) => n + v, 0);
+    const deaths = Math.min(eligible, requestedDeaths);
+    if (army.fatalitiesTick !== s.tick) {
+      army.fatalitiesTick = s.tick;
+      army.fatalitiesThisMonth = 0;
+    }
+    army.fatalitiesThisMonth += deaths;
+    if (c.demographicFlowsTick === s.tick) {
+      c.demographicFlows.deaths += deaths / 1e6;
+      c.demographicFlows.militaryDeaths = (c.demographicFlows.militaryDeaths || 0) + deaths / 1e6;
+    }
     if (eligible > 0)
       for (let age = 18; age < lastAge; age++)
         c.ageCohorts[age] = Math.max(0, c.ageCohorts[age] - deaths * c.ageCohorts[age] / eligible);
     syncDemographics(c);
     return lost;
   }
-  function resolveAttack(s, attackerId, defenderId) {
+  function resolveAttack(s, attackerId, defenderId, objective = null) {
     const preview = attackPreview(s, attackerId, defenderId);
     if (preview.reason) throw Error(preview.reason);
     const from = preview.attacker, to = preview.defender;
     const ratio = preview.ratio * (0.88 + random(s) * 0.24);
     const success = ratio >= 1;
-    const attackerLosses = militaryLoss(from, from.military.soldiers *
+    const attackerLosses = militaryLoss(s, from, from.military.soldiers *
       (success ? clamp(0.015 / Math.max(0.7, ratio), 0.003, 0.022) : clamp(0.035 / Math.max(0.3, ratio), 0.035, 0.08)));
-    const defenderLosses = militaryLoss(to, to.military.soldiers *
+    const defenderLosses = militaryLoss(s, to, to.military.soldiers *
       (success ? clamp(0.02 * ratio, 0.01, 0.07) : 0.004));
-    const destroyed = [], loot = [];
+    const destroyed = [], destroyedStocks = [], loot = [];
     if (success) {
       const candidates = buildings.filter((b) => !b.housingUnits && !b.housingRepairUnits &&
         (to.buildings[b.id] || 0) >= 1);
@@ -3213,22 +3311,31 @@
         if (!candidates.length) break;
         const index = Math.floor(random(s) * candidates.length);
         const b = candidates.splice(index, 1)[0];
-        to.buildings[b.id] = Math.max(0, to.buildings[b.id] - 1);
-        if (to.infrastructureAssets[b.id] !== undefined)
-          to.infrastructureAssets[b.id] = Math.max(0, to.infrastructureAssets[b.id] - (b.quantity || 1));
+        removeBuilding(to, b, 1);
         destroyed.push(b.label);
       }
       const stocked = materials.filter((m) => !m.waste &&
         (to.publicStocks[m.id] + to.privateStocks[m.id]) > 1e-9);
-      for (let i = 0; i < Math.min(3, stocked.length); i++) {
-        const index = Math.floor(random(s) * stocked.length);
+      let carrying = from.military.soldiers * 0.05;
+      const selections = Math.min(3, stocked.length);
+      for (let i = 0; i < selections; i++) {
+        const preferred = i === 0 && objective ? stocked.findIndex(m => m.id === objective) : -1;
+        const index = preferred >= 0 ? preferred : Math.floor(random(s) * stocked.length);
         const m = stocked.splice(index, 1)[0];
         const owner = to.publicStocks[m.id] >= to.privateStocks[m.id] ? "public" : "private";
         const source = stocks(to, owner);
         const removed = Math.min(source[m.id], source[m.id] * clamp(0.015 * ratio, 0.01, 0.05));
         source[m.id] -= removed;
-        const taken = Math.min(removed * 0.5, freeStock(from, "public", m));
+        const taken = Math.min(removed * 0.5, freeStock(from, "public", m), carrying / volumePerUnit(m));
+        carrying -= taken * volumePerUnit(m);
         from.publicStocks[m.id] += taken;
+        if (to.monthlyResourceLedger) {
+          to.monthlyResourceLedger.losses[m.id] += removed - taken;
+          (to.monthlyResourceLedger.militaryTransfers ||= map(0))[m.id] -= taken;
+        }
+        if (from.monthlyResourceLedger)
+          (from.monthlyResourceLedger.militaryTransfers ||= map(0))[m.id] += taken;
+        destroyedStocks.push({ id: m.id, quantity: removed - taken });
         if (taken > 0) loot.push({ id: m.id, quantity: taken });
       }
       updateCapacity(to);
@@ -3238,10 +3345,11 @@
     const relation = changeRelation(from, to, -30);
     from.military.lastAttackTick = s.tick;
     const outcome = { tick: s.tick, date: dateLabel(s.date), attackerId, defenderId,
-      success, attackerLosses, defenderLosses, destroyed, loot, relation };
+      success, attackerLosses, defenderLosses, destroyed, destroyedStocks, loot, relation,
+      resource: objective, motive: objective ? "Escasez sostenida de " + D.getMaterial(objective).label : "Ofensiva militar" };
     s.militaryHistory.unshift(outcome);
     s.militaryHistory.length = Math.min(80, s.militaryHistory.length);
-    const summary = `${from.name} atacó a ${to.name}: ${success ? "ofensiva exitosa" : "ofensiva repelida"}. Bajas militares ${attackerLosses} / ${defenderLosses}; relación ${relation.toFixed(0)}/100.`;
+    const summary = `${from.name} atacó a ${to.name}: ${success ? "ofensiva exitosa" : "ofensiva repelida"}. ${outcome.motive}. Bajas militares ${attackerLosses} / ${defenderLosses}; relación ${relation.toFixed(0)}/100.`;
     note(s, from, summary);
     if (to.id === s.playerCountryId) note(s, to, summary);
     return outcome;
@@ -3251,13 +3359,72 @@
     return resolveAttack(s, c.id, targetId);
   }
   function aiMilitaryAction(s) {
+    assessResourcePressure(s);
     const defender = s.countries[s.playerCountryId];
     const hostile = Object.values(s.countries).filter((c) => c.id !== defender.id &&
       relationScore(c, defender) < 25 && !attackPreview(s, c.id, defender.id).reason &&
       militaryPower(c) >= militaryPower(defender, true) * 0.55);
-    if (!hostile.length || random(s) >= 0.08) return;
-    hostile.sort((a, b) => relationScore(a, defender) - relationScore(b, defender));
-    resolveAttack(s, hostile[0].id, defender.id);
+    let attacks = 0;
+    const targets = new Set();
+    if (hostile.length && random(s) < 0.08) {
+      hostile.sort((a, b) => relationScore(a, defender) - relationScore(b, defender));
+      resolveAttack(s, hostile[0].id, defender.id);
+      targets.add(defender.id); attacks++;
+    }
+    if (s.tick < s.resourceConflictReadyTick) return;
+    const countries = Object.values(s.countries).sort((a, b) => a.id.localeCompare(b.id));
+    // Rotate the scan: small countries must not always be evaluated last.
+    for (let index = 0; index < countries.length && attacks < 2; index++) {
+      const a = countries[(index + s.tick) % countries.length];
+      if (a.id === s.playerCountryId || a.resourcePressure.months < 3 ||
+          a.resourcePressure.score < 45 || a.military.lastAttackTick === s.tick) continue;
+      const objective = strategicTarget(s, a.id, targets);
+      if (!objective || random(s) >= 0.08 + a.resourcePressure.score * 0.0012) continue;
+      resolveAttack(s, a.id, objective.countryId, objective.resource);
+      targets.add(objective.countryId); attacks++;
+    }
+  }
+  function assessResourcePressure(s) {
+    for (const c of Object.values(s.countries)) {
+      if (c.resourcePressure.lastTick === s.tick) continue;
+      const derived = {};
+      for (const m of materials.filter(m => Object.keys(m.inputs).length)) for (const [id, q] of Object.entries(D.primaryRequirements[m.id]))
+        derived[id] = (derived[id] || 0) + Math.max(0, c.shortages[m.id] || 0) * q;
+      const scarcities = Object.keys(D.minimumPrimary).flatMap(id => {
+        const need = Math.max(c.needs[id] || 0, c.materialConsumption[id] || 0) + (derived[id] || 0);
+        if (need <= 0 || need * D.getMaterial(id).value < c.gdp / 12 * 0.00005) return [];
+        const supply = Math.max(0, (c.monthlyResourceLedger?.opening[id] || 0) +
+          c.materialProduction[id] + c.resourceImports[id] - c.resourceExports[id] +
+          (c.monthlyResourceLedger?.militaryTransfers?.[id] || 0) - (c.monthlyResourceLedger?.losses?.[id] || 0));
+        const gap = Math.max(0, need - supply), severity = clamp(gap / need, 0, 1);
+        return severity > 0.05 ? [{ id, need, gap, severity, stock: c.publicStocks[id] + c.privateStocks[id] }] : [];
+      }).sort((a, b) => b.severity - a.severity || b.gap * D.getMaterial(b.id).value - a.gap * D.getMaterial(a.id).value);
+      const score = (scarcities[0]?.severity || 0) * 100;
+      c.resourcePressure = { score, months: score >= 45 ? c.resourcePressure.months + 1 : 0,
+        scarcities: scarcities.slice(0, 5), lastTick: s.tick };
+    }
+  }
+  function strategicTarget(s, attackerId, excluded = new Set()) {
+    const a = s.countries[attackerId];
+    let best = null;
+    for (const scarcity of a.resourcePressure.scarcities) {
+      const m = D.getMaterial(scarcity.id);
+      if (freeStock(a, "public", m) <= 0) continue;
+      for (const b of Object.values(s.countries)) {
+        if (b.id === a.id || excluded.has(b.id) || relationScore(a, b) >= 75) continue;
+        const available = b.publicStocks[m.id] + b.privateStocks[m.id];
+        if (available <= 0) continue;
+        const p = attackPreview(s, a.id, b.id);
+        if (p.reason || p.ratio < 1.1) continue;
+        const potential = Math.min(available * 0.01, scarcity.gap,
+          freeStock(a, "public", m), a.military.soldiers * 0.05 / volumePerUnit(m));
+        if (potential < scarcity.need * 0.001) continue;
+        const score = potential / Math.max(1e-12, scarcity.need) * Math.min(3, p.ratio) *
+          (1 - p.relation / 150) * scarcity.severity;
+        if (!best || score > best.score) best = { countryId: b.id, resource: m.id, score };
+      }
+    }
+    return best;
   }
   function normalizeResearchQueue(c) {
     const r = c.research;
@@ -3712,6 +3879,8 @@
         clamp(c.education / 50, 0.2, 1);
       if (project.months <= 0) {
         const b = D.getBuilding(project.building);
+        const owner = project.owner === "public" ? "public" : "private";
+        c.buildingLand[owner][b.id] = (c.buildingLand[owner][b.id] || 0) + (b.landHa || 0) * project.factor;
         if (project.owner === "public") {
           c.buildings[project.building] += project.factor;
           c.staffingVersion = (c.staffingVersion || 0) + 1;
@@ -4036,9 +4205,12 @@
       );
       newA[0] += births;
       c.ageCohorts = newA;
+      const militaryDeaths = c.military.fatalitiesTick === s.tick ? c.military.fatalitiesThisMonth : 0;
+      c.demographicFlowsTick = s.tick;
       c.demographicFlows = {
         births: births / 1e6,
-        deaths: (deaths + (c.disasterDeaths || 0)) / 1e6,
+        deaths: (deaths + (c.disasterDeaths || 0) + militaryDeaths) / 1e6,
+        militaryDeaths: militaryDeaths / 1e6,
         migration: 0,
         enteringWorkAge: enter / 1e6,
         retiring: retire / 1e6,
@@ -4841,6 +5013,9 @@
       "Compensación por nacionalización",
     );
     for (const asset of p.assets) {
+      const land = (c.buildingLand.private[asset.id] || 0) * share;
+      c.buildingLand.private[asset.id] = Math.max(0, (c.buildingLand.private[asset.id] || 0) - land);
+      c.buildingLand.public[asset.id] = (c.buildingLand.public[asset.id] || 0) + land;
       c.privateBuildings[asset.id] -= asset.quantity;
       c.buildings[asset.id] += asset.quantity;
     }
@@ -5124,6 +5299,10 @@
     );
     return {
       material: { ...m, inputs: Object.fromEntries(effectiveInputs) },
+      primaryMinimum: c.primaryEndowment[id] || 0,
+      primaryActual: c.primaryProduction[id] || 0,
+      primaryRequirements: D.primaryRequirements[id],
+      worldMinimum: Object.values(s.countries).reduce((n, x) => n + (x.primaryEndowment[id] || 0), 0),
       baseInputs: { ...m.inputs },
       inputAvailability,
       inputLimit,
@@ -5364,6 +5543,8 @@
     importResource: (s, id, q) => tradeResource(s, id, "buy", q),
     sellResource: (s, id, q) => tradeResource(s, id, "sell", q),
     constructionPreview,
+    demolitionPreview,
+    demolishBuilding,
     constructionWorkforce,
     queueConstruction,
     setAdminMode: (s, enabled) => { s.adminMode = enabled === true; return s.adminMode; },
@@ -5374,6 +5555,8 @@
     militaryPower,
     attackPreview,
     attackCountry,
+    assessResourcePressure,
+    strategicTarget,
     relationScore,
     setPension,
     pensionPreview,

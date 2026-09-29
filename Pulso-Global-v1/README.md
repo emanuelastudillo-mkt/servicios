@@ -1,14 +1,14 @@
-# Pulso Global 7.16 — ejército y relaciones
+# Pulso Global 7.17 — recursos, tecnologías y edificios
 
-Actualización incremental sobre **v7.15**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.16**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.15, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.16, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.16**; si todavía aparece v7.15, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.17**; si todavía aparece v7.16, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios y avance de obras. Reparte la capacidad de antiguos almacenes familiares entre recursos sin multiplicarla; si una partida excepcional ya excedía esa capacidad, conserva el stock como excedente visible hasta venderlo, usarlo o construir un almacén exclusivo. La pensión inicial se deriva de la fórmula anterior y no cambia al cargarla de nuevo. Exportá un respaldo JSON igualmente: una actualización no puede reconstruir dinero perdido y guardado por una versión anterior.
 
@@ -21,6 +21,16 @@ Con Python instalado, ejecutá `python -m http.server 4173` desde la carpeta del
 Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece a esa dirección. Cambiarla no borra la partida original, pero la nueva dirección no puede verla: trasladala mediante exportar/importar. Borrar datos del sitio o usar navegación privada puede hacerte perder guardados.
 
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
+
+## Recursos y edificios v7.17
+
+Cada país conserva dos fuentes primarias minúsculas, públicas e inagotables, repartidas por especialidad. Los depósitos y las plantas siguen siendo necesarios para producir a escala industrial. En **Recursos y producción** están el árbol productivo y la base primaria mundial; las fichas detallan insumos y origen primario. Las cifras son parámetros de juego, no estadísticas geológicas reales.
+
+Las 129 tecnologías mantienen sus niveles y ahora conectan ramas industriales entre sí. Cada tarjeta muestra qué instalaciones o productos desbloquea. Las mejoras existentes siguen aumentando rendimiento. En **Edificios** se pueden demoler instalaciones públicas con vista previa de costos y consecuencias; antes de retirar un almacén hay que vaciar el exceso de stock.
+
+A partir del mes 24, la escasez sostenida puede causar ataques entre países simulados, además de represalias contra el jugador. Se requiere superioridad militar y que el rival tenga recursos útiles. Las partidas avanzadas migradas tienen tres meses de gracia. Consultá [MUNDO-Y-RECURSOS.md](MUNDO-Y-RECURSOS.md) para reglas y cuotas.
+
+Se conservan investigaciones completadas. Una investigación pendiente puede quedar en espera si ahora le falta un prerrequisito: no pierde su porcentaje; hay que completarlo primero. La nueva reserva primaria incorpora solo espacio de almacén para seis cuotas, nunca stock ni dinero gratis al cargar.
 
 ## Ejército y relaciones v7.16
 

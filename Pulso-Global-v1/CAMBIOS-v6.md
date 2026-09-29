@@ -1,3 +1,13 @@
+# v7.17 — base primaria, árbol productivo, tecnologías y demolición
+
+- Dos pequeñas fuentes primarias por país; cobertura de los diez recursos de base y almacenamiento propio limitado.
+- Vista mundial de cuotas y proveedores; cadena completa de recetas en orden de transformación.
+- Conexiones entre ramas tecnológicas y desbloqueos explícitos; se mantienen las recetas editadas por el jugador.
+- Menú Edificios: demolición pública con costo y consecuencias; protección de almacenes ocupados.
+- Conflictos automáticos por escasez sostenida entre países; prioridad al recurso necesario, carga de saqueo limitada y registro mundial.
+- Conservación de stocks mediante pérdidas y transferencias militares separadas.
+- Migración sin crear dinero ni stock, con tres meses de gracia militar en partidas avanzadas.
+
 # Pulso Global 7.16 — ejército y relaciones
 
 ## Incremental v7.16 sobre v7.15

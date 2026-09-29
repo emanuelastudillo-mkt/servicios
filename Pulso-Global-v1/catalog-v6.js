@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (D, FACTS) {
   "use strict";
   D.version = 6;
-  D.release = "7.16.0";
+  D.release = "7.17.0";
   D.facts = FACTS;
   const techs = [];
   function branch(sector, items) {
@@ -1343,5 +1343,52 @@
   D.getMaterial = (id) => materialIndex.get(id);
   D.getBuilding = (id) => buildingIndex.get(id);
   D.getTechnology = (id) => techIndex.get(id);
+  // Small, inexhaustible national endowments. Larger industrial extraction still
+  // needs deposits, buildings, labor and energy. Quantities are game units/month.
+  D.minimumPrimary = { grains: 60, timber: 12, crude_oil: 2, iron_ore: 3,
+    copper: 1, uranium: 0.002, minerals: 6, lithium: 0.08,
+    gold: 0.0001, diamonds: 0.00001 };
+  const links = {
+    drilling: ["geology"], lithium: ["prospecting"], precious: ["prospecting"],
+    cement: ["mining", "refining"], steel: ["mining"], petrochem: ["refining"],
+    electronics: ["petrochem", "mineral_refining"], cells: ["electronics", "mineral_refining"],
+    vehicles: ["steel", "electronics"], computing: ["semiconductors"],
+    appliances: ["steel", "electronics"], electric_vehicles: ["batteries"],
+    food_processing: ["farming", "refining"], dairy: ["livestock"],
+    nuclear_physics: ["university"], robotics: ["advanced_chips"],
+  };
+  for (const [id, dependencies] of Object.entries(links))
+    techIndex.get(id).requires = [...new Set([...techIndex.get(id).requires, ...dependencies])];
+  const orderedTechs = [], activeTechs = new Set(), visitedTechs = new Set();
+  function visitTech(t) {
+    if (activeTechs.has(t.id)) throw Error("Ciclo tecnológico: " + t.id);
+    if (visitedTechs.has(t.id)) return;
+    activeTechs.add(t.id);
+    for (const id of t.requires) visitTech(techIndex.get(id));
+    t.depth = t.requires.length ? 1 + Math.max(...t.requires.map(id => techIndex.get(id).depth)) : 0;
+    t.unlockBuildings = D.constructions.filter(b => b.technology === t.id).map(b => b.id);
+    t.unlockResources = D.materials.filter(m => m.technology === t.id).map(m => m.id);
+    activeTechs.delete(t.id); visitedTechs.add(t.id); orderedTechs.push(t);
+  }
+  techs.forEach(visitTech);
+  techs.splice(0, techs.length, ...orderedTechs);
+  D.productionOrder = [];
+  D.primaryRequirements = {};
+  const visitingResources = new Set();
+  function visitResource(m) {
+    if (visitingResources.has(m.id)) throw Error("Ciclo productivo: " + m.id);
+    if (D.primaryRequirements[m.id]) return;
+    visitingResources.add(m.id);
+    const roots = m.id in D.minimumPrimary ? { [m.id]: 1 } : {};
+    for (const [id, quantity] of Object.entries(m.inputs)) {
+      visitResource(materialIndex.get(id));
+      for (const [raw, coefficient] of Object.entries(D.primaryRequirements[id]))
+        roots[raw] = (roots[raw] || 0) + quantity * coefficient;
+    }
+    D.primaryRequirements[m.id] = roots;
+    D.productionOrder.push(m);
+    visitingResources.delete(m.id);
+  }
+  D.materials.forEach(visitResource);
   return D;
 });
