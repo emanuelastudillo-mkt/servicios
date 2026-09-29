@@ -1,17 +1,17 @@
 {
   "result": "PASS",
-  "version": "7.17.0",
-  "base": "7.16.0",
-  "generatedAt": "2026-09-29T05:11:08.990Z",
-  "engineTestCount": 107,
+  "version": "7.18.0",
+  "base": "7.17.0",
+  "generatedAt": "2026-09-29T16:45:29.659Z",
+  "engineTestCount": 113,
   "checks": {
     "engine": {
       "result": "PASS",
-      "testCount": 107
+      "testCount": 113
     },
     "browser": {
       "result": "PASS",
-      "version": "7.17",
+      "version": "7.18",
       "errors": [],
       "military": true,
       "education": true,
@@ -21,7 +21,11 @@
       "primarySupply": true,
       "productionTree": true,
       "demolition": true,
-      "technologyUnlocks": true
+      "technologyUnlocks": true,
+      "initialDetails": true,
+      "scratchMode": true,
+      "scratchSaveReload": true,
+      "versionFooter": true
     },
     "technologyTree": {
       "result": "PASS",
@@ -35,15 +39,18 @@
     "offlineUpgrade": {
       "result": "PASS",
       "oldCache": "5.4",
-      "newCache": "7.17",
+      "newCache": "7.18",
       "migration": true,
       "backupDownload": true,
       "negativeBalancePreserved": true,
       "offlineResume": true,
+      "countryPreviewCached": true,
       "errors": []
     }
   },
   "verified": [
+    "From-scratch state and bootstrap lab tested without admin",
+    "Detailed start preview and dynamic version footer",
     "Fixed primary supply in all countries with finite storage and unchanged recipe yields",
     "Cross-sector technology prerequisites and actual construction unlocks",
     "Demolition updates capacity, housing, land and military jobs",
@@ -57,16 +64,18 @@
     "Desktop and mobile military/diplomacy screens are usable without page overflow"
   ],
   "sourceSha256": {
-    "app.js": "599d9bff6005f87ac896d7b5562d920bfce3e1c1fd744ed388cf6debfc3a11d8",
-    "catalog-v6.js": "80b0c7cc9058b3108eff44a3f6817e86b1599cbfad5c8b6406c3460d4929a693",
-    "simulation-v6.js": "b21e07559036fc733aecf0eed165903d5bfc154ecfe2668fbd398bbc5f294e2c",
-    "ui-v6.js": "f170177ddae1e76f5c0598852705d4bb82f7a43f72fec84a0a23ddf355fa407b",
+    "index.html": "6dbb90455cce9cfb0fc134b63a3b0d789f4ff19bba1b4da12b786a6aeb95244e",
+    "start-preview.js": "aa33dc3771f70074c8a5ce0ed2510556343fe189473198fe31b6e1330e0d860e",
+    "app.js": "fd2072451fb0ff3444c13933748da3071142f6c936d1ce7e2b8969be0543f85f",
+    "catalog-v6.js": "58a46ace8c7d1b12b04636723127d4346e5b4f0d178c48423ee97f5530d7745d",
+    "simulation-v6.js": "eea7f93b9e39fa40c637324859f6498ae95579dc8feff076a92b75f724dd3665",
+    "ui-v6.js": "43093f44042384e4537e48e86cedfb20b44d44f8d54192d6ff03b1aa1282e8cb",
     "styles.css": "a24d483e506477e6ceec2155176452f94510cc1fba0e2d2f06672bb4a3d614ab",
-    "styles-v6.css": "80d16a5f57665f6902298ecc18b9cf2e497c7c4ad96c6841300067e260de902a",
-    "sw.js": "f454d1288a79f894fe5e5f0e6a036623327fa08d79d2a9e41f79caf44379340a",
-    "README.md": "03ec7705cb7bb6c5507fa584cada503fd9969501d43c3d05b3f17251fe292b2c",
-    "CAMBIOS-v6.md": "237bf4375dcb981ba9f75d065104f2486dcac5d7d779f8223ad5532f1a8b5fcc",
-    "VERSION.txt": "33e347ff7c33a7ff201206c79c9a6ca02bd57be967219f5eddf0a56efa47f19c",
+    "styles-v6.css": "7ab8894d3058e623ebb8426c8dc5acbfc4ef3491d9de05efaac45d41fa8af36b",
+    "sw.js": "f16798abad9024e3575a77f504578ab592895eba15abcb66810717e89d42c327",
+    "README.md": "ce19541df14947c313a2c0c45f5256a4feca66ed73069b57e24d9bdc792b1601",
+    "CAMBIOS-v6.md": "3a2ee32200246774c5c9199cce0755b59760de79605337421b931fd904b12af2",
+    "VERSION.txt": "6a2249d98cc8c51633dffb3cffd10b0a312f64fe0e9a7accf360087f8afe909e",
     "CADENA-DE-PRODUCCION.md": "b627c6b749f5e03ce43221845b802c9adfe1a5d1c05a5de4956679c88e2c82ca",
     "ARBOL-TECNOLOGIAS.md": "99cab364215a5ce6d7a3556daab2ed62218c39e78420c0384f2545d85efc584b",
     "MUNDO-Y-RECURSOS.md": "ccc8a543e5ac95d8ede756d025c215a68433f9ebfc63c47effc944abe6f44410",

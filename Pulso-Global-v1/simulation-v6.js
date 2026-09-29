@@ -865,8 +865,10 @@
   }
   function resourceStorageCapacity(c, owner, m) {
     const b = dedicatedStores[m.id];
+    const initialReserve = m.id === "grains"
+      ? (owner === "public" ? c.buildings.starting_grain_depot || 0 : c.privateBuildings.starting_grain_depot || 0) * 500000000 : 0;
     return Math.max(0, (c.resourceStorageBase?.[owner]?.[m.id] || 0) +
-      (owner === "public" ? c.buildings[b.id] || 0 : c.privateBuildings[b.id] || 0) * b.storageAmount);
+      (owner === "public" ? c.buildings[b.id] || 0 : c.privateBuildings[b.id] || 0) * b.storageAmount + initialReserve);
   }
   function storageCapacity(c, owner, type) {
     if (!c.resourceStorageBase) return legacyStorageCapacity(c, owner, type);
@@ -1039,6 +1041,8 @@
       initCountry(c, legacy);
       initializeNutrition(c, s);
       initializeMilitary(c);
+      c.buildings.starting_grain_depot ||= 0;
+      c.privateBuildings.starting_grain_depot ||= 0;
       c.buildingLand ||= { public: {}, private: {} };
       c.primaryEndowment ||= { ...primaryEndowments[c.id] };
       c.primaryProduction ||= map(0);
@@ -2180,7 +2184,11 @@
       const consumer = professionalUse[m.id] ? "private" : "household",
         price = s.market.resourcePrices[m.id],
         tax = (price * c.taxes.vat) / 100,
-        available = stocks(c, owner)[m.id],
+        available = Math.max(0, stocks(c, owner)[m.id] -
+          (owner === "public" && c.startingScenario === "scratch" && !c.buildings.research_lab
+            ? c.projects.filter(p => p.typeId === "research_lab" && p.progress < 100)
+              .reduce((n,p) => n + Math.max(0,(p.requirements[m.id] || 0) - (p.consumed[m.id] || 0)),0)
+            : 0)),
         q = Math.min(
           request - served,
           available,
@@ -2662,8 +2670,9 @@
     if (!Number.isInteger(factor)) throw Error("Construí módulos enteros.");
     const land = (b.landHa || b.agricultureHa || 0) * factor;
     let blocked = "";
-    if (!scalarTech(c, b.technology))
+    if (!scalarTech(c, b.technology) && !(c.startingScenario === "scratch" && b.id === "research_lab"))
       blocked = "Investigar " + D.getTechnology(b.technology).label;
+    if (b.scenarioOnly) blocked = "Instalación exclusiva del escenario inicial; no se puede construir.";
     if (b.coastal && D.landlocked.includes(c.id))
       blocked = "El país no tiene acceso marítimo";
     if (b.deposit) {
@@ -4463,11 +4472,69 @@
     while (!s.gameOver && (s.dailyCycle || s.tick === startingTick));
     return s;
   }
-  function createGame(...args) {
-    const s = L.createGame(...args);
+  function applyStartingScenario(s, mode = "normal") {
+    if (!["normal", "scratch"].includes(mode)) throw Error("Modo inicial no válido.");
+    if (mode === "normal") return s;
+    if (s.tick !== 0 || s.dayTick !== 0 || s.startingScenario)
+      throw Error("El modo desde cero solo se aplica al crear una partida.");
+    const c = s.countries[s.playerCountryId];
+    s.startingScenario = c.startingScenario = "scratch";
+    for (const b of buildings) c.buildings[b.id] = c.privateBuildings[b.id] = 0;
+    c.buildings.starting_grain_depot = 1;
+    c.research = { levels: {}, project: null, explorations: [], queue: [], nextId: 1, nextQueueId: 1, points: 0, history: [] };
+    c.projects = []; c.privateProjects = [];
+    c.housingStock = { new: 0, normal: 0, repair: 0 }; c.housing = 0;
+    for (const key of Object.keys(c.infrastructureAssets)) c.infrastructureAssets[key] = 0;
+    for (const key of ["residentialHa", "agricultureHa", "industrialHa", "irrigatedHa"]) c.land[key] = 0;
+    c.buildingLand = {public: {}, private: {}};
+    for (const owner of owners) {
+      for (const key of Object.keys(c.herds[owner])) c.herds[owner][key] = 0;
+      for (const key of Object.keys(c.storageBase[owner])) c.storageBase[owner][key] = 0;
+      for (const key of Object.keys(c.storageLease[owner])) c.storageLease[owner][key] = 0;
+    }
+    c.resourceStorageBase = {public: map(0), private: map(0)};
+    for (const key of ["publicStocks","privateStocks","publicProduction","privateProduction","materialProduction",
+      "materialConsumption","resourceImports","resourceExports","primaryProduction","durableOwnership","uncollectedWaste"])
+      c[key] = map(0);
+    c.publicStocks.grains = 500000000;
+    // Retain a tiny inexhaustible extraction source even without an industrial mine.
+    if (!Object.keys(c.primaryEndowment).some(id => D.getMaterial(id).natural))
+      c.primaryEndowment.minerals = D.minimumPrimary.minerals;
+    for (const [id, q] of Object.entries(c.primaryEndowment))
+      c.resourceStorageBase.public[id] = q * 6 * volumePerUnit(D.getMaterial(id));
+    // Temporary open-air works yard, empty: enough to purchase one lab's inputs.
+    for (const [id, q] of Object.entries(D.getBuilding("research_lab").requirements))
+      c.resourceStorageBase.public[id] = Math.max(c.resourceStorageBase.public[id], q * volumePerUnit(D.getMaterial(id)));
+    for (const dep of Object.values(c.naturalDeposits)) dep.land = dep.sea = 0;
+    for (const sec of Object.values(c.sectors))
+      for (const key of ["requested", "publicWorkers", "privateWorkers", "privateJobs", "budget", "executed", "revenue", "profit"])
+        sec[key] = 0;
+    for (const plan of [...Object.values(c.educationPlan), ...Object.values(c.educationBranches)]) {
+      for (const key of ["staff","actualStaff","budget","graduates","enrolled","progress","executed"]) plan[key] = 0;
+      if (plan.cohorts) plan.cohorts.fill(0);
+    }
+    for (const key of ["soldiers","trained","requested","newRecruits","trainedThisMonth"]) c.military[key] = 0;
+    c.constructionWorkers = c.researchScientists = c.educationGraduates = 0;
+    c.energy = {generated:0,demand:0,served:0,stored:0,capacity:0,curtailed:0};
+    c.electricityGenerationTWh = 0;
+    for (const key of ["infrastructure", "tourism", "tradeCapacity", "foodCapacity", "industryCapacity", "energyCapacity", "materialMachinery"])
+      c[key] = 0;
+    c.goodsBenefits = {happiness:1,production:1,construction:1,research:1};
+    c.tradePolicies.grains.sell = false;
+    c.nutrition.aidEnabled = true;
+    c.nutrition.aidBudget = c.nutrition.need / D.foodProfiles.grains.rations * D.getMaterial("grains").value;
+    c.staffingVersion = (c.staffingVersion || 0) + 1;
+    syncDemographics(c); updateCapacity(c);
+    s.history = []; H.captureHistory(s);
+    note(s,c,"País desde cero: 500.000.000 de granos, reserva especial, fuentes primarias limitadas y ningún desarrollo investigado. El laboratorio puede construirse sin tecnología previa. La venta automática de granos comienza desactivada.");
+    return s;
+  }
+  function createGame(countryId, leaderId, seed, options = {}) {
+    const s = L.createGame(countryId, leaderId, seed);
     initialize(s, false);
     s.market.resourcePrices = map((m) => m.value);
     s.market.previousResourcePrices = { ...s.market.resourcePrices };
+    applyStartingScenario(s, options.mode || "normal");
     return s;
   }
   function hydrate(raw) {
@@ -5528,6 +5595,7 @@
     ...L,
     SAVE_VERSION: 6,
     createGame,
+    applyStartingScenario,
     hydrate,
     advanceTick,
     advanceDay,

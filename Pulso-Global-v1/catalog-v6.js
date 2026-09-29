@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (D, FACTS) {
   "use strict";
   D.version = 6;
-  D.release = "7.17.0";
+  D.release = "7.18.0";
   D.facts = FACTS;
   const techs = [];
   function branch(sector, items) {
@@ -1337,6 +1337,12 @@
         "Conflictos diplomáticos e interrupciones comerciales afectan la actividad regional.",
     },
   );
+  // Scenario-only reserve: game units, not a claim about real silo geography.
+  D.constructions.push(building("starting_grain_depot", "Reserva de granos de inicio", "services", "civil", {
+    scenarioOnly: true, storageFor: "grains", storageAmount: 500000000,
+    fixedCost: 0, laborNeed: 0, landHa: 0, requirements: {}, unit: "reservas",
+    description: "Depósito extraordinario del modo desde cero. No se puede reconstruir."
+  }));
   const materialIndex = new Map(D.materials.map((m) => [m.id, m])),
     buildingIndex = new Map(D.constructions.map((b) => [b.id, b])),
     techIndex = new Map(techs.map((t) => [t.id, t]));
@@ -1366,7 +1372,7 @@
     activeTechs.add(t.id);
     for (const id of t.requires) visitTech(techIndex.get(id));
     t.depth = t.requires.length ? 1 + Math.max(...t.requires.map(id => techIndex.get(id).depth)) : 0;
-    t.unlockBuildings = D.constructions.filter(b => b.technology === t.id).map(b => b.id);
+    t.unlockBuildings = D.constructions.filter(b => b.technology === t.id && !b.scenarioOnly).map(b => b.id);
     t.unlockResources = D.materials.filter(m => m.technology === t.id).map(m => m.id);
     activeTechs.delete(t.id); visitedTechs.add(t.id); orderedTechs.push(t);
   }

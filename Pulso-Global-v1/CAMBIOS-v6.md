@@ -1,3 +1,11 @@
+# v7.18 — ficha inicial y escenario desde cero
+
+- Ficha detallada del país antes de iniciar, con resumen, secciones desplegables y rasgos de cada figura.
+- Modo desde cero: población, territorio, reservas y deuda conservados; sin desarrollo heredado.
+- 500 millones de unidades de granos y reserva exclusiva; pequeñas fuentes primarias inagotables.
+- Laboratorio inicial sin prerrequisito, patio vacío de insumos y protección de sus materiales frente al consumo doméstico.
+- Versión dinámica al pie; ficha incluida en caché offline.
+
 # v7.17 — base primaria, árbol productivo, tecnologías y demolición
 
 - Dos pequeñas fuentes primarias por país; cobertura de los diez recursos de base y almacenamiento propio limitado.

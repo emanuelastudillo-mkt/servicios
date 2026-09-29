@@ -155,6 +155,8 @@
   let panelTab = "overview";
   let focusedCountryId = null;
   let selectedCountryId = "ARG";
+  let startingMode = "normal";
+  let previewKey = "", previewState = null;
   let countrySearch = "";
   let timer = null;
   let speed = 0;
@@ -585,13 +587,14 @@
           <div><p class="briefing-label">01 · Elegí tu país</p><h2>Goberná sobre un mundo que nunca se detiene.</h2></div>
           <p>Planificá impuestos, funcionarios, sueldos, producción y obras en una simulación sin límite de tiempo. El calendario avanza por día y consolida la economía cada mes.</p>
         </div>
-        <div class="start-badge"><span>Motor económico v7.17</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
+        <div class="start-badge"><span>Motor económico v${e(DATA.release)}</span><b>${DATA.countries.length} países · ${DATA.countries.reduce((sum, item) => sum + item.leaders.length, 0)} figuras reales · datos con año de referencia</b></div>
         <div class="start-country-tools"><label for="country-search">Buscar país</label><input id="country-search" type="search" value="${e(countrySearch)}" placeholder="Nombre, código o región…" autocomplete="off" /><span id="country-count"></span></div>
         <div id="country-grid" class="country-grid" aria-label="Países disponibles">
           ${renderCountryCards()}
         </div>
         <section id="leader-panel" class="leader-panel" aria-live="polite">${renderLeaderPanel(selectedCountryId)}</section>
         <p class="simulation-note">${e(DATA.disclaimer)} Las figuras representan escenarios hipotéticos de conducción.</p>
+        <footer class="version-footer">Pulso Global · v${e(DATA.release)}</footer>
       </section>${renderTutorialModal()}`;
     updateCountryCount();
   }
@@ -632,7 +635,18 @@
   function renderLeaderPanel(countryId) {
     const country = DATA.countries.find((item) => item.id === countryId);
     if (!country) return "";
+    const key = countryId + ":" + startingMode;
+    if (previewKey !== key) {
+      previewState = Engine.createGame(countryId, country.leaders[0].id, 718, {mode: startingMode});
+      previewKey = key;
+    }
     return `
+      <div class="starting-mode" role="group" aria-label="Escenario inicial"><h3>Modo de inicio</h3>
+        <button class="button" type="button" data-action="start-mode" data-mode="normal" aria-pressed="${startingMode === "normal"}">País con desarrollo actual</button>
+        <button class="button" type="button" data-action="start-mode" data-mode="scratch" aria-pressed="${startingMode === "scratch"}">País desde cero</button>
+        <p>Seleccionado: <strong>${startingMode === "scratch" ? "País desde cero" : "País con desarrollo actual"}</strong>. Afecta solo a tu país; el resto del mundo mantiene su desarrollo.</p>
+      </div>
+      ${window.PulsoStartPreview.render(previewState)}
       <div class="leader-heading"><div><p class="briefing-label">02 · Elegí una figura</p><h3>${flagImage(country, "flag-image title-flag")} Conducción de ${e(country.name)}</h3></div><p>Sus rasgos modifican el punto de partida del motor.</p></div>
       <div class="leader-grid">
         ${country.leaders
@@ -641,6 +655,7 @@
           <article class="leader-card">
             <div class="portrait-token">${e(leader.initials)}</div><div class="leader-archetype">${e(leader.archetype)}</div>
             <h3>${e(leader.name)}</h3><p>${e(leader.description)}</p>
+            ${window.PulsoStartPreview.leader(leader)}
             <button class="button" type="button" data-action="start-game" data-country="${country.id}" data-leader="${leader.id}">Gobernar con ${e(leader.name.split(" ")[0])}</button>
           </article>`,
           )
@@ -649,7 +664,8 @@
   }
 
   function startGame(countryId, leaderId) {
-    game = Engine.createGame(countryId, leaderId, Date.now());
+    game = Engine.createGame(countryId, leaderId, Date.now(), {mode: startingMode});
+    previewState = null; previewKey = "";
     selectedCountryId = countryId;
     focusedCountryId = countryId;
     demographicCountryId = countryId;
@@ -765,6 +781,7 @@
           <nav class="mobile-nav" aria-label="Áreas de gobierno">
             ${mapViews.map((item) => `<button class="${currentView === item.id ? "active" : ""}" type="button" data-action="view" data-view="${item.id}"><span>${e(item.icon || item.short.slice(0, 1))}</span><small>${e(item.short || item.label)}</small></button>`).join("")}
           </nav>
+          <footer class="version-footer game-version">Pulso Global · v${e(DATA.release)}</footer>
         </section>
       </div>
       ${renderGameOverModal()}${renderTutorialModal()}`;
@@ -2147,6 +2164,10 @@
         card.classList.toggle("selected", selected);
         card.setAttribute("aria-pressed", String(selected));
       });
+      document.querySelector("#leader-panel").scrollIntoView({block:"start"});
+    } else if (action === "start-mode") {
+      startingMode = target.dataset.mode;
+      document.querySelector("#leader-panel").innerHTML = renderLeaderPanel(selectedCountryId);
     } else if (action === "start-game")
       startGame(target.dataset.country, target.dataset.leader);
     else if (action === "continue-game") await continueGame();

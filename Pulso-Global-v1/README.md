@@ -1,14 +1,14 @@
-# Pulso Global 7.17 — recursos, tecnologías y edificios
+# Pulso Global 7.18 — ficha de inicio y país desde cero
 
-Actualización incremental sobre **v7.16**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.17**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.16, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.17, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.17**; si todavía aparece v7.16, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.18**; si todavía aparece v7.17, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios y avance de obras. Reparte la capacidad de antiguos almacenes familiares entre recursos sin multiplicarla; si una partida excepcional ya excedía esa capacidad, conserva el stock como excedente visible hasta venderlo, usarlo o construir un almacén exclusivo. La pensión inicial se deriva de la fórmula anterior y no cambia al cargarla de nuevo. Exportá un respaldo JSON igualmente: una actualización no puede reconstruir dinero perdido y guardado por una versión anterior.
 
@@ -21,6 +21,16 @@ Con Python instalado, ejecutá `python -m http.server 4173` desde la carpeta del
 Usá siempre el mismo navegador, perfil, dominio y puerto. El guardado pertenece a esa dirección. Cambiarla no borra la partida original, pero la nueva dirección no puede verla: trasladala mediante exportar/importar. Borrar datos del sitio o usar navegación privada puede hacerte perder guardados.
 
 Después de cargar todos los archivos, funciona sin Internet. No hay avance con la pestaña cerrada. La interfaz avanza por días; salarios, impuestos, intereses, producción y demografía conservan su escala mensual y se ejecutan una sola vez en su etapa. El menú **Cómo jugar** está disponible desde el inicio y durante la partida.
+
+## Selección inicial v7.18
+
+La ficha previa reúne resumen, demografía, territorio, economía, impuestos, inventarios, fuentes primarias, depósitos, edificios, empleo, tecnologías, ejército, relaciones, energía y fuentes con año. Cada figura muestra sus modificadores de catálogo. La versión aparece al pie en inicio y partida.
+
+**País desde cero** conserva población, territorio, educación de los habitantes, caja y deuda. Elimina edificios públicos/privados, investigaciones, depósitos industriales conocidos, viviendas, ganado, empleos e inventarios. El PBI queda como referencia inicial y se ajusta con la actividad. El resto del mundo conserva su desarrollo.
+
+Excepciones: 500.000.000 de unidades de granos, una reserva de escenario suficiente para almacenarlos, fuentes primarias públicas pequeñas e inagotables con cuota mensual y espacio mínimo, y un patio temporal vacío para recibir insumos de un laboratorio. La reserva extraordinaria no representa una huella territorial real ni se puede duplicar o reconstruir. Los granos se consumen y deterioran. Su venta automática comienza desactivada y la ayuda alimentaria activada: distribuirlos todavía necesita cubrir su costo operativo.
+
+El laboratorio puede construirse sin Universidades solo en este escenario. Requiere dinero, insumos y mano de obra. Los insumos públicos comprometidos con ese primer laboratorio se reservan frente al consumo doméstico. Luego hay que asignar funcionarios y presupuesto a Ciencia avanzada. Las demás tecnologías mantienen sus requisitos. Podés financiar el arranque vendiendo granos o solicitando crédito. El modo no resetea partidas existentes.
 
 ## Recursos y edificios v7.17
 
