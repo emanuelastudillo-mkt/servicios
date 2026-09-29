@@ -1076,6 +1076,8 @@
       // JSON saves break object aliases; keep the public inventory view current.
       c.materialStocks = c.publicStocks;
       c.nationalizedResources ||= map(false);
+      c.privateSectorPolicy ||= Object.fromEntries(sectors.map(id => [id, "allowed"]));
+      for (const id of sectors) c.privateSectorPolicy[id] ||= "allowed";
       for (const sid of sectors)
         if (c.nationalized?.[sid])
           for (const m of materials.filter((m) => m.sector === sid))
@@ -1362,6 +1364,8 @@
   }
   function working(s, c) {
     c.constructionWorkers = 0;
+    for (const id of sectors) if (c.privateSectorPolicy[id] !== "allowed")
+      c.sectors[id].privateWorkers = c.sectors[id].privateJobs = 0;
     c.electricityDemandTWh =
       c.initialEnergyDemand *
       (c.population / c.initialPopulation) *
@@ -1691,7 +1695,7 @@
   function production(c, owner, m) {
     if (
       c.blockedRawMaterials?.includes(m.id) ||
-      (owner === "private" && c.nationalizedResources?.[m.id])
+      (owner === "private" && (c.nationalizedResources?.[m.id] || c.privateSectorPolicy?.[m.sector] !== "allowed"))
     )
       return 0;
     const assets = owner === "public" ? c.buildings : c.privateBuildings;
@@ -1770,6 +1774,7 @@
       );
     for (const b of plants)
       for (const owner of owners) {
+        if (owner === "private" && c.privateSectorPolicy.energy !== "allowed") continue;
         const count =
           owner === "public" ? c.buildings[b.id] : c.privateBuildings[b.id];
         if (!count) continue;
@@ -2094,6 +2099,7 @@
   }
   function husbandry(s, c) {
     for (const owner of owners) {
+      if (owner === "private" && c.privateSectorPolicy.agriculture !== "allowed") continue;
       const st = stocks(c, owner),
         herd = c.herds[owner];
       const sec = c.sectors.agriculture,
@@ -3880,6 +3886,7 @@
   function privateDevelopment(s, c) {
     let availableWorkers = c.laborSnapshot.unemployed * 1e6;
     for (const project of c.privateProjects) {
+      if (project.owner !== "public" && c.privateSectorPolicy[project.sector] !== "allowed") continue;
       const hired = Math.min(availableWorkers, project.jobs || 100);
       availableWorkers -= hired;
       c.constructionWorkers += hired;
@@ -3916,6 +3923,7 @@
     if (s.tick % 3 !== 0) return;
     for (const sid of sectors) {
       const sec = c.sectors[sid];
+      if (c.privateSectorPolicy[sid] !== "allowed") continue;
       if (
         sec.privateWorkers < sec.privateJobs * 0.6 ||
         (sec.profit < 0 && c.finance.privateCash < c.gdp * 0.025)
@@ -5004,7 +5012,8 @@
       currentExportablePrivate: exportable(c,"private",m) };
   }
   function productionBuildings(m) {
-    return [m.unlock, ...(m.id === "crude_oil" ? ["offshore_platform"] : [])]
+    return [...new Set([m.unlock, ...(m.id === "crude_oil" ? ["offshore_platform"] : []),
+      ...(["meat", "raw_leather"].includes(m.id) ? ["cattle_ranch", "pig_farm", "poultry_farm", "sheep_ranch"] : [])])]
       .map(D.getBuilding)
       .filter(Boolean);
   }
@@ -5013,7 +5022,7 @@
     const m = D.getMaterial(id);
     if (!m) throw Error("Producción no válida.");
     share = needNumber(share, 0, 1);
-    const assets = productionBuildings(m),
+    const assets = [...productionBuildings(m), D.getBuilding("store_"+m.id)].filter(Boolean),
       assetCost = assets.reduce(
         (n, b) => n + c.privateBuildings[b.id] * b.fixedCost * share,
         0,
@@ -5022,13 +5031,7 @@
         c.privateStocks[m.id] *
         Math.max(0, s.market.resourcePrices[m.id]) *
         share,
-      productive = [
-        ...new Set(
-          materials
-            .filter((item) => item.sector === m.sector)
-            .flatMap((item) => productionBuildings(item).map((b) => b.id)),
-        ),
-      ],
+      productive = buildings.filter(b => b.sector === m.sector).map(b => b.id),
       weight = (buildingId) => {
         const b = D.getBuilding(buildingId);
         return (
@@ -5039,7 +5042,7 @@
         (n, buildingId) => n + weight(buildingId),
         0,
       ),
-      targetWeight = assets.reduce((n, b) => n + weight(b.id), 0),
+      targetWeight = assets.filter(b=>b.sector===m.sector).reduce((n, b) => n + weight(b.id), 0),
       workerShare = totalWeight > 0 ? (targetWeight / totalWeight) * share : 0,
       sector = c.sectors[m.sector];
     return {
@@ -5097,6 +5100,7 @@
       }
     if (share === 1) {
       c.nationalizedResources[id] = true;
+      c.privateProduction[id] = 0;
       c.productionTargets[id] = 1;
       const assetIds = new Set(p.assets.map((asset) => asset.id));
       for (const project of c.privateProjects.filter((project) =>
@@ -5116,12 +5120,89 @@
     c.resourceStorageBase.private[id] -= delta;
     c.staffingVersion = (c.staffingVersion || 0) + 1;
     updateCapacity(c);
+    syncDemographics(c);
     note(
       s,
       c,
       `${m.label}: ${m.natural ? "extracción" : "producción"} nacionalizada al ${Math.round(share * 100)}%.`,
     );
     return p;
+  }
+  function ownershipPreview(s, sectorId = null) {
+    const c = player(s);
+    if (sectorId !== null && !sectors.includes(sectorId)) throw Error("Ministerio no válido.");
+    const resources = materials.filter(m => sectorId ? m.sector === sectorId : !c.nationalizedResources[m.id]);
+    const resourceIds = new Set(resources.map(m => m.id));
+    const assetIds = new Set(resources.flatMap(m => [...productionBuildings(m).map(b=>b.id), "store_"+m.id]));
+    if (sectorId) for (const b of buildings.filter(b=>b.sector===sectorId)) assetIds.add(b.id);
+    const assets = [...assetIds].map(D.getBuilding).filter(Boolean);
+    const inventoryIds = new Set([...resourceIds, ...assets.filter(b=>b.storageFor && c.privateBuildings[b.id]>0).map(b=>b.storageFor)]);
+    const labor = sectors.map(id => {
+      const all = buildings.filter(b=>b.sector===id);
+      const weight = b => (c.privateBuildings[b.id] || 0) * Math.max(1,b.laborNeed || 1);
+      const total = all.reduce((n,b)=>n+weight(b),0);
+      const selected = all.filter(b=>assetIds.has(b.id)).reduce((n,b)=>n+weight(b),0);
+      const share = id === sectorId ? 1 : total ? clamp(selected/total,0,1) : 0;
+      return {id,share,workers:c.sectors[id].privateWorkers*share,jobs:c.sectors[id].privateJobs*share};
+    });
+    const assetCost = assets.reduce((n,b)=>n+(c.privateBuildings[b.id]||0)*b.fixedCost,0);
+    const stockCost = [...inventoryIds].reduce((n,id)=>n+c.privateStocks[id]*Math.max(0,s.market.resourcePrices[id]),0);
+    return {sectorId,resources:[...resourceIds],inventory:[...inventoryIds],assets:assets.map(b=>({id:b.id,quantity:c.privateBuildings[b.id]||0})),labor,
+      cost:assetCost+stockCost,workers:sum(labor.map(x=>x.workers)),jobs:sum(labor.map(x=>x.jobs)),
+      projectedPayroll:sum(labor.map(x=>x.workers*c.sectors[x.id].salary))/1e9,
+      projects:c.privateProjects.filter(p=>p.owner!=="public" && assetIds.has(p.building)).length};
+  }
+  function nationalizeOwnership(s, sectorId = null) {
+    const c=player(s),p=ownershipPreview(s,sectorId);
+    if (!p.resources.length && !sectorId) throw Error("Todas las producciones ya están nacionalizadas.");
+    if (p.cost>Math.max(0,c.reserves)) throw Error("No alcanza el Tesoro: no se realizó ninguna nacionalización.");
+    transfer(s,c,"public","private",p.cost,"Compensación por nacionalización");
+    const assets=new Set(p.assets.map(x=>x.id));
+    for(const item of p.assets) {
+      const b=D.getBuilding(item.id);
+      c.buildings[b.id]=(c.buildings[b.id]||0)+item.quantity;c.privateBuildings[b.id]=0;
+      c.buildingLand.public[b.id]=(c.buildingLand.public[b.id]||0)+(c.buildingLand.private[b.id]||0);
+      c.buildingLand.private[b.id]=0;
+      if(b.livestock) {c.herds.public[b.livestock]+=c.herds.private[b.livestock];c.herds.private[b.livestock]=0;}
+    }
+    for(const id of p.inventory) {
+      c.publicStocks[id]+=c.privateStocks[id];c.privateStocks[id]=0;
+      c.resourceStorageBase.public[id]+=c.resourceStorageBase.private[id];c.resourceStorageBase.private[id]=0;
+    }
+    for(const id of p.resources) {
+      c.nationalizedResources[id]=true;c.productionTargets[id]=1;c.privateProduction[id]=0;
+    }
+    for(const l of p.labor) {
+      const sec=c.sectors[l.id];
+      sec.privateWorkers=Math.max(0,sec.privateWorkers-l.workers);sec.privateJobs=Math.max(0,sec.privateJobs-l.jobs);
+      sec.publicWorkers+=l.workers;sec.requested+=l.workers;
+      if(c.pausedPrivateJobs?.[l.id]) c.pausedPrivateJobs[l.id]*=1-l.share;
+    }
+    for(const project of c.privateProjects) if(assets.has(project.building)) project.owner="public";
+    if(sectorId) c.privateSectorPolicy[sectorId]="nationalized";
+    c.staffingVersion=(c.staffingVersion||0)+1;syncDemographics(c);updateCapacity(c);
+    note(s,c,sectorId ? "Actividad de "+D.sectors.find(x=>x.id===sectorId).label+" nacionalizada; nuevas actividades privadas prohibidas." : "Todas las producciones de recursos nacionalizadas. Revisá el empleo privado restante en cada ministerio.");
+    return p;
+  }
+  function setPrivateSectorPolicy(s,id,allowed) {
+    if(!sectors.includes(id)) throw Error("Ministerio no válido.");
+    const c=player(s),sec=c.sectors[id],lost=sec.privateWorkers;
+    c.pausedPrivateJobs ||= {};
+    if(!allowed && c.privateSectorPolicy[id]==="allowed") c.pausedPrivateJobs[id]=sec.privateJobs;
+    c.privateSectorPolicy[id]=allowed?"allowed":"banned";
+    if(!allowed) sec.privateWorkers=sec.privateJobs=0;
+    else {sec.privateJobs=c.pausedPrivateJobs[id]||0;delete c.pausedPrivateJobs[id];}
+    if(!allowed) for(const m of materials.filter(m=>m.sector===id)) c.privateProduction[m.id]=0;
+    c.staffingVersion=(c.staffingVersion||0)+1;syncDemographics(c);
+    note(s,c,allowed?"Actividad privada habilitada. Las producciones nacionalizadas siguen siendo públicas.":"Actividad privada prohibida: "+Math.round(lost)+" trabajadores pasan al desempleo. Los activos no se confiscan y las obras privadas quedan pausadas.");
+  }
+  function privateResourceEmployment(c,id) {
+    const m=D.getMaterial(id);
+    if(!m || c.nationalizedResources[id] || c.privateSectorPolicy[m.sector]!=="allowed") return {workers:0,jobs:0};
+    const total=buildings.filter(b=>b.sector===m.sector).reduce((n,b)=>n+(c.privateBuildings[b.id]||0)*Math.max(1,b.laborNeed||1),0);
+    const part=productionBuildings(m).reduce((n,b)=>n+(c.privateBuildings[b.id]||0)*Math.max(1,b.laborNeed||1),0);
+    const ratio=total?clamp(part/total,0,1):0;
+    return {workers:c.sectors[m.sector].privateWorkers*ratio,jobs:c.sectors[m.sector].privateJobs*ratio};
   }
   function startResearch(s, id, budget) {
     const c = player(s),
@@ -5644,6 +5725,10 @@
     resourceStaffing,
     nationalizePreview,
     nationalize,
+    ownershipPreview,
+    nationalizeOwnership,
+    setPrivateSectorPolicy,
+    privateResourceEmployment,
     startResearch,
     researchQueuePreview,
     cancelResearchQueue,

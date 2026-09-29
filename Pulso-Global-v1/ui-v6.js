@@ -14,15 +14,7 @@
           "'": "&#39;",
         })[x],
     );
-  const numberFormats = new Map();
-  const num = (n, d = 0) => {
-    if (!numberFormats.has(d))
-      numberFormats.set(
-        d,
-        new Intl.NumberFormat("es-AR", { maximumFractionDigits: d }),
-      );
-    return numberFormats.get(d).format(Number.isFinite(n) && n !== 0 ? n : 0);
-  };
+  const num = (n, d = 0) => D.displayNumber(n, d);
   const dollars = (n) => {
     const value = (Number(n) || 0) * 1e9,
       absolute = Math.abs(value),
@@ -44,13 +36,14 @@
   };
   const amount = (n, unit = "") => num(n, 2) + (unit ? " " + unit : "");
   const recipeAmount = (n, unit = "") => {
-    const digits = Math.abs(n) < 0.000001 ? 10 : Math.abs(n) < 0.001 ? 8 : Math.abs(n) < 1 ? 6 : 2;
-    return num(n, digits) + (unit ? " " + unit : "");
+    return num(n, 2) + (unit ? " " + unit : "");
   };
   const btn = (action, label, extra = "", disabled = false) =>
     `<button class="button compact" type="button" data-action="v6-${action}" ${extra} ${disabled ? "disabled" : ""}>${esc(label)}</button>`;
-  const field = (name, label, value, type = "number", extra = "") =>
-    `<label class="v6-field">${esc(label)}<input name="${name}" type="${type}" value="${esc(value)}" ${type === "number" ? `${extra.includes("min=") ? "" : 'min="0"'} ${extra.includes("step=") ? "" : 'step="any"'}` : ""} ${extra} required></label>`;
+  const field = (name, label, value, type = "number", extra = "") => {
+    const display = type === "number" ? (value && Math.abs(value)<0.01 ? Number(value).toExponential(2) : Number(Number(value).toFixed(2))) : value;
+    return `<label class="v6-field">${esc(label)}<input name="${name}" type="${type}" value="${esc(display)}" ${type === "number" ? `data-original-number="${esc(value)}" data-display-number="${esc(display)}" ${extra.includes("min=") ? "" : 'min="0"'} ${extra.includes("step=") ? "" : 'step="any"'}` : ""} ${extra} required></label>`;
+  };
   const options = (items, selected) =>
     items
       .map(
@@ -87,6 +80,8 @@
       ],
       tab,
     );
+    const ownership = E.ownershipPreview(s, id), policy = c.privateSectorPolicy[id];
+    body += `<section class="v6-section"><h3>Actividad privada del ministerio</h3><p>Estado: <strong>${policy === "allowed" ? "Permitida" : policy === "banned" ? "Prohibida" : "Nacionalizada"}</strong> · Empleados privados: ${num(v.privateWorkers)} · Puestos privados: ${num(v.privateJobs)}.</p>${btn("sector-ownership", "Nacionalizar ministerio", `data-sector="${id}"`)} ${btn("private-policy", policy === "allowed" ? "Prohibir actividad privada" : "Permitir actividad privada", `data-sector="${id}" data-allowed="${policy !== "allowed"}"`)}<p>Nacionalizar transfiere activos, existencias y empleos al Estado: compensación ${dollars(ownership.cost)} y nómina adicional estimada ${dollars(ownership.projectedPayroll)}/mes. Prohibir no transfiere activos: detiene la actividad privada y sus empleados pasan al desempleo.</p></section>`;
     if (tab === "manage") {
       body +=
         `<p>Definí cuántos puestos públicos querés cubrir y el sueldo ofrecido. La nómina se paga directamente desde el Tesoro; las vacantes dependen de desempleo, cualificación y competencia con empleadores privados.</p>${id === "infrastructure" ? `<p class="method-note">Los funcionarios de Vivienda y Transporte son la dotación compartida para obras de <strong>todos los ministerios</strong>. Las cuadrillas de vivienda y refacción se reservan de esa misma dotación. Si falta personal, se contratan desocupados temporalmente; al terminar la obra o el programa vuelven al desempleo. Los funcionarios cobran su sueldo mensual una vez: no se les paga un segundo salario por la obra.</p>` : ""}` +
@@ -259,6 +254,8 @@
   }
   function resources(s, u) {
     let body = `<p>Seleccioná un recurso para ver su cadena productiva, requisitos, costos y comparación mundial.</p><div class="v6-tabs">${btn("production-tab", "Inventarios", 'data-tab="stock"')}${btn("production-tab", "Árbol productivo", 'data-tab="tree"')}${btn("production-tab", "Base primaria mundial", 'data-tab="primary"')}</div>`;
+    const c = s.countries[s.playerCountryId];
+    body += `<section class="v6-section"><h3>Propiedad de la producción</h3>${btn("nationalize-all", "Nacionalizar todo", "", D.materials.every(m=>c.nationalizedResources[m.id]))}<p>Transfiere todas las producciones de recursos, sus instalaciones y almacenes vinculados al Estado, con compensación. Los servicios privados restantes se administran desde cada ministerio.</p></section>`;
     if (u.productionTab === "primary") {
       const countries = Object.values(s.countries).sort((a, b) => a.name.localeCompare(b.name, "es"));
       body += `<p>Cada país tiene dos especialidades de producción básica pública. La cuota mensual es pequeña, fija e inagotable; requiere espacio de almacén. Las instalaciones industriales y los depósitos permiten producir más. No se multiplica por población o tecnología.</p><div class="table-wrap"><table class="v6-table"><thead><tr><th>Materia prima</th><th>Cuota por proveedor/mes</th><th>Países proveedores</th><th>Base mundial/mes</th></tr></thead><tbody>${Object.entries(D.minimumPrimary).map(([id, q]) => { const providers = countries.filter(c => c.primaryEndowment[id]); return `<tr><td>${btn("resource", D.getMaterial(id).label, `data-resource="${id}"`)}</td><td>${recipeAmount(q)}</td><td>${providers.length}</td><td>${recipeAmount(providers.reduce((n, c) => n + c.primaryEndowment[id], 0))}</td></tr>`; }).join("")}</tbody></table></div><details><summary>Especialidades de los ${countries.length} países</summary><div class="table-wrap"><table class="v6-table"><tbody>${countries.map(c => `<tr><th>${esc(c.name)}</th><td>${Object.entries(c.primaryEndowment).map(([id, q]) => `${esc(D.getMaterial(id).label)}: ${recipeAmount(q)} u/mes`).join(" · ")}</td></tr>`).join("")}</tbody></table></div></details>`;
@@ -299,6 +296,7 @@
     return shell(
       m.label,
       resourceExtras(s, id) +
+      `<p>Empleo privado de este recurso: <strong>${num(E.privateResourceEmployment(c,id).workers)}</strong> · puestos ${num(E.privateResourceEmployment(c,id).jobs)}. Estimación según instalaciones; los empleos de instalaciones compartidas no se suman entre recursos. ${c.nationalizedResources[id] ? "Producción nacionalizada: no admite empleo ni producción privada." : ""}</p>` +
       recipeSummary(r) +
       `<p>Base primaria propia: <strong>${recipeAmount(r.primaryMinimum)} u/mes</strong> · recibida este mes ${recipeAmount(r.primaryActual)} · mínimo potencial mundial ${recipeAmount(r.worldMinimum)} u/mes. La cuota básica se pausa si el almacén está lleno; la extracción industrial conserva sus requisitos y depósitos finitos.</p><p>Materias primas de la cadena: ${Object.entries(r.primaryRequirements).map(([raw, q]) => `${recipeAmount(q)} ${esc(D.getMaterial(raw).label)}`).join(" + ") || "Ganadería, recuperación o subproducto"} por unidad, antes de ahorro tecnológico.</p>` +
       `${btn("close-resource", "← Volver")}${m.tier === "final" ? `<p>Precio base ×10 respecto a v7.6. Los bienes duraderos se usan durante años; los alimentos se consumen regularmente. Los equipos profesionales tienen demanda pequeña. Al entrar en uso mejoran capacidades (no por almacenarlos). Bonos actuales: felicidad ×${amount(c.goodsBenefits.happiness)}, producción ×${amount(c.goodsBenefits.production)}, construcción ×${amount(c.goodsBenefits.construction)}, investigación ×${amount(c.goodsBenefits.research)}. Topes: ×1,15 / ×1,25 / ×1,35 / ×1,35. No se acumulan exponencialmente. El plutonio solo tiene uso industrial especializado.</p>` : ""}<p>${esc(m.tier)} · Unidad: ${esc(m.unit)} · ${esc(m.waste ? "Residuo o materia recuperable" : "Producción y consumo mensuales")}</p><div class="v6-grid">${card("Cotización mundial", dollars(s.market.resourcePrices[id]))}${card("Variación mensual", amount((s.market.resourcePrices[id] / (s.market.previousResourcePrices[id] || s.market.resourcePrices[id]) - 1) * 100, "%"))}${card("Pública / privada", amount(r.publicProduction) + " / " + amount(r.privateProduction))}${card("Producción mundial", amount(r.world.production, m.unit), "Puesto " + (r.ranking.find((x) => x.id === c.id)?.position || "—"))}${card("Demanda nacional", amount(c.needs[id], m.unit))}${card("Faltante de hogares", amount(c.shortages[id], m.unit))}${card("Stock público / espacio libre", amount(r.stock) + " / " + amount(r.free))}${card("Excedente público", amount(r.exportable, m.unit))}</div>
@@ -853,6 +851,15 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
       E.queueConstruction(s, building, factor, true);
       u.confirm = null;
     }
+    if (a === "nationalize-all" || a === "sector-ownership") {
+      const id = a === "nationalize-all" ? null : target.dataset.sector, p = E.ownershipPreview(s,id);
+      u.confirm = {type:"ownership",id,title:id?"Nacionalizar ministerio":"Nacionalizar todo",
+        body:`<p>Compensación total: ${dollars(p.cost)}. Reservas posteriores: ${dollars(c.reserves-p.cost)}.</p><p>Transfiere ${num(p.workers)} trabajadores y ${num(p.projects)} proyectos. Nómina adicional estimada: ${dollars(p.projectedPayroll)}/mes.</p><p>Se detiene la producción privada nacionalizada. ${id?"También se impide nueva actividad privada en este ministerio.":"Los servicios privados no productivos se gestionan desde cada ministerio."} Si las reservas no alcanzan, no se aplica ningún cambio. No se toma deuda automáticamente.</p>`};
+    }
+    if (a === "private-policy") {
+      const id=target.dataset.sector,allowed=target.dataset.allowed==="true";
+      u.confirm={type:"private-policy",id,allowed,title:allowed?"Permitir actividad privada":"Prohibir actividad privada",body:allowed?"<p>Se habilita la contratación gradual. Las producciones nacionalizadas siguen siendo públicas.</p>":`<p>${num(c.sectors[id].privateWorkers)} trabajadores pasan al desempleo. La producción se detiene y los proyectos privados se pausan. No se confiscan activos ni existencias.</p>`};
+    }
     if (a === "nationalize") {
       const p = E.nationalizePreview(s, target.dataset.resource);
       u.confirm = {
@@ -869,6 +876,8 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
       else if (u.confirm.type === "loan") E.takeLoan(s, u.confirm.id);
       else if (u.confirm.type === "attack") E.attackCountry(s, u.confirm.id);
       else if (u.confirm.type === "demolish") E.demolishBuilding(s, u.confirm.id, u.confirm.factor);
+      else if (u.confirm.type === "ownership") E.nationalizeOwnership(s, u.confirm.id);
+      else if (u.confirm.type === "private-policy") E.setPrivateSectorPolicy(s, u.confirm.id, u.confirm.allowed);
       else E.nationalize(s, u.confirm.id);
       u.confirm = null;
     }
@@ -877,6 +886,8 @@ return `${overflow > 0 ? `<p class="negative">Exceso heredado sin espacio: ${amo
   function submit(s, u, formElement) {
     const v = Object.fromEntries(new FormData(formElement)),
       a = formElement.dataset.v6Form;
+    for (const input of formElement.querySelectorAll("[data-original-number]"))
+      if (input.value === input.dataset.displayNumber) v[input.name] = input.dataset.originalNumber;
     if (a === "sector")
       E.setSector(s, formElement.dataset.sector, {
         requested: Number(v.requested),

@@ -1,14 +1,23 @@
-# Pulso Global 7.18 — ficha de inicio y país desde cero
+# Pulso Global 7.19 — nacionalización y control del empleo privado
 
-Actualización incremental sobre **v7.17**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+Actualización incremental sobre **v7.18**. No es un paquete completo: conserva el mapa, las banderas y los demás archivos que no cambiaron. No requiere backend, instalación de dependencias ni compilación.
+
+## Nacionalización y actividad privada
+
+- En **Recursos y producción → Nacionalizar todo**, revisá la compensación total, reservas posteriores y nueva nómina antes de confirmar. Se transfieren instalaciones productivas, almacenes vinculados, existencias y empleo; los activos compartidos se pagan una sola vez. Sin dinero suficiente no cambia nada ni se toma deuda automáticamente.
+- Cada producción nacionalizada deja de producir y contratar privadamente. Los servicios privados restantes (vivienda, transporte, salud, educación, energía, etc.) se controlan desde **Actividad privada del ministerio**.
+- **Nacionalizar ministerio** transfiere todos sus activos y empleos restantes y bloquea la creación de nueva actividad privada. Mantiene la compensación económica existente: no es una expropiación gratuita.
+- **Prohibir actividad privada** no cambia de dueño los activos: elimina sus puestos privados, devuelve trabajadores al desempleo y pausa sus proyectos. **Permitir** restaura las vacantes retenidas para contratación gradual; no privatiza recursos nacionalizados.
+- El empleo de cada recurso se estima con el peso de sus instalaciones dentro del ministerio. Una instalación compartida no implica dos plantillas sumables. Tras nacionalizar el recurso, su empleo privado es cero.
+- Las cifras visibles usan hasta dos decimales y las escalas **M = 1.000.000**, **MM = 1.000.000.000**, **B = 1.000.000.000.000**. Los valores positivos inferiores a 0,01 muestran `<0,01`; los campos editables muy pequeños usan notación científica. Los cálculos y guardados mantienen su precisión.
 
 ## Instalar el incremental
 
 1. Antes de actualizar, exportá tu partida desde el menú **••• → Exportar** y conservá ese JSON.
-2. Descomprimí el incremental sobre una copia de la carpeta de v7.17, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
+2. Descomprimí el incremental sobre una copia de la carpeta de v7.18, respetando las rutas y reemplazando los archivos coincidentes. No borres los archivos antiguos que no aparecen en el ZIP.
 3. Para GitHub Pages, subí los archivos del incremental a la misma raíz del repositorio donde está `index.html`. No subas una carpeta contenedora adicional.
 4. Recargá el juego con conexión una vez, dejá terminar la actualización offline y cerrá las otras pestañas antiguas del juego antes de seguir.
-5. Comprobá que la pantalla inicial indique **7.18**; si todavía aparece v7.17, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
+5. Comprobá que la pantalla inicial indique **7.19**; si todavía aparece v7.18, esperá a que termine la descarga y recargá una segunda vez. No borres los datos del sitio.
 
 La migración conserva país, fecha, reservas, deuda nominal, préstamos, inventarios y avance de obras. Reparte la capacidad de antiguos almacenes familiares entre recursos sin multiplicarla; si una partida excepcional ya excedía esa capacidad, conserva el stock como excedente visible hasta venderlo, usarlo o construir un almacén exclusivo. La pensión inicial se deriva de la fórmula anterior y no cambia al cargarla de nuevo. Exportá un respaldo JSON igualmente: una actualización no puede reconstruir dinero perdido y guardado por una versión anterior.
 

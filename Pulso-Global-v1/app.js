@@ -34,6 +34,7 @@
     "v6-production-tab",
     "v6-demolish",
     "v6-research-tab",
+    "v6-nationalize-all", "v6-sector-ownership", "v6-private-policy",
   ]);
   const mapViews = [
     { id: "map", label: "Mapa mundial", icon: "◎" },
@@ -415,16 +416,7 @@
   }
   const numberFormats = new Map();
   function fmt(value, digits) {
-    const precision = digits == null ? 1 : digits;
-    if (!numberFormats.has(precision))
-      numberFormats.set(
-        precision,
-        new Intl.NumberFormat("es-AR", {
-          minimumFractionDigits: precision,
-          maximumFractionDigits: precision,
-        }),
-      );
-    return numberFormats.get(precision).format(Number(value) || 0);
+    return DATA.displayNumber(value, digits == null ? 2 : digits);
   }
   function compactAbsolute(value) {
     const numeric = Number(value) || 0;
@@ -1193,7 +1185,7 @@
                     0.1,
                     Math.min(capacity * 0.1, stock || capacity * 0.1),
                   );
-                  return `<article class="resource-node ${pct < 18 ? "low" : ""} ${locked ? "locked" : ""}"><div class="resource-node-title">${resourceImage(item)}<div><strong>${e(item.label)}</strong><small>${e(inputs)}</small></div></div><b>${fmt(stock, 2)} / ${fmt(capacity, 0)}</b><div class="stock-track"><i style="width:${pct}%"></i></div><small>${locked ? `Bloqueado: requiere ${e(constructionById(item.unlock).label)}` : `Producción ${signed(country.materialProduction[item.id], "/mes")} · Uso ${fmt(country.materialConsumption[item.id], 2)}`}</small><div class="resource-quote"><span>Cotización</span><strong>${resourceMoney(price)}</strong><b class="${priceChange < 0 ? "negative" : "positive"}">${signed(priceChange, "%")}</b></div>${renderPurchaseSafety(item, defaultAmount)}<div class="resource-trade"><label><span>Cantidad</span><input type="number" min="0.01" max="${fmt(capacity, 2).replace(/\./g, "").replace(",", ".")}" step="0.1" value="${defaultAmount.toFixed(2)}" data-kind="resource-amount" data-resource-amount="${item.id}" /></label><button class="button button-quiet compact" type="button" data-action="import-resource" data-material="${item.id}" ${pct >= 99 ? "disabled" : ""}>Comprar</button><button class="button compact sell" type="button" data-action="sell-resource" data-material="${item.id}" ${stock < 0.001 ? "disabled" : ""}>Vender</button></div></article>`;
+                  return `<article class="resource-node ${pct < 18 ? "low" : ""} ${locked ? "locked" : ""}"><div class="resource-node-title">${resourceImage(item)}<div><strong>${e(item.label)}</strong><small>${e(inputs)}</small></div></div><b>${fmt(stock, 2)} / ${fmt(capacity, 0)}</b><div class="stock-track"><i style="width:${pct}%"></i></div><small>${locked ? `Bloqueado: requiere ${e(constructionById(item.unlock).label)}` : `Producción ${signed(country.materialProduction[item.id], "/mes")} · Uso ${fmt(country.materialConsumption[item.id], 2)}`}</small><div class="resource-quote"><span>Cotización</span><strong>${resourceMoney(price)}</strong><b class="${priceChange < 0 ? "negative" : "positive"}">${signed(priceChange, "%")}</b></div>${renderPurchaseSafety(item, defaultAmount)}<div class="resource-trade"><label><span>Cantidad</span><input type="number" min="0.01" max="${capacity}" step="0.1" value="${defaultAmount.toFixed(2)}" data-kind="resource-amount" data-resource-amount="${item.id}" /></label><button class="button button-quiet compact" type="button" data-action="import-resource" data-material="${item.id}" ${pct >= 99 ? "disabled" : ""}>Comprar</button><button class="button compact sell" type="button" data-action="sell-resource" data-material="${item.id}" ${stock < 0.001 ? "disabled" : ""}>Vender</button></div></article>`;
                 })
                 .join("")}</div></section>`,
           )

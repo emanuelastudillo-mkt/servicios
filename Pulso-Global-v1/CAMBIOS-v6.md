@@ -1,3 +1,11 @@
+# v7.19 — nacionalización y empleo privado
+
+- Nacionalización conjunta con costo único, transferencia de almacenes y protección ante reservas insuficientes.
+- Control por ministerio: nacionalización compensada o prohibición con desempleo y pausa de proyectos privados.
+- Producciones nacionalizadas sin empleo ni producción privada; control de reapertura y activos compartidos.
+- Cifras compactas M/MM/B, máximo dos decimales, sin redondear el motor ni los guardados.
+- Compatible con partidas anteriores; nuevas políticas privadas se inician permitidas.
+
 # v7.18 — ficha inicial y escenario desde cero
 
 - Ficha detallada del país antes de iniciar, con resumen, secciones desplegables y rasgos de cada figura.

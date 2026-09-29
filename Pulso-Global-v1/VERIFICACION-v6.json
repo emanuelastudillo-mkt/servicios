@@ -1,17 +1,17 @@
 {
   "result": "PASS",
-  "version": "7.18.0",
-  "base": "7.17.0",
-  "generatedAt": "2026-09-29T16:45:29.659Z",
-  "engineTestCount": 113,
+  "version": "7.19.0",
+  "base": "7.18.0",
+  "generatedAt": "2026-09-29T17:33:17.127Z",
+  "engineTestCount": 121,
   "checks": {
     "engine": {
       "result": "PASS",
-      "testCount": 113
+      "testCount": 121
     },
     "browser": {
       "result": "PASS",
-      "version": "7.18",
+      "version": "7.19",
       "errors": [],
       "military": true,
       "education": true,
@@ -27,6 +27,15 @@
       "scratchSaveReload": true,
       "versionFooter": true
     },
+    "ownership": {
+      "result": "PASS",
+      "bulk": true,
+      "ministerial": true,
+      "prohibition": true,
+      "saveReload": true,
+      "mobile": true,
+      "errors": []
+    },
     "technologyTree": {
       "result": "PASS",
       "initialUnlocks": true,
@@ -39,7 +48,7 @@
     "offlineUpgrade": {
       "result": "PASS",
       "oldCache": "5.4",
-      "newCache": "7.18",
+      "newCache": "7.19",
       "migration": true,
       "backupDownload": true,
       "negativeBalancePreserved": true,
@@ -49,6 +58,7 @@
     }
   },
   "verified": [
+    "Atomic compensated nationalization, ministerial prohibition and compact numeric display",
     "From-scratch state and bootstrap lab tested without admin",
     "Detailed start preview and dynamic version footer",
     "Fixed primary supply in all countries with finite storage and unchanged recipe yields",
@@ -65,17 +75,17 @@
   ],
   "sourceSha256": {
     "index.html": "6dbb90455cce9cfb0fc134b63a3b0d789f4ff19bba1b4da12b786a6aeb95244e",
-    "start-preview.js": "aa33dc3771f70074c8a5ce0ed2510556343fe189473198fe31b6e1330e0d860e",
-    "app.js": "fd2072451fb0ff3444c13933748da3071142f6c936d1ce7e2b8969be0543f85f",
-    "catalog-v6.js": "58a46ace8c7d1b12b04636723127d4346e5b4f0d178c48423ee97f5530d7745d",
-    "simulation-v6.js": "eea7f93b9e39fa40c637324859f6498ae95579dc8feff076a92b75f724dd3665",
-    "ui-v6.js": "43093f44042384e4537e48e86cedfb20b44d44f8d54192d6ff03b1aa1282e8cb",
+    "start-preview.js": "f8caaac5a80efa1d4c53051637a94e649e2579c39b6f9af80a83eb1cd4061cba",
+    "app.js": "d326e1667128677ef6e309fbf55426b0721777b410fc0a575382f239889f9ce9",
+    "catalog-v6.js": "d721d73c233ca0a739ad22e8ae9743dc4af38af33b59e86f7e16638d231c5c67",
+    "simulation-v6.js": "a12e9fed7ff34903061a90fab0832d3fee59570f3c648463a9df682b97f460ad",
+    "ui-v6.js": "0f9e92a1680370bae764cc9f02e5893a951c16cf226c3f7386fba7fb04634df7",
     "styles.css": "a24d483e506477e6ceec2155176452f94510cc1fba0e2d2f06672bb4a3d614ab",
     "styles-v6.css": "7ab8894d3058e623ebb8426c8dc5acbfc4ef3491d9de05efaac45d41fa8af36b",
-    "sw.js": "f16798abad9024e3575a77f504578ab592895eba15abcb66810717e89d42c327",
-    "README.md": "ce19541df14947c313a2c0c45f5256a4feca66ed73069b57e24d9bdc792b1601",
-    "CAMBIOS-v6.md": "3a2ee32200246774c5c9199cce0755b59760de79605337421b931fd904b12af2",
-    "VERSION.txt": "6a2249d98cc8c51633dffb3cffd10b0a312f64fe0e9a7accf360087f8afe909e",
+    "sw.js": "1c2d36478eb6605a5711b5438dc6d23c2ad2508df7740839c337b8c05bfd386e",
+    "README.md": "c56df1706d194bde19d8098341a65a7e59d3a41270cdded909f54def506d9b27",
+    "CAMBIOS-v6.md": "5e356ca144f8e7a3888d50cf03430ace5e9ea0cba872bc0ae93e232d9e8d0e91",
+    "VERSION.txt": "7ae13ad970636a988c2c994d3a8e7c3dd63c885203097bea7b183e531e60a4f2",
     "CADENA-DE-PRODUCCION.md": "b627c6b749f5e03ce43221845b802c9adfe1a5d1c05a5de4956679c88e2c82ca",
     "ARBOL-TECNOLOGIAS.md": "99cab364215a5ce6d7a3556daab2ed62218c39e78420c0384f2545d85efc584b",
     "MUNDO-Y-RECURSOS.md": "ccc8a543e5ac95d8ede756d025c215a68433f9ebfc63c47effc944abe6f44410",

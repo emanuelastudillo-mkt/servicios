@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (D, FACTS) {
   "use strict";
   D.version = 6;
-  D.release = "7.18.0";
+  D.release = "7.19.0";
   D.facts = FACTS;
   const techs = [];
   function branch(sector, items) {
@@ -1351,6 +1351,15 @@
   D.getTechnology = (id) => techIndex.get(id);
   // Small, inexhaustible national endowments. Larger industrial extraction still
   // needs deposits, buildings, labor and energy. Quantities are game units/month.
+  const displayFormats = new Map();
+  D.displayNumber = (value, digits = 2, compact = true) => {
+    const n = Number(value) || 0, a = Math.abs(n);
+    if (a > 0 && a < 0.01) return n < 0 ? "−<0,01" : "<0,01";
+    const unit = compact && a >= 1e12 ? [1e12,"B"] : compact && a >= 1e9 ? [1e9,"MM"] : compact && a >= 1e6 ? [1e6,"M"] : [1,""];
+    const precision = unit[1] ? 2 : Math.min(2, Math.max(0, digits));
+    if (!displayFormats.has(precision)) displayFormats.set(precision, new Intl.NumberFormat("es-AR", { maximumFractionDigits: precision }));
+    return displayFormats.get(precision).format(n / unit[0]) + (unit[1] ? " " + unit[1] : "");
+  };
   D.minimumPrimary = { grains: 60, timber: 12, crude_oil: 2, iron_ore: 3,
     copper: 1, uranium: 0.002, minerals: 6, lithium: 0.08,
     gold: 0.0001, diamonds: 0.00001 };

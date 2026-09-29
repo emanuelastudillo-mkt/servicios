@@ -2,7 +2,7 @@
   "use strict";
   const D=root.PULSO_DATA, E=root.PulsoEngine;
   const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const n=(x,d=2)=>Number(x||0).toLocaleString("es-AR",{maximumFractionDigits:d});
+  const n=(x,d=2)=>D.displayNumber(x,d);
   const usd=x=>"US$ "+n(x*1e9);
   const row=(label,value)=>"<dt>"+esc(label)+"</dt><dd>"+value+"</dd>";
   const table=(headers,rows)=>'<div class="table-wrap"><table><thead><tr>'+headers.map(h=>"<th>"+esc(h)+"</th>").join("")+"</tr></thead><tbody>"+rows.map(r=>"<tr>"+r.map(v=>"<td>"+v+"</td>").join("")+"</tr>").join("")+"</tbody></table></div>";
