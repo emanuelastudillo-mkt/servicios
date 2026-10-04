@@ -1,8 +1,12 @@
-# Apex1000 Rally — World Raid v0.3.4
+# Apex1000 Rally — World Raid v0.3.5
 
 Juego estático para navegador, single player, con 11 equipos rivales simulados. Se ejecuta en GitHub Pages o con `node server.mjs` y no necesita instalar dependencias para jugar.
 
 ## Esta entrega
+
+El incremental v0.3.5 incorpora un **tablero de instrumentos** en el visor y en el panel del equipo seleccionado: velocímetro con la velocidad de simulación, cuentavueltas arcade, combustible, temperatura, recorrido y nueve testigos. Las RPM y la marcha son ilustrativas; no cambian la física ni el avance. Las agujas acompañan los valores, el motor queda a cero RPM en campamento y se respeta la preferencia de movimiento reducido.
+
+Las paradas muestran un **checklist con tareas completadas, en curso, pendientes y omitidas**, progreso y tiempo hasta la salida. Incluye reparación, cambio, montaje de reserva, carga de combustible, asistencia por falta de fondos y descanso. El panel explica qué determina la demora y qué mejorar en la próxima parada. El auto sale automáticamente con el reloj activo cuando vence el plazo real de la asistencia. Las partidas antiguas conservan su salida y muestran un resumen si la parada comenzó antes de esta versión.
 
 El incremental v0.3.4 amplía el zoom máximo de **120× a 2000×**, conserva los desplegables de seguimiento mientras se actualiza la telemetría y agrega **Inyectar dinero a tu equipo** en Admin. Elegí un importe entero de 1 a 10.000.000 cr; el ingreso se guarda y aparece identificado en las finanzas. El saldo máximo es 100.000.000 cr. La función se bloquea fuera del modo single player y cuando Admin está desactivado.
 
@@ -53,13 +57,13 @@ Con Node.js 22 o superior: `node server.mjs`. Abrir http://127.0.0.1:4182. No ab
 
 ## Publicación e incremental
 
-El incremental **v0.3.4 requiere v0.3.3**. Descomprimir en la raíz del repositorio `servicios`, conservando la carpeta `Apex1000-Rally/`, y agregar o reemplazar sólo los archivos incluidos. No borrar los demás. Este ZIP no incluye cambios en workflows ni en la conexión de Sheets. Después de subirlo, recargar con Ctrl+F5. Ver `INCREMENTAL-v0.3.4.md` para el contenido y los límites de esta entrega.
+El incremental **v0.3.5 requiere v0.3.4**. Descomprimir en la raíz del repositorio `servicios`, conservando la carpeta `Apex1000-Rally/`, y agregar o reemplazar sólo los archivos incluidos. No borrar los demás. Este ZIP no incluye cambios en workflows ni en la conexión de Sheets. Después de subirlo, recargar con Ctrl+F5. Ver `INCREMENTAL-v0.3.5.md` para el contenido y los límites de esta entrega.
 
 Para subir la carpeta completa, conservar `src/`, `data/`, `assets/`, `style.css` e `index.html`. La carpeta `qa/` contiene respaldos y verificaciones locales y no debe publicarse. No se eliminaron los archivos de QA que ya existían en la versión publicada.
 
 ## Validación
 
-`npm test` ejecuta 67 pruebas con la integración de catálogo diario instalada (66 en v0.3.3 sin ese incremental): simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración, lectura CSV, catálogo, visor, bitácora, garaje, taller e inyección Admin. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas. El incremental v0.3.4 se verifica sobre una copia de v0.3.3 con el catálogo diario, además de comprobar el visor y los desplegables en Chrome.
+`npm test` ejecuta 73 pruebas con la integración de catálogo diario instalada (72 sin ese incremental): simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración, lectura CSV, catálogo, visor, bitácora, garaje, taller, inyección Admin, instrumentos y cronogramas de parada. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas. El incremental v0.3.5 se verifica aplicado sobre una copia de v0.3.4, además de revisar el tablero y las paradas en Chrome.
 
 ## Alcance
 

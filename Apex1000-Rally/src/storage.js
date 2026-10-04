@@ -14,6 +14,7 @@ import { routeFor } from "./route.js";
 import { validateJournal } from "./journal-validation.js";
 import { initializeWorkshop } from "./workshop.js";
 import { validateWorkshop } from "./workshop-validation.js";
+import { validServiceTimeline } from "./service-telemetry.js";
 export const SAVE_KEY = "apex1000-rally-v1";
 const validNumber = (n, min = -Infinity, max = Infinity) =>
   typeof n === "number" && Number.isFinite(n) && n >= min && n <= max;
@@ -239,7 +240,9 @@ export function validateSave(raw) {
       t.phase === "service" &&
       (!t.service ||
         !validNumber(t.service.until, 0) ||
-        !validNumber(t.service.start, 0))
+        !validNumber(t.service.start, 0) ||
+        t.service.until < t.service.start ||
+        !validServiceTimeline(t.service))
     )
       throw new Error("Servicio inválido.");
     if (t.phase === "racing" && !validNumber(t.stageStart, 0))

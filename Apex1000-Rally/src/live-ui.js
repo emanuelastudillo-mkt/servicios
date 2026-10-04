@@ -27,15 +27,21 @@ export function patchLivePanel(root, html) {
       if (match.nodeType === 3) {
         if (match.textContent !== next.textContent)
           match.textContent = next.textContent;
-      } else if (match.nodeType === 1) {
+      } else if (
+        match.nodeType === 1 &&
+        !match.hasAttribute("data-live-owned")
+      ) {
         const focused = match === root.ownerDocument.activeElement;
         if (!focused) {
           for (const attr of [...match.attributes])
-            if (!next.hasAttribute(attr.name) && attr.name !== "value")
+            if (
+              !next.hasAttribute(attr.name) &&
+              !(match.tagName === "INPUT" && attr.name === "value")
+            )
               match.removeAttribute(attr.name);
           for (const attr of [...next.attributes])
             if (
-              attr.name !== "value" &&
+              !(match.tagName === "INPUT" && attr.name === "value") &&
               match.getAttribute(attr.name) !== attr.value
             )
               match.setAttribute(attr.name, attr.value);

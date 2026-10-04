@@ -19,6 +19,11 @@ import {
 import { repairQuote } from "./part-maintenance.js";
 import { adminBar, ADMIN_ENABLED } from "./admin-ui.js";
 import { injectMoney } from "./admin-commands.js";
+import {
+  dashboardHTML,
+  stopChecklistHTML,
+  updateInstruments,
+} from "./cockpit.js";
 import { patchLivePanel, editingControl } from "./live-ui.js";
 import { journalPage } from "./journal-ui.js";
 import {
@@ -263,7 +268,7 @@ function leaderboardRows() {
 function teamInspector() {
   const t = state.teams.find((t) => t.id === ui.selectedTeam) || p(),
     stage = STAGES[Math.min(t.stageIndex, STAGES.length - 1)];
-  return `<div class="inspector-title"><div><span class="eyebrow">EQUIPO SELECCIONADO</span><h2>${esc(t.name)}</h2></div><span class="badge">${PHASES[t.phase]}</span></div><div class="inspector-stats">${stat("VELOCIDAD", num(t.speed) + " <em>km/h</em>")}${stat("ETAPA", t.phase === "finished" ? "META" : `${t.stageIndex + 1} <em>/ 15</em>`)}${stat("DESTINO", stage.to.name)}</div><p class="muted">${vehicle(t.vehicleId).name}${t.phase === "service" ? ` · Sale en ${duration(Math.max(0, t.service.until - state.clock))}` : t.phase === "racing" && t.holdUntil > state.clock ? ` · Incidente: ${duration(t.holdUntil - state.clock)} restantes` : ""}</p>`;
+  return `<div class="inspector-title"><div><span class="eyebrow">EQUIPO SELECCIONADO</span><h2>${esc(t.name)}</h2></div><span class="badge">${PHASES[t.phase]}</span></div><div class="inspector-stats">${stat("VELOCIDAD", num(t.speed) + " <em>km/h</em>")}${stat("ETAPA", t.phase === "finished" ? "META" : `${t.stageIndex + 1} <em>/ 15</em>`)}${stat("DESTINO", stage.to.name)}</div><p class="muted">${vehicle(t.vehicleId).name}${t.phase === "service" ? ` · Sale en ${duration(Math.max(0, t.service.until - state.clock))}` : t.phase === "racing" && t.holdUntil > state.clock ? ` · Incidente: ${duration(t.holdUntil - state.clock)} restantes` : ""}</p>${dashboardHTML(t, state.clock)}${stopChecklistHTML(state, t)}`;
 }
 function playerMetrics() {
   const team = p(),
@@ -551,7 +556,7 @@ function refresh() {
     updateMap(state, ui.selectedTeam);
     $("#leaderboard-rows").innerHTML = leaderboardRows();
     $("#player-metrics").innerHTML = playerMetrics();
-    $("#team-inspector").innerHTML = teamInspector();
+    patchLivePanel($("#team-inspector"), teamInspector());
     $("#events").innerHTML = eventsHTML();
     patchLivePanel($("#map-hud"), mapHUD());
   }
@@ -1188,6 +1193,22 @@ setInterval(() => {
     });
   } else if (!busy) lastWall = now;
 }, 1000);
+// One animation loop for both dashboard views; visual RPM time never advances the race.
+let instrumentTime = 0,
+  instrumentLast = window.performance.now(),
+  instrumentFrame = 0;
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+function animateInstruments(now) {
+  const delta = Math.min(0.1, (now - instrumentLast) / 1000);
+  instrumentLast = now;
+  if (state?.speed && !document.hidden) instrumentTime += delta;
+  if (now - instrumentFrame >= 100 && !document.hidden) {
+    instrumentFrame = now;
+    updateInstruments(state, instrumentTime, reducedMotion.matches);
+  }
+  requestAnimationFrame(animateInstruments);
+}
+requestAnimationFrame(animateInstruments);
 window.addEventListener("beforeunload", () => persist());
 try {
   const response = await fetch(
@@ -1237,7 +1258,7 @@ function mapHUD() {
   const alerts = health.alerts.length
     ? `<div class="hud-alerts health-${health.level}" aria-label="Alertas del vehículo">${health.alerts.map((a) => `<div class="vehicle-alert health-${a.level}" title="${esc(a.detail)}"><strong>${a.level === "critical" ? "!" : "△"} ${esc(a.text)}</strong><small>${esc(a.detail)}</small></div>`).join("")}</div>`
     : '<div class="hud-clear">Sin alertas de avería</div>';
-  return `<div class="hud-team">${shieldSVG(t.shieldId)}<div><small>SEGUIMIENTO · ${PHASES[t.phase]}</small><strong>${esc(t.name)}</strong><small class="hud-driver-inline">${esc(d.name)} · Energía ${num(d.energy)}%</small></div></div>${raceContextHTML(t)}${alerts}<div class="hud-chassis"><span>Auto: ${num(activeCar(t)?.condition ?? 100)}/100 estado</span><span>${num(activeCar(t)?.performance ?? 50)}/100 performance · ${num(activeCar(t)?.reliability ?? 50)}/100 fiabilidad</span></div><img class="hud-vehicle" src="assets/art/${t.vehicleId}.webp" alt="${esc(vehicle(t.vehicleId).name)}"><div class="hud-driver"><img src="${d.image}" alt="${esc(d.name)}"><div><strong>${esc(d.name)}</strong><small>${esc(vehicle(t.vehicleId).short)} · Energía ${num(d.energy)}%</small></div></div><div class="hud-figures"><div><strong>${num(t.speed)}</strong><small>km/h</small></div><div><strong>${num(t.totalKm, 1)}</strong><small>de ${num(TOTAL_KM)} km</small></div><div><strong>${num(t.fuel)} L</strong><small>combustible</small></div><div><strong>${num(t.heat)}°</strong><small>temperatura</small></div></div><div class="hud-parts">${PART_TYPES.map(
+  return `<div class="hud-team">${shieldSVG(t.shieldId)}<div><small>SEGUIMIENTO · ${PHASES[t.phase]}</small><strong>${esc(t.name)}</strong><small class="hud-driver-inline">${esc(d.name)} · Energía ${num(d.energy)}%</small></div></div>${raceContextHTML(t)}<div class="hud-driver"><img src="${d.image}" alt="${esc(d.name)}"><div><strong>${esc(d.name)}</strong><small>${esc(vehicle(t.vehicleId).short)} · Energía ${num(d.energy)}%</small></div></div>${stopChecklistHTML(state, t)}${dashboardHTML(t, state.clock)}${alerts}<div class="hud-chassis"><span>Auto: ${num(activeCar(t)?.condition ?? 100)}/100 estado</span><span>${num(activeCar(t)?.performance ?? 50)}/100 performance · ${num(activeCar(t)?.reliability ?? 50)}/100 fiabilidad</span></div><img class="hud-vehicle" src="assets/art/${t.vehicleId}.webp" alt="${esc(vehicle(t.vehicleId).name)}"><div class="hud-parts">${PART_TYPES.map(
     (type) => {
       const report = health.parts.find((x) => x.id === type.id),
         piece = t.parts[type.id];

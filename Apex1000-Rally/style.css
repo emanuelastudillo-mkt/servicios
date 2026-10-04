@@ -4406,3 +4406,356 @@ body:has(.admin-menu) {
     height: 80px;
   }
 }
+/* Illuminated analog instruments. Only RPM/march are illustrative. */
+.cockpit {
+  --dial-amber: #f4cc80;
+  margin: 14px 0;
+  padding: 12px 10px 9px;
+  color: #edf2ed;
+  border: 1px solid #646869;
+  border-radius: 14px;
+  background:
+    repeating-linear-gradient(12deg, #ffffff03 0 1px, transparent 1px 4px),
+    linear-gradient(145deg, #343a3d, #090d10 28%, #151c20 70%, #333a3d);
+  box-shadow:
+    inset 0 2px 2px #ffffff25,
+    inset 0 -2px 4px #000,
+    0 8px 18px #0005;
+}
+.cockpit-brand {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font: 7px monospace;
+  letter-spacing: 1px;
+  color: #98a5ab;
+  margin: 0 3px 8px;
+}
+.cockpit-brand b {
+  color: #d1d9db;
+  font-weight: 400;
+}
+.instrument-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+.dial {
+  min-width: 0;
+  position: relative;
+  text-align: center;
+}
+.dial svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 3px 3px #000a);
+}
+.dial-bezel {
+  fill: #454d50;
+  stroke: #9fa5a5;
+  stroke-width: 1.5;
+}
+.dial-face {
+  fill: #090f13;
+  stroke: #090b0d;
+  stroke-width: 5;
+}
+.dial-tick {
+  stroke: #b8c0bc;
+  stroke-width: 1;
+}
+.dial-tick.major {
+  stroke: #f1eee2;
+  stroke-width: 2;
+}
+.dial-number {
+  fill: #eaece1;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font: 12px monospace;
+}
+.dial-unit {
+  fill: #afbbb6;
+  text-anchor: middle;
+  font: 7px monospace;
+  letter-spacing: 1px;
+}
+.dial-tick.redline {
+  stroke: #ff5847;
+  stroke-width: 2.5;
+}
+.dial-number.redline {
+  fill: #ff7666;
+}
+.dial-needle {
+  transform-origin: 100px 100px;
+  transition: transform 0.28s ease-out;
+}
+.dial-needle path {
+  fill: #ff604e;
+  filter: drop-shadow(0 0 3px #ff603d99);
+}
+.dial-needle .needle-glint {
+  fill: none;
+  stroke: #ffd4b3;
+  stroke-width: 1;
+}
+.needle-hub {
+  fill: #333e42;
+  stroke: #abb7b9;
+  stroke-width: 1.5;
+}
+.dial-readout {
+  position: relative;
+  margin: -24% auto 4px;
+  padding: 3px 2px;
+  width: 59%;
+  border: 1px solid #747353;
+  border-radius: 3px;
+  background: #20291d;
+  box-shadow: inset 0 2px 4px #000b;
+}
+.dial-readout strong {
+  display: block;
+  color: #dce9a6;
+  font: 600 clamp(15px, 2vw, 23px) monospace;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 5px #aaba5660;
+}
+.dial-readout small {
+  display: block;
+  color: #b9c791;
+  font: 7px monospace;
+  margin: 3px 0 0;
+}
+.dashboard-lamps {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 3px;
+  padding: 11px 0 9px;
+}
+.dash-lamp {
+  text-align: center;
+  color: #53605f;
+  min-width: 0;
+}
+.dash-lamp svg {
+  display: block;
+  width: 23px;
+  height: 23px;
+  margin: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.dash-lamp small {
+  font: 6px monospace;
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.dash-lamp.warning {
+  color: #ffc057;
+  filter: drop-shadow(0 0 4px #ffae3270);
+}
+.dash-lamp.critical {
+  color: #ff604e;
+  animation: lamp-alarm 1.4s ease-in-out infinite;
+}
+@keyframes lamp-alarm {
+  50% {
+    filter: drop-shadow(0 0 6px #ff3d26);
+    opacity: 0.55;
+  }
+}
+.dash-lcd {
+  border: 1px solid #4d5750;
+  border-radius: 4px;
+  padding: 9px;
+  background: #090f0ce0;
+  color: #d6deaf;
+  box-shadow: inset 0 2px 4px #000;
+}
+.fuel-gauge > span,
+.dash-trip > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font: 8px monospace;
+}
+.fuel-gauge b,
+.dash-trip b {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.fuel-track {
+  height: 8px;
+  background: #252d22;
+  margin: 6px 0 4px;
+  overflow: hidden;
+}
+.fuel-track i {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #ccd896 0 6px,
+    transparent 6px 9px
+  );
+  transition: width 0.3s;
+}
+.fuel-track.low i {
+  background: #efa955;
+}
+.fuel-gauge > small {
+  display: flex;
+  justify-content: space-between;
+  font: 7px monospace;
+  color: #9aa77e;
+}
+.dash-trip {
+  display: grid;
+  gap: 6px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid #60714640;
+}
+.rpm-note {
+  display: block;
+  text-align: center;
+  color: #aab6b3;
+  font: 8px monospace;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+.team-inspector .cockpit {
+  max-width: 480px;
+}
+.stop-checklist {
+  margin: 14px 0;
+  border: 1px solid #7b9b9950;
+  background: #0c1a20;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.stop-heading {
+  padding: 12px;
+  background: linear-gradient(110deg, #2c484c, #12262d);
+  display: grid;
+  gap: 6px;
+}
+.stop-heading > span {
+  font: 8px monospace;
+  letter-spacing: 1.8px;
+  color: #b5c9c6;
+}
+.stop-heading > strong {
+  font-size: 14px;
+  color: #eff4eb;
+}
+.stop-heading p {
+  margin: 0;
+  color: #cfdbd6;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.stop-heading > b {
+  font: 600 23px monospace;
+  color: #f6d39a;
+}
+.stop-heading small {
+  font: 9px sans-serif;
+  color: #c1cfc9;
+}
+.stop-checklist ol {
+  list-style: none;
+  margin: 0;
+  padding: 3px 12px;
+}
+.stop-task {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 7px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ffffff12;
+}
+.task-symbol {
+  font-size: 18px;
+  color: #8b9f9f;
+}
+.stop-task strong {
+  display: block;
+  color: #d8e4e1;
+  font-size: 11px;
+}
+.stop-task small {
+  display: block;
+  font: 9px monospace;
+  color: #b9c5bc;
+  margin-top: 5px;
+}
+.stop-task p {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #93a5aa;
+  margin: 5px 0 0;
+}
+.stop-task.active .task-symbol,
+.stop-task.active small {
+  color: #f5ce8f;
+}
+.stop-task.done .task-symbol,
+.stop-task.done small {
+  color: #9ac9a1;
+}
+.stop-task.skipped .task-symbol,
+.stop-task.skipped small {
+  color: #ffb47f;
+}
+.stop-task progress {
+  width: 100%;
+  height: 5px;
+  accent-color: #f5ce8f;
+  margin: 7px 0 0;
+  display: block;
+  border: 0;
+}
+.stop-advice {
+  padding: 12px;
+  background: #ffffff04;
+}
+.stop-advice strong {
+  font-size: 11px;
+  color: #f1d5ab;
+}
+.stop-advice p {
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 5px 0 0;
+  color: #b8c9ca;
+}
+.stop-clock-note {
+  display: block;
+  padding: 0 12px 12px;
+  font-size: 9px;
+  color: #879ea3;
+  line-height: 1.5;
+}
+@media (min-width: 651px) {
+  .map-fullscreen .map-hud {
+    width: 360px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dial-needle {
+    transition: none;
+  }
+  .dash-lamp.critical {
+    animation: none;
+  }
+}

@@ -1,5 +1,6 @@
 import { CATALOG } from "../data/catalog.js";
 import { failureRate } from "./reliability.js";
+import { serviceTimeline } from "./service-telemetry.js";
 import { repairQuote, repairPiece } from "./part-maintenance.js";
 export { repairQuote } from "./part-maintenance.js";
 import {
@@ -427,6 +428,7 @@ function beginService(state, t) {
   if (!plan) return;
   const q = estimateService(t, plan),
     stage = STAGES[t.stageIndex];
+  const tasks = [];
   let hours = 0,
     assistanceHours = 0;
   for (const line of q.lines) {
@@ -449,7 +451,23 @@ function beginService(state, t) {
         );
       }
       hours += line.hours;
+      tasks.push({
+        kind: line.action,
+        label: `${line.action === "repair" ? "Reparar" : "Cambiar"} ${partType(line.type).name.toLowerCase()}`,
+        hours: line.hours,
+        detail: line.hours
+          ? "Trabajo programado de los mecánicos de carrera."
+          : "La pieza no necesita reparación.",
+      });
     } else {
+      tasks.push({
+        kind: line.action,
+        label: `${line.action === "repair" ? "Reparar" : "Cambiar"} ${partType(line.type).name.toLowerCase()}`,
+        hours: 0,
+        skipped: true,
+        detail:
+          "Omitido: presupuesto insuficiente. Se conserva el estado de la pieza.",
+      });
       log(
         state,
         t,
@@ -467,6 +485,12 @@ function beginService(state, t) {
       if (spare) {
         swap(t, p.id, spare.id);
         hours += p.hours * 0.24;
+        tasks.push({
+          kind: "reserve",
+          label: `Montar reserva de ${p.name.toLowerCase()}`,
+          hours: p.hours * 0.24,
+          detail: "Pieza de emergencia irrompible para poder continuar.",
+        });
         log(
           state,
           t,
@@ -498,6 +522,21 @@ function beginService(state, t) {
   }
   t.fuel += litres;
   hours += litres * 0.0015;
+  tasks.push({
+    kind: "fuel",
+    label: "Carga de combustible",
+    hours: litres * 0.0015,
+    detail: litres
+      ? `${Math.round(litres)} L programados para la próxima etapa.`
+      : "El tanque ya alcanza el objetivo elegido.",
+  });
+  if (assistanceHours)
+    tasks.push({
+      kind: "assistance",
+      label: "Asistencia de combustible",
+      hours: assistanceHours,
+      detail: "Presupuesto insuficiente: recargo y 4 horas adicionales.",
+    });
   hours = Math.max(hours / workshopRate(t) + assistanceHours, q.restHours);
   t.activeDriver = plan.driverId;
   t.activePlan = structuredClone(plan);
@@ -515,6 +554,15 @@ function beginService(state, t) {
     workHours: hours,
     restHours: q.restHours,
   };
+  Object.assign(
+    t.service,
+    serviceTimeline(tasks, {
+      rate: workshopRate(t),
+      restHours: q.restHours,
+      first: t.stageIndex === 0,
+      seconds: t.service.until - t.service.start,
+    }),
+  );
   if (t.stageIndex === 0) {
     t.heat = stage.temp;
     t.drivers.forEach((d) => (d.energy = 100));

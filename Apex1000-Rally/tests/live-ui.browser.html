@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+  <meta charset="utf-8" /><title>Prueba de controles vivos</title>
+  <h1>Regresión del tablero y seguimiento</h1>
+  <pre id="result">Ejecutando…</pre>
+  <div id="panel"></div>
+  <script type="module">
+    import { patchLivePanel, editingControl } from "../src/live-ui.js";
+    const panel = document.querySelector("#panel"),
+      result = document.querySelector("#result");
+    const assert = (condition, message) => {
+      if (!condition) throw Error(message);
+    };
+    const html = (tick) =>
+      `<section><strong>${tick}</strong><progress max="100" value="${tick}"></progress><span data-live-owned>0</span><label>Seguir equipo<select id="hud-team"><option value="player">Jugador ${tick}</option><option value="rival" selected>Rival ${tick}</option></select></label><input id="amount" value="100000"></section>`;
+    try {
+      patchLivePanel(panel, html(0));
+      const select = panel.querySelector("select"),
+        option = select.options[1],
+        input = panel.querySelector("input"),
+        owned = panel.querySelector("[data-live-owned]");
+      input.value = "234567";
+      owned.textContent = "4000";
+      select.focus();
+      assert(editingControl(document), "No detecta el selector activo");
+      for (let tick = 1; tick <= 100; tick++) {
+        patchLivePanel(panel, html(tick));
+        assert(
+          panel.querySelector("select") === select,
+          "Reemplazó el selector",
+        );
+        assert(select.options[1] === option, "Reemplazó las opciones abiertas");
+        assert(document.activeElement === select, "Perdió el foco");
+        assert(
+          panel.querySelector("strong").textContent === String(tick),
+          "Congeló la telemetría",
+        );
+        assert(
+          panel.querySelector("progress").value === tick,
+          "Congeló la barra de progreso",
+        );
+        assert(owned.textContent === "4000", "Reinició la animación de RPM");
+        assert(input.value === "234567", "Borró el importe escrito");
+      }
+      select.blur();
+      patchLivePanel(
+        panel,
+        html(100).replace(
+          '<option value="player">Jugador 100</option><option value="rival" selected>Rival 100</option>',
+          '<option value="rival" selected>Rival primero</option><option value="player">Jugador segundo</option>',
+        ),
+      );
+      assert(
+        select.value === "rival" &&
+          select.selectedOptions[0].textContent === "Rival primero",
+        "Desvinculó el equipo al cambiar la clasificación",
+      );
+      assert(
+        select.options[1].value === "player",
+        "No actualizó los valores de las opciones",
+      );
+      result.textContent =
+        "PASS: 100 actualizaciones, mismo selector/opciones/foco, progreso actualizado, RPM sin reiniciar, importe conservado y equipo correcto tras reordenar rivales.";
+    } catch (error) {
+      result.textContent = "FAIL: " + error.message;
+      throw error;
+    }
+  </script>
+</html>
