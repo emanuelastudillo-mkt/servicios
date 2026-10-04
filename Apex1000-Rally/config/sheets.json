@@ -1,15 +1,16 @@
 {
-  "enabled": false,
-  "status": "Pendiente de reactivar el conector de Google Drive y crear las hojas nativas",
+  "enabled": true,
+  "status": "Google Sheets conectado; sincronización diaria a las 07:23 de Argentina",
   "driveFolder": "https://drive.google.com/drive/folders/18QOIC22BHnWJTpkL5ubRJ82AzUkuGs2I",
   "repository": "https://github.com/emanuelastudillo-mkt/servicios",
   "csvUrls": {
-    "vehicles": "",
-    "parts": "",
-    "drivers": "",
-    "mechanics": "",
-    "races": "",
-    "prizes": "",
-    "settings": ""
-  }
+    "vehicles": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYfmUy98rYnwszV4Sml3iMVkaJYukvbQKZWIdUoyH9DwrSSZpDyg1yoh1sVh-ueZp348RVExO9nnXZ/pub?gid=1653968869&single=true&output=csv",
+    "parts": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYfmUy98rYnwszV4Sml3iMVkaJYukvbQKZWIdUoyH9DwrSSZpDyg1yoh1sVh-ueZp348RVExO9nnXZ/pub?gid=2022668845&single=true&output=csv",
+    "drivers": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYfmUy98rYnwszV4Sml3iMVkaJYukvbQKZWIdUoyH9DwrSSZpDyg1yoh1sVh-ueZp348RVExO9nnXZ/pub?gid=630336791&single=true&output=csv",
+    "mechanics": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYfmUy98rYnwszV4Sml3iMVkaJYukvbQKZWIdUoyH9DwrSSZpDyg1yoh1sVh-ueZp348RVExO9nnXZ/pub?gid=1462910608&single=true&output=csv",
+    "races": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYfmUy98rYnwszV4Sml3iMVkaJYukvbQKZWIdUoyH9DwrSSZpDyg1yoh1sVh-ueZp348RVExO9nnXZ/pub?gid=1331532880&single=true&output=csv",
+    "prizes": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYfmUy98rYnwszV4Sml3iMVkaJYukvbQKZWIdUoyH9DwrSSZpDyg1yoh1sVh-ueZp348RVExO9nnXZ/pub?gid=127999200&single=true&output=csv",
+    "settings": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSYfmUy98rYnwszV4Sml3iMVkaJYukvbQKZWIdUoyH9DwrSSZpDyg1yoh1sVh-ueZp348RVExO9nnXZ/pub?gid=751646963&single=true&output=csv"
+  },
+  "spreadsheetUrl": "https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit"
 }
