@@ -1,0 +1,29 @@
+{
+  "url": "http://127.0.0.1:4182/",
+  "engine": "Microsoft Edge / Chromium",
+  "checks": [
+    "inscripción",
+    "vehículos",
+    "guardado de plan",
+    "compra usada",
+    "montaje",
+    "piloto",
+    "planes futuros",
+    "zoom",
+    "seguimiento rival",
+    "posición dinámica",
+    "15 etapas completas",
+    "premio único",
+    "persistencia",
+    "exportar/importar",
+    "retomar 1×",
+    "390/1440/1920 px sin desborde"
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "finish": {
+    "hours": 187.61600272653948,
+    "position": 3,
+    "prize": 36000
+  }
+}

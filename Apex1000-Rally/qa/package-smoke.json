@@ -1,0 +1,8 @@
+{
+  "subpath": true,
+  "worker": true,
+  "map": true,
+  "styles": true,
+  "stage": 1,
+  "errors": []
+}

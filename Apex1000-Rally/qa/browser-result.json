@@ -1,0 +1,1032 @@
+{
+  "race": {
+    "raceId": "andes-1729-1791095580000",
+    "engineVersion": "rally-1",
+    "startAt": "2026-10-04T06:33:00.000Z",
+    "elapsedSeconds": 675420,
+    "routeKm": 10240,
+    "entries": [
+      {
+        "entryId": "rival-7",
+        "name": "Nómada Team",
+        "vehicleId": "sandrider",
+        "rank": 1,
+        "phase": "finished",
+        "stageIndex": 15,
+        "totalKm": 10240,
+        "stageKm": 0,
+        "speedKmh": 0,
+        "finishTime": 667990.0651061118,
+        "position": {
+          "lon": -70.64827,
+          "lat": -33.45694,
+          "stage": 14
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-5",
+        "name": "Pampa Motorsport",
+        "vehicleId": "hilux",
+        "rank": 2,
+        "phase": "finished",
+        "stageIndex": 15,
+        "totalKm": 10240,
+        "stageKm": 0,
+        "speedKmh": 0,
+        "finishTime": 673003.6415484466,
+        "position": {
+          "lon": -70.64827,
+          "lat": -33.45694,
+          "stage": 14
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "player",
+        "name": "Equipo de prueba",
+        "vehicleId": "mini",
+        "rank": 3,
+        "phase": "finished",
+        "stageIndex": 15,
+        "totalKm": 10240,
+        "stageKm": 0,
+        "speedKmh": 0,
+        "finishTime": 675417.6098155421,
+        "position": {
+          "lon": -70.64827,
+          "lat": -33.45694,
+          "stage": 14
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-2",
+        "name": "Ruta Sur",
+        "vehicleId": "raptor",
+        "rank": 4,
+        "phase": "racing",
+        "stageIndex": 14,
+        "totalKm": 10153.460077679145,
+        "stageKm": 523.4600776791455,
+        "speedKmh": 30,
+        "finishTime": null,
+        "position": {
+          "lon": -70.73769014903006,
+          "lat": -32.953843565940964,
+          "stage": 14
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-11",
+        "name": "Altiplano Crew",
+        "vehicleId": "sandrider",
+        "rank": 5,
+        "phase": "service",
+        "stageIndex": 14,
+        "totalKm": 9630,
+        "stageKm": 0,
+        "speedKmh": 0,
+        "finishTime": null,
+        "position": {
+          "lon": -71.25014,
+          "lat": -29.90591,
+          "stage": 14
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-8",
+        "name": "Andes Rally",
+        "vehicleId": "mini",
+        "rank": 6,
+        "phase": "racing",
+        "stageIndex": 13,
+        "totalKm": 9067.115037841957,
+        "stageKm": 117.1150378419569,
+        "speedKmh": 121.81790948756267,
+        "finishTime": null,
+        "position": {
+          "lon": -70.41298050120461,
+          "lat": -27.83253200121204,
+          "stage": 13
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-1",
+        "name": "Cóndor Racing",
+        "vehicleId": "hilux",
+        "rank": 7,
+        "phase": "service",
+        "stageIndex": 13,
+        "totalKm": 8950,
+        "stageKm": 0,
+        "speedKmh": 0,
+        "finishTime": null,
+        "position": {
+          "lon": -70.33219,
+          "lat": -27.36737,
+          "stage": 13
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-10",
+        "name": "Estepa Racing",
+        "vehicleId": "raptor",
+        "rank": 8,
+        "phase": "racing",
+        "stageIndex": 12,
+        "totalKm": 8690.736963675148,
+        "stageKm": 490.73696367514833,
+        "speedKmh": 30,
+        "finishTime": null,
+        "position": {
+          "lon": -69.68852534955445,
+          "lat": -25.782430242186447,
+          "stage": 12
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-4",
+        "name": "Horizonte Raid",
+        "vehicleId": "mini",
+        "rank": 9,
+        "phase": "racing",
+        "stageIndex": 12,
+        "totalKm": 8315.355262365192,
+        "stageKm": 115.3552623651927,
+        "speedKmh": 30,
+        "finishTime": null,
+        "position": {
+          "lon": -68.4676727055971,
+          "lat": -23.625786417612527,
+          "stage": 12
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-6",
+        "name": "Piedra Negra",
+        "vehicleId": "raptor",
+        "rank": 10,
+        "phase": "racing",
+        "stageIndex": 10,
+        "totalKm": 6812.262327312095,
+        "stageKm": 202.26232731209552,
+        "speedKmh": 30,
+        "finishTime": null,
+        "position": {
+          "lon": -65.71302744258533,
+          "lat": -23.772185007358736,
+          "stage": 10
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-9",
+        "name": "Pacífico Sport",
+        "vehicleId": "hilux",
+        "rank": 11,
+        "phase": "racing",
+        "stageIndex": 10,
+        "totalKm": 6635.841434533667,
+        "stageKm": 25.84143453366727,
+        "speedKmh": 83.05836614425162,
+        "finishTime": null,
+        "position": {
+          "lon": -65.44663412550807,
+          "lat": -24.670820455172954,
+          "stage": 10
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      },
+      {
+        "entryId": "rival-3",
+        "name": "Atacama Works",
+        "vehicleId": "sandrider",
+        "rank": 12,
+        "phase": "racing",
+        "stageIndex": 9,
+        "totalKm": 6576.0418326965,
+        "stageKm": 756.0418326965,
+        "speedKmh": 30,
+        "finishTime": null,
+        "position": {
+          "lon": -65.41415677418475,
+          "lat": -24.966056401015745,
+          "stage": 9
+        },
+        "updatedAt": "2026-10-12T02:10:00.000Z"
+      }
+    ]
+  },
+  "result": {
+    "position": 3,
+    "gross": 36000,
+    "settled": 0,
+    "net": 36000
+  },
+  "history": [
+    {
+      "stage": 0,
+      "start": 0,
+      "arrival": 10771.410215153079,
+      "duration": 10771.410215153079,
+      "fuel": 417.7513728535656,
+      "budget": 119259,
+      "energy": 76.30289752666233,
+      "condition": {
+        "engine": 67.87783676550923,
+        "transmission": 89.27436131948713,
+        "suspension": 86.01003650367875,
+        "tyres": 73.41906935698961,
+        "cooling": 90.67335766911916,
+        "brakes": 87.87536496985483
+      }
+    },
+    {
+      "stage": 1,
+      "start": 20640,
+      "arrival": 38711.90877924554,
+      "duration": 18071.90877924554,
+      "fuel": 367.55186257113087,
+      "budget": 114050,
+      "energy": 35.927501028489836,
+      "condition": {
+        "engine": 91.490348990034,
+        "transmission": 87.18487080046783,
+        "suspension": 83.28461408756667,
+        "tyres": 68.24076676637668,
+        "cooling": 88.85640939171103,
+        "brakes": 85.51333220922454
+      }
+    },
+    {
+      "stage": 2,
+      "start": 46290,
+      "arrival": 75210.82297197537,
+      "duration": 28920.822971975373,
+      "fuel": 296.61408156163975,
+      "budget": 110217,
+      "energy": 36.37418946165178,
+      "condition": {
+        "engine": 89.08608744349357,
+        "transmission": 83.56416740002295,
+        "suspension": 76.8193235911621,
+        "tyres": 59.267719208752936,
+        "cooling": 85.70797165219392,
+        "brakes": 81.42036314785214
+      }
+    },
+    {
+      "stage": 3,
+      "start": 85140,
+      "arrival": 130586.81061303588,
+      "duration": 45446.81061303588,
+      "fuel": 225.18306929992914,
+      "budget": 105203,
+      "energy": 0,
+      "condition": {
+        "engine": 87.85690202796567,
+        "transmission": 81.71307269687705,
+        "suspension": 70.91894444406462,
+        "tyres": 54.68022364008621,
+        "cooling": 84.09832408424089,
+        "brakes": 76.77460717659014
+      }
+    },
+    {
+      "stage": 4,
+      "start": 142230,
+      "arrival": 173406.2983483092,
+      "duration": 31176.29834830921,
+      "fuel": 377.4187986310944,
+      "budget": 99333,
+      "energy": 0,
+      "condition": {
+        "engine": 91.40092200129895,
+        "transmission": 87.05019801386342,
+        "suspension": 79.13461293906525,
+        "tyres": 0,
+        "cooling": 88.73930262074934,
+        "brakes": 80.44048075013943
+      }
+    },
+    {
+      "stage": 5,
+      "start": 186000,
+      "arrival": 207220.22817976424,
+      "duration": 21220.228179764235,
+      "fuel": 371.75683713271957,
+      "budget": 93551,
+      "energy": 53.31549800451694,
+      "condition": {
+        "engine": 91.87191805357367,
+        "transmission": 87.75949564020327,
+        "suspension": 82.34346049463569,
+        "tyres": 69.66483702137307,
+        "cooling": 89.35608316539404,
+        "brakes": 86.1629081150121
+      }
+    },
+    {
+      "stage": 6,
+      "start": 214650,
+      "arrival": 284922.0797513378,
+      "duration": 70272.07975133782,
+      "fuel": 226.8337469443861,
+      "budget": 89806,
+      "energy": 0,
+      "condition": {
+        "engine": 91.04034784320869,
+        "transmission": 86.50719050199027,
+        "suspension": 82.40068326346777,
+        "tyres": 0,
+        "cooling": 88.26712217564518,
+        "brakes": 0
+      }
+    },
+    {
+      "stage": 7,
+      "start": 304650,
+      "arrival": 328579.84994871943,
+      "duration": 23929.849948719435,
+      "fuel": 374.2536582236395,
+      "budget": 81305,
+      "energy": 34.7169618358944,
+      "condition": {
+        "engine": 90.58883129276057,
+        "transmission": 73.7622683170327,
+        "suspension": 78.39523531524529,
+        "tyres": 64.87617393190965,
+        "cooling": 87.6758505024245,
+        "brakes": 83.97860565315187
+      }
+    },
+    {
+      "stage": 8,
+      "start": 338370,
+      "arrival": 377687.20066469285,
+      "duration": 39317.20066469285,
+      "fuel": 255.01473209641955,
+      "budget": 76379,
+      "energy": 15.137390245209659,
+      "condition": {
+        "engine": 88.34746539319117,
+        "transmission": 82.4518377647464,
+        "suspension": 74.54459655325671,
+        "tyres": 45.70675063761825,
+        "cooling": 84.74072849108383,
+        "brakes": 76.98538033518989
+      }
+    },
+    {
+      "stage": 9,
+      "start": 388890,
+      "arrival": 431587.3860433468,
+      "duration": 42697.38604334678,
+      "fuel": 259.2884618269023,
+      "budget": 70671,
+      "energy": 0,
+      "condition": {
+        "engine": 89.16279711262503,
+        "transmission": 83.67968850889378,
+        "suspension": 73.74927612731236,
+        "tyres": 59.55401065247575,
+        "cooling": 78.43112846924828,
+        "brakes": 78.33811443130695
+      }
+    },
+    {
+      "stage": 10,
+      "start": 442620,
+      "arrival": 484964.5083351194,
+      "duration": 42344.508335119404,
+      "fuel": 231.8614418933416,
+      "budget": 65158,
+      "energy": 0,
+      "condition": {
+        "engine": 83.59177103161059,
+        "transmission": 75.28998851784223,
+        "suspension": 60.305643605796114,
+        "tyres": 38.762145457260914,
+        "cooling": 78.51303349377581,
+        "brakes": 66.43388290331613
+      }
+    },
+    {
+      "stage": 11,
+      "start": 500130,
+      "arrival": 560626.4484387995,
+      "duration": 60496.448438799474,
+      "fuel": 230.8856181987306,
+      "budget": 57475,
+      "energy": 0,
+      "condition": {
+        "engine": 88.57549749616952,
+        "transmission": 82.79524325316127,
+        "suspension": 75.0597014388196,
+        "tyres": 0,
+        "cooling": 85.03934195926273,
+        "brakes": 0
+      }
+    },
+    {
+      "stage": 12,
+      "start": 581970,
+      "arrival": 616542.4647457964,
+      "duration": 34572.4647457964,
+      "fuel": 228.8552662681725,
+      "budget": 48185,
+      "energy": 0,
+      "condition": {
+        "engine": 89.82859434158793,
+        "transmission": 84.68234743108177,
+        "suspension": 78.66778284893759,
+        "tyres": 62.03886102485463,
+        "cooling": 86.68030211398393,
+        "brakes": 82.68439274817968
+      }
+    },
+    {
+      "stage": 13,
+      "start": 626250,
+      "arrival": 646835.9405952886,
+      "duration": 20585.940595288645,
+      "fuel": 342.9290162231723,
+      "budget": 43314,
+      "energy": 27.62727524265598,
+      "condition": {
+        "engine": 90.58057273926755,
+        "transmission": 85.81479108949206,
+        "suspension": 81.49755359498953,
+        "tyres": 64.84535183048047,
+        "cooling": 87.66503572999306,
+        "brakes": 83.964546448991
+      }
+    },
+    {
+      "stage": 14,
+      "start": 655230,
+      "arrival": 675417.6098155421,
+      "duration": 20187.60981554212,
+      "fuel": 380.0430888525987,
+      "budget": 39067,
+      "energy": 66.88757840580571,
+      "condition": {
+        "engine": 93.01102362699754,
+        "transmission": 89.474934390657,
+        "suspension": 84.87914877107163,
+        "tyres": 73.91614175075857,
+        "cooling": 90.84776903535392,
+        "brakes": 78.77961662710369
+      }
+    }
+  ],
+  "ledger": [
+    {
+      "time": -3600,
+      "amount": -45000,
+      "label": "Inscripción y vehículo: JCW Rally"
+    },
+    {
+      "time": -3600,
+      "amount": -12936,
+      "label": "Compra: Motor Endurance 75%"
+    },
+    {
+      "time": 0,
+      "amount": -80,
+      "label": "E1 cambio Motor"
+    },
+    {
+      "time": 0,
+      "amount": -416,
+      "label": "E1 reparación Transmisión"
+    },
+    {
+      "time": 0,
+      "amount": -333,
+      "label": "E1 reparación Suspensión"
+    },
+    {
+      "time": 0,
+      "amount": -146,
+      "label": "E1 reparación Juego de neumáticos"
+    },
+    {
+      "time": 0,
+      "amount": -250,
+      "label": "E1 reparación Refrigeración"
+    },
+    {
+      "time": 0,
+      "amount": -188,
+      "label": "E1 reparación Frenos"
+    },
+    {
+      "time": 0,
+      "amount": -1392,
+      "label": "E1 combustible 580 L"
+    },
+    {
+      "time": 10800,
+      "amount": -2620,
+      "label": "E2 reparación Motor"
+    },
+    {
+      "time": 10800,
+      "amount": -558,
+      "label": "E2 reparación Transmisión"
+    },
+    {
+      "time": 10800,
+      "amount": -582,
+      "label": "E2 reparación Suspensión"
+    },
+    {
+      "time": 10800,
+      "amount": -484,
+      "label": "E2 reparación Juego de neumáticos"
+    },
+    {
+      "time": 10800,
+      "amount": -291,
+      "label": "E2 reparación Refrigeración"
+    },
+    {
+      "time": 10800,
+      "amount": -284,
+      "label": "E2 reparación Frenos"
+    },
+    {
+      "time": 10800,
+      "amount": -390,
+      "label": "E2 combustible 162 L"
+    },
+    {
+      "time": 38730,
+      "amount": -694,
+      "label": "E3 reparación Motor"
+    },
+    {
+      "time": 38730,
+      "amount": -667,
+      "label": "E3 reparación Transmisión"
+    },
+    {
+      "time": 38730,
+      "amount": -696,
+      "label": "E3 reparación Suspensión"
+    },
+    {
+      "time": 38730,
+      "amount": -579,
+      "label": "E3 reparación Juego de neumáticos"
+    },
+    {
+      "time": 38730,
+      "amount": -348,
+      "label": "E3 reparación Refrigeración"
+    },
+    {
+      "time": 38730,
+      "amount": -339,
+      "label": "E3 reparación Frenos"
+    },
+    {
+      "time": 38730,
+      "amount": -510,
+      "label": "E3 combustible 212 L"
+    },
+    {
+      "time": 75240,
+      "amount": -890,
+      "label": "E4 reparación Motor"
+    },
+    {
+      "time": 75240,
+      "amount": -855,
+      "label": "E4 reparación Transmisión"
+    },
+    {
+      "time": 75240,
+      "amount": -965,
+      "label": "E4 reparación Suspensión"
+    },
+    {
+      "time": 75240,
+      "amount": -742,
+      "label": "E4 reparación Juego de neumáticos"
+    },
+    {
+      "time": 75240,
+      "amount": -446,
+      "label": "E4 reparación Refrigeración"
+    },
+    {
+      "time": 75240,
+      "amount": -435,
+      "label": "E4 reparación Frenos"
+    },
+    {
+      "time": 75240,
+      "amount": -681,
+      "label": "E4 combustible 283 L"
+    },
+    {
+      "time": 130590,
+      "amount": -991,
+      "label": "E5 reparación Motor"
+    },
+    {
+      "time": 130590,
+      "amount": -951,
+      "label": "E5 reparación Transmisión"
+    },
+    {
+      "time": 130590,
+      "amount": -1210,
+      "label": "E5 reparación Suspensión"
+    },
+    {
+      "time": 130590,
+      "amount": -825,
+      "label": "E5 reparación Juego de neumáticos"
+    },
+    {
+      "time": 130590,
+      "amount": -497,
+      "label": "E5 reparación Refrigeración"
+    },
+    {
+      "time": 130590,
+      "amount": -544,
+      "label": "E5 reparación Frenos"
+    },
+    {
+      "time": 130590,
+      "amount": -852,
+      "label": "E5 combustible 355 L"
+    },
+    {
+      "time": 173430,
+      "amount": -702,
+      "label": "E6 reparación Motor"
+    },
+    {
+      "time": 173430,
+      "amount": -674,
+      "label": "E6 reparación Transmisión"
+    },
+    {
+      "time": 173430,
+      "amount": -869,
+      "label": "E6 reparación Suspensión"
+    },
+    {
+      "time": 173430,
+      "amount": -2240,
+      "label": "E6 reparación Juego de neumáticos"
+    },
+    {
+      "time": 173430,
+      "amount": -352,
+      "label": "E6 reparación Refrigeración"
+    },
+    {
+      "time": 173430,
+      "amount": -458,
+      "label": "E6 reparación Frenos"
+    },
+    {
+      "time": 173430,
+      "amount": -487,
+      "label": "E6 combustible 203 L"
+    },
+    {
+      "time": 207240,
+      "amount": -663,
+      "label": "E7 reparación Motor"
+    },
+    {
+      "time": 207240,
+      "amount": -637,
+      "label": "E7 reparación Transmisión"
+    },
+    {
+      "time": 207240,
+      "amount": -735,
+      "label": "E7 reparación Suspensión"
+    },
+    {
+      "time": 207240,
+      "amount": -553,
+      "label": "E7 reparación Juego de neumáticos"
+    },
+    {
+      "time": 207240,
+      "amount": -333,
+      "label": "E7 reparación Refrigeración"
+    },
+    {
+      "time": 207240,
+      "amount": -324,
+      "label": "E7 reparación Frenos"
+    },
+    {
+      "time": 207240,
+      "amount": -500,
+      "label": "E7 combustible 208 L"
+    },
+    {
+      "time": 284940,
+      "amount": -731,
+      "label": "E8 reparación Motor"
+    },
+    {
+      "time": 284940,
+      "amount": -702,
+      "label": "E8 reparación Transmisión"
+    },
+    {
+      "time": 284940,
+      "amount": -733,
+      "label": "E8 reparación Suspensión"
+    },
+    {
+      "time": 284940,
+      "amount": -2240,
+      "label": "E8 reparación Juego de neumáticos"
+    },
+    {
+      "time": 284940,
+      "amount": -367,
+      "label": "E8 reparación Refrigeración"
+    },
+    {
+      "time": 284940,
+      "amount": -2880,
+      "label": "E8 reparación Frenos"
+    },
+    {
+      "time": 284940,
+      "amount": -848,
+      "label": "E8 combustible 353 L"
+    },
+    {
+      "time": 328590,
+      "amount": -768,
+      "label": "E9 reparación Motor"
+    },
+    {
+      "time": 328590,
+      "amount": -1365,
+      "label": "E9 reparación Transmisión"
+    },
+    {
+      "time": 328590,
+      "amount": -899,
+      "label": "E9 reparación Suspensión"
+    },
+    {
+      "time": 328590,
+      "amount": -640,
+      "label": "E9 reparación Juego de neumáticos"
+    },
+    {
+      "time": 328590,
+      "amount": -385,
+      "label": "E9 reparación Refrigeración"
+    },
+    {
+      "time": 328590,
+      "amount": -375,
+      "label": "E9 reparación Frenos"
+    },
+    {
+      "time": 328590,
+      "amount": -494,
+      "label": "E9 combustible 206 L"
+    },
+    {
+      "time": 377700,
+      "amount": -951,
+      "label": "E10 reparación Motor"
+    },
+    {
+      "time": 377700,
+      "amount": -913,
+      "label": "E10 reparación Transmisión"
+    },
+    {
+      "time": 377700,
+      "amount": -1059,
+      "label": "E10 reparación Suspensión"
+    },
+    {
+      "time": 377700,
+      "amount": -989,
+      "label": "E10 reparación Juego de neumáticos"
+    },
+    {
+      "time": 377700,
+      "amount": -477,
+      "label": "E10 reparación Refrigeración"
+    },
+    {
+      "time": 377700,
+      "amount": -539,
+      "label": "E10 reparación Frenos"
+    },
+    {
+      "time": 377700,
+      "amount": -780,
+      "label": "E10 combustible 325 L"
+    },
+    {
+      "time": 431610,
+      "amount": -884,
+      "label": "E11 reparación Motor"
+    },
+    {
+      "time": 431610,
+      "amount": -849,
+      "label": "E11 reparación Transmisión"
+    },
+    {
+      "time": 431610,
+      "amount": -1093,
+      "label": "E11 reparación Suspensión"
+    },
+    {
+      "time": 431610,
+      "amount": -737,
+      "label": "E11 reparación Juego de neumáticos"
+    },
+    {
+      "time": 431610,
+      "amount": -673,
+      "label": "E11 reparación Refrigeración"
+    },
+    {
+      "time": 431610,
+      "amount": -507,
+      "label": "E11 reparación Frenos"
+    },
+    {
+      "time": 431610,
+      "amount": -770,
+      "label": "E11 combustible 321 L"
+    },
+    {
+      "time": 484980,
+      "amount": -1338,
+      "label": "E12 reparación Motor"
+    },
+    {
+      "time": 484980,
+      "amount": -1285,
+      "label": "E12 reparación Transmisión"
+    },
+    {
+      "time": 484980,
+      "amount": -1652,
+      "label": "E12 reparación Suspensión"
+    },
+    {
+      "time": 484980,
+      "amount": -1115,
+      "label": "E12 reparación Juego de neumáticos"
+    },
+    {
+      "time": 484980,
+      "amount": -671,
+      "label": "E12 reparación Refrigeración"
+    },
+    {
+      "time": 484980,
+      "amount": -786,
+      "label": "E12 reparación Frenos"
+    },
+    {
+      "time": 484980,
+      "amount": -836,
+      "label": "E12 combustible 348 L"
+    },
+    {
+      "time": 560640,
+      "amount": -932,
+      "label": "E13 reparación Motor"
+    },
+    {
+      "time": 560640,
+      "amount": -895,
+      "label": "E13 reparación Transmisión"
+    },
+    {
+      "time": 560640,
+      "amount": -1038,
+      "label": "E13 reparación Suspensión"
+    },
+    {
+      "time": 560640,
+      "amount": -2240,
+      "label": "E13 reparación Juego de neumáticos"
+    },
+    {
+      "time": 560640,
+      "amount": -467,
+      "label": "E13 reparación Refrigeración"
+    },
+    {
+      "time": 560640,
+      "amount": -2880,
+      "label": "E13 reparación Frenos"
+    },
+    {
+      "time": 560640,
+      "amount": -838,
+      "label": "E13 combustible 349 L"
+    },
+    {
+      "time": 616560,
+      "amount": -830,
+      "label": "E14 reparación Motor"
+    },
+    {
+      "time": 616560,
+      "amount": -797,
+      "label": "E14 reparación Transmisión"
+    },
+    {
+      "time": 616560,
+      "amount": -888,
+      "label": "E14 reparación Suspensión"
+    },
+    {
+      "time": 616560,
+      "amount": -691,
+      "label": "E14 reparación Juego de neumáticos"
+    },
+    {
+      "time": 616560,
+      "amount": -416,
+      "label": "E14 reparación Refrigeración"
+    },
+    {
+      "time": 616560,
+      "amount": -406,
+      "label": "E14 reparación Frenos"
+    },
+    {
+      "time": 616560,
+      "amount": -843,
+      "label": "E14 combustible 351 L"
+    },
+    {
+      "time": 646860,
+      "amount": -769,
+      "label": "E15 reparación Motor"
+    },
+    {
+      "time": 646860,
+      "amount": -738,
+      "label": "E15 reparación Transmisión"
+    },
+    {
+      "time": 646860,
+      "amount": -770,
+      "label": "E15 reparación Suspensión"
+    },
+    {
+      "time": 646860,
+      "amount": -640,
+      "label": "E15 reparación Juego de neumáticos"
+    },
+    {
+      "time": 646860,
+      "amount": -385,
+      "label": "E15 reparación Refrigeración"
+    },
+    {
+      "time": 646860,
+      "amount": -376,
+      "label": "E15 reparación Frenos"
+    },
+    {
+      "time": 646860,
+      "amount": -569,
+      "label": "E15 combustible 237 L"
+    },
+    {
+      "time": 675390,
+      "amount": 36000,
+      "label": "Premio final P3"
+    }
+  ]
+}

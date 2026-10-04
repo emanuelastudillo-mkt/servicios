@@ -1,0 +1,93 @@
+[
+  {
+    "id": "3430863",
+    "name": "Mar del Plata",
+    "lat": "-38.00042",
+    "lon": "-57.5562",
+    "country": "AR"
+  },
+  {
+    "id": "3435910",
+    "name": "Buenos Aires",
+    "lat": "-34.61315",
+    "lon": "-58.37723",
+    "country": "AR"
+  },
+  {
+    "id": "3837213",
+    "name": "San Juan",
+    "lat": "-31.53726",
+    "lon": "-68.52568",
+    "country": "AR"
+  },
+  {
+    "id": "3838233",
+    "name": "Salta",
+    "lat": "-24.80645",
+    "lon": "-65.41999",
+    "country": "AR"
+  },
+  {
+    "id": "3840092",
+    "name": "Puerto Madryn",
+    "lat": "-42.76848",
+    "lon": "-65.03827",
+    "country": "AR"
+  },
+  {
+    "id": "3843123",
+    "name": "Neuquén",
+    "lat": "-38.95078",
+    "lon": "-68.0592",
+    "country": "AR"
+  },
+  {
+    "id": "3844421",
+    "name": "Mendoza",
+    "lat": "-32.88946",
+    "lon": "-68.84582",
+    "country": "AR"
+  },
+  {
+    "id": "3855974",
+    "name": "Esquel",
+    "lat": "-42.91147",
+    "lon": "-71.31947",
+    "country": "AR"
+  },
+  {
+    "id": "3865086",
+    "name": "Bahía Blanca",
+    "lat": "-38.7176",
+    "lon": "-62.26545",
+    "country": "AR"
+  },
+  {
+    "id": "7647007",
+    "name": "San Carlos de Bariloche",
+    "lat": "-41.14557",
+    "lon": "-71.30822",
+    "country": "AR"
+  },
+  {
+    "id": "3871336",
+    "name": "Santiago",
+    "lat": "-33.45694",
+    "lon": "-70.64827",
+    "country": "CL"
+  },
+  {
+    "id": "3884373",
+    "name": "La Serena",
+    "lat": "-29.90591",
+    "lon": "-71.25014",
+    "country": "CL"
+  },
+  {
+    "id": "3893656",
+    "name": "Copiapó",
+    "lat": "-27.36737",
+    "lon": "-70.33219",
+    "country": "CL"
+  }
+]
