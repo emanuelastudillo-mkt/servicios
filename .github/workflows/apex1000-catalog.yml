@@ -1,0 +1,67 @@
+name: Apex1000 - catálogo diario
+on:
+  workflow_dispatch:
+  schedule:
+    # 07:23 de Argentina (UTC-3). GitHub puede demorar las ejecuciones programadas.
+    - cron: "23 10 * * *"
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: apex1000-catalog
+  cancel-in-progress: false
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Verificar si Google Sheets está conectado
+        id: connection
+        working-directory: Apex1000-Rally
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const config = JSON.parse(fs.readFileSync('config/sheets.json', 'utf8'));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `enabled=${config.enabled === true}\n`);
+          if (config.enabled !== true) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            'Sincronización pendiente: falta conectar las siete pestañas de Google Sheets. No se modificó el catálogo.\n');
+          NODE
+      - name: Descargar y validar las siete hojas
+        if: steps.connection.outputs.enabled == 'true'
+        working-directory: Apex1000-Rally
+        run: node scripts/sync-catalog.mjs
+      - name: Comprobar simulación y contratos
+        working-directory: Apex1000-Rally
+        run: npm test
+      - name: Guardar automáticamente sólo los datos del catálogo
+        if: steps.connection.outputs.enabled == 'true'
+        run: |
+          git add Apex1000-Rally/data/catalog.json Apex1000-Rally/data/catalog.js
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Apex1000: actualizar catálogo diario desde Google Sheets'
+            # Sin force ni rebase: si main cambió en paralelo, no sobrescribir cambios.
+            git push origin HEAD:main
+          fi
+      - name: Publicar en Pages y verificar los dos archivos públicos
+        if: steps.connection.outputs.enabled == 'true'
+        working-directory: Apex1000-Rally
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          site_url="$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')"
+          export APEX_PUBLIC_URL="${site_url%/}/Apex1000-Rally/"
+          if ! node scripts/verify-catalog-published.mjs; then
+            # Un push con GITHUB_TOKEN no dispara el despliegue por sí solo.
+            gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" > /dev/null
+            node scripts/verify-catalog-published.mjs --attempts 25
+          fi
+          printf 'Catálogo de Apex1000 validado y publicado.\n' >> "$GITHUB_STEP_SUMMARY"
