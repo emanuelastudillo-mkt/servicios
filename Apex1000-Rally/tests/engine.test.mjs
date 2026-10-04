@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  createRace,
   getPlayer,
   savePlan,
   buyPart,
@@ -22,13 +21,13 @@ import {
 import {
   PART_TYPES,
   GRADES,
-  STARTING_BUDGET,
   defaultPlan,
   vehicle,
   priceFor,
   partEffect,
 } from "../src/catalog.js";
 import { validateSave, encodeSave } from "../src/storage.js";
+import { createRace, TEST_BUDGET as STARTING_BUDGET } from "./fixture.mjs";
 const fresh = (seed = 1729) =>
   createRace({
     seed,

@@ -1,11 +1,12 @@
 {
   "name": "apex1000-rally",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "private": true,
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test --test-isolation=none tests/engine.test.mjs",
-    "test:browser": "node tests/browser.cjs"
+    "test": "node --test --test-isolation=none tests/engine.test.mjs tests/management.test.mjs tests/catalog.test.mjs",
+    "test:browser": "node tests/browser.cjs",
+    "catalog:check": "node scripts/sync-catalog.mjs --source-dir catalogos --check"
   }
 }

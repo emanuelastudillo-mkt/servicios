@@ -1,6 +1,9 @@
-export const VERSION = "0.2.0";
-export const ENGINE_VERSION = "rally-1";
-export const STARTING_BUDGET = 180000;
+import { CATALOG } from "../data/catalog.js";
+export const VERSION = "0.3.0";
+export const ENGINE_VERSION = "rally-2";
+export const STARTING_BUDGET = CATALOG.settings.find(
+  (s) => s.key === "startingBudget",
+).value;
 export const FUEL_PRICE = 2.4;
 export const STEP = 30;
 export const VEHICLES = [
@@ -347,3 +350,6 @@ export function defaultPlan(stageIndex = 0) {
     auto: true,
   };
 }
+
+for (const v of VEHICLES)
+  v.fee = CATALOG.vehicles.find((row) => row.id === v.id).price;

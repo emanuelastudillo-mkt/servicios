@@ -23,3 +23,9 @@ Los 10.240 km son distancias deportivas de diseño por etapa, no longitud geodé
 Velocidad relativa, confiabilidad, eficiencia y afinidad por superficie de cada modelo; presupuestos y precios; calidades y desgaste; probabilidad de averías/errores; curva de temperatura; descanso; altitud deportiva y consumo. Todos se encuentran en `src/catalog.js`, `src/route.js` y `src/engine.js` para poder revisarlos al balancear el juego.
 
 La masa nominal se conserva como referencia en el catálogo; la penalización dinámica actual modela únicamente el combustible transportado. No hay aerodinámica, clima dinámico, pinchazos por neumático individual, navegación manual ni física de suspensión completa.
+
+## Ampliación World Raid v0.3
+
+Las siete pruebas adicionales usan 112 registros de localidades del archivo GeoNames cities15000. Los identificadores GeoNames y las coordenadas verificadas se conservan en data/routes.js. La cartografía mundial de assets/world.json proviene del mismo conjunto Natural Earth utilizado para el mapa original, reducido a geometría y nombre.
+
+Los recorridos deportivos, distancias por etapa, clima, altitud de diseño y premios fueron creados para el juego. Las líneas entre localidades no representan carreteras verificadas ni itinerarios transitables.

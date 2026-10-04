@@ -2682,3 +2682,596 @@ footer button:hover {
     height: 460px;
   }
 }
+/* World Raid v0.3 */
+.catalog-art,
+.truck-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.vehicle-card .truck-art {
+  margin: 12px 0;
+  aspect-ratio: 3/2;
+  object-fit: cover;
+}
+.topbar nav {
+  gap: 2px;
+}
+.nav-item {
+  padding: 12px 11px;
+}
+.garage-card {
+  padding: 14px;
+}
+.garage-card h3 {
+  margin: 14px 0 6px;
+}
+.stock-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin: 16px 0;
+}
+.garage-card .button {
+  width: 100%;
+}
+.staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+  gap: 18px;
+  margin: 20px 0 30px;
+}
+.staff-card {
+  overflow: hidden;
+  padding: 0;
+}
+.staff-copy {
+  padding: 18px;
+}
+.staff-copy label {
+  display: block;
+  margin-top: 12px;
+}
+.staff-copy .button {
+  width: 100%;
+  margin-top: 9px;
+}
+.staff-copy h3 {
+  margin: 8px 0;
+}
+.staff-copy p {
+  font-size: 12px;
+  min-height: 36px;
+}
+.staff-copy input {
+  width: 100%;
+}
+.portrait {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  object-position: center 25%;
+  background: #20272d;
+}
+.staff-market {
+  margin-top: 42px;
+}
+.staff-market > h3 {
+  font-size: 22px;
+  margin-top: 28px;
+}
+.mechanic-card {
+  padding: 14px;
+  background: #151d22;
+  border: 1px solid #ffffff12;
+  border-radius: 12px;
+}
+.mechanic-card .portrait {
+  border-radius: 8px;
+}
+.mechanic-card h3 {
+  margin: 14px 0 8px;
+}
+.driver-banner {
+  height: 210px;
+  overflow: hidden;
+  position: relative;
+  padding: 0;
+}
+.driver-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+}
+.driver-banner .badge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+}
+.driver-number {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  color: #fff;
+  text-shadow: 0 2px 8px #000;
+}
+.team-shield {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+}
+.identity-panel {
+  padding: 24px;
+  margin-bottom: 26px;
+}
+.identity-preview {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.identity-preview .team-shield {
+  width: 90px;
+  height: 90px;
+}
+.identity-panel label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 18px 12px 18px 0;
+  min-width: 240px;
+}
+.identity-panel details {
+  margin-top: 12px;
+}
+.shield-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+.shield-option {
+  padding: 10px 4px;
+  color: #c4c9c9;
+  border: 1px solid #ffffff16;
+  background: #111a20;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.shield-option .team-shield {
+  width: 100%;
+  max-width: 70px;
+  display: block;
+  margin: auto;
+}
+.shield-option small {
+  font: 11px monospace;
+}
+.shield-option.selected {
+  border-color: #edbd77;
+  background: #403422;
+}
+.championship-summary {
+  display: flex;
+  align-items: center;
+  gap: 38px;
+  padding: 26px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+.championship-summary > div > strong {
+  display: block;
+  font-size: 32px;
+  color: #e8bb7b;
+}
+.championship-summary span {
+  font-size: 12px;
+  color: #aaa;
+}
+.championship-layout {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+}
+.championship-layout > aside {
+  padding: 24px;
+  align-self: start;
+}
+.race-calendar {
+  display: grid;
+  gap: 12px;
+}
+.calendar-card {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 22px;
+}
+.calendar-card.current {
+  border-color: #c89454;
+  background: linear-gradient(110deg, #403224, #1c2427);
+}
+.calendar-card h2 {
+  font-size: 20px;
+  margin: 8px 0;
+}
+.calendar-card p {
+  font-size: 13px;
+}
+.round-number {
+  font: 32px monospace;
+  color: #eab97c;
+  opacity: 0.7;
+}
+.calendar-prize {
+  margin-left: auto;
+  text-align: right;
+  white-space: nowrap;
+}
+.calendar-prize small,
+.calendar-prize strong {
+  display: block;
+}
+.calendar-prize strong {
+  font-size: 17px;
+  color: #eac18b;
+}
+.player-row {
+  color: #eec28e;
+  background: #b9853420;
+}
+.offer-card .part-art {
+  width: 100%;
+  aspect-ratio: 3/2;
+  object-fit: cover;
+  border-radius: 10px;
+  margin: 14px 0;
+}
+.map-container {
+  position: relative;
+  background: #12252e;
+}
+.map-hud,
+.fullscreen-controls {
+  display: none;
+}
+.map-fullscreen {
+  overflow: hidden;
+}
+.map-fullscreen .map-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  border-radius: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background: #12252e;
+}
+.map-fullscreen .map-panel > .panel-heading {
+  flex: none;
+  padding: 14px 22px;
+}
+.map-fullscreen .map-container {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+.map-fullscreen #race-map {
+  height: 100%;
+  width: 100%;
+}
+.map-fullscreen .map-footer {
+  flex: none;
+  background: #131d22;
+}
+.map-fullscreen .map-hud {
+  display: block;
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 290px;
+  padding: 18px;
+  background: #0d1821ed;
+  backdrop-filter: blur(12px);
+  border: 1px solid #d8c49a50;
+  border-radius: 14px;
+  box-shadow: 0 10px 35px #0008;
+  max-height: calc(100% - 90px);
+  overflow: auto;
+}
+.hud-team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hud-team small {
+  display: block;
+  font: 9px monospace;
+  letter-spacing: 1px;
+  color: #d0b689;
+}
+.hud-team strong {
+  display: block;
+  font-size: 17px;
+  margin-top: 5px;
+}
+.hud-team .team-shield {
+  width: 46px;
+  height: 46px;
+}
+.hud-vehicle {
+  width: 100%;
+  border-radius: 8px;
+  margin: 12px 0;
+  aspect-ratio: 3/2;
+  object-fit: cover;
+}
+.hud-driver {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.hud-driver img {
+  width: 40px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.hud-driver strong {
+  font-size: 14px;
+}
+.hud-driver small {
+  display: block;
+  font-size: 10px;
+  color: #c1c7c7;
+}
+.hud-figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 18px 0;
+}
+.hud-figures strong {
+  display: block;
+  font: 24px monospace;
+  color: #efd4a8;
+}
+.hud-figures small {
+  font-size: 10px;
+  color: #c1c7c7;
+}
+.hud-parts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.hud-parts b {
+  float: right;
+  font-size: 10px;
+}
+.hud-parts small {
+  font-size: 10px;
+}
+.map-hud > label {
+  display: block;
+  font-size: 11px;
+  margin: 18px 0 10px;
+}
+.map-hud select {
+  width: 100%;
+  margin-top: 5px;
+}
+.map-hud > small {
+  font-size: 10px;
+  color: #bec8ce;
+}
+.map-fullscreen .fullscreen-controls {
+  display: flex;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  gap: 8px;
+  z-index: 3;
+  padding: 9px;
+  background: #0d1821eb;
+  border-radius: 12px;
+}
+.map-fullscreen .map-distance {
+  right: 20px;
+  bottom: 80px;
+}
+.map-fullscreen .map-actions {
+  left: auto;
+  right: 20px;
+  bottom: 20px;
+}
+.map-fullscreen .map-legend {
+  display: none;
+}
+.city-labels text {
+  paint-order: stroke;
+  stroke: #183027;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  fill: #ecedd9;
+}
+@media (min-width: 1000px) {
+  .map-fullscreen #race-map {
+    padding-left: 260px;
+  }
+}
+@media (max-width: 1100px) {
+  .championship-layout {
+    grid-template-columns: 1fr;
+  }
+  .topbar {
+    flex-wrap: wrap;
+  }
+  .topbar nav {
+    overflow-x: auto;
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+  .top-meta {
+    margin-left: auto;
+  }
+}
+@media (max-width: 650px) {
+  .shield-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .staff-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .staff-copy {
+    padding: 12px;
+  }
+  .staff-copy h3 {
+    font-size: 17px;
+  }
+  .calendar-card {
+    padding: 15px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .calendar-prize {
+    width: 100%;
+    text-align: left;
+    margin-left: 42px;
+  }
+  .calendar-card h2 {
+    font-size: 18px;
+  }
+  .championship-summary {
+    gap: 20px;
+  }
+  .map-fullscreen .map-hud {
+    left: 10px;
+    right: 10px;
+    top: auto;
+    bottom: 72px;
+    width: auto;
+    padding: 10px;
+    max-height: 30vh;
+  }
+  .hud-vehicle,
+  .hud-parts,
+  .map-hud > small {
+    display: none;
+  }
+  .hud-team {
+    float: left;
+    width: 50%;
+  }
+  .hud-driver {
+    float: right;
+    width: 48%;
+  }
+  .hud-team strong {
+    font-size: 13px;
+  }
+  .hud-team .team-shield {
+    width: 32px;
+    height: 32px;
+  }
+  .hud-driver strong {
+    font-size: 12px;
+  }
+  .hud-figures {
+    clear: both;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 10px 0;
+  }
+  .hud-figures strong {
+    font-size: 18px;
+  }
+  .map-hud > label {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .map-hud select {
+    width: 70%;
+    padding: 5px;
+  }
+  .map-fullscreen .fullscreen-controls {
+    bottom: 8px;
+    width: calc(100% - 20px);
+    justify-content: center;
+    gap: 4px;
+    padding: 6px;
+  }
+  .fullscreen-controls .button {
+    font-size: 10px;
+    padding: 8px;
+  }
+  .map-fullscreen .map-actions {
+    top: 8px;
+    bottom: auto;
+    right: 8px;
+  }
+  .map-fullscreen .map-distance {
+    display: none;
+  }
+  .map-fullscreen .map-panel > .panel-heading {
+    padding: 10px;
+  }
+  .map-fullscreen .map-panel h2 {
+    font-size: 17px;
+  }
+  .map-fullscreen .map-footer {
+    display: none;
+  }
+  .topbar nav {
+    justify-content: flex-start;
+  }
+  .nav-item {
+    white-space: nowrap;
+  }
+  .driver-banner {
+    height: 190px;
+  }
+}
+.driver-portrait {
+  object-position: center top;
+}
+.identity-panel > .button {
+  vertical-align: bottom;
+  margin-bottom: 18px;
+}
+@media (min-width: 651px) {
+  .map-fullscreen .map-actions {
+    top: auto;
+  }
+}
+@media (max-width: 650px) {
+  .map-fullscreen #race-map {
+    height: calc(100% - 250px);
+    margin-top: 50px;
+  }
+  .map-fullscreen .map-zoom {
+    top: 52px;
+  }
+  .map-fullscreen .map-panel > .panel-heading {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  .map-fullscreen .map-panel > .panel-heading .eyebrow {
+    font-size: 7px;
+  }
+  .map-fullscreen .map-panel > .panel-heading .button {
+    font-size: 10px;
+    padding: 8px;
+    white-space: nowrap;
+  }
+}

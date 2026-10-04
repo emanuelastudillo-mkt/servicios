@@ -9,6 +9,8 @@ const root = path.dirname(fileURLToPath(import.meta.url)),
     ".js": "text/javascript; charset=utf-8",
     ".css": "text/css; charset=utf-8",
     ".svg": "image/svg+xml",
+    ".webp": "image/webp",
+    ".png": "image/png",
     ".json": "application/json; charset=utf-8",
     ".md": "text/plain; charset=utf-8",
   };
@@ -42,3 +44,4 @@ http
   .listen(port, "127.0.0.1", () =>
     console.log(`Apex1000 Rally: http://127.0.0.1:${port}`),
   );
+

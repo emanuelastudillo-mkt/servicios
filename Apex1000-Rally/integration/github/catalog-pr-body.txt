@@ -1,0 +1,5 @@
+Actualiza precios, stock, contratos, calendario y premios desde las hojas de administración de Apex1000.
+
+El importador validó todos los catálogos antes de generar los archivos. Las partidas existentes conservan su catálogo de temporada. Se ejecutaron las pruebas de simulación y gestión.
+
+Revisar los cambios de balance y fusionar para publicarlos mediante el sistema de despliegue ya configurado en el repositorio.

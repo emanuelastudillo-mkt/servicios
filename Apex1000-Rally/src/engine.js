@@ -1,6 +1,18 @@
+import { CATALOG } from "../data/catalog.js";
+import {
+  initializeManagement,
+  workshopRate,
+  settleAuctions,
+  recordRound,
+  chargeSalaries,
+  cash,
+  bid,
+  cancelBid,
+  releasePerson,
+  buyVehicle,
+} from "./management.js";
 import {
   ENGINE_VERSION,
-  STARTING_BUDGET,
   FUEL_PRICE,
   STEP,
   VEHICLES,
@@ -20,6 +32,7 @@ import {
 import {
   STAGES,
   TOTAL_KM,
+  routeFor,
   segmentAt,
   recommendedSetup,
   locationAt,
@@ -54,8 +67,12 @@ function transact(state, team, amount, label) {
 function item(id, type, grade, condition = 100) {
   return { id, type, grade, condition, broken: false };
 }
-function newTeam(id, name, vehicleId, seed, ai = false) {
+function newTeam(id, name, vehicleId, seed, ai = false, catalog = CATALOG) {
   const v = vehicle(vehicleId),
+    fee = catalog.vehicles.find((entry) => entry.id === vehicleId).price,
+    initialBudget = catalog.settings.find(
+      (entry) => entry.key === "startingBudget",
+    ).value,
     parts = {},
     inventory = [];
   for (const p of PART_TYPES) {
@@ -68,7 +85,7 @@ function newTeam(id, name, vehicleId, seed, ai = false) {
     vehicleId,
     ai,
     color: ai ? v.color : "#f1bb73",
-    budget: STARTING_BUDGET - v.fee,
+    budget: initialBudget - fee,
     debt: 0,
     parts,
     inventory,
@@ -92,7 +109,7 @@ function newTeam(id, name, vehicleId, seed, ai = false) {
     ledger: [
       {
         time: -3600,
-        amount: -v.fee,
+        amount: -fee,
         label: `Inscripción y vehículo: ${v.short}`,
       },
     ],
@@ -112,9 +129,14 @@ export function createRace({
   startAt = new Date(Date.now() + 3600000).toISOString(),
   now = Date.now(),
   name = "Tu equipo",
+  catalog = CATALOG,
+  continuation = false,
 } = {}) {
   if (!VEHICLES.some((v) => v.id === vehicleId))
     throw new Error("Vehículo desconocido.");
+  const entry = catalog.vehicles.find((v) => v.id === vehicleId);
+  if (!continuation && (!entry?.available || entry.stock < 1))
+    throw new Error("Vehículo sin stock para una nueva inscripción.");
   const start = Date.parse(startAt);
   if (!Number.isFinite(start) || !Number.isFinite(now))
     throw new Error("Horario de largada inválido.");
@@ -124,7 +146,7 @@ export function createRace({
     );
   const state = {
     format: "apex-rally",
-    version: 1,
+    version: 2,
     engineVersion: ENGINE_VERSION,
     mode: "single",
     id: `andes-${seed}-${start}`,
@@ -143,6 +165,8 @@ export function createRace({
         String(name).slice(0, 40) || "Tu equipo",
         vehicleId,
         seed,
+        false,
+        catalog,
       ),
     ],
   };
@@ -166,6 +190,7 @@ export function createRace({
       VEHICLES[i % 4].id,
       seed + 991 * (i + 1),
       true,
+      catalog,
     );
     t.aiStyle = i % 3;
     state.teams.push(t);
@@ -192,6 +217,7 @@ export function createRace({
     "system",
     "Inscripción completa. Guardá el plan de la primera etapa antes de la largada.",
   );
+  initializeManagement(state, { catalog });
   if (now > start) advance(state, (now - start) / 1000);
   return state;
 }
@@ -201,8 +227,9 @@ export function getPlayer(state) {
 export function normalizePlan(raw = {}, team) {
   const s = defaultPlan(),
     v = vehicle(team.vehicleId);
+  s.driverId = team.drivers[0].id;
   for (const [key, allowed] of Object.entries({
-    driverId: DRIVER_PROFILES.map((d) => d.id),
+    driverId: team.drivers.map((d) => d.id),
     pace: Object.keys(PACES),
     ride: ["low", "balanced", "high"],
     pressure: ["firm", "mixed", "soft"],
@@ -226,6 +253,7 @@ export function normalizePlan(raw = {}, team) {
   return s;
 }
 export function savePlan(state, stageIndex, raw) {
+  const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(state);
   const t = getPlayer(state);
   if (
     !Number.isInteger(stageIndex) ||
@@ -262,14 +290,24 @@ export function savePlan(state, stageIndex, raw) {
 }
 export function buyPart(state, type, grade, condition = 100) {
   const t = getPlayer(state);
-  if (t.phase === "finished") throw new Error("La carrera ya terminó.");
+  if (t.inventory.length >= 500)
+    throw new Error("El lote alcanzó el máximo de 500 repuestos.");
+
   if (
     !PART_TYPES.some((p) => p.id === type) ||
     !["endurance", "standard", "racing"].includes(grade) ||
     ![50, 75, 100].includes(condition)
   )
     throw new Error("Oferta inválida.");
-  const price = priceFor(type, grade, condition);
+  const offer = state.management?.catalog.parts.find(
+    (x) => x.type === type && x.grade === grade && x.condition === condition,
+  );
+  if (
+    state.management &&
+    (!offer?.available || state.management.stocks[offer.id] < 1)
+  )
+    throw new Error("Repuesto sin stock.");
+  const price = offer?.price ?? priceFor(type, grade, condition);
   if (price > t.budget)
     throw new Error("El presupuesto no alcanza para esta pieza.");
   const next = item(
@@ -278,6 +316,7 @@ export function buyPart(state, type, grade, condition = 100) {
     grade,
     condition,
   );
+  if (offer) state.management.stocks[offer.id]--;
   t.inventory.push(next);
   transact(
     state,
@@ -342,6 +381,7 @@ export function estimateService(team, raw, stageIndex = team.stageIndex) {
   workHours += litres * 0.0015;
   const fullRest = Math.max(0, (100 - driver.energy) / driver.recovery),
     restHours = Math.min(plan.rest === "full" ? fullRest : plan.rest, fullRest);
+  workHours /= workshopRate(team);
   const serviceHours = Math.max(workHours, restHours);
   return {
     cost,
@@ -365,11 +405,13 @@ function swap(team, type, id) {
   return true;
 }
 function beginService(state, t) {
+  const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(t);
   const plan = t.plans[t.stageIndex];
   if (!plan) return;
   const q = estimateService(t, plan),
     stage = STAGES[t.stageIndex];
-  let hours = 0;
+  let hours = 0,
+    assistanceHours = 0;
   for (const line of q.lines) {
     if (line.cost <= t.budget) {
       if (line.action === "repair") {
@@ -430,7 +472,7 @@ function beginService(state, t) {
   if (fuelCost > paid) {
     const debt = Math.ceil((fuelCost - paid) * 1.4);
     t.debt += debt;
-    hours += 4;
+    assistanceHours += 4;
     log(
       state,
       t,
@@ -440,7 +482,7 @@ function beginService(state, t) {
   }
   t.fuel += litres;
   hours += litres * 0.0015;
-  hours = Math.max(hours, q.restHours);
+  hours = Math.max(hours / workshopRate(t) + assistanceHours, q.restHours);
   t.activeDriver = plan.driverId;
   t.activePlan = structuredClone(plan);
   t.speed = 0;
@@ -471,6 +513,7 @@ function beginService(state, t) {
   );
 }
 function startStage(state, t) {
+  const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(t);
   t.phase = "racing";
   t.service = null;
   t.stageStart = state.clock;
@@ -485,7 +528,7 @@ function startStage(state, t) {
 }
 export function performance(
   team,
-  stage = STAGES[team.stageIndex],
+  stage = routeFor(team).stages[team.stageIndex],
   plan = team.activePlan || team.plans[team.stageIndex] || defaultPlan(),
   km = team.stageKm,
 ) {
@@ -682,6 +725,7 @@ function fatigue(t, dt, racing = false, effort = 1) {
   }
 }
 function finishStage(state, t, time) {
+  const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(t);
   const s = STAGES[t.stageIndex];
   t.history.push({
     stage: t.stageIndex,
@@ -719,6 +763,7 @@ function finishStage(state, t, time) {
   }
 }
 function advanceTeam(state, t, dt) {
+  const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(t);
   if (t.phase === "finished") return;
   if (state.clock < 0) {
     fatigue(t, dt);
@@ -859,10 +904,16 @@ function advanceTeam(state, t, dt) {
 function award(state) {
   const finishers = state.teams
     .filter((t) => t.finishTime !== null)
-    .sort((a, b) => a.finishTime - b.finishTime);
+    .sort((a, b) => a.finishTime - b.finishTime || a.id.localeCompare(b.id));
   finishers.forEach((t, i) => {
     if (t.prizePaid) return;
-    const gross = PRIZES[i] || 8000,
+    const gross = state.management
+        ? Math.round(
+            state.management.catalog.prizes[i].race *
+              state.management.catalog.races[state.championship.round]
+                .prizeFactor,
+          )
+        : PRIZES[i] || 8000,
       settled = Math.min(gross, t.debt),
       prize = gross - settled;
     t.debt -= settled;
@@ -882,7 +933,11 @@ function award(state) {
     );
   });
 }
-export function advance(state, seconds, { stopAtPlayerCamp = false } = {}) {
+export function advance(
+  state,
+  seconds,
+  { stopAtPlayerCamp = false, stopAtAllFinished = false } = {},
+) {
   if (!Number.isFinite(seconds) || seconds < 0)
     throw new Error("Avance de tiempo inválido.");
   if (state.mode !== "single")
@@ -894,12 +949,20 @@ export function advance(state, seconds, { stopAtPlayerCamp = false } = {}) {
   const initialStage = getPlayer(state).stageIndex;
   while (remaining-- > 0) {
     if (state.teams.every((t) => t.phase === "finished")) {
+      if (!stopAtAllFinished) {
+        state.clock += remaining * STEP + STEP;
+        advanced += remaining * STEP + STEP;
+      }
+      settleAuctions(state);
+      recordRound(state);
       state.remainder = 0;
       break;
     }
     for (const t of state.teams) advanceTeam(state, t, STEP);
     award(state);
     state.clock += STEP;
+    settleAuctions(state);
+    recordRound(state);
     advanced += STEP;
     if (stopAtPlayerCamp && getPlayer(state).stageIndex > initialStage) {
       state.remainder = 0;
@@ -924,7 +987,7 @@ export function nextPlayerCamp(state) {
 export function standings(state) {
   return [...state.teams].sort((a, b) =>
     a.finishTime !== null && b.finishTime !== null
-      ? a.finishTime - b.finishTime
+      ? a.finishTime - b.finishTime || a.id.localeCompare(b.id)
       : a.finishTime !== null
         ? -1
         : b.finishTime !== null
@@ -940,7 +1003,7 @@ export function publicSnapshot(state) {
     engineVersion: state.engineVersion,
     startAt: state.startAt,
     elapsedSeconds: state.clock,
-    routeKm: TOTAL_KM,
+    routeKm: routeFor(state).totalKm,
     entries: standings(state).map((t, i) => ({
       entryId: t.id,
       name: t.name,
@@ -952,7 +1015,7 @@ export function publicSnapshot(state) {
       stageKm: t.stageKm,
       speedKmh: t.speed,
       finishTime: t.finishTime,
-      position: locationAt(t.totalKm),
+      position: locationAt(t.totalKm, t),
       updatedAt: new Date(
         Date.parse(state.startAt) + state.clock * 1000,
       ).toISOString(),
@@ -963,15 +1026,95 @@ export function dispatch(state, command) {
   if (!command || typeof command.type !== "string")
     throw new Error("Comando inválido.");
   switch (command.type) {
+    case "bid":
+      return bid(state, command.kind, command.personId, command.salary);
+    case "cancel-bid":
+      return cancelBid(state, command.id);
+    case "release":
+      return releasePerson(state, command.kind, command.id);
+    case "buy-vehicle":
+      return buyVehicle(state, command.id);
     case "save-plan":
       return savePlan(state, command.stageIndex, command.plan);
     case "buy-part":
       return buyPart(state, command.partType, command.grade, command.condition);
     case "advance":
-      return advance(state, command.seconds);
+      return advance(state, command.seconds, {
+        stopAtAllFinished: command.stopAtAllFinished === true,
+      });
     case "next-camp":
       return nextPlayerCamp(state);
     default:
       throw new Error("Comando desconocido.");
   }
+}
+
+export function nextChampionshipRace(state) {
+  recordRound(state);
+  const c = state.championship;
+  if (!state.teams.every((t) => t.phase === "finished"))
+    throw Error(
+      "Esperá que todos los equipos terminen para cerrar la clasificación.",
+    );
+  if (c.round >= 7) throw Error("Completaste las ocho carreras.");
+  const round = c.round + 1,
+    spec = state.management.catalog.races[round],
+    startAt = new Date(
+      Date.parse(c.startAt) + spec.startDay * 86400000,
+    ).toISOString();
+  const now = Date.parse(state.startAt) + state.clock * 1000;
+  const fresh = createRace({
+    vehicleId: getPlayer(state).vehicleId,
+    seed: state.seed + round * 1009,
+    startAt,
+    now: Date.parse(startAt) - 3600000,
+    name: getPlayer(state).name,
+    catalog: state.management.catalog,
+    continuation: true,
+  });
+  fresh.management = structuredClone(state.management);
+  fresh.championship = structuredClone(c);
+  fresh.championship.round = round;
+  fresh.routeId = spec.id;
+  fresh.itemCounter = state.itemCounter;
+  fresh.id = `${spec.id}-${fresh.seed}-${Date.parse(startAt)}`;
+  for (const t of fresh.teams) {
+    const previous = state.teams.find((x) => x.id === t.id);
+    for (const key of [
+      "budget",
+      "initialBudget",
+      "debt",
+      "parts",
+      "inventory",
+      "drivers",
+      "mechanics",
+      "garage",
+      "shieldId",
+      "vehicleId",
+      "name",
+    ])
+      t[key] = structuredClone(previous[key]);
+    t.routeId = spec.id;
+    t.ledger = structuredClone(previous.ledger);
+    t.activeDriver = t.drivers[0].id;
+    t.drivers.forEach((d) => (d.energy = 100));
+    chargeSalaries(fresh, t);
+    t.plans = routeFor(t).stages.map((s, i) =>
+      t.ai
+        ? {
+            ...defaultPlan(i),
+            ...recommendedSetup(s),
+            driverId: t.drivers[i % t.drivers.length].id,
+            fuelTarget: vehicle(t.vehicleId).tank,
+          }
+        : null,
+    );
+  }
+  fresh.clock = Math.min(
+    0,
+    Math.floor((now - Date.parse(startAt)) / 30000) * 30,
+  );
+  if (now > Date.parse(startAt))
+    advance(fresh, (now - Date.parse(startAt)) / 1000);
+  return fresh;
 }

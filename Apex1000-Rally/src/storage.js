@@ -1,3 +1,5 @@
+import { initializeManagement } from "./management.js";
+import { validateCatalog } from "./catalog-schema.js";
 import {
   ENGINE_VERSION,
   PART_TYPES,
@@ -8,7 +10,7 @@ import {
   PACES,
   vehicle,
 } from "./catalog.js";
-import { STAGES, TOTAL_KM } from "./route.js";
+import { routeFor } from "./route.js";
 export const SAVE_KEY = "apex1000-rally-v1";
 const validNumber = (n, min = -Infinity, max = Infinity) =>
   typeof n === "number" && Number.isFinite(n) && n >= min && n <= max;
@@ -16,7 +18,7 @@ const boundedText = (s, max) => typeof s === "string" && s.length <= max;
 function checkPlan(p, t) {
   if (!p || typeof p !== "object") throw new Error("Plan de etapa inválido.");
   for (const [key, allowed] of Object.entries({
-    driverId: DRIVER_PROFILES.map((d) => d.id),
+    driverId: t.drivers.map((d) => d.id),
     pace: Object.keys(PACES),
     ride: ["low", "balanced", "high"],
     pressure: ["firm", "mixed", "soft"],
@@ -49,8 +51,8 @@ export function validateSave(raw) {
   if (
     !raw ||
     raw.format !== "apex-rally" ||
-    raw.version !== 1 ||
-    raw.engineVersion !== ENGINE_VERSION ||
+    ![1, 2].includes(raw.version) ||
+    !["rally-1", ENGINE_VERSION].includes(raw.engineVersion) ||
     raw.mode !== "single"
   )
     throw new Error("No es una partida compatible con esta versión del rally.");
@@ -79,6 +81,11 @@ export function validateSave(raw) {
   )
     throw new Error("Identificadores de partida inválidos.");
   raw = structuredClone(raw);
+  raw.version = 2;
+  raw.engineVersion = ENGINE_VERSION;
+  if (!raw.management) initializeManagement(raw, { legacy: true });
+  const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(raw);
+  validateManagement(raw);
   const ids = new Set();
   for (const t of raw.teams) {
     if (
@@ -93,7 +100,7 @@ export function validateSave(raw) {
     if (
       !boundedText(t.name, 80) ||
       !/^#[0-9a-f]{6}$/i.test(t.color) ||
-      !DRIVER_PROFILES.some((d) => d.id === t.activeDriver) ||
+      !t.drivers?.some((d) => d.id === t.activeDriver) ||
       typeof t.prizePaid !== "boolean" ||
       !validNumber(t.holdUntil, 0) ||
       !validNumber(t.speed, 0, 250) ||
@@ -120,7 +127,8 @@ export function validateSave(raw) {
       !Array.isArray(t.plans) ||
       t.plans.length !== STAGES.length ||
       !Array.isArray(t.drivers) ||
-      t.drivers.length !== 3 ||
+      t.drivers.length < 1 ||
+      t.drivers.length > 3 ||
       !Array.isArray(t.ledger) ||
       t.ledger.length > 5000
     )
@@ -197,11 +205,23 @@ export function validateSave(raw) {
         !boundedText(l.label, 300)
       )
         throw new Error("Movimiento de presupuesto inválido.");
-    for (const profile of DRIVER_PROFILES) {
-      const d = t.drivers.find((d) => d.id === profile.id);
-      if (!d || !validNumber(d.energy, 0, 100))
+    for (const d of t.drivers) {
+      const profile = DRIVER_PROFILES.find((p) => p.id === (d.profile || d.id));
+      if (!profile || !validNumber(d.energy, 0, 100))
         throw new Error("Estado del piloto inválido.");
-      Object.assign(d, profile, { energy: d.energy });
+      for (const key of [
+        "speed",
+        "parts",
+        "wear",
+        "risk",
+        "fatigue",
+        "recovery",
+        "color",
+        "initials",
+        "role",
+        "description",
+      ])
+        d[key] = profile[key];
     }
     if (
       ["racing", "service"].includes(t.phase) &&
@@ -256,4 +276,167 @@ export function validateSave(raw) {
 }
 export function encodeSave(state) {
   return JSON.stringify(state);
+}
+
+function validateManagement(s) {
+  const m = s.management,
+    c = s.championship;
+  validateCatalog(m.catalog);
+  if (
+    !c ||
+    !Number.isInteger(c.round) ||
+    c.round < 0 ||
+    c.round > 7 ||
+    !Number.isFinite(Date.parse(c.startAt)) ||
+    typeof c.paid !== "boolean" ||
+    !Array.isArray(c.results) ||
+    c.results.length > 8 ||
+    s.routeId !== m.catalog.races[c.round].id
+  )
+    throw Error("Campeonato inválido.");
+  if (
+    !Array.isArray(m.auctions) ||
+    m.auctions.length > 1000 ||
+    !Number.isSafeInteger(m.sequence) ||
+    m.sequence < 0
+  )
+    throw Error("Mercado inválido.");
+  const persons = new Set();
+  for (const t of s.teams) {
+    if (t.initialBudget === undefined)
+      t.initialBudget = Math.round(
+        t.budget - t.ledger.reduce((sum, l) => sum + l.amount, 0),
+      );
+    if (!validNumber(t.initialBudget, 0, 10000000))
+      throw Error("Presupuesto inicial inválido.");
+    if (
+      t.routeId !== s.routeId ||
+      !Number.isInteger(t.shieldId) ||
+      t.shieldId < 1 ||
+      t.shieldId > 100 ||
+      !Array.isArray(t.garage) ||
+      !t.garage.includes(t.vehicleId) ||
+      t.garage.some((id) => !VEHICLES.some((v) => v.id === id)) ||
+      !Array.isArray(t.mechanics) ||
+      t.mechanics.length > 5 ||
+      !Array.isArray(t.drivers) ||
+      t.drivers.length < 1 ||
+      t.drivers.length > 3
+    )
+      throw Error("Plantel o identidad inválidos.");
+    for (const p of [...t.drivers, ...t.mechanics]) {
+      const id = p.personId || p.id;
+      if (
+        !/^[a-z0-9-]{1,80}$/.test(p.id) ||
+        !/^[a-z0-9-]{1,80}$/.test(id) ||
+        persons.has(id) ||
+        m.owners[id] !== t.id ||
+        !boundedText(p.name, 80) ||
+        !validNumber(p.salary, 0, 1000000) ||
+        !/^assets\/art\/[a-z0-9-]+\.webp$/.test(p.image)
+      )
+        throw Error("Contrato duplicado o inválido.");
+      persons.add(id);
+    }
+    if (new Set(t.drivers.map((d) => d.id)).size !== t.drivers.length)
+      throw Error("Piloto duplicado.");
+    for (const mech of t.mechanics)
+      if (!validNumber(mech.efficiency, 1, 1.6))
+        throw Error("Mecánico inválido.");
+    if (!validNumber(c.points?.[t.id], 0, 8000))
+      throw Error("Puntos inválidos.");
+  }
+  if (Object.keys(m.owners).some((id) => !persons.has(id)))
+    throw Error("Titularidad sin contrato.");
+  if (c.results.length < c.round || c.results.length > c.round + 1)
+    throw Error("Faltan resultados del campeonato.");
+  const expectedPoints = Object.fromEntries(s.teams.map((t) => [t.id, 0]));
+  for (const [i, r] of c.results.entries()) {
+    if (
+      r.round !== i ||
+      r.routeId !== m.catalog.races[i].id ||
+      !Array.isArray(r.entries) ||
+      r.entries.length !== 12 ||
+      new Set(r.entries.map((e) => e.id)).size !== 12
+    )
+      throw Error("Resultado de campeonato inválido.");
+    for (const [j, e] of r.entries.entries()) {
+      if (
+        !s.teams.some((t) => t.id === e.id) ||
+        e.position !== j + 1 ||
+        !validNumber(e.time, 0, 365 * 86400) ||
+        e.points !== m.catalog.prizes[j].points ||
+        !validNumber(e.prize, 0)
+      )
+        throw Error("Clasificación inválida.");
+      expectedPoints[e.id] += e.points;
+    }
+  }
+  for (const t of s.teams)
+    if (c.points[t.id] !== expectedPoints[t.id])
+      throw Error("Puntos inconsistentes.");
+  if (c.paid !== (c.results.length === 8))
+    throw Error("Liquidación de campeonato inválida.");
+  if (
+    c.paid &&
+    (!Array.isArray(c.final) ||
+      c.final.length !== 12 ||
+      new Set(c.final.map((e) => e.id)).size !== 12 ||
+      c.final.some(
+        (e, i) =>
+          !s.teams.some((t) => t.id === e.id) ||
+          e.position !== i + 1 ||
+          !validNumber(e.gross, 0) ||
+          !validNumber(e.settled, 0, e.gross) ||
+          e.net !== e.gross - e.settled,
+      ))
+  )
+    throw Error("Premio de campeonato inválido.");
+  for (const row of [...m.catalog.vehicles, ...m.catalog.parts])
+    if (
+      !Number.isInteger(m.stocks[row.id]) ||
+      !validNumber(m.stocks[row.id], 0, 100000)
+    )
+      throw Error("Stock inválido.");
+  const active = new Set(),
+    ids = new Set();
+  for (const a of m.auctions) {
+    const pool =
+      a.kind === "driver"
+        ? m.catalog.drivers
+        : a.kind === "mechanic"
+          ? m.catalog.mechanics
+          : [];
+    if (
+      !/^offer-\d+$/.test(a.id) ||
+      !pool.some((p) => p.id === a.personId) ||
+      !["open", "closed"].includes(a.status) ||
+      !validNumber(a.openedAt) ||
+      !validNumber(a.closesAt, a.openedAt) ||
+      !Array.isArray(a.bids) ||
+      a.bids.length > 12 ||
+      ids.has(a.id)
+    )
+      throw Error("Subasta inválida.");
+    ids.add(a.id);
+    if (a.status === "open") {
+      if (active.has(a.personId) || m.owners[a.personId])
+        throw Error("Subasta duplicada.");
+      active.add(a.personId);
+    }
+    const bidders = new Set();
+    for (const b of a.bids) {
+      if (
+        bidders.has(b.teamId) ||
+        !s.teams.some((t) => t.id === b.teamId) ||
+        !validNumber(b.salary, 0, 1000000) ||
+        !validNumber(b.escrow, 0, b.salary) ||
+        !Number.isSafeInteger(b.sequence) ||
+        b.sequence > m.sequence ||
+        (a.status === "closed" && b.escrow !== 0)
+      )
+        throw Error("Oferta inválida.");
+      bidders.add(b.teamId);
+    }
+  }
 }

@@ -1,4 +1,19 @@
 import {
+  bid,
+  cancelBid,
+  releasePerson,
+  buyVehicle,
+  seasonTime,
+} from "./management.js";
+import {
+  identityPanel,
+  championshipPage,
+  garagePanel,
+  staffMarket,
+  mechanicsPanel,
+} from "./management-ui.js";
+import { shieldSVG } from "./shields.js";
+import {
   VERSION,
   STARTING_BUDGET,
   VEHICLES,
@@ -19,11 +34,13 @@ import {
   CITIES,
   TOTAL_KM,
   ROUTE_NAME,
+  setActiveRoute,
   terrainDescription,
   recommendedSetup,
 } from "./route.js";
 import {
   createRace,
+  nextChampionshipRace,
   getPlayer,
   savePlan,
   buyPart,
@@ -107,7 +124,15 @@ const ui = {
 };
 try {
   const raw = localStorage.getItem(SAVE_KEY);
-  if (raw) state = validateSave(JSON.parse(raw));
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    state = validateSave(parsed);
+    if (
+      parsed.version === 1 &&
+      !localStorage.getItem(SAVE_KEY + "-before-v3-migration")
+    )
+      localStorage.setItem(SAVE_KEY + "-before-v3-migration", raw);
+  }
 } catch {
   bootWarning =
     "No se pudo cargar el guardado. Podés importar un respaldo. El original permanece en el navegador.";
@@ -141,6 +166,7 @@ function draft(index = ui.selectedStage) {
     ui.drafts[index] = structuredClone(
       p().plans[index] || {
         ...defaultPlan(index),
+        driverId: p().drivers[index % p().drivers.length].id,
         ...recommendedSetup(STAGES[index]),
         fuelTarget: vehicle(p().vehicleId).tank,
       },
@@ -156,6 +182,7 @@ function header() {
     ["camp", "tools", "Campamento"],
     ["market", "shop", "Mercado"],
     ["crew", "crew", "Equipo"],
+    ["championship", "flag", "Campeonato"],
   ]
     .map(
       ([id, ic, name]) =>
@@ -192,10 +219,10 @@ function onboarding() {
   const local = new Date(start - start.getTimezoneOffset() * 60000)
     .toISOString()
     .slice(0, 16);
-  return `<main class="onboarding"><div class="intro-copy"><span class="eyebrow">15 ETAPAS · 3 PAÍSES · UNA SOLA OPORTUNIDAD</span><h1>La carrera no se gana<br>en un día.</h1><p>De Buenos Aires a Santiago. Diez mil kilómetros para aprender a elegir cuándo acelerar, cuándo reparar y cuándo descansar.</p><div class="intro-stats">${stat("RECORRIDO", "10.240 <em>km</em>")}${stat("COMPETENCIA", "12 <em>equipos</em>")}${stat("PRESUPUESTO", money(STARTING_BUDGET) + " <em>cr</em>")}</div></div><section class="vehicle-grid">${VEHICLES.map((car) => `<button class="vehicle-card ${ui.vehicleId === car.id ? "selected" : ""}" style="--vehicle:${car.color}" data-action="choose-vehicle" data-id="${car.id}"><div class="vehicle-top"><span>${car.tag}</span>${ui.vehicleId === car.id ? icon("check") : '<span class="radio-circle"></span>'}</div>${truckSVG(car.id)}<h2>${car.name}</h2><p>${car.engine}</p><div class="vehicle-specs"><span>Tanque <b>${car.tank} L</b></span><span>Velocidad <b>${Math.round(car.speed * 100)}</b></span><span>Resistencia <b>${Math.round(car.reliability * 100)}</b></span><span>Consumo <b>${Math.round(100 / car.efficiency)}</b></span></div><div class="vehicle-bottom"><span>Uso e inscripción</span><strong>${money(car.fee)} cr</strong></div></button>`).join("")}</section><section class="panel enlist"><div><span class="eyebrow">TU PRIMERA DECISIÓN</span><h2>${v.short}</h2><p>${v.description}</p><p class="muted">Velocidad, resistencia y consumo son índices de juego (base 100); menor consumo es mejor. Los costos también pertenecen al juego. Seis piezas Sport al 92% y seis reservas gratuitas incluidas.</p></div><form id="create-form"><label>Nombre del equipo<input name="teamName" maxlength="40" value="Tu equipo" required></label><label>Largada compartida · hora local<input name="startAt" type="datetime-local" value="${local}" required></label><label>Escenario<input name="seed" type="number" min="1" max="999999" value="1729"></label><div class="enlist-balance"><span>Disponible después de inscribirte</span><strong>${money(STARTING_BUDGET - v.fee)} cr</strong></div><button class="button primary full" type="submit">Inscribir equipo ${icon("arrow")}</button></form></section><div class="intro-note">Prototipo single player. Todos comparten la largada; después cada equipo administra su propio tiempo. La aceleración sólo existe en esta versión de prueba.</div></main>`;
+  return `<main class="onboarding"><div class="intro-copy"><span class="eyebrow">8 CARRERAS · 120 ETAPAS · UN CAMPEONATO</span><h1>La carrera no se gana<br>en un día.</h1><p>Ocho travesías por el mundo. Gestioná tu equipo, elegí cuándo acelerar y construí una temporada de resistencia. La primera carrera: de Buenos Aires a Santiago.</p><div class="intro-stats">${stat("RECORRIDO", "10.240 <em>km</em>")}${stat("COMPETENCIA", "12 <em>equipos</em>")}${stat("PRESUPUESTO", money(STARTING_BUDGET) + " <em>cr</em>")}</div></div><section class="vehicle-grid">${VEHICLES.map((car) => `<button class="vehicle-card ${ui.vehicleId === car.id ? "selected" : ""}" style="--vehicle:${car.color}" data-action="choose-vehicle" data-id="${car.id}"><div class="vehicle-top"><span>${car.tag}</span>${ui.vehicleId === car.id ? icon("check") : '<span class="radio-circle"></span>'}</div>${truckSVG(car.id)}<h2>${car.name}</h2><p>${car.engine}</p><div class="vehicle-specs"><span>Tanque <b>${car.tank} L</b></span><span>Velocidad <b>${Math.round(car.speed * 100)}</b></span><span>Resistencia <b>${Math.round(car.reliability * 100)}</b></span><span>Consumo <b>${Math.round(100 / car.efficiency)}</b></span></div><div class="vehicle-bottom"><span>Uso e inscripción</span><strong>${money(car.fee)} cr</strong></div></button>`).join("")}</section><section class="panel enlist"><div><span class="eyebrow">TU PRIMERA DECISIÓN</span><h2>${v.short}</h2><p>${v.description}</p><p class="muted">Velocidad, resistencia y consumo son índices de juego (base 100); menor consumo es mejor. Los costos también pertenecen al juego. Seis piezas Sport al 92% y seis reservas gratuitas incluidas.</p></div><form id="create-form"><label>Nombre del equipo<input name="teamName" maxlength="40" value="Tu equipo" required></label><label>Largada compartida · hora local<input name="startAt" type="datetime-local" value="${local}" required></label><label>Escenario<input name="seed" type="number" min="1" max="999999" value="1729"></label><div class="enlist-balance"><span>Saldo antes de sueldos</span><strong>${money(STARTING_BUDGET - v.fee)} cr</strong></div><button class="button primary full" type="submit">Inscribir equipo ${icon("arrow")}</button></form></section><div class="intro-note">Prototipo single player. Todos comparten la largada; después cada equipo administra su propio tiempo. La aceleración sólo existe en esta versión de prueba.</div></main>`;
 }
 function mapPanel() {
-  return `<section class="panel map-panel"><div class="panel-heading"><div><span class="eyebrow">SUDAMÉRICA / RECORRIDO COMPLETO</span><h2>${ROUTE_NAME}</h2></div><span class="badge">ARG · BOL · CHL</span></div><div class="map-container">${mapSVG(state, geo)}<div class="map-zoom"><button data-action="zoom-in" aria-label="Acercar mapa">+</button><span id="zoom-level">${(1000 / camera.w).toFixed(1)}×</span><button data-action="zoom-out" aria-label="Alejar mapa">−</button></div><div class="map-actions"><button data-action="fit-map">${icon("map")}Ver ruta</button><button data-action="follow" data-id="player">${icon("target")}Seguirme</button></div><div class="map-legend"><i></i> Trazado de la prueba <span>●</span> Campamento</div><div class="map-distance"><span>DE COSTA A CORDILLERA</span><strong>10.240 <small>km</small></strong></div></div><div class="map-footer"><span>Arrastrá para mover · rueda para acercar · tocá un equipo para seguirlo</span><span>Natural Earth · GeoNames</span></div></section>`;
+  return `<section class="panel map-panel" id="map-panel"><div class="panel-heading"><div><span class="eyebrow">VISOR DE CARRERA / RECORRIDO COMPLETO</span><h2>${esc(ROUTE_NAME)}</h2></div><button class="button ghost small" data-action="fullscreen-map">⛶ Pantalla completa</button></div><div class="map-container">${mapSVG(state, geo)}<div class="map-zoom"><button data-action="zoom-in" aria-label="Acercar mapa">+</button><span id="zoom-level">${(1000 / camera.w).toFixed(1)}×</span><button data-action="zoom-out" aria-label="Alejar mapa">−</button></div><div class="map-actions"><button data-action="fit-map">${icon("map")}Ver ruta</button><button data-action="follow" data-id="player">${icon("target")}Seguirme</button></div><div class="map-hud" id="map-hud">${mapHUD()}</div><div class="fullscreen-controls"><button class="button small" data-action="toggle-time">${state.speed ? "Pausar" : "Reanudar"}</button><button class="button small" data-action="advance-hour">+1 hora</button><button class="button small" data-action="next-camp">Próxima parada</button><button class="button small" data-action="fullscreen-map">Cerrar pantalla completa</button></div><div class="map-legend"><i></i> Trazado de la prueba <span>●</span> Campamento</div><div class="map-distance"><span>CARRERA ${state.championship.round + 1} DE 8</span><strong>${num(TOTAL_KM)} <small>km</small></strong></div></div><div class="map-footer"><span>Arrastrá para mover · rueda para acercar · tocá un equipo para seguirlo</span><span>Natural Earth · GeoNames</span></div></section>`;
 }
 function leaderboard() {
   return `<section class="panel leaderboard"><div class="panel-heading"><div><span class="eyebrow">UNA LARGADA, DISTINTOS CAMINOS</span><h2>Orden de carrera</h2></div><span class="count-pill">12</span></div><div class="standing-head"><span>EQUIPO / ESTADO</span><span>KM TOTALES</span></div><div id="leaderboard-rows">${leaderboardRows()}</div><div class="small-note">En carrera se ordena por avance. Al llegar, por tiempo total desde la largada, incluyendo asistencia y descanso.</div></section>`;
@@ -218,7 +245,7 @@ function playerMetrics() {
     d = team.drivers.find((d) => d.id === team.activeDriver),
     condition =
       PART_TYPES.reduce((a, t) => a + team.parts[t.id].condition, 0) / 6;
-  return `${stat("PRESUPUESTO DISPONIBLE", money(team.budget) + " <em>cr</em>", team.debt ? `${money(team.debt)} cr de asistencia pendientes` : "Los premios se pagan al finalizar", "budget")}${stat("COMBUSTIBLE", num(team.fuel) + " <em>L</em>", `Tanque: ${vehicle(team.vehicleId).tank} L`)}${stat("ENERGÍA DEL PILOTO", num(d.energy) + "<em>%</em>", `${d.name} · ${d.role}`)}${stat("ESTADO DEL VEHÍCULO", num(condition) + "<em>%</em>", `${Object.values(team.parts).filter((p) => p.broken).length} piezas averiadas · ${num(team.heat)} °C`)}`;
+  return `${stat("PRESUPUESTO DISPONIBLE", money(team.budget) + " <em>cr</em>", team.debt ? `${money(team.debt)} cr de asistencia pendientes` : "Los premios se pagan al finalizar", "budget")}${stat("COMBUSTIBLE", num(team.fuel) + " <em>L</em>", `Tanque: ${vehicle(team.vehicleId).tank} L`)}${stat("ENERGÍA DEL PILOTO", num(d.energy) + "<em>%</em>", `${esc(d.name)} · ${d.role}`)}${stat("ESTADO DEL VEHÍCULO", num(condition) + "<em>%</em>", `${Object.values(team.parts).filter((p) => p.broken).length} piezas averiadas · ${num(team.heat)} °C`)}`;
 }
 function eventsHTML() {
   const events = state.events
@@ -241,10 +268,10 @@ function racePage() {
     needsPlan =
       !team.plans[Math.min(team.stageIndex, 14)] &&
       !["racing", "service", "finished"].includes(team.phase);
-  return `${title("TEMPORADA DE PRUEBA / TRAVESÍA DE LOS ANDES", "La distancia pone todo a prueba.", "Tus decisiones de hoy son las piezas, la energía y el presupuesto de mañana.", `<button class="button ghost" data-action="open-camp">${icon("tools")}Preparar ${team.stageIndex >= 15 ? "equipo" : `E${editStage() + 1}`}</button>`)}${needsPlan ? `<div class="notice"><div>${icon("flag")}<p><b>${state.clock < 0 ? "Antes de largar" : "Tu equipo espera un plan"}.</b> Guardá la configuración de E${team.stageIndex + 1}. ${state.clock >= 0 ? "El resto de los equipos sigue avanzando." : "Podés preparar las etapas futuras por adelantado."}</p></div><button class="button small primary" data-action="open-camp">Preparar etapa ${icon("arrow")}</button></div>` : ""}<div id="player-metrics" class="metrics-grid">${playerMetrics()}</div><div class="race-layout"><div class="map-column">${mapPanel()}<section class="panel team-inspector" id="team-inspector">${teamInspector()}</section></div>${leaderboard()}</div><div class="bottom-grid"><section class="panel next-stage"><span class="eyebrow">${team.phase === "finished" ? "TRAVESÍA COMPLETA" : `E${stage.index + 1} / ${stage.title}`}</span><h2>${stage.from.name}<span> → </span>${stage.to.name}</h2>${terrainBar(stage)}<p>${stage.brief}</p><div class="stage-info-line"><span>${money(stage.km)} km</span><span>${stage.temp} °C</span><span>Hasta ${money(stage.altitude)} m</span><button class="text-button" data-action="roadbook-stage" data-index="${stage.index}">Estudiar etapa ${icon("arrow")}</button></div></section><section class="panel event-panel"><div class="panel-heading"><h2>Radio del equipo</h2><span class="badge">REGISTRO</span></div><div id="events">${eventsHTML()}</div></section></div>${team.phase === "finished" ? finishPanel() : ""}`;
+  return `${title(`TEMPORADA DE PRUEBA / ${esc(ROUTE_NAME).toUpperCase()}`, "La distancia pone todo a prueba.", "Tus decisiones de hoy son las piezas, la energía y el presupuesto de mañana.", `<button class="button ghost" data-action="open-camp">${icon("tools")}Preparar ${team.stageIndex >= 15 ? "equipo" : `E${editStage() + 1}`}</button>`)}${needsPlan ? `<div class="notice"><div>${icon("flag")}<p><b>${state.clock < 0 ? "Antes de largar" : "Tu equipo espera un plan"}.</b> Guardá la configuración de E${team.stageIndex + 1}. ${state.clock >= 0 ? "El resto de los equipos sigue avanzando." : "Podés preparar las etapas futuras por adelantado."}</p></div><button class="button small primary" data-action="open-camp">Preparar etapa ${icon("arrow")}</button></div>` : ""}<div id="player-metrics" class="metrics-grid">${playerMetrics()}</div><div class="race-layout"><div class="map-column">${mapPanel()}<section class="panel team-inspector" id="team-inspector">${teamInspector()}</section></div>${leaderboard()}</div><div class="bottom-grid"><section class="panel next-stage"><span class="eyebrow">${team.phase === "finished" ? "TRAVESÍA COMPLETA" : `E${stage.index + 1} / ${stage.title}`}</span><h2>${stage.from.name}<span> → </span>${stage.to.name}</h2>${terrainBar(stage)}<p>${stage.brief}</p><div class="stage-info-line"><span>${money(stage.km)} km</span><span>${stage.temp} °C</span><span>Hasta ${money(stage.altitude)} m</span><button class="text-button" data-action="roadbook-stage" data-index="${stage.index}">Estudiar etapa ${icon("arrow")}</button></div></section><section class="panel event-panel"><div class="panel-heading"><h2>Radio del equipo</h2><span class="badge">REGISTRO</span></div><div id="events">${eventsHTML()}</div></section></div>${team.phase === "finished" ? finishPanel() : ""}`;
 }
 function roadbook() {
-  return `${title("ROADBOOK / ESTUDIAR ANTES DE ELEGIR", "Cada etapa pide un auto distinto.", "Una sola ruta de 10.240 km. El terreno, el calor y la altura cambian las prioridades.", `<button class="button ghost" data-action="fill-plans">${icon("save")}Completar planes faltantes</button>`)}<div class="roadbook-intro panel"><div><strong>15</strong><span>etapas</span></div><div><strong>3</strong><span>países</span></div><div><strong>4.300 <small>m</small></strong><span>altitud de diseño máxima</span></div><p>Localidades reales, prueba ficticia. Las distancias incluyen tramos de rally diseñados para el juego y no corresponden a un itinerario de carretera.</p></div><div class="stages-grid">${STAGES.map(
+  return `${title("ROADBOOK / ESTUDIAR ANTES DE ELEGIR", "Cada etapa pide un auto distinto.", `${num(TOTAL_KM)} km en ${esc(ROUTE_NAME)}. El terreno, el calor y la altura cambian las prioridades.`, `<button class="button ghost" data-action="fill-plans">${icon("save")}Completar planes faltantes</button>`)}<div class="roadbook-intro panel"><div><strong>15</strong><span>etapas</span></div><div><strong>${new Set(CITIES.map((c) => c.country)).size}</strong><span>países</span></div><div><strong>${num(Math.max(...STAGES.map((s) => s.altitude)))} <small>m</small></strong><span>altitud de diseño máxima</span></div><p>Localidades reales, prueba ficticia. Las distancias incluyen tramos de rally diseñados para el juego y no corresponden a un itinerario de carretera.</p></div><div class="stages-grid">${STAGES.map(
     (stage) => {
       const planned = !!p().plans[stage.index],
         done = p().stageIndex > stage.index,
@@ -267,7 +294,7 @@ function camp() {
   return `${title(`CAMPAMENTO / ETAPA ${index + 1}`, "Cuidar el auto también es correr.", "Elegí piloto, repuestos y preparación. Reparación, combustible y descanso se ejecutan al llegar.", `<label class="stage-picker">Etapa a configurar<select id="stage-picker">${STAGES.map((s) => `<option value="${s.index}" ${s.index === index ? "selected" : ""}>${String(s.index + 1).padStart(2, "0")} · ${s.to.name}</option>`).join("")}</select></label>`)}${locked ? '<div class="notice warning"><p>Este plan ya está cerrado. Podés consultarlo y configurar una etapa futura.</p></div>' : ""}<div class="camp-layout"><div><section class="panel camp-brief"><div><span class="eyebrow">${stage.title}</span><h2>${stage.from.name} → ${stage.to.name}</h2><p>${stage.brief}</p>${terrainBar(stage)}<span class="muted">${terrainDescription(stage)}</span></div><div class="brief-numbers"><strong>${money(stage.km)} <small>km</small></strong><span>${stage.temp} °C · ${money(stage.altitude)} m</span></div></section><fieldset class="panel setup-form" ${locked ? "disabled" : ""}><div class="panel-heading"><div><span class="eyebrow">CONFIGURACIÓN DE ETAPA</span><h2>Cómo vamos a correr</h2></div><button class="button small ghost" type="button" data-action="recommended">Sugerir para este terreno</button></div><div class="form-grid">${select(
     "driverId",
     "Piloto",
-    team.drivers.map((d) => [d.id, `${d.name} · ${d.role}`]),
+    team.drivers.map((d) => [d.id, `${esc(d.name)} · ${d.role}`]),
     plan.driverId,
   )}${select(
     "pace",
@@ -345,7 +372,7 @@ function camp() {
     },
   ).join(
     "",
-  )}</div><div class="parts-bottom"><p>Las piezas retiradas vuelven al lote con su estado. Las reservas gratuitas nunca se averían; su desgaste sólo reduce el rendimiento.</p><button type="button" class="button ghost small" data-action="fit-reserves">Usar reservas</button></div></fieldset><details class="panel inventory-panel"><summary>Lote completo · ${team.inventory.length} repuestos</summary><div class="inventory-grid">${team.inventory.map((i) => `<div><span class="eyebrow">${partType(i.type).short}</span><strong style="color:${GRADES[i.grade].color}">${GRADES[i.grade].name}</strong><span>${num(i.condition)}% ${i.broken ? "· Averiada" : ""}</span>${conditionBar(i.condition)}</div>`).join("")}</div></details></div><aside><section class="panel quote-panel"><span class="eyebrow">ANTES DE CONFIRMAR</span><h2>El costo de tu decisión</h2><div id="service-quote">${quoteHTML()}</div><button class="button primary full" data-action="save-plan" ${locked ? "disabled" : ""}>${icon("save")}Guardar plan de E${index + 1}</button><p class="small-note">${team.plans[index] ? "Hay un plan guardado. Los cambios se aplican al volver a guardar." : "Todavía no hay un plan guardado para esta etapa."} Si llegás sin plan, tu equipo espera mientras el resto avanza.</p></section><section class="panel crew-mini"><span class="eyebrow">TRES PILOTOS, DISTINTOS RECURSOS</span>${team.drivers.map((d) => `<div class="crew-mini-row"><span class="avatar" style="--driver:${d.color}">${d.initials}</span><div><strong>${d.name}</strong><small>${d.role} · ${num(d.energy)}% energía</small>${conditionBar(d.energy, d.color)}</div></div>`).join("")}<button class="text-button" data-action="tab" data-tab="crew">Ver habilidades ${icon("arrow")}</button></section></aside></div>`;
+  )}</div><div class="parts-bottom"><p>Las piezas retiradas vuelven al lote con su estado. Las reservas gratuitas nunca se averían; su desgaste sólo reduce el rendimiento.</p><button type="button" class="button ghost small" data-action="fit-reserves">Usar reservas</button></div></fieldset><details class="panel inventory-panel"><summary>Lote completo · ${team.inventory.length} repuestos</summary><div class="inventory-grid">${team.inventory.map((i) => `<div><span class="eyebrow">${partType(i.type).short}</span><strong style="color:${GRADES[i.grade].color}">${GRADES[i.grade].name}</strong><span>${num(i.condition)}% ${i.broken ? "· Averiada" : ""}</span>${conditionBar(i.condition)}</div>`).join("")}</div></details></div><aside><section class="panel quote-panel"><span class="eyebrow">ANTES DE CONFIRMAR</span><h2>El costo de tu decisión</h2><div id="service-quote">${quoteHTML()}</div><button class="button primary full" data-action="save-plan" ${locked ? "disabled" : ""}>${icon("save")}Guardar plan de E${index + 1}</button><p class="small-note">${team.plans[index] ? "Hay un plan guardado. Los cambios se aplican al volver a guardar." : "Todavía no hay un plan guardado para esta etapa."} Si llegás sin plan, tu equipo espera mientras el resto avanza.</p></section><section class="panel crew-mini"><span class="eyebrow">TRES PILOTOS, DISTINTOS RECURSOS</span>${team.drivers.map((d) => `<div class="crew-mini-row"><span class="avatar" style="--driver:${d.color}">${d.initials}</span><div><strong>${esc(d.name)}</strong><small>${d.role} · ${num(d.energy)}% energía</small>${conditionBar(d.energy, d.color)}</div></div>`).join("")}<button class="text-button" data-action="tab" data-tab="crew">Ver habilidades ${icon("arrow")}</button></section></aside></div>`;
 }
 function quoteHTML() {
   const team = p(),
@@ -355,7 +382,7 @@ function quoteHTML() {
     est = estimateStage(team, stage, plan);
   return `<div class="quote-total"><span>Asistencia + combustible</span><strong>${money(quote.cost)} <small>cr</small></strong></div><dl class="quote-lines"><div><dt>Trabajo mecánico y carga</dt><dd>${num(quote.workHours, 1)} h</dd></div><div><dt>Descanso necesario elegido</dt><dd>${num(quote.restHours, 1)} h</dd></div><div><dt>${ui.selectedStage === 0 ? "Preparación antes de largar" : "Espera total en campamento"}</dt><dd>${num(quote.serviceHours, 1)} h</dd></div><div><dt>Conducción sin incidentes</dt><dd>≈ ${num(est.hours, 1)} h</dd></div><div><dt>Consumo estimado de etapa</dt><dd>≈ ${num(est.fuel)} L</dd></div><div><dt>Presupuesto después</dt><dd class="${quote.cost > team.budget ? "bad" : ""}">${money(team.budget - quote.cost)} cr</dd></div></dl>${plan.fuelTarget < est.fuel ? '<div class="inline-warning">Combustible estimado insuficiente. Una asistencia en ruta suma 4 h y un recargo.</div>' : ""}${quote.cost > team.budget ? '<div class="inline-warning">El presupuesto actual no alcanza: se omitirán reparaciones no financiables; el combustible de asistencia se descuenta del premio.</div>' : ""}<p class="muted">${ui.selectedStage > team.stageIndex ? "Etapa futura: el estado de llegada cambiará estos costos." : "Estimación con el estado actual."} El terreno, la fatiga y las averías pueden ampliar el tiempo.</p>`;
 }
-function market() {
+function partsMarket() {
   const type = partType(ui.marketType),
     condition = ui.marketCondition;
   return `${title("MERCADO / PIEZAS PARA TODA LA CARRERA", "Más rápido no siempre llega primero.", "Elegí calidad y estado por separado. Los repuestos quedan en tu lote hasta que programes su montaje.", `<div class="budget-pill"><span>Disponible</span><strong>${money(p().budget)} <small>cr</small></strong></div>`)}<div class="market-toolbar"><div class="part-tabs">${PART_TYPES.map((t) => `<button class="chip ${t.id === type.id ? "active" : ""}" data-action="market-type" data-id="${t.id}">${t.short}</button>`).join("")}</div><label>Estado de la pieza<select id="market-condition">${[
@@ -374,30 +401,37 @@ function market() {
   ]
     .map((grade) => {
       const g = GRADES[grade],
-        cost = priceFor(type.id, grade, condition);
-      return `<article class="panel offer-card" style="--grade:${g.color}"><div class="offer-top"><span class="eyebrow">${g.tag}</span><span class="badge">${condition}% ESTADO</span></div><div class="mechanical-icon">${type.id === "tyres" ? "◉" : type.id === "cooling" ? "❄" : "◇"}<span>${type.short}</span></div><h2>${g.name}</h2><p>${g.description}</p><dl><div><dt>Rendimiento nuevo</dt><dd>${num(g.performance * 100)} / 100</dd></div><div><dt>Resistencia al desgaste</dt><dd>${num(g.durability, 2)}×</dd></div><div><dt>Riesgo base de avería</dt><dd>${num(g.failure * 100, 2)}% / h</dd></div><div><dt>Tendencia térmica</dt><dd>${num(g.heat, 2)}×</dd></div></dl><div class="offer-price"><strong>${money(cost)} <small>cr</small></strong><span>Estado: ${condition}%</span></div><button class="button ${grade === "standard" ? "primary" : "ghost"} full" data-action="buy" data-grade="${grade}" ${cost > p().budget || p().phase === "finished" ? "disabled" : ""}>${icon("shop")}${cost > p().budget ? "Presupuesto insuficiente" : "Comprar para el lote"}</button></article>`;
+        offer = state.management.catalog.parts.find(
+          (x) =>
+            x.type === type.id &&
+            x.grade === grade &&
+            x.condition === condition,
+        ),
+        stock = state.management.stocks[offer.id],
+        cost = offer.price;
+      return `<article class="panel offer-card" style="--grade:${g.color}"><div class="offer-top"><span class="eyebrow">${g.tag}</span><span class="badge">${condition}% ESTADO</span></div><img class="part-art" src="assets/art/${type.id}.webp" alt="${type.name}"><h2>${g.name}</h2><p>${g.description}</p><dl><div><dt>Rendimiento nuevo</dt><dd>${num(g.performance * 100)} / 100</dd></div><div><dt>Resistencia al desgaste</dt><dd>${num(g.durability, 2)}×</dd></div><div><dt>Riesgo base de avería</dt><dd>${num(g.failure * 100, 2)}% / h</dd></div><div><dt>Tendencia térmica</dt><dd>${num(g.heat, 2)}×</dd></div></dl><div class="offer-price"><strong>${money(cost)} <small>cr</small></strong><span>Estado: ${condition}% · Stock: ${stock}</span></div><button class="button ${grade === "standard" ? "primary" : "ghost"} full" data-action="buy" data-grade="${grade}" ${cost > p().budget || !offer.available || stock < 1 ? "disabled" : ""}>${icon("shop")}${!offer.available || stock < 1 ? "Sin stock" : cost > p().budget ? "Presupuesto insuficiente" : "Comprar para el lote"}</button></article>`;
     })
     .join(
       "",
     )}</div><div class="reserve-note panel"><span>∞</span><div><h3>Tu respaldo para llegar.</h3><p>Ya tenés una pieza de reserva de cada tipo. Nunca se avería ni desaparece del lote: puede estar instalada o guardada. Es lenta y pierde rendimiento con el desgaste.</p></div><button class="button ghost" data-action="open-camp">Ver mis repuestos</button></div><p class="footnote">Los precios y probabilidades son parámetros de juego. El riesgo real aumenta con el desgaste, la exigencia y el sobrecalentamiento. Los vehículos no reciben una mejora hasta que la pieza se monta.</p>`;
 }
-function crew() {
+function driversPage() {
   return `${title("EQUIPO / ENERGÍA Y ESPECIALIZACIÓN", "Tres formas de leer el camino.", "Elegí quién conduce cada etapa. Los otros pilotos recuperan energía mientras viajan como parte del equipo.")}<div class="drivers-grid">${p()
     .drivers.map(
       (d) =>
-        `<article class="panel driver-card" style="--driver:${d.color}"><div class="driver-banner"><span class="driver-number">0${DRIVER_PROFILES.findIndex((x) => x.id === d.id) + 1}</span><span class="avatar large">${d.initials}</span><span class="badge">${p().activeDriver === d.id && p().phase === "racing" ? "AL VOLANTE" : "EN EL EQUIPO"}</span></div><span class="eyebrow">${d.role}</span><h2>${d.name}</h2><p>${d.description}</p><div class="energy-heading"><span>Energía actual</span><strong>${num(d.energy)}%</strong></div>${conditionBar(d.energy, d.color)}<dl><div><dt>Velocidad base</dt><dd>${num(d.speed, 3)}×</dd></div><div><dt>Rendimiento de piezas</dt><dd>${num(d.parts, 3)}×</dd></div><div><dt>Desgaste de piezas</dt><dd>${num(d.wear, 2)}×</dd></div><div><dt>Riesgo de error</dt><dd>${num(d.risk, 2)}×</dd></div><div><dt>Consumo de energía</dt><dd>${num(11 * d.fatigue, 1)} pt/h base</dd></div><div><dt>Para volver al 100%</dt><dd>${num((100 - d.energy) / d.recovery, 1)} h</dd></div></dl><button class="button ghost full" data-action="choose-driver" data-id="${d.id}" ${p().phase === "finished" ? "disabled" : ""}>Asignar a próxima etapa ${icon("arrow")}</button></article>`,
+        `<article class="panel driver-card" style="--driver:${d.color}"><div class="driver-banner"><span class="driver-number">${String(p().drivers.findIndex((x) => x.id === d.id) + 1).padStart(2, "0")}</span><img class="driver-portrait" src="${d.image}" alt="${esc(d.name)}"><span class="badge">${p().activeDriver === d.id && p().phase === "racing" ? "AL VOLANTE" : "EN EL EQUIPO"}</span></div><span class="eyebrow">${d.role}</span><h2>${esc(d.name)}</h2><p>${d.description}</p><div class="energy-heading"><span>Energía actual</span><strong>${num(d.energy)}%</strong></div>${conditionBar(d.energy, d.color)}<dl><div><dt>Velocidad base</dt><dd>${num(d.speed, 3)}×</dd></div><div><dt>Rendimiento de piezas</dt><dd>${num(d.parts, 3)}×</dd></div><div><dt>Desgaste de piezas</dt><dd>${num(d.wear, 2)}×</dd></div><div><dt>Riesgo de error</dt><dd>${num(d.risk, 2)}×</dd></div><div><dt>Consumo de energía</dt><dd>${num(11 * d.fatigue, 1)} pt/h base</dd></div><div><dt>Para volver al 100%</dt><dd>${num((100 - d.energy) / d.recovery, 1)} h</dd></div></dl><button class="button ghost full" data-action="choose-driver" data-id="${d.id}" ${p().phase === "finished" ? "disabled" : ""}>Asignar a próxima etapa ${icon("arrow")}</button><p class="small-note">${money(d.salary)} cr / carrera</p><button class="text-button" data-action="release" data-kind="driver" data-id="${d.id}" ${teamReleaseDisabled()}>Liberar contrato</button></article>`,
     )
     .join(
       "",
-    )}</div><section class="panel finance-panel"><div class="panel-heading"><div><span class="eyebrow">PRESUPUESTO DE LA TRAVESÍA</span><h2>Cada crédito tiene un destino.</h2></div><button class="button ghost small" data-action="export">${icon("download")}Exportar partida</button></div><div class="finance-stats">${stat("INICIAL", money(STARTING_BUDGET) + " <em>cr</em>")}${stat(
-    "GASTADO",
+    )}</div><section class="panel finance-panel"><div class="panel-heading"><div><span class="eyebrow">PRESUPUESTO DEL CAMPEONATO</span><h2>Cada crédito tiene un destino.</h2></div><button class="button ghost small" data-action="export">${icon("download")}Exportar partida</button></div><div class="finance-stats">${stat("INICIAL", money(p().initialBudget ?? STARTING_BUDGET) + " <em>cr</em>")}${stat(
+    "EGRESOS",
     money(
       -p()
         .ledger.filter((x) => x.amount < 0)
         .reduce((a, x) => a + x.amount, 0),
     ) + " <em>cr</em>",
   )}${stat("DISPONIBLE", money(p().budget) + " <em>cr</em>")}${stat(
-    "PREMIOS COBRADOS",
+    "INGRESOS",
     money(
       p()
         .ledger.filter((x) => x.amount > 0)
@@ -414,15 +448,16 @@ function crew() {
 }
 function finishPanel() {
   const t = p();
-  return `<section class="panel finish-panel"><div class="finish-copy"><span class="eyebrow">BUENOS AIRES → SANTIAGO / META</span><h2>Diez mil kilómetros después.</h2><p>Completaste las 15 etapas en ${duration(t.finishTime)}. ${t.statistics.errors} errores y ${t.statistics.failures} averías forman parte de tu historia.</p><div class="finish-stats">${stat("POSICIÓN FINAL", "P" + t.prize.position)}${stat("PREMIO BRUTO", money(t.prize.gross) + " <em>cr</em>")}${stat("ASISTENCIA DESCONTADA", money(t.prize.settled) + " <em>cr</em>")}${stat("PREMIO NETO", money(t.prize.net) + " <em>cr</em>")}</div><button class="button primary" data-action="export-results">${icon("download")}Guardar resultado</button></div><div class="table-scroll"><table><thead><tr><th>Etapa</th><th>Destino</th><th>Conducción e incidentes</th><th>Llegada acumulada</th></tr></thead><tbody>${t.history.map((h) => `<tr><td>${h.stage + 1}</td><td>${STAGES[h.stage].to.name}</td><td>${duration(h.duration)}</td><td>${duration(h.arrival)}</td></tr>`).join("")}</tbody></table></div></section>`;
+  return `<section class="panel finish-panel"><div class="finish-copy"><span class="eyebrow">${esc(ROUTE_NAME)} / META</span><h2>Una carrera más cerca del título.</h2><p>Completaste las 15 etapas en ${duration(t.finishTime)}. ${t.statistics.errors} errores y ${t.statistics.failures} averías forman parte de tu historia.</p><div class="finish-stats">${stat("POSICIÓN FINAL", "P" + t.prize.position)}${stat("PREMIO BRUTO", money(t.prize.gross) + " <em>cr</em>")}${stat("DEUDA DESCONTADA", money(t.prize.settled) + " <em>cr</em>")}${stat("PREMIO NETO", money(t.prize.net) + " <em>cr</em>")}</div><button class="button primary" data-action="tab" data-tab="championship">Ver campeonato</button><button class="button ghost" data-action="export-results">${icon("download")}Guardar resultado</button></div><div class="table-scroll"><table><thead><tr><th>Etapa</th><th>Destino</th><th>Conducción e incidentes</th><th>Llegada acumulada</th></tr></thead><tbody>${t.history.map((h) => `<tr><td>${h.stage + 1}</td><td>${STAGES[h.stage].to.name}</td><td>${duration(h.duration)}</td><td>${duration(h.arrival)}</td></tr>`).join("")}</tbody></table></div></section>`;
 }
 function footer() {
   return `<footer><span>APEX1000 <b>RALLY</b> · v${VERSION} · Prototipo single player</span><div><button data-action="export" ${!state ? "disabled" : ""}>Exportar partida</button><button data-action="import">Importar</button><button data-action="help">Reglas y fuentes</button>${state ? '<button data-action="new-race">Nueva carrera</button>' : ""}</div></footer>`;
 }
 function render() {
+  setActiveRoute(state);
   const content = !state
     ? onboarding()
-    : `<main>${{ race: racePage, roadbook, camp, market, crew }[ui.tab]()}</main>`;
+    : `<main>${{ race: racePage, roadbook, camp, market, crew, championship: () => championshipPage(state) }[ui.tab]()}</main>`;
   $("#app").innerHTML = header() + clockBar() + content + footer();
   if (state && ui.tab === "race") {
     updateMap(state);
@@ -463,6 +498,7 @@ function refresh() {
     $("#player-metrics").innerHTML = playerMetrics();
     $("#team-inspector").innerHTML = teamInspector();
     $("#events").innerHTML = eventsHTML();
+    if ($("#map-hud")) $("#map-hud").innerHTML = mapHUD();
   }
   if (ui.tab === "camp" && $("#service-quote"))
     $("#service-quote").innerHTML = quoteHTML();
@@ -471,7 +507,9 @@ function runTime(command) {
   if (busy) return;
   busy = true;
   const beforeStage = p().stageIndex,
-    beforePhase = p().phase;
+    beforePhase = p().phase,
+    beforeResults = state.championship.results.length,
+    beforeAuctions = JSON.stringify(state.management.auctions);
   const worker = new Worker(new URL("./worker.js", import.meta.url), {
     type: "module",
   });
@@ -485,6 +523,7 @@ function runTime(command) {
       return;
     }
     state = data.state;
+    setActiveRoute(state);
     if (!command.fromTimer) lastWall = Date.now();
     if (command.type === "next-camp") {
       state.speed = 0;
@@ -497,8 +536,10 @@ function runTime(command) {
     }
     if (
       command.type !== "advance" ||
+      beforeAuctions !== JSON.stringify(state.management.auctions) ||
       beforeStage !== p().stageIndex ||
       beforePhase !== p().phase ||
+      beforeResults !== state.championship.results.length ||
       state.clock === 0
     ) {
       persist();
@@ -590,7 +631,7 @@ function bindMap() {
 function help() {
   const dialog = document.createElement("dialog");
   dialog.className = "dialog help-dialog";
-  dialog.innerHTML = `<div class="dialog-title"><div><span class="eyebrow">CÓMO FUNCIONA</span><h2>Una sola largada. Tu propio ritmo.</h2></div><button class="icon-button" data-action="close-modal" aria-label="Cerrar">${icon("close")}</button></div><p>Todos los equipos comparten un horario de largada. Después, conducción, averías, asistencia y descansos consumen tiempo de la misma carrera. Pueden estar en etapas diferentes. Gana quien llega antes a Santiago.</p><h3>Preparar cada etapa</h3><p>En Campamento elegís piloto, ritmo, exigencia, chasis, gomas, transmisión, refrigeración, combustible y acciones por pieza. Guardar confirma ese plan. Al llegar, las piezas se reparan o cambian y los pilotos descansan en paralelo. La etapa arranca cuando termina la tarea más larga. Una etapa sin plan deja al equipo esperando.</p><p>El descanso se limita a las horas necesarias para recuperar 100% de energía. Los pilotos de relevo también descansan mientras otro conduce. La preparación de la primera etapa ocurre antes de largar.</p><h3>Calidad no es estado</h3><p>La calidad determina rendimiento, resistencia, tendencia térmica y riesgo base. El estado es el desgaste actual. Podés comprar repuestos nuevos o usados, reparar los instalados o intercambiarlos por piezas del lote. La pieza retirada vuelve al inventario.</p><p>Tenés una reserva gratuita de cada tipo. Nunca se avería: sigue funcionando cada vez más lenta al desgastarse. Si llegás con una pieza rota, se intenta reparar según tu plan; si continúa rota se monta la reserva disponible para seguir.</p><h3>Economía y continuidad</h3><p>El presupuesto paga vehículo, repuestos, mano de obra y combustible. Las reparaciones que no se pueden pagar se omiten. Para evitar una carrera bloqueada sin combustible, una asistencia suma 4 h y un recargo del 40%. Si falta dinero, queda una deuda que se descuenta del premio; el saldo pendiente se muestra al terminar. Los premios sólo se pagan al llegar a meta.</p><h3>Tiempo del prototipo</h3><p>1× usa tiempo real y recupera el tiempo transcurrido al volver a abrir la partida. Pausado y las velocidades aceleradas pertenecen sólo al prototipo single player. Una sesión acelerada se reabre pausada. “Mi próxima parada” avanza el reloj de todos hasta que tu equipo completa una etapa y pausa la prueba.</p><h3>Qué es real y qué es diseño del juego</h3><p>Los modelos de vehículos y las localidades son reales. La ruta deportiva, los kilómetros de etapa, el terreno, los costos, la resistencia comparativa, los consumos y las probabilidades son parámetros ficticios. La cartografía base es de Natural Earth y las localidades de GeoNames; el trazado no es navegación vial.</p><p>Se juega una modalidad de preparación libre: algunos sectores de asfalto admiten hasta 250 km/h. No reproduce el reglamento Dakar ni la velocidad homologada de los vehículos (por ejemplo, X-raid publica un límite de 170 km/h para el MINI). Un vehículo averiado circula a 30 km/h.</p><h3>Online, más adelante</h3><p>Esta versión no conecta jugadores reales. Once equipos son simulados. El motor y el contrato público del visor están separados; un servidor futuro deberá ser dueño del reloj, el estado y las compras. GitHub Pages aloja este prototipo.</p><h3>Fuentes</h3><ul>${VEHICLES.map((v) => `<li><a href="${v.source}" target="_blank" rel="noreferrer">${v.name}</a></li>`).join("")}<li><a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">Natural Earth</a> · cartografía</li><li><a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> · localidades</li></ul>`;
+  dialog.innerHTML = `<div class="dialog-title"><div><span class="eyebrow">CÓMO FUNCIONA</span><h2>Una sola largada. Tu propio ritmo.</h2></div><button class="icon-button" data-action="close-modal" aria-label="Cerrar">${icon("close")}</button></div><p>Todos los equipos comparten un horario de largada. Después, conducción, averías, asistencia y descansos consumen tiempo de la misma carrera. Pueden estar en etapas diferentes. Gana quien llega antes a la meta de cada carrera.</p><h3>Preparar cada etapa</h3><p>En Campamento elegís piloto, ritmo, exigencia, chasis, gomas, transmisión, refrigeración, combustible y acciones por pieza. Guardar confirma ese plan. Al llegar, las piezas se reparan o cambian y los pilotos descansan en paralelo. La etapa arranca cuando termina la tarea más larga. Una etapa sin plan deja al equipo esperando.</p><p>El descanso se limita a las horas necesarias para recuperar 100% de energía. Los pilotos de relevo también descansan mientras otro conduce. La preparación de la primera etapa ocurre antes de largar.</p><h3>Calidad no es estado</h3><p>La calidad determina rendimiento, resistencia, tendencia térmica y riesgo base. El estado es el desgaste actual. Podés comprar repuestos nuevos o usados, reparar los instalados o intercambiarlos por piezas del lote. La pieza retirada vuelve al inventario.</p><p>Tenés una reserva gratuita de cada tipo. Nunca se avería: sigue funcionando cada vez más lenta al desgastarse. Si llegás con una pieza rota, se intenta reparar según tu plan; si continúa rota se monta la reserva disponible para seguir.</p><h3>Economía y continuidad</h3><p>El presupuesto paga vehículo, repuestos, mano de obra y combustible. Las reparaciones que no se pueden pagar se omiten. Para evitar una carrera bloqueada sin combustible, una asistencia suma 4 h y un recargo del 40%. Si falta dinero, queda una deuda que se descuenta del premio; el saldo pendiente se muestra al terminar. Los premios sólo se pagan al llegar a meta.</p><h3>Tiempo del prototipo</h3><p>1× usa tiempo real y recupera el tiempo transcurrido al volver a abrir la partida. Pausado y las velocidades aceleradas pertenecen sólo al prototipo single player. Una sesión acelerada se reabre pausada. “Mi próxima parada” avanza el reloj de todos hasta que tu equipo completa una etapa y pausa la prueba.</p><h3>Qué es real y qué es diseño del juego</h3><p>Los modelos de vehículos y las localidades son reales. La ruta deportiva, los kilómetros de etapa, el terreno, los costos, la resistencia comparativa, los consumos y las probabilidades son parámetros ficticios. La cartografía base es de Natural Earth y las localidades de GeoNames; el trazado no es navegación vial.</p><p>Se juega una modalidad de preparación libre: algunos sectores de asfalto admiten hasta 250 km/h. No reproduce el reglamento Dakar ni la velocidad homologada de los vehículos (por ejemplo, X-raid publica un límite de 170 km/h para el MINI). Un vehículo averiado circula a 30 km/h.</p><h3>Online, más adelante</h3><p>Esta versión no conecta jugadores reales. Once equipos son simulados. El motor y el contrato público del visor están separados; un servidor futuro deberá ser dueño del reloj, el estado y las compras. GitHub Pages aloja este prototipo.</p><h3>Fuentes</h3><ul>${VEHICLES.map((v) => `<li><a href="${v.source}" target="_blank" rel="noreferrer">${v.name}</a></li>`).join("")}<li><a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">Natural Earth</a> · cartografía</li><li><a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> · localidades</li></ul>`;
   $("#modal-root").replaceChildren(dialog);
   dialog.showModal();
 }
@@ -627,6 +668,82 @@ document.addEventListener("click", (e) => {
       !["zoom-in", "zoom-out", "fit-map", "follow", "tab"].includes(a)
     ) {
       toast("Esperá a que termine el cálculo actual.");
+      return;
+    }
+    if (a === "fullscreen-map") {
+      if (document.body.classList.contains("map-fullscreen")) {
+        document.body.classList.remove("map-fullscreen");
+        if (document.fullscreenElement)
+          document.exitFullscreen().catch(() => {});
+      } else {
+        document.body.classList.add("map-fullscreen");
+        document.documentElement.requestFullscreen?.().catch(() => {});
+      }
+      return;
+    }
+    if (a === "bid") {
+      bid(state, b.dataset.kind, id, Number($("#bid-" + id).value));
+      persist();
+      render();
+      toast(
+        "Oferta registrada y sueldo reservado. El cierre usa el reloj de la carrera.",
+      );
+      return;
+    }
+    if (a === "cancel-bid") {
+      cancelBid(state, id);
+      persist();
+      render();
+      return;
+    }
+    if (a === "release") {
+      releasePerson(state, b.dataset.kind, id);
+      ui.drafts = {};
+      persist();
+      render();
+      toast(
+        "Contrato liberado. Los planes futuros se reasignaron si era necesario.",
+      );
+      return;
+    }
+    if (a === "buy-vehicle") {
+      buyVehicle(state, id);
+      ui.drafts = {};
+      persist();
+      render();
+      return;
+    }
+    if (a === "choose-shield") {
+      p().shieldId = Number(id);
+      persist();
+      render();
+      return;
+    }
+    if (a === "rename-team") {
+      const name = $("#team-name").value.trim();
+      if (!name) throw Error("Ingresá un nombre.");
+      p().name = name.slice(0, 40);
+      persist();
+      render();
+      return;
+    }
+    if (a === "next-race") {
+      state = nextChampionshipRace(state);
+      ui.drafts = {};
+      ui.selectedStage = 0;
+      ui.selectedTeam = "player";
+      ui.tab = "camp";
+      fitMap();
+      persist();
+      render();
+      return;
+    }
+    if (a === "finish-grid") {
+      runTime({
+        type: "advance",
+        seconds: 30 * 86400,
+        stopAtAllFinished: true,
+      });
       return;
     }
     if (a === "tab") {
@@ -711,6 +828,7 @@ document.addEventListener("click", (e) => {
         if (!p().plans[i]) {
           savePlan(state, i, {
             ...defaultPlan(i),
+            driverId: p().drivers[i % p().drivers.length].id,
             ...recommendedSetup(STAGES[i]),
             fuelTarget: vehicle(p().vehicleId).tank,
           });
@@ -857,7 +975,7 @@ setInterval(() => {
 window.addEventListener("beforeunload", () => persist());
 try {
   const response = await fetch(
-    new URL("../assets/south-america.json", import.meta.url),
+    new URL("../assets/world.json", import.meta.url),
   );
   if (!response.ok) throw new Error("No se pudo cargar el mapa.");
   geo = await response.json();
@@ -871,3 +989,43 @@ try {
   $("#app").innerHTML =
     `<main><h1>No se pudo abrir el rally</h1><p>${esc(err.message)}</p><p>Abrí el juego mediante su dirección web y conservá la carpeta assets al publicarlo.</p></main>`;
 }
+
+function teamReleaseDisabled() {
+  return ["racing", "service"].includes(p().phase) || p().drivers.length <= 1
+    ? "disabled"
+    : "";
+}
+function market() {
+  return garagePanel(state) + partsMarket() + staffMarket(state);
+}
+function crew() {
+  return identityPanel(state) + driversPage() + mechanicsPanel(state);
+}
+function mapHUD() {
+  const t = state.teams.find((x) => x.id === ui.selectedTeam) || p(),
+    d = t.drivers.find((x) => x.id === t.activeDriver) || t.drivers[0];
+  return `<div class="hud-team">${shieldSVG(t.shieldId)}<div><small>SEGUIMIENTO · ${PHASES[t.phase]}</small><strong>${esc(t.name)}</strong></div></div><img class="hud-vehicle" src="assets/art/${t.vehicleId}.webp" alt="${esc(vehicle(t.vehicleId).name)}"><div class="hud-driver"><img src="${d.image}" alt="${esc(d.name)}"><div><strong>${esc(d.name)}</strong><small>${esc(vehicle(t.vehicleId).short)} · Energía ${num(d.energy)}%</small></div></div><div class="hud-figures"><div><strong>${num(t.speed)}</strong><small>km/h</small></div><div><strong>${num(t.totalKm)}</strong><small>de ${num(TOTAL_KM)} km</small></div><div><strong>${num(t.fuel)} L</strong><small>combustible</small></div><div><strong>${num(t.heat)}°</strong><small>temperatura</small></div></div><div class="hud-parts">${PART_TYPES.map((type) => `<div><small>${type.short}</small><b>${t.parts[type.id].broken ? "AVERÍA" : num(t.parts[type.id].condition) + "%"}</b>${conditionBar(t.parts[type.id].condition)}</div>`).join("")}</div><label>Seguir equipo<select id="hud-team">${standings(
+    state,
+  )
+    .map(
+      (x, i) =>
+        `<option value="${x.id}" ${x.id === t.id ? "selected" : ""}>P${i + 1} · ${esc(x.name)}</option>`,
+    )
+    .join(
+      "",
+    )}</select></label><small>Etapa ${Math.min(t.stageIndex + 1, 15)} / 15 · Tiempo ${duration(state.clock)} · ${money(t.budget)} cr</small>`;
+}
+document.addEventListener("change", (e) => {
+  if (e.target.id === "hud-team") {
+    ui.selectedTeam = e.target.value;
+    focusTeam(state.teams.find((t) => t.id === ui.selectedTeam));
+    refresh();
+  }
+});
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement)
+    document.body.classList.remove("map-fullscreen");
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") document.body.classList.remove("map-fullscreen");
+});

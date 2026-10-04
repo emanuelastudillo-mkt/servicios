@@ -1,0 +1,15 @@
+{
+  "enabled": false,
+  "status": "Pendiente de reactivar el conector de Google Drive y crear las hojas nativas",
+  "driveFolder": "https://drive.google.com/drive/folders/18QOIC22BHnWJTpkL5ubRJ82AzUkuGs2I",
+  "repository": "https://github.com/emanuelastudillo-mkt/servicios",
+  "csvUrls": {
+    "vehicles": "",
+    "parts": "",
+    "drivers": "",
+    "mechanics": "",
+    "races": "",
+    "prizes": "",
+    "settings": ""
+  }
+}

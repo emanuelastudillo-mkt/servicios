@@ -1,0 +1,5 @@
+"id","name","price","stock","available","image"
+"hilux","Toyota GR DKR Hilux EVO","48000","6","TRUE","assets/art/hilux.webp"
+"raptor","Ford Raptor T1+","54000","6","TRUE","assets/art/raptor.webp"
+"sandrider","Dacia Sandrider","56000","6","TRUE","assets/art/sandrider.webp"
+"mini","MINI JCW Rally 3.0i","45000","6","TRUE","assets/art/mini.webp"
