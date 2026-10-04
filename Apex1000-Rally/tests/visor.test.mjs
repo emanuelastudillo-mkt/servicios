@@ -44,7 +44,7 @@ test("los equipos se interpolan sobre el mismo trazado, sin salto en campamentos
       }
   }
 });
-test("zoom 120x, ancla fija al cursor y seguimiento que conserva el aumento", () => {
+test("zoom 2000x, ancla fija al cursor y seguimiento que conserva el aumento", () => {
   setActiveRoute("andes");
   fitMap();
   const anchor = { x: 260, y: 130 },
@@ -54,9 +54,9 @@ test("zoom 120x, ancla fija al cursor y seguimiento que conserva el aumento", ()
   assert.ok(Math.abs((anchor.y - camera.y) / camera.h - ratio.y) < 1e-10);
   zoom(0.00001);
   assert.ok(Math.abs(1000 / camera.w - MAX_ZOOM) < 1e-10);
-  assert.ok(MAX_ZOOM >= 10 * (1000 / 110));
+  assert.equal(MAX_ZOOM, 2000);
   focusTeam({ id: "player", totalKm: 345 });
-  assert.ok(Math.abs(1000 / camera.w - 120) < 1e-10);
+  assert.ok(Math.abs(1000 / camera.w - 2000) < 1e-10);
   assert.equal(camera.follow, "player");
   zoom(1.2);
   assert.equal(camera.follow, "player");

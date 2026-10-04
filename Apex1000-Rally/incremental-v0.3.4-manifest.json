@@ -1,0 +1,79 @@
+{
+  "version": "0.3.4",
+  "baseVersion": "0.3.3",
+  "deletions": [],
+  "files": [
+    {
+      "path": "Apex1000-Rally/src/app.js",
+      "sha256": "09bf2dcda0fbaeacca600ef330438ffb95537dce030a6ff4ffd2fa0372c006f1",
+      "baseSha256": "e6e934281b82ab99b953856a8f0d969845a48c6aa413926501629fff083c142b",
+      "bytes": 70725
+    },
+    {
+      "path": "Apex1000-Rally/src/visuals.js",
+      "sha256": "1a0e8a0a0f01464850f486ec10daaa5353afe439e1c140e24dbeb81d63efaf47",
+      "baseSha256": "83958759483cc25d70db345d8d8ae0d7c67adb27e23e0b4591c7c44806e9298a",
+      "bytes": 9661
+    },
+    {
+      "path": "Apex1000-Rally/src/admin-ui.js",
+      "sha256": "537057335c3911043bf4f4f1ebb02b733b34de3f9902f01ef67fac5ace328782",
+      "baseSha256": "cb901790220c925d8b51fd10ca0158a6c0fcf8ee69d90b719861aa58ebdcb930",
+      "bytes": 2014
+    },
+    {
+      "path": "Apex1000-Rally/src/live-ui.js",
+      "sha256": "1df4f55f8b9c28c07413e95a9b6fbee6471d67b657c96fa28ae47617dd39ba7f",
+      "baseSha256": null,
+      "bytes": 2367
+    },
+    {
+      "path": "Apex1000-Rally/src/admin-commands.js",
+      "sha256": "c33ed0850c5a142328897baa1fc9560e4a0d2b4644d940b82f294fee9caa68cb",
+      "baseSha256": null,
+      "bytes": 824
+    },
+    {
+      "path": "Apex1000-Rally/src/catalog.js",
+      "sha256": "2c82e4f636258a83e326059367d0c0cec3eb91e4bd1f92018171e05f3e10d347",
+      "baseSha256": "0898746340bc9bb739f561d59a76e69ba353fd75c5bb1c0b32a22e5413d086c3",
+      "bytes": 8395
+    },
+    {
+      "path": "Apex1000-Rally/style.css",
+      "sha256": "defde34cc8eb3337f530ba6b9e9610346b6e1999a9eb89cfd4308e1d618e1317",
+      "baseSha256": "c17a1fc278b8030f40c5c7f337a02d39f3b4689f4241dbf416c2381ade9f665b",
+      "bytes": 75271
+    },
+    {
+      "path": "Apex1000-Rally/package.json",
+      "sha256": "44d7c4fc11768a6ecbc36199de0c2ddf8cdfb1fb607ae5104b554720058ceae5",
+      "baseSha256": "a5a79729ceb40f0f8290dbcf9a65bc1c41cf18319cdaf5e93270942d482da55c",
+      "bytes": 483
+    },
+    {
+      "path": "Apex1000-Rally/tests/visor.test.mjs",
+      "sha256": "dfacc986fbf3d55c50249e08a99b30ed97e06e27b6bc0ad644459941fae1a9e1",
+      "baseSha256": "b30b2d53c13416d7065aad296432e9fa96c05bb346c6f97a5356fdafb489f4d4",
+      "bytes": 4996
+    },
+    {
+      "path": "Apex1000-Rally/tests/admin.test.mjs",
+      "sha256": "6e890619d3e4d1b84f522fef4cdc993550836c45c3275ab14fd14002be114be7",
+      "baseSha256": null,
+      "bytes": 1956
+    },
+    {
+      "path": "Apex1000-Rally/README.md",
+      "sha256": "fca0c6cf3b4f33b80beea8ae487afbead9f84aef10543ff5efd9bbd7526ad6ba",
+      "baseSha256": "236a2544d0e67f2f8760c2b8540838383b956a4c7dfb87fae809552a65e5dabe",
+      "bytes": 9451
+    },
+    {
+      "path": "Apex1000-Rally/INCREMENTAL-v0.3.4.md",
+      "sha256": "48bd7fbf7a5b86157fa3dbb526de8b1f53c04d62ea27a50357d6ca63ce5854d0",
+      "baseSha256": null,
+      "bytes": 2154
+    }
+  ]
+}

@@ -40,7 +40,7 @@ export const stagePath = (s) =>
     )
     .join(" ");
 export const camera = { x: 0, y: 0, w: 1000, h: 950, follow: null };
-export const MAX_ZOOM = 120;
+export const MAX_ZOOM = 2000;
 export function fitMap() {
   Object.assign(camera, { x: 0, y: 0, w: 1000, h: 950, follow: null });
 }

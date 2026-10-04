@@ -18,6 +18,8 @@ import {
 } from "./workshop.js";
 import { repairQuote } from "./part-maintenance.js";
 import { adminBar, ADMIN_ENABLED } from "./admin-ui.js";
+import { injectMoney } from "./admin-commands.js";
+import { patchLivePanel, editingControl } from "./live-ui.js";
 import { journalPage } from "./journal-ui.js";
 import {
   bid,
@@ -245,7 +247,7 @@ function onboarding() {
   return `<main class="onboarding"><div class="intro-copy"><span class="eyebrow">8 CARRERAS · 120 ETAPAS · UN CAMPEONATO</span><h1>La carrera no se gana<br>en un día.</h1><p>Ocho travesías por el mundo. Gestioná tu equipo, elegí cuándo acelerar y construí una temporada de resistencia. La primera carrera: de Buenos Aires a Santiago.</p><div class="intro-stats">${stat("RECORRIDO", "10.240 <em>km</em>")}${stat("COMPETENCIA", "12 <em>equipos</em>")}${stat("PRESUPUESTO", money(STARTING_BUDGET) + " <em>cr</em>")}</div></div><section class="vehicle-grid">${VEHICLES.map((car) => `<button class="vehicle-card ${ui.vehicleId === car.id ? "selected" : ""}" style="--vehicle:${car.color}" data-action="choose-vehicle" data-id="${car.id}"><div class="vehicle-top"><span>${car.tag}</span>${ui.vehicleId === car.id ? icon("check") : '<span class="radio-circle"></span>'}</div>${truckSVG(car.id)}<h2>${car.name}</h2><p>${car.engine}</p><div class="vehicle-specs"><span>Tanque <b>${car.tank} L</b></span><span>Velocidad <b>${Math.round(car.speed * 100)}</b></span><span>Resistencia <b>${Math.round(car.reliability * 100)}</b></span><span>Consumo <b>${Math.round(100 / car.efficiency)}</b></span></div><div class="vehicle-bottom"><span>Uso e inscripción</span><strong>${money(car.fee)} cr</strong></div></button>`).join("")}</section><section class="panel enlist"><div><span class="eyebrow">TU PRIMERA DECISIÓN</span><h2>${v.short}</h2><p>${v.description}</p><p class="muted">Velocidad, resistencia y consumo son índices de juego (base 100); menor consumo es mejor. Los costos también pertenecen al juego. Auto nuevo: estado 100, performance 50 y fiabilidad 50. Seis piezas Sport al 92% y seis reservas gratuitas incluidas.</p></div><form id="create-form"><label>Nombre del equipo<input name="teamName" maxlength="40" value="Tu equipo" required></label><label>Largada compartida · hora local<input name="startAt" type="datetime-local" value="${local}" required></label><label>Escenario<input name="seed" type="number" min="1" max="999999" value="1729"></label><div class="enlist-balance"><span>Saldo antes de sueldos</span><strong>${money(STARTING_BUDGET - v.fee)} cr</strong></div><button class="button primary full" type="submit">Inscribir equipo ${icon("arrow")}</button></form></section><div class="intro-note">Prototipo single player. Todos comparten la largada; después cada equipo administra su propio tiempo. La aceleración sólo existe en esta versión de prueba.</div></main>`;
 }
 function mapPanel() {
-  return `<section class="panel map-panel" id="map-panel"><div class="panel-heading"><div><span class="eyebrow">VISOR DE CARRERA / RECORRIDO COMPLETO</span><h2>${esc(ROUTE_NAME)}</h2></div><button class="button ghost small" data-action="fullscreen-map">${document.body.classList.contains("map-fullscreen") ? "Cerrar pantalla completa" : "⛶ Pantalla completa"}</button></div><div class="map-container">${mapSVG(state, geo)}<div class="map-zoom"><button data-action="zoom-in" aria-label="Acercar mapa">+</button><span id="zoom-level">${(1000 / camera.w).toFixed(1)}×</span><button data-action="zoom-out" aria-label="Alejar mapa">−</button><input id="map-zoom-range" type="range" min="1" max="${MAX_ZOOM}" step="1" value="${Math.max(1, 1000 / camera.w)}" aria-label="Nivel de zoom del mapa" title="Zoom de 1× a 120×"></div><div class="map-actions"><button data-action="fit-map">${icon("map")}Ver ruta</button><button data-action="follow" data-id="player">${icon("target")}Seguirme</button></div><div class="map-hud" id="map-hud">${mapHUD()}</div><div class="map-legend"><i></i> Trazado de la prueba <span>●</span> Campamento</div><div class="map-distance"><span>CARRERA ${state.championship.round + 1} DE 8</span><strong>${num(TOTAL_KM)} <small>km</small></strong></div></div><div class="map-footer"><span>Arrastrá para mover · rueda para acercar · tocá un equipo para seguirlo</span><span>Natural Earth · GeoNames · trazado deportivo de diseño</span></div></section>`;
+  return `<section class="panel map-panel" id="map-panel"><div class="panel-heading"><div><span class="eyebrow">VISOR DE CARRERA / RECORRIDO COMPLETO</span><h2>${esc(ROUTE_NAME)}</h2></div><button class="button ghost small" data-action="fullscreen-map">${document.body.classList.contains("map-fullscreen") ? "Cerrar pantalla completa" : "⛶ Pantalla completa"}</button></div><div class="map-container">${mapSVG(state, geo)}<div class="map-zoom"><button data-action="zoom-in" aria-label="Acercar mapa">+</button><span id="zoom-level">${(1000 / camera.w).toFixed(1)}×</span><button data-action="zoom-out" aria-label="Alejar mapa">−</button><input id="map-zoom-range" type="range" min="1" max="${MAX_ZOOM}" step="1" value="${Math.max(1, 1000 / camera.w)}" aria-label="Nivel de zoom del mapa" title="Zoom de 1× a ${MAX_ZOOM}×"></div><div class="map-actions"><button data-action="fit-map">${icon("map")}Ver ruta</button><button data-action="follow" data-id="player">${icon("target")}Seguirme</button></div><div class="map-hud" id="map-hud">${mapHUD()}</div><div class="map-legend"><i></i> Trazado de la prueba <span>●</span> Campamento</div><div class="map-distance"><span>CARRERA ${state.championship.round + 1} DE 8</span><strong>${num(TOTAL_KM)} <small>km</small></strong></div></div><div class="map-footer"><span>Arrastrá para mover · rueda para acercar · tocá un equipo para seguirlo</span><span>Natural Earth · GeoNames · trazado deportivo de diseño</span></div></section>`;
 }
 function leaderboard() {
   return `<section class="panel leaderboard"><div class="panel-heading"><div><span class="eyebrow">UNA LARGADA, DISTINTOS CAMINOS</span><h2>Orden de carrera</h2></div><span class="count-pill">12</span></div><div class="standing-head"><span>EQUIPO / ESTADO</span><span>KM TOTALES</span></div><div id="leaderboard-rows">${leaderboardRows()}</div><div class="small-note">En carrera se ordena por avance. Al llegar, por tiempo total desde la largada, incluyendo asistencia y descanso.</div></section>`;
@@ -487,19 +489,24 @@ const adminObserver = new ResizeObserver(() => {
 });
 function renderAdmin() {
   adminObserver.disconnect();
-  adminRoot.innerHTML = state
-    ? adminBar(state, {
-        busy,
-        canNext:
-          state.championship.round < 7 &&
-          state.teams.every((t) => t.phase === "finished"),
-      })
-    : "";
+  patchLivePanel(
+    adminRoot,
+    state
+      ? adminBar(state, {
+          busy,
+          canNext:
+            state.championship.round < 7 &&
+            state.teams.every((t) => t.phase === "finished"),
+        })
+      : "",
+  );
   if (adminRoot.firstElementChild)
     adminObserver.observe(adminRoot.firstElementChild);
   else document.documentElement.style.setProperty("--admin-height", "0px");
 }
+let pendingLiveRender = false;
 function render() {
+  pendingLiveRender = false;
   setActiveRoute(state);
   const content = !state
     ? onboarding()
@@ -546,7 +553,7 @@ function refresh() {
     $("#player-metrics").innerHTML = playerMetrics();
     $("#team-inspector").innerHTML = teamInspector();
     $("#events").innerHTML = eventsHTML();
-    if ($("#map-hud")) $("#map-hud").innerHTML = mapHUD();
+    patchLivePanel($("#map-hud"), mapHUD());
   }
   if (ui.tab === "home") $("main").innerHTML = homePage(state);
   if (ui.tab === "workshop") {
@@ -617,9 +624,13 @@ function runTime(command) {
       (beforeClock < 0 && state.clock >= 0)
     ) {
       persist();
-      render();
+      if (command.fromTimer && editingControl(document)) {
+        pendingLiveRender = true;
+        refresh();
+      } else render();
     } else {
-      refresh();
+      if (pendingLiveRender && !editingControl(document)) render();
+      else refresh();
       if (!command.fromTimer || ++saveTick % 5 === 0) persist();
     }
   };
@@ -803,6 +814,7 @@ document.addEventListener("click", (e) => {
         "next-camp",
         "next-race",
         "finish-grid",
+        "inject-money",
       ].includes(a)
     )
       return;
@@ -1033,6 +1045,12 @@ document.addEventListener("click", (e) => {
       persist();
       render();
       toast("Pieza comprada. Programá su montaje en Campamento.");
+    } else if (a === "inject-money") {
+      const amount = Number($("#admin-money-amount").value);
+      injectMoney(state, amount);
+      persist();
+      render();
+      toast("Admin: se añadieron " + money(amount) + " cr a tu equipo.");
     } else if (a === "toggle-time") {
       state.speed = state.speed ? 0 : 1;
       lastWall = Date.now();
@@ -1249,9 +1267,16 @@ document.addEventListener("input", (e) => {
   }
 });
 document.addEventListener("fullscreenchange", () => {
-  if (!document.fullscreenElement)
+  if (!document.fullscreenElement) {
     document.body.classList.remove("map-fullscreen");
+    const button = document.querySelector('[data-action="fullscreen-map"]');
+    if (button) button.textContent = "⛶ Pantalla completa";
+  }
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") document.body.classList.remove("map-fullscreen");
+  if (e.key === "Escape" && !editingControl(document)) {
+    document.body.classList.remove("map-fullscreen");
+    const button = document.querySelector('[data-action="fullscreen-map"]');
+    if (button) button.textContent = "⛶ Pantalla completa";
+  }
 });

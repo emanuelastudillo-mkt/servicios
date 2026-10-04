@@ -1,8 +1,12 @@
-# Apex1000 Rally — World Raid v0.3.3
+# Apex1000 Rally — World Raid v0.3.4
 
 Juego estático para navegador, single player, con 11 equipos rivales simulados. Se ejecuta en GitHub Pages o con `node server.mjs` y no necesita instalar dependencias para jugar.
 
 ## Esta entrega
+
+El incremental v0.3.4 amplía el zoom máximo de **120× a 2000×**, conserva los desplegables de seguimiento mientras se actualiza la telemetría y agrega **Inyectar dinero a tu equipo** en Admin. Elegí un importe entero de 1 a 10.000.000 cr; el ingreso se guarda y aparece identificado en las finanzas. El saldo máximo es 100.000.000 cr. La función se bloquea fuera del modo single player y cuando Admin está desactivado.
+
+Los cambios de etapa que necesitan reconstruir la pantalla se aplazan mientras editás un control. El reloj, los escudos, los rivales y los datos del visor siguen actualizándose. Al salir del control, la siguiente actualización completa la pantalla pendiente. Escape sobre un control ya no cierra el modo ampliado del mapa por el manejador del juego.
 
 El incremental v0.3.3 agrega **Home y Taller**. La Home reúne próxima largada, presupuesto, deuda, progreso e hitos de seguimiento. El taller admite **hasta 3 autos**, compra, venta y entrega como parte de pago. Cada unidad conserva su propio estado, performance, fiabilidad y kilometraje.
 
@@ -18,9 +22,9 @@ La barra Admin se adapta a móvil y pantalla completa. “Próxima carrera” se
 
 ## Visor y funciones existentes
 
-El visor conserva el zoom hasta 120×, escudos de tamaño constante, posición y distancias al anterior/siguiente, alertas rojas pulsantes por averías y amarillas por riesgo elevado. Las 120 etapas tienen curvas y desvíos de diseño. Los vehículos recorren la misma geometría que se dibuja; los kilómetros deportivos y el balance de simulación se conservan.
+El visor conserva el zoom hasta 2000×, escudos de tamaño constante, posición y distancias al anterior/siguiente, alertas rojas pulsantes por averías y amarillas por riesgo elevado. Las 120 etapas tienen curvas y desvíos de diseño. Los vehículos recorren la misma geometría que se dibuja; los kilómetros deportivos y el balance de simulación se conservan.
 
-Para acercar: botones, rueda sobre el punto de interés o deslizador de 1× a 120×. “Seguirme” enfoca al equipo a 12× y conserva aumentos mayores; “Ver ruta” vuelve a la vista general. Los escudos muestran el puesto. En pantalla completa, el panel detalla los kilómetros de separación según el orden de carrera; si ambos equipos terminaron, también indica la diferencia de tiempo.
+Para acercar: botones, rueda sobre el punto de interés o deslizador de 1× a 2000×. “Seguirme” enfoca al equipo a 12× y conserva aumentos mayores; “Ver ruta” vuelve a la vista general. Los escudos muestran el puesto. En pantalla completa, el panel detalla los kilómetros de separación según el orden de carrera; si ambos equipos terminaron, también indica la diferencia de tiempo.
 
 La alerta amarilla de pieza aparece desde un 8% estimado de avería en la próxima hora de conducción. Usa la fórmula real del simulador y supone estado, exigencia y temperatura constantes; no es una garantía del resultado. Las reservas mantienen riesgo de avería cero. Temperatura superior a 112 °C activa aviso amarillo y superior a 122 °C activa rojo. Las averías existentes se señalan en rojo. La animación respeta la preferencia de movimiento reducido del dispositivo.
 
@@ -49,13 +53,13 @@ Con Node.js 22 o superior: `node server.mjs`. Abrir http://127.0.0.1:4182. No ab
 
 ## Publicación e incremental
 
-El incremental **v0.3.3 requiere v0.3.2**. Descomprimir en la raíz del repositorio `servicios`, conservando la carpeta `Apex1000-Rally/`, y agregar o reemplazar sólo los archivos incluidos. No borrar los demás. Este ZIP no incluye cambios en workflows ni en la conexión de Sheets. Después de subirlo, recargar con Ctrl+F5. Ver `INCREMENTAL-v0.3.3.md` para el contenido y los límites de esta entrega.
+El incremental **v0.3.4 requiere v0.3.3**. Descomprimir en la raíz del repositorio `servicios`, conservando la carpeta `Apex1000-Rally/`, y agregar o reemplazar sólo los archivos incluidos. No borrar los demás. Este ZIP no incluye cambios en workflows ni en la conexión de Sheets. Después de subirlo, recargar con Ctrl+F5. Ver `INCREMENTAL-v0.3.4.md` para el contenido y los límites de esta entrega.
 
 Para subir la carpeta completa, conservar `src/`, `data/`, `assets/`, `style.css` e `index.html`. La carpeta `qa/` contiene respaldos y verificaciones locales y no debe publicarse. No se eliminaron los archivos de QA que ya existían en la versión publicada.
 
 ## Validación
 
-`npm test` ejecuta 65 pruebas de simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración, lectura CSV, publicación del catálogo, visor, bitácora, garaje y taller. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas. El ZIP v0.3.3 se aplica y verifica sobre una copia de v0.3.2 y se ejecutaron las mismas pruebas sobre el resultado.
+`npm test` ejecuta 67 pruebas con la integración de catálogo diario instalada (66 en v0.3.3 sin ese incremental): simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración, lectura CSV, catálogo, visor, bitácora, garaje, taller e inyección Admin. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas. El incremental v0.3.4 se verifica sobre una copia de v0.3.3 con el catálogo diario, además de comprobar el visor y los desplegables en Chrome.
 
 ## Alcance
 

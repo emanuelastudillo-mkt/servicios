@@ -3845,6 +3845,21 @@ footer button:hover {
   color: #e8cff7;
   border-color: #a783b76b;
 }
+.admin-money {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.admin-money label {
+  color: #dab5f2;
+  font-size: 10px;
+}
+.admin-money input {
+  width: 120px;
+  padding: 7px 9px;
+  font-size: 12px;
+}
 body:has(.admin-menu) {
   padding-bottom: 76px;
 }
