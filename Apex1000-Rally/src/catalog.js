@@ -1,6 +1,6 @@
 import { CATALOG } from "../data/catalog.js";
-export const VERSION = "0.3.2";
-export const ENGINE_VERSION = "rally-2";
+export const VERSION = "0.3.3";
+export const ENGINE_VERSION = "rally-3";
 export const STARTING_BUDGET = CATALOG.settings.find(
   (s) => s.key === "startingBudget",
 ).value;

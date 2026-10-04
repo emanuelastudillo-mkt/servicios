@@ -1,4 +1,5 @@
 import { GRADES, PART_TYPES, STEP } from "./catalog.js";
+import { vehicleFactors, activeCar } from "./workshop.js";
 
 // Shared with the simulation: failures are sampled once per driving tick.
 export function failureRate(piece, heat, boost = 0) {
@@ -10,15 +11,30 @@ export function failureRate(piece, heat, boost = 0) {
     (1 + Math.max(0, heat - 110) * 0.07)
   );
 }
-export function failureProbability(piece, heat, boost = 0, hours = 1) {
-  const tick = Math.min(1, (failureRate(piece, heat, boost) * STEP) / 3600);
+export function failureProbability(
+  piece,
+  heat,
+  boost = 0,
+  hours = 1,
+  carRisk = 1,
+) {
+  const tick = Math.min(
+    1,
+    (failureRate(piece, heat, boost) * carRisk * STEP) / 3600,
+  );
   return 1 - (1 - tick) ** ((hours * 3600) / STEP);
 }
 export function vehicleHealth(team) {
   const plan = team.activePlan || team.plans[team.stageIndex];
   const parts = PART_TYPES.map((type) => {
     const piece = team.parts[type.id];
-    const probability = failureProbability(piece, team.heat, plan?.boost || 0);
+    const probability = failureProbability(
+      piece,
+      team.heat,
+      plan?.boost || 0,
+      1,
+      vehicleFactors(team).risk,
+    );
     return {
       id: type.id,
       name: type.name,
@@ -44,6 +60,14 @@ export function vehicleHealth(team) {
         : `${(p.probability * 100).toFixed(1)}% aprox. en 1 h de conducción con las condiciones actuales.`,
     }));
   if (team.phase !== "finished") {
+    const car = activeCar(team);
+    if (car?.condition < 40)
+      alerts.push({
+        id: "chassis",
+        level: car.condition < 20 ? "critical" : "warning",
+        text: "Vehículo deteriorado",
+        detail: `Estado ${Math.round(car.condition)}/100. Reparalo en la base al finalizar la carrera.`,
+      });
     if (team.heat > 112)
       alerts.push({
         id: "heat",

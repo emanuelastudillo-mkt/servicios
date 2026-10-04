@@ -1,5 +1,12 @@
 import { CATALOG } from "../data/catalog.js";
 import { DRIVER_PROFILES, vehicle } from "./catalog.js";
+import {
+  crewRate,
+  mechanicsAt,
+  placeNewMechanic,
+  selectVehicle,
+  purchaseVehicle,
+} from "./workshop.js";
 export const LIMITS = { driver: 3, mechanic: 5 };
 const roster = (t, kind) => (kind === "driver" ? t.drivers : t.mechanics);
 const people = (state, kind) =>
@@ -96,10 +103,7 @@ export function chargeSalaries(state, t) {
   t.debt += due - paid;
 }
 export function workshopRate(t) {
-  return (
-    1 +
-    (t.mechanics || []).reduce((sum, m) => sum + (m.efficiency - 0.8) * 0.65, 0)
-  );
+  return Math.max(0.25, crewRate(t, "race"));
 }
 export function bid(state, kind, personId, salary) {
   if (!["driver", "mechanic"].includes(kind))
@@ -225,6 +229,7 @@ export function settleAuctions(state) {
               }
             : { ...person, salary: b.salary };
         roster(t, a.kind).push(hired);
+        if (a.kind === "mechanic") placeNewMechanic(t, hired);
         m.owners[person.id] = t.id;
       }
       b.escrow = 0;
@@ -241,6 +246,14 @@ export function releasePerson(state, kind, id) {
     throw Error("Los contratos se cambian cuando el equipo está detenido.");
   if (kind === "driver" && list.length <= 1)
     throw Error("Necesitás al menos un piloto.");
+  if (
+    kind === "mechanic" &&
+    (list[at].assignment || "race") === "race" &&
+    mechanicsAt(t, "race").length <= 1
+  )
+    throw Error(
+      "Debe quedar al menos un mecánico en carrera. El taller puede quedar sin personal y pausado.",
+    );
   const [person] = list.splice(at, 1);
   delete state.management.owners[person.personId || person.id];
   if (kind === "driver") {
@@ -252,22 +265,12 @@ export function releasePerson(state, kind, id) {
   return person;
 }
 export function buyVehicle(state, id) {
-  const t = state.teams.find((t) => t.id === "player"),
-    m = state.management,
-    v = m.catalog.vehicles.find((v) => v.id === id);
-  if (t.phase !== "waiting" && t.phase !== "finished")
+  const t = state.teams.find((t) => t.id === "player");
+  if (!["waiting", "finished"].includes(t.phase))
     throw Error("Cambiá de vehículo antes de largar o después de la carrera.");
-  if (!t.garage.includes(id)) {
-    if (!v?.available || m.stocks[id] < 1) throw Error("Vehículo sin stock.");
-    if (v.price > t.budget) throw Error("Saldo insuficiente.");
-    cash(state, t, -v.price, `Compra de vehículo: ${v.name}`);
-    m.stocks[id]--;
-    t.garage.push(id);
-  }
-  t.vehicleId = id;
-  t.fuel = Math.min(t.fuel, vehicle(id).tank);
-  for (const p of t.plans)
-    if (p) p.fuelTarget = Math.min(p.fuelTarget, vehicle(id).tank);
+  const owned = t.garage.find((c) => c.modelId === id);
+  const car = owned || purchaseVehicle(state, id);
+  selectVehicle(state, car.id);
 }
 export function championshipStandings(state) {
   return [...state.teams].sort(

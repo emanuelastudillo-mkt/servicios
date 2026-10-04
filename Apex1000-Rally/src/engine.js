@@ -1,5 +1,16 @@
 import { CATALOG } from "../data/catalog.js";
 import { failureRate } from "./reliability.js";
+import { repairQuote, repairPiece } from "./part-maintenance.js";
+export { repairQuote } from "./part-maintenance.js";
+import {
+  initializeWorkshop,
+  advanceWorkshops,
+  activeCar,
+  jobFor,
+  vehicleFactors,
+  wearVehicle,
+  crewRate,
+} from "./workshop.js";
 import {
   startJournal,
   noteIncident,
@@ -72,7 +83,7 @@ function transact(state, team, amount, label) {
   team.ledger.push({ time: state.clock, amount: round(amount), label });
 }
 function item(id, type, grade, condition = 100) {
-  return { id, type, grade, condition, broken: false };
+  return { id, type, grade, condition, original: 100, broken: false };
 }
 function newTeam(id, name, vehicleId, seed, ai = false, catalog = CATALOG) {
   const v = vehicle(vehicleId),
@@ -155,7 +166,7 @@ export function createRace({
     );
   const state = {
     format: "apex-rally",
-    version: 2,
+    version: 3,
     engineVersion: ENGINE_VERSION,
     mode: "single",
     id: `andes-${seed}-${start}`,
@@ -227,6 +238,7 @@ export function createRace({
     "Inscripción completa. Guardá el plan de la primera etapa antes de la largada.",
   );
   initializeManagement(state, { catalog });
+  initializeWorkshop(state);
   if (now > start) advance(state, (now - start) / 1000);
   return state;
 }
@@ -277,6 +289,10 @@ export function savePlan(state, stageIndex, raw) {
     throw new Error("La etapa ya está en marcha. Editá una etapa futura.");
   const p = normalizePlan(raw, t);
   for (const type of PART_TYPES) {
+    if (p.actions[type.id] === "replace" && jobFor(t, p.replacements[type.id]))
+      throw Error(
+        "El repuesto elegido está en el taller. Esperá a que termine o cancelá su trabajo.",
+      );
     if (
       p.actions[type.id] === "replace" &&
       !t.inventory.some(
@@ -341,18 +357,6 @@ export function buyPart(state, type, grade, condition = 100) {
   );
   return next;
 }
-export function repairQuote(p) {
-  const type = partType(p.type),
-    missing = 100 - p.condition;
-  return {
-    cost: Math.ceil(
-      type.price * GRADES[p.grade].price * (missing / 100) * 0.52 +
-        (p.broken ? type.price * 0.12 : 0),
-    ),
-    hours:
-      missing > 0 ? type.hours * (missing / 100) + (p.broken ? 0.75 : 0) : 0,
-  };
-}
 export function estimateService(team, raw, stageIndex = team.stageIndex) {
   const plan = normalizePlan(raw, team),
     driver = driverFor(team, plan.driverId);
@@ -369,7 +373,10 @@ export function estimateService(team, raw, stageIndex = team.stageIndex) {
       lines.push({ type: type.id, action, ...q });
     } else if (action === "replace") {
       const replacement = team.inventory.find(
-        (i) => i.id === plan.replacements[type.id] && i.type === type.id,
+        (i) =>
+          i.id === plan.replacements[type.id] &&
+          i.type === type.id &&
+          !jobFor(team, i.id),
       );
       if (replacement) {
         cost += 80;
@@ -406,6 +413,7 @@ export function estimateService(team, raw, stageIndex = team.stageIndex) {
 }
 function swap(team, type, id) {
   if (team.parts[type].id === id) return true;
+  if (jobFor(team, id)) return false;
   const at = team.inventory.findIndex((p) => p.id === id && p.type === type);
   if (at < 0) return false;
   const next = team.inventory[at];
@@ -430,8 +438,7 @@ function beginService(state, t) {
           -line.cost,
           `E${t.stageIndex + 1} reparación ${partType(line.type).name}`,
         );
-        t.parts[line.type].condition = 100;
-        t.parts[line.type].broken = false;
+        repairPiece(t.parts[line.type]);
       } else {
         swap(t, line.type, line.replacement.id);
         transact(
@@ -455,7 +462,7 @@ function beginService(state, t) {
   for (const p of PART_TYPES)
     if (t.parts[p.id].broken) {
       const spare = t.inventory.find(
-        (i) => i.type === p.id && i.grade === "reserve",
+        (i) => i.type === p.id && i.grade === "reserve" && !jobFor(t, i.id),
       );
       if (spare) {
         swap(t, p.id, spare.id);
@@ -547,6 +554,7 @@ export function performance(
     terrainId = segmentAt(stage, km).type,
     d = driverFor(team, plan.driverId),
     pace = PACES[plan.pace],
+    carFactors = vehicleFactors(team),
     p = Object.fromEntries(
       PART_TYPES.map((t) => [t.id, partEffect(team.parts[t.id]) * d.parts]),
     );
@@ -625,6 +633,7 @@ export function performance(
           boost *
           pace.speed *
           d.speed *
+          carFactors.speed *
           coolingDrag *
           hot,
         30,
@@ -691,8 +700,7 @@ export function estimateStage(team, stage, raw) {
     if (line.cost <= forecast.budget) {
       forecast.budget -= line.cost;
       if (line.action === "repair") {
-        forecast.parts[line.type].condition = 100;
-        forecast.parts[line.type].broken = false;
+        repairPiece(forecast.parts[line.type]);
       } else swap(forecast, line.type, line.replacement.id);
     }
   for (const type of PART_TYPES)
@@ -783,6 +791,11 @@ function advanceTeam(state, t, dt) {
   if (t.phase === "waiting") t.phase = "camp";
   if (t.phase === "camp") {
     t.speed = 0;
+    if (jobFor(t, t.activeCarId) || crewRate(t, "race") === 0) {
+      fatigue(t, dt);
+      t.statistics.waiting += dt;
+      return;
+    }
     if (t.plans[t.stageIndex]?.auto) beginService(state, t);
     else {
       fatigue(t, dt);
@@ -842,6 +855,7 @@ function advanceTeam(state, t, dt) {
   t.fuel = Math.max(0, t.fuel - fuel);
   t.statistics.fuelUsed += fuel;
   t.statistics.driving += driveDt;
+  wearVehicle(t, distance, p.wear);
   t.heat += (p.heatTarget - t.heat) * Math.min(1, driveDt / 1200);
   fatigue(
     t,
@@ -879,7 +893,10 @@ function advanceTeam(state, t, dt) {
       continue;
     }
     const failure =
-      (failureRate(piece, t.heat, t.activePlan.boost) * driveDt) / 3600;
+      (failureRate(piece, t.heat, t.activePlan.boost) *
+        vehicleFactors(t).risk *
+        driveDt) /
+      3600;
     if (!piece.broken && random(t) < failure) {
       piece.broken = true;
       piece.condition = Math.min(piece.condition, 5);
@@ -902,6 +919,8 @@ function advanceTeam(state, t, dt) {
     t.statistics.errors++;
     noteIncident(t, "error");
     if (!navigation) {
+      const car = activeCar(t);
+      if (car) car.condition = clamp(car.condition - delay * 2, 0, 100);
       const target = PART_TYPES[Math.floor(random(t) * PART_TYPES.length)].id;
       const piece = t.parts[target];
       piece.condition = clamp(piece.condition - (6 + random(t) * 16), 0, 100);
@@ -965,8 +984,13 @@ export function advance(
   let advanced = 0;
   const initialStage = getPlayer(state).stageIndex;
   while (remaining-- > 0) {
-    if (state.teams.every((t) => t.phase === "finished")) {
+    if (
+      state.teams.every((t) => t.phase === "finished") &&
+      (stopAtAllFinished ||
+        !state.management.auctions.some((a) => a.status === "open"))
+    ) {
       if (!stopAtAllFinished) {
+        advanceWorkshops(state, remaining * STEP + STEP);
         state.clock += remaining * STEP + STEP;
         advanced += remaining * STEP + STEP;
       }
@@ -976,6 +1000,7 @@ export function advance(
       break;
     }
     for (const t of state.teams) advanceTeam(state, t, STEP);
+    advanceWorkshops(state, STEP);
     award(state);
     state.clock += STEP;
     settleAuctions(state);
@@ -994,6 +1019,15 @@ export function advance(
 export function nextPlayerCamp(state) {
   const player = getPlayer(state);
   if (player.phase === "finished") return { advanced: 0 };
+  if (
+    ["waiting", "camp"].includes(player.phase) &&
+    crewRate(player, "race") === 0
+  )
+    throw Error("Contratá al menos un mecánico para iniciar la próxima etapa.");
+  if (jobFor(player, player.activeCarId) && crewRate(player, "workshop") === 0)
+    throw Error(
+      "El auto de carrera está en el taller sin mecánicos. Asigná personal o cancelá su trabajo.",
+    );
   if (
     ["waiting", "camp"].includes(player.phase) &&
     !player.plans[player.stageIndex]
@@ -1106,6 +1140,8 @@ export function nextChampionshipRace(state) {
       "drivers",
       "mechanics",
       "garage",
+      "workshop",
+      "activeCarId",
       "shieldId",
       "vehicleId",
       "name",

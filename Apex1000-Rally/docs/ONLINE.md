@@ -100,3 +100,13 @@ No exponer semilla, RNG, checkpoints, planes futuros, inventario o presupuesto d
 ## Lo que falta antes de competir
 
 Autenticación, API, persistencia real, coordinador de ticks, pruebas transaccionales, recuperación ante fallos, reconciliación del cliente, carga concurrente y balance competitivo. Revisar la política de deuda de asistencia, premios, inscripción, abandono, desempates exactos y desconexiones largas. El esquema es un punto de partida y no una garantía de seguridad o escalabilidad de un servicio aún inexistente.
+
+## Extensión de garaje y taller (formato 3, motor rally-3)
+
+El prototipo agrega instancias de vehículo `garage[]` (id, modelId, condition, performance, reliability, odometer), `activeCarId`, destino `assignment` de cada mecánico y `original` de cada pieza. `workshop` contiene secuencias de IDs, cola `jobs[]` y últimos 60 trabajos completados. Cada trabajo guarda objetivo, tipo, valor a alcanzar, costo, horas base y horas trabajadas. La cola se calcula con el reloj del motor, también mientras el equipo está en otra etapa.
+
+Para el servidor futuro, crear tablas de unidades del equipo, trabajos y asignaciones de personal, además de ampliar las piezas. Comprar/vender/canjear, reservar/cancelar trabajos, montar piezas y reasignar mecánicos deben ser transacciones que validen propiedad, capacidad, dinero, stock, fase y revisión. No aceptar costos, progreso o mejoras decididos por el navegador; recalcular el presupuesto usando el catálogo y el estado autoritativos. Impedir que una pieza esté en un plan de montaje y en reparación a la vez. Mantener IDs estables e idempotencia en cobros y devoluciones.
+
+Las funciones puras están en `src/workshop.js` y `src/part-maintenance.js`; la validación de importaciones del prototipo está en `src/workshop-validation.js`. Los indicadores públicos de estado del vehículo se pueden añadir al snapshot; la cola, caja, inventario y planes quedan privados. La Home se deriva de esos datos, sin ser autoridad para acreditar hitos ni dinero.
+
+Esta extensión documenta el contrato necesario; no instala esas tablas, autenticación ni un servicio online. Las banderas de compatibilidad para cuatro autos antiguos o cero mecánicos pertenecen a la migración single player y no deben habilitar excepciones competitivas en estados nuevos del servidor.

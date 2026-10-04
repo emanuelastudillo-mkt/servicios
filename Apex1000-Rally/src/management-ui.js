@@ -38,11 +38,8 @@ export function championshipPage(s) {
       "",
     )}</tbody></table></div><p class="small-note">Puntos por carrera: ${cat.prizes.map((p) => p.points).join(" / ")}. Empate: menor tiempo acumulado; después ID estable. Premios de campeonato al cerrar las 8 carreras. Sueldos al contratar y al iniciar cada carrera siguiente.</p><p class="small-note">Largadas fijas compartidas, separadas por al menos 21 días. Cada equipo avanza y descansa a su ritmo. Los kilómetros deportivos incluyen especiales ficticias.</p></aside></div>`;
 }
-export function garagePanel(s) {
-  const t = s.teams.find((t) => t.id === "player"),
-    m = s.management;
-  return `<section><div class="panel-heading"><div><span class="eyebrow">VEHÍCULOS / STOCK DEL PROTOTIPO</span><h2>Tu próximo vehículo.</h2></div></div><div class="vehicle-grid">${m.catalog.vehicles.map((v) => `<article class="panel garage-card"><img class="catalog-art" src="${v.image}" alt="Ilustración de ${esc(v.name)}" loading="lazy"><h3>${esc(v.name)}</h3><p>${vehicle(v.id).tag}</p><div class="stock-line"><strong>${money(v.price)} cr</strong><span>${m.stocks[v.id]} disponibles</span></div>${button("buy-vehicle", v.id === t.vehicleId ? "Vehículo actual" : t.garage.includes(v.id) ? "Usar vehículo" : "Comprar y usar", `data-id="${v.id}" ${v.id === t.vehicleId || !["waiting", "finished"].includes(t.phase) || (!t.garage.includes(v.id) && (!v.available || m.stocks[v.id] < 1 || t.budget < v.price)) ? "disabled" : ""}`)}</article>`).join("")}</div><p class="small-note">Los cambios de vehículo se realizan antes de largar o entre carreras. Conservás los autos comprados y el lote de piezas universales del prototipo.</p></section>`;
-}
+export { vehicleShop as garagePanel } from "./workshop-ui.js";
+
 export function staffMarket(s) {
   const m = s.management,
     t = s.teams.find((t) => t.id === "player"),
@@ -85,5 +82,5 @@ export function staffMarket(s) {
 }
 export function mechanicsPanel(s) {
   const p = s.teams.find((t) => t.id === "player");
-  return `<section class="panel"><div class="panel-heading"><div><span class="eyebrow">TALLER / ${p.mechanics.length} DE 5 MECÁNICOS</span><h2>Más capacidad de asistencia.</h2></div><span class="badge">Trabajo ${((1 / workshopRate(p)) * 100).toFixed(0)}% del tiempo base</span></div><p>Los mecánicos reducen el tiempo de taller. El descanso del piloto conserva su propia duración.</p><div class="staff-grid">${p.mechanics.map((m) => `<article class="mechanic-card"><img src="${m.image}" class="portrait" alt="${esc(m.name)}"><h3>${esc(m.name)}</h3><p>${money(m.salary)} cr / carrera · eficiencia ${m.efficiency.toFixed(2)}×</p>${button("release", "Liberar contrato", `data-kind="mechanic" data-id="${m.id}" ${["racing", "service"].includes(p.phase) ? "disabled" : ""}`)}</article>`).join("")}</div>${button("tab", "Buscar contrataciones", 'data-tab="market"')}</section>`;
+  return `<section class="panel"><div class="panel-heading"><div><span class="eyebrow">CONTRATOS / ${p.mechanics.length} DE 5 MECÁNICOS</span><h2>Más capacidad de asistencia.</h2></div><span class="badge">Trabajo ${((1 / workshopRate(p)) * 100).toFixed(0)}% del tiempo base</span></div><p>Sólo los mecánicos asignados a carrera intervienen en estas asistencias. El descanso del piloto conserva su propia duración.</p><div class="staff-grid">${p.mechanics.map((m) => `<article class="mechanic-card"><img src="${m.image}" class="portrait" alt="${esc(m.name)}"><h3>${esc(m.name)}</h3><p>${m.assignment === "workshop" ? "Taller" : "Carrera"} · ${money(m.salary)} cr / carrera · eficiencia ${m.efficiency.toFixed(2)}×</p>${button("release", "Liberar contrato", `data-kind="mechanic" data-id="${m.id}" ${["racing", "service"].includes(p.phase) ? "disabled" : ""}`)}</article>`).join("")}</div>${button("tab", "Buscar contrataciones", 'data-tab="market"')}</section>`;
 }

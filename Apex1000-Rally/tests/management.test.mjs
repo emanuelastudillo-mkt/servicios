@@ -150,7 +150,10 @@ test("guardado anterior migra sin cobrar sueldos ni perder energía, caja o plan
       t.drivers.map((d) => d.energy),
       next.drivers.map((d) => d.energy),
     );
-    assert.deepEqual(t.inventory, next.inventory);
+    assert.deepEqual(
+      t.inventory.map((p) => ({ ...p, original: 100 })),
+      next.inventory,
+    );
   });
   assert.equal(old.management, undefined);
   advance(migrated, 3600);
@@ -225,8 +228,18 @@ test("campeonato completo: ocho rutas, caja y piezas persistentes, puntos y pago
     if (round < 7) {
       const budget = p.budget,
         dues = [...p.drivers, ...p.mechanics].reduce((n, x) => n + x.salary, 0);
+      const persistent = structuredClone({
+        garage: p.garage,
+        workshop: p.workshop,
+        activeCarId: p.activeCarId,
+        inventory: p.inventory,
+        parts: p.parts,
+        mechanics: p.mechanics,
+      });
       s = nextChampionshipRace(s);
       assert.equal(getPlayer(s).budget, Math.max(0, budget - dues));
+      for (const [field, value] of Object.entries(persistent))
+        assert.deepEqual(getPlayer(s)[field], value, field);
     }
   }
   assert.equal(new Set(raceIds).size, 8);

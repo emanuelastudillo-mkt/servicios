@@ -1,0 +1,146 @@
+{
+  "version": "0.3.3",
+  "baseVersion": "0.3.2",
+  "scope": "Home, garaje, desgaste de autos, reparto de mecánicos, mejoras y reconstrucción de repuestos. Competición independiente pendiente.",
+  "deletions": [],
+  "files": [
+    {
+      "path": "Apex1000-Rally/INCREMENTAL-v0.3.3.md",
+      "sha256": "cc7b1ee5695289654c04b3d95a1de1d4b60b8e0033463ab74ee91aacb3fc3898",
+      "baseSha256": null,
+      "bytes": 4258
+    },
+    {
+      "path": "Apex1000-Rally/README.md",
+      "sha256": "236a2544d0e67f2f8760c2b8540838383b956a4c7dfb87fae809552a65e5dabe",
+      "baseSha256": "967c9c846742ec65c6c7d95910d6c3257ea380cdf8066e0d7b8a5e1bd8f2d166",
+      "bytes": 8323
+    },
+    {
+      "path": "Apex1000-Rally/docs/MODELO.md",
+      "sha256": "1afe15b39612677e7fc65c9fe61ec35504952f92d0a3860b0d109ed54ff0a164",
+      "baseSha256": "f6642d9b35efc0ad3ba987c9229464a7fc454824493be983dd3c396deec69de2",
+      "bytes": 10093
+    },
+    {
+      "path": "Apex1000-Rally/docs/ONLINE.md",
+      "sha256": "54db4a4317f9629cea9d5328f8932174122610c4be73b316121618431b62067e",
+      "baseSha256": "5b9ffd473fd3aded2a80ce3a121d6b510a28c4b3e63026ba12d3aec4358ed9c8",
+      "bytes": 10103
+    },
+    {
+      "path": "Apex1000-Rally/docs/VALIDACION.md",
+      "sha256": "d8e7248376f1ea10b41dbfe8f21062a3576e13ad17969fd0e0dd6459b738e35c",
+      "baseSha256": "0cbf130d7ab2c079d64c46125939b87f966e985dcc8e7b10f86d225a876caabf",
+      "bytes": 6741
+    },
+    {
+      "path": "Apex1000-Rally/package.json",
+      "sha256": "a5a79729ceb40f0f8290dbcf9a65bc1c41cf18319cdaf5e93270942d482da55c",
+      "baseSha256": "e6d54a5c8f7ef199baea63e862ddac4c29cfa666933605b09953a1f5387f15d9",
+      "bytes": 474
+    },
+    {
+      "path": "Apex1000-Rally/src/app.js",
+      "sha256": "e6e934281b82ab99b953856a8f0d969845a48c6aa413926501629fff083c142b",
+      "baseSha256": "82c989b0871362699ef1b8ea501a154797ac40edc0b4df8d56bec82d3306dfe8",
+      "bytes": 69744
+    },
+    {
+      "path": "Apex1000-Rally/src/catalog.js",
+      "sha256": "0898746340bc9bb739f561d59a76e69ba353fd75c5bb1c0b32a22e5413d086c3",
+      "baseSha256": "dbe2d598665a8d212b84b2ee5419f87763e8f213b342c977b0332d9d3a01fd91",
+      "bytes": 8395
+    },
+    {
+      "path": "Apex1000-Rally/src/engine.js",
+      "sha256": "1afb6fe2b41751edc0c05df35d0511f92ffd10a6759ac79ad79c37a9d3c83a05",
+      "baseSha256": "9d52b6fa430278bf15650b0a65cc5f5c8e0a234258d15397e5863e0fb489adaf",
+      "bytes": 33647
+    },
+    {
+      "path": "Apex1000-Rally/src/home-ui.js",
+      "sha256": "2367089a357ef1880e3e492a71d5ccf6c5926d8f304be5a00dedfbbb7a30a5de",
+      "baseSha256": null,
+      "bytes": 6397
+    },
+    {
+      "path": "Apex1000-Rally/src/management-ui.js",
+      "sha256": "db6614014d5dc24863ea1196af1287f2582d841dd318f553099723b036b6b061",
+      "baseSha256": "4108a12c6161cf56f06b02aa27752f09169607c228a8d552efbe3d1631047721",
+      "bytes": 8564
+    },
+    {
+      "path": "Apex1000-Rally/src/management.js",
+      "sha256": "0f029961c9e124d62b4dcbe3a4268e8d202decf4ef43f6e815df1a25f4bbd568",
+      "baseSha256": "064aeab3f8986583c7dd649ae7795d14c97608f77401a03150987ac5ed6d83a2",
+      "bytes": 11391
+    },
+    {
+      "path": "Apex1000-Rally/src/part-maintenance.js",
+      "sha256": "66910c8d324cac70d66875797ff7fbf732d8fa9f41eb23f230c7f410093f6d6a",
+      "baseSha256": null,
+      "bytes": 1224
+    },
+    {
+      "path": "Apex1000-Rally/src/reliability.js",
+      "sha256": "48e3c4aad5a8358ed349e117445eb1af4ce8a7d1d61b73b4f8b15d600fece4cb",
+      "baseSha256": "76520621f1743a6e469ef0ff8022c2639454ce4364a72ab449dec0176907c433",
+      "bytes": 2844
+    },
+    {
+      "path": "Apex1000-Rally/src/storage.js",
+      "sha256": "f6558c10be9777d3271cf44a21f1093c4f32880d7bc85bc1d1700334ddcb124e",
+      "baseSha256": "cc1f06010cfe04daea7f7a2648ae26e12cd7a33447de2f01c344b89faae0c85a",
+      "bytes": 15086
+    },
+    {
+      "path": "Apex1000-Rally/src/workshop-ui.js",
+      "sha256": "b7f2e3c6a312a25c60a0fb30872deab67bc6b2da90e8927f15cfc890d86c282f",
+      "baseSha256": null,
+      "bytes": 11257
+    },
+    {
+      "path": "Apex1000-Rally/src/workshop-validation.js",
+      "sha256": "0405bdd9ff967ee01d03f8b4cafc37b4b750d0e2edd9b8d4130248cbc6ccaf03",
+      "baseSha256": null,
+      "bytes": 3704
+    },
+    {
+      "path": "Apex1000-Rally/src/workshop.js",
+      "sha256": "deb68a645006a2d818616f9da4016cb9a1152fc9e07184067d77cb3d9afd7097",
+      "baseSha256": null,
+      "bytes": 11223
+    },
+    {
+      "path": "Apex1000-Rally/style.css",
+      "sha256": "c17a1fc278b8030f40c5c7f337a02d39f3b4689f4241dbf416c2381ade9f665b",
+      "baseSha256": "c2a421fbb2a4a506ac7a34c5aa2f2f7bc0049daea984af01b4b3102fb8e96f1c",
+      "bytes": 75045
+    },
+    {
+      "path": "Apex1000-Rally/tests/engine.test.mjs",
+      "sha256": "e9cba0adfda8c5112236fc7e780ed597b856176f47f857dbc32a65a1eabd15b5",
+      "baseSha256": "7cc29654280cb71ce9aacad4214b9cf900f680df37267df4f5cb907287975077",
+      "bytes": 13718
+    },
+    {
+      "path": "Apex1000-Rally/tests/fixtures/v0.3.2-garage-save.json",
+      "sha256": "bd0e31941bbc1787eb763e55ed673c29b3850fa7438252f4c3c50fa55e093e1b",
+      "baseSha256": null,
+      "bytes": 127758
+    },
+    {
+      "path": "Apex1000-Rally/tests/management.test.mjs",
+      "sha256": "5e34747cc9c505f691ba11c0502efeef59189a184c943edbbb82812f08df82dd",
+      "baseSha256": "6ebfbe11dc48853b7271e020ce2e20192667b8161ae8d9bcea28a4de4ecef0e9",
+      "bytes": 9035
+    },
+    {
+      "path": "Apex1000-Rally/tests/workshop.test.mjs",
+      "sha256": "553a41d430a0f47714959d623a6c4204ffd489f44495959314bed9230f5a2da6",
+      "baseSha256": null,
+      "bytes": 12521
+    }
+  ]
+}

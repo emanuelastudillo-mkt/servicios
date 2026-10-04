@@ -309,7 +309,8 @@ test("carrera completa: 12 llegadas independientes, premios sólo al final y sin
   const s = prepare(fresh());
   advance(s, 3600);
   assert.ok(s.teams.every((t) => !t.prizePaid));
-  advance(s, 500 * 3600);
+  // Repeated rebuilds now lose original; allow the slower final stages to finish.
+  advance(s, 720 * 3600);
   assert.ok(s.teams.every((t) => t.phase === "finished"));
   for (const [i, t] of standings(s).entries()) {
     assert.equal(t.history.length, 15);

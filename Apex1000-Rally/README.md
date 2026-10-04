@@ -1,12 +1,18 @@
-# Apex1000 Rally — World Raid v0.3.2
+# Apex1000 Rally — World Raid v0.3.3
 
 Juego estático para navegador, single player, con 11 equipos rivales simulados. Se ejecuta en GitHub Pages o con `node server.mjs` y no necesita instalar dependencias para jugar.
 
 ## Esta entrega
 
-El incremental v0.3.2 agrega una barra **Admin** para todos los controles de tiempo, próxima parada y próxima carrera, y una **Bitácora** con aspecto de cuaderno y letra manuscrita. Cada etapa registra una o dos notas basadas en sus averías, temperatura, fatiga, combustible, configuración e incidentes, con consejos para preparar la siguiente. Las notas anteriores a esta actualización no se inventan. Se conserva la compatibilidad con partidas anteriores.
+El incremental v0.3.3 agrega **Home y Taller**. La Home reúne próxima largada, presupuesto, deuda, progreso e hitos de seguimiento. El taller admite **hasta 3 autos**, compra, venta y entrega como parte de pago. Cada unidad conserva su propio estado, performance, fiabilidad y kilometraje.
 
-Esta entrega incluye el avance solicitado mientras se definen las nuevas reglas. **Todavía se mantiene el campeonato con puntos de v0.3.1.** Siguen pendientes las carreras independientes, inscripción por carrera, corte a las 24 horas del primer finalista, cuenta regresiva entre carreras y progresión de nivel con decaimiento, logros e hitos. No se incluyen como funciones terminadas.
+- Auto nuevo: **estado 100/100, performance 50/100 y fiabilidad 50/100**. Las mejoras suben de a 5, hasta 100, con costo y tiempo crecientes. El estado se deteriora en carrera y se repara en la base.
+- Mecánicos: **1–4 en carrera y 0–4 en el taller, máximo 5 en total**. Con cero en la base los trabajos quedan pausados sin perder avance. Se mantiene un único mecánico inicial; no se regala otro.
+- Cola de hasta 8 trabajos: reparar autos, mejorar performance/fiabilidad o reparar repuestos del lote. Todos los mecánicos de la base trabajan en una tarea a la vez.
+- Las piezas tienen **original**, que empieza en 100 y baja con cada reparación. Cada reconstrucción posterior es más lenta y recupera menos estado. El efecto se aplica tanto en campamento como en el taller.
+- Partidas anteriores migradas y respaldadas, sin perder caja, vehículos ni recorrido. Ver las excepciones de compatibilidad en INCREMENTAL-v0.3.3.md.
+
+**Reglas de competición pendientes:** aún se mantiene el campeonato con puntos. Carreras independientes, inscripción por carrera, corte a las 24 horas del primer finalista y progresión de nivel con decaimiento requieren la siguiente entrega. La Home muestra fechas y cuenta regresiva del calendario actual; los hitos son indicadores, sin pagos adicionales.
 
 La barra Admin se adapta a móvil y pantalla completa. “Próxima carrera” se habilita cuando todos los equipos terminaron, según las reglas actuales; “+24 horas” permite avanzar mientras se espera. Para ocultar toda la barra, configurar `ADMIN_ENABLED = false` en `src/admin-ui.js`; se bloquean los controles de avance del prototipo y se usa el reloj a 1×. Esto no reemplaza la autoridad de un servidor futuro.
 
@@ -35,7 +41,7 @@ Los trazados detallados son especiales ficticias entre localidades reales; no so
 Con Node.js 22 o superior: `node server.mjs`. Abrir http://127.0.0.1:4182. No abrir `index.html` directamente con `file://`, porque utiliza módulos ES y un Web Worker.
 
 1. Elegir vehículo, nombre y largada. La inscripción incluye tres pilotos y una mecánica; se descuentan vehículo y primeros sueldos.
-2. En Equipo, elegir escudo. Para contratar otro piloto primero hay que liberar un cupo; se necesita al menos un piloto.
+2. En Home, consultar la próxima largada. En Taller, elegir el auto activo y repartir mecánicos antes de salir. Contratar personal adicional permite trabajar en la base mientras se corre. En Equipo, elegir escudo. Para contratar otro piloto primero hay que liberar un cupo; se necesita al menos un piloto.
 3. En Mercado, comprar o enviar ofertas. El plazo inicial es de seis horas del reloj de simulación. Ganar paga el primer sueldo con el depósito; perder o cancelar lo devuelve.
 4. En Roadbook, estudiar terreno, temperatura y distancias. Campamento permite guardar el plan de cada etapa. Se pueden completar automáticamente los planes faltantes.
 5. En la barra Admin, usar el reloj o “Próxima parada”. El mapa permite seguir cualquier participante y entrar en pantalla completa; Escape cierra esa vista. Bitácora muestra las observaciones de las etapas recorridas desde la actualización.
@@ -43,13 +49,13 @@ Con Node.js 22 o superior: `node server.mjs`. Abrir http://127.0.0.1:4182. No ab
 
 ## Publicación e incremental
 
-El incremental **v0.3.2 requiere v0.3.1**. Descomprimir en la raíz del repositorio `servicios`, conservando la carpeta `Apex1000-Rally/`, y agregar o reemplazar sólo los archivos incluidos. No borrar los demás. Este ZIP no incluye cambios en workflows ni en la conexión de Sheets. Después de subirlo, recargar con Ctrl+F5. Ver `INCREMENTAL-v0.3.2.md` para el contenido y los límites de esta entrega.
+El incremental **v0.3.3 requiere v0.3.2**. Descomprimir en la raíz del repositorio `servicios`, conservando la carpeta `Apex1000-Rally/`, y agregar o reemplazar sólo los archivos incluidos. No borrar los demás. Este ZIP no incluye cambios en workflows ni en la conexión de Sheets. Después de subirlo, recargar con Ctrl+F5. Ver `INCREMENTAL-v0.3.3.md` para el contenido y los límites de esta entrega.
 
 Para subir la carpeta completa, conservar `src/`, `data/`, `assets/`, `style.css` e `index.html`. La carpeta `qa/` contiene respaldos y verificaciones locales y no debe publicarse. No se eliminaron los archivos de QA que ya existían en la versión publicada.
 
 ## Validación
 
-`npm test` ejecuta 49 pruebas de simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración, lectura CSV, visor y bitácora. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas. El ZIP v0.3.2 se aplicó sobre una copia de v0.3.1 y se ejecutaron las mismas pruebas sobre el resultado.
+`npm test` ejecuta 64 pruebas de simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración, lectura CSV, visor, bitácora, garaje y taller. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas. El ZIP v0.3.3 se aplica y verifica sobre una copia de v0.3.2 y se ejecutaron las mismas pruebas sobre el resultado.
 
 ## Alcance
 

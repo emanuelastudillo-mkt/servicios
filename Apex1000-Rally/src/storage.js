@@ -12,6 +12,8 @@ import {
 } from "./catalog.js";
 import { routeFor } from "./route.js";
 import { validateJournal } from "./journal-validation.js";
+import { initializeWorkshop } from "./workshop.js";
+import { validateWorkshop } from "./workshop-validation.js";
 export const SAVE_KEY = "apex1000-rally-v1";
 const validNumber = (n, min = -Infinity, max = Infinity) =>
   typeof n === "number" && Number.isFinite(n) && n >= min && n <= max;
@@ -52,8 +54,8 @@ export function validateSave(raw) {
   if (
     !raw ||
     raw.format !== "apex-rally" ||
-    ![1, 2].includes(raw.version) ||
-    !["rally-1", ENGINE_VERSION].includes(raw.engineVersion) ||
+    ![1, 2, 3].includes(raw.version) ||
+    !["rally-1", "rally-2", ENGINE_VERSION].includes(raw.engineVersion) ||
     raw.mode !== "single"
   )
     throw new Error("No es una partida compatible con esta versión del rally.");
@@ -82,9 +84,11 @@ export function validateSave(raw) {
   )
     throw new Error("Identificadores de partida inválidos.");
   raw = structuredClone(raw);
-  raw.version = 2;
+  const legacy = raw.version < 3;
+  raw.version = 3;
   raw.engineVersion = ENGINE_VERSION;
   if (!raw.management) initializeManagement(raw, { legacy: true });
+  if (legacy) initializeWorkshop(raw);
   const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(raw);
   validateManagement(raw);
   const ids = new Set();
@@ -137,11 +141,13 @@ export function validateSave(raw) {
     const all = [...Object.values(t.parts || {}), ...t.inventory],
       partIds = new Set();
     for (const p of all) {
+      if (p && p.original === undefined && legacy) p.original = 100;
       if (
         !p ||
         !PART_TYPES.some((x) => x.id === p.type) ||
         !Object.hasOwn(GRADES, p.grade) ||
         !validNumber(p.condition, 0, 100) ||
+        !validNumber(p.original, 0, 100) ||
         typeof p.broken !== "boolean" ||
         typeof p.id !== "string" ||
         !/^[\w-]{1,100}$/.test(p.id) ||
@@ -273,7 +279,10 @@ export function validateSave(raw) {
       !boundedText(e.text, 800)
     )
       throw new Error("Evento inválido.");
-  for (const team of raw.teams) validateJournal(team, STAGES, raw.clock);
+  for (const team of raw.teams) {
+    validateJournal(team, STAGES, raw.clock);
+    validateWorkshop(raw, team);
+  }
   return raw;
 }
 export function encodeSave(state) {
@@ -317,8 +326,9 @@ function validateManagement(s) {
       t.shieldId < 1 ||
       t.shieldId > 100 ||
       !Array.isArray(t.garage) ||
-      !t.garage.includes(t.vehicleId) ||
-      t.garage.some((id) => !VEHICLES.some((v) => v.id === id)) ||
+      !t.garage.some(
+        (c) => c.id === t.activeCarId && c.modelId === t.vehicleId,
+      ) ||
       !Array.isArray(t.mechanics) ||
       t.mechanics.length > 5 ||
       !Array.isArray(t.drivers) ||
