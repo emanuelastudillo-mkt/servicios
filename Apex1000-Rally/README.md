@@ -34,7 +34,7 @@ Los trazados detallados son especiales ficticias entre localidades reales; no so
 - Guardados anteriores v0.2 migrados, conservando avance, presupuesto y piezas. Se conserva un respaldo local previo a la migración.
 - Catálogo administrativo: XLSX con guía y 7 hojas, CSVs, importador validado y workflow de GitHub preparado.
 
-**Catálogo diario:** GitHub Actions está configurado para las 07:23 de Argentina. Descarga y valida las siete hojas, actualiza los dos archivos del catálogo y verifica su publicación en Pages. La creación de las hojas nativas y sus URLs sigue pendiente: `config/sheets.json` permanece desactivado y el juego utiliza su catálogo incluido. Ver [estado e instrucciones](docs/CATALOGOS.md). Los cambios del catálogo se aplican a partidas nuevas; cada partida existente conserva su copia.
+**Catálogo diario:** editar [Apex1000-Catalogos en Google Sheets](https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit). GitHub Actions descarga y valida las siete hojas cada día a las 07:23 de Argentina, actualiza el catálogo y verifica su publicación en Pages. `config/sheets.json` está conectado a las siete URLs reales. Ver [instrucciones](docs/CATALOGOS.md). Los cambios se aplican a partidas nuevas; cada partida existente conserva su copia.
 
 ## Jugar localmente
 
