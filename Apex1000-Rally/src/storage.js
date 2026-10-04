@@ -11,6 +11,7 @@ import {
   vehicle,
 } from "./catalog.js";
 import { routeFor } from "./route.js";
+import { validateJournal } from "./journal-validation.js";
 export const SAVE_KEY = "apex1000-rally-v1";
 const validNumber = (n, min = -Infinity, max = Infinity) =>
   typeof n === "number" && Number.isFinite(n) && n >= min && n <= max;
@@ -272,6 +273,7 @@ export function validateSave(raw) {
       !boundedText(e.text, 800)
     )
       throw new Error("Evento inválido.");
+  for (const team of raw.teams) validateJournal(team, STAGES, raw.clock);
   return raw;
 }
 export function encodeSave(state) {

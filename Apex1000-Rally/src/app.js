@@ -1,3 +1,5 @@
+import { adminBar, ADMIN_ENABLED } from "./admin-ui.js";
+import { journalPage } from "./journal-ui.js";
 import {
   bid,
   cancelBid,
@@ -131,6 +133,11 @@ try {
     const parsed = JSON.parse(raw);
     state = validateSave(parsed);
     if (
+      parsed.version <= 2 &&
+      !localStorage.getItem(SAVE_KEY + "-before-v4-migration")
+    )
+      localStorage.setItem(SAVE_KEY + "-before-v4-migration", raw);
+    if (
       parsed.version === 1 &&
       !localStorage.getItem(SAVE_KEY + "-before-v3-migration")
     )
@@ -182,6 +189,7 @@ function header() {
   return `<header class="topbar"><a href="#" class="brand" data-action="tab" data-tab="race"><svg viewBox="0 0 50 35" aria-hidden="true"><path d="m2 30 13-22 10 13 10-20 13 29H37l-7-10-5 10-10-10-6 10Z" fill="currentColor"/></svg><span>APEX<span class="brand-number">1000</span><small>ENDURANCE RALLY</small></span></a><nav aria-label="Secciones">${[
     ["race", "map", "Carrera"],
     ["roadbook", "route", "Roadbook"],
+    ["journal", "route", "Bitácora"],
     ["camp", "tools", "Campamento"],
     ["market", "shop", "Mercado"],
     ["crew", "crew", "Equipo"],
@@ -197,20 +205,7 @@ function header() {
 }
 function clockBar() {
   if (!state) return "";
-  return `<section class="clock-bar"><div class="race-clock">${icon("clock")}<div><span>${state.clock < 0 ? "CUENTA REGRESIVA" : "TIEMPO DESDE LA LARGADA"}</span><strong id="clock-value">${state.clock < 0 ? "− " : ""}${duration(Math.abs(state.clock))}</strong></div><div class="scheduled-start">Largada compartida<strong>${localDate(state.startAt)}</strong></div></div><div class="time-controls"><span class="simulation-label">TIEMPO DEL PROTOTIPO</span><button id="pause-button" class="icon-button" data-action="toggle-time" aria-label="${state.speed ? "Pausar" : "Reanudar"}">${icon(state.speed ? "pause" : "play")}</button><select id="time-speed" aria-label="Velocidad del tiempo">${[
-    [0, "Pausado"],
-    [1, "1× · tiempo real"],
-    [60, "60×"],
-    [600, "600×"],
-    [3600, "3600×"],
-  ]
-    .map(
-      ([v, n]) =>
-        `<option value="${v}" ${state.speed === v ? "selected" : ""}>${n}</option>`,
-    )
-    .join(
-      "",
-    )}</select>${state.clock < 0 ? '<button class="button small ghost" data-action="skip-start">Ir a la largada</button>' : '<button class="button small ghost" data-action="advance-hour">+1 hora</button>'}<button class="button small primary" data-action="next-camp" ${busy || p().phase === "finished" ? "disabled" : ""}>${busy ? "Calculando…" : "Mi próxima parada"} ${icon("arrow")}</button></div></section>`;
+  return `<section class="clock-bar"><div class="race-clock">${icon("clock")}<div><span>${state.clock < 0 ? "CUENTA REGRESIVA" : "TIEMPO DESDE LA LARGADA"}</span><strong id="clock-value">${state.clock < 0 ? "− " : ""}${duration(Math.abs(state.clock))}</strong></div><div class="scheduled-start">Largada compartida<strong>${localDate(state.startAt)}</strong></div></div></section>`;
 }
 function title(kicker, heading, description, action = "") {
   return `<div class="page-title"><div><span class="eyebrow">${kicker}</span><h1>${heading}</h1><p>${description}</p></div>${action}</div>`;
@@ -225,7 +220,7 @@ function onboarding() {
   return `<main class="onboarding"><div class="intro-copy"><span class="eyebrow">8 CARRERAS · 120 ETAPAS · UN CAMPEONATO</span><h1>La carrera no se gana<br>en un día.</h1><p>Ocho travesías por el mundo. Gestioná tu equipo, elegí cuándo acelerar y construí una temporada de resistencia. La primera carrera: de Buenos Aires a Santiago.</p><div class="intro-stats">${stat("RECORRIDO", "10.240 <em>km</em>")}${stat("COMPETENCIA", "12 <em>equipos</em>")}${stat("PRESUPUESTO", money(STARTING_BUDGET) + " <em>cr</em>")}</div></div><section class="vehicle-grid">${VEHICLES.map((car) => `<button class="vehicle-card ${ui.vehicleId === car.id ? "selected" : ""}" style="--vehicle:${car.color}" data-action="choose-vehicle" data-id="${car.id}"><div class="vehicle-top"><span>${car.tag}</span>${ui.vehicleId === car.id ? icon("check") : '<span class="radio-circle"></span>'}</div>${truckSVG(car.id)}<h2>${car.name}</h2><p>${car.engine}</p><div class="vehicle-specs"><span>Tanque <b>${car.tank} L</b></span><span>Velocidad <b>${Math.round(car.speed * 100)}</b></span><span>Resistencia <b>${Math.round(car.reliability * 100)}</b></span><span>Consumo <b>${Math.round(100 / car.efficiency)}</b></span></div><div class="vehicle-bottom"><span>Uso e inscripción</span><strong>${money(car.fee)} cr</strong></div></button>`).join("")}</section><section class="panel enlist"><div><span class="eyebrow">TU PRIMERA DECISIÓN</span><h2>${v.short}</h2><p>${v.description}</p><p class="muted">Velocidad, resistencia y consumo son índices de juego (base 100); menor consumo es mejor. Los costos también pertenecen al juego. Seis piezas Sport al 92% y seis reservas gratuitas incluidas.</p></div><form id="create-form"><label>Nombre del equipo<input name="teamName" maxlength="40" value="Tu equipo" required></label><label>Largada compartida · hora local<input name="startAt" type="datetime-local" value="${local}" required></label><label>Escenario<input name="seed" type="number" min="1" max="999999" value="1729"></label><div class="enlist-balance"><span>Saldo antes de sueldos</span><strong>${money(STARTING_BUDGET - v.fee)} cr</strong></div><button class="button primary full" type="submit">Inscribir equipo ${icon("arrow")}</button></form></section><div class="intro-note">Prototipo single player. Todos comparten la largada; después cada equipo administra su propio tiempo. La aceleración sólo existe en esta versión de prueba.</div></main>`;
 }
 function mapPanel() {
-  return `<section class="panel map-panel" id="map-panel"><div class="panel-heading"><div><span class="eyebrow">VISOR DE CARRERA / RECORRIDO COMPLETO</span><h2>${esc(ROUTE_NAME)}</h2></div><button class="button ghost small" data-action="fullscreen-map">⛶ Pantalla completa</button></div><div class="map-container">${mapSVG(state, geo)}<div class="map-zoom"><button data-action="zoom-in" aria-label="Acercar mapa">+</button><span id="zoom-level">${(1000 / camera.w).toFixed(1)}×</span><button data-action="zoom-out" aria-label="Alejar mapa">−</button><input id="map-zoom-range" type="range" min="1" max="${MAX_ZOOM}" step="1" value="${Math.max(1, 1000 / camera.w)}" aria-label="Nivel de zoom del mapa" title="Zoom de 1× a 120×"></div><div class="map-actions"><button data-action="fit-map">${icon("map")}Ver ruta</button><button data-action="follow" data-id="player">${icon("target")}Seguirme</button></div><div class="map-hud" id="map-hud">${mapHUD()}</div><div class="fullscreen-controls"><button class="button small" data-action="toggle-time">${state.speed ? "Pausar" : "Reanudar"}</button><button class="button small" data-action="advance-hour">+1 hora</button><button class="button small" data-action="next-camp">Próxima parada</button><button class="button small" data-action="fullscreen-map">Cerrar pantalla completa</button></div><div class="map-legend"><i></i> Trazado de la prueba <span>●</span> Campamento</div><div class="map-distance"><span>CARRERA ${state.championship.round + 1} DE 8</span><strong>${num(TOTAL_KM)} <small>km</small></strong></div></div><div class="map-footer"><span>Arrastrá para mover · rueda para acercar · tocá un equipo para seguirlo</span><span>Natural Earth · GeoNames · trazado deportivo de diseño</span></div></section>`;
+  return `<section class="panel map-panel" id="map-panel"><div class="panel-heading"><div><span class="eyebrow">VISOR DE CARRERA / RECORRIDO COMPLETO</span><h2>${esc(ROUTE_NAME)}</h2></div><button class="button ghost small" data-action="fullscreen-map">${document.body.classList.contains("map-fullscreen") ? "Cerrar pantalla completa" : "⛶ Pantalla completa"}</button></div><div class="map-container">${mapSVG(state, geo)}<div class="map-zoom"><button data-action="zoom-in" aria-label="Acercar mapa">+</button><span id="zoom-level">${(1000 / camera.w).toFixed(1)}×</span><button data-action="zoom-out" aria-label="Alejar mapa">−</button><input id="map-zoom-range" type="range" min="1" max="${MAX_ZOOM}" step="1" value="${Math.max(1, 1000 / camera.w)}" aria-label="Nivel de zoom del mapa" title="Zoom de 1× a 120×"></div><div class="map-actions"><button data-action="fit-map">${icon("map")}Ver ruta</button><button data-action="follow" data-id="player">${icon("target")}Seguirme</button></div><div class="map-hud" id="map-hud">${mapHUD()}</div><div class="map-legend"><i></i> Trazado de la prueba <span>●</span> Campamento</div><div class="map-distance"><span>CARRERA ${state.championship.round + 1} DE 8</span><strong>${num(TOTAL_KM)} <small>km</small></strong></div></div><div class="map-footer"><span>Arrastrá para mover · rueda para acercar · tocá un equipo para seguirlo</span><span>Natural Earth · GeoNames · trazado deportivo de diseño</span></div></section>`;
 }
 function leaderboard() {
   return `<section class="panel leaderboard"><div class="panel-heading"><div><span class="eyebrow">UNA LARGADA, DISTINTOS CAMINOS</span><h2>Orden de carrera</h2></div><span class="count-pill">12</span></div><div class="standing-head"><span>EQUIPO / ESTADO</span><span>KM TOTALES</span></div><div id="leaderboard-rows">${leaderboardRows()}</div><div class="small-note">En carrera se ordena por avance. Al llegar, por tiempo total desde la largada, incluyendo asistencia y descanso.</div></section>`;
@@ -456,12 +451,36 @@ function finishPanel() {
 function footer() {
   return `<footer><span>APEX1000 <b>RALLY</b> · v${VERSION} · Prototipo single player</span><div><button data-action="export" ${!state ? "disabled" : ""}>Exportar partida</button><button data-action="import">Importar</button><button data-action="help">Reglas y fuentes</button>${state ? '<button data-action="new-race">Nueva carrera</button>' : ""}</div></footer>`;
 }
+const adminRoot = document.createElement("div");
+adminRoot.id = "admin-root";
+document.body.append(adminRoot);
+const adminObserver = new ResizeObserver(() => {
+  document.documentElement.style.setProperty(
+    "--admin-height",
+    `${adminRoot.querySelector(".admin-menu")?.getBoundingClientRect().height || 0}px`,
+  );
+});
+function renderAdmin() {
+  adminObserver.disconnect();
+  adminRoot.innerHTML = state
+    ? adminBar(state, {
+        busy,
+        canNext:
+          state.championship.round < 7 &&
+          state.teams.every((t) => t.phase === "finished"),
+      })
+    : "";
+  if (adminRoot.firstElementChild)
+    adminObserver.observe(adminRoot.firstElementChild);
+  else document.documentElement.style.setProperty("--admin-height", "0px");
+}
 function render() {
   setActiveRoute(state);
   const content = !state
     ? onboarding()
-    : `<main>${{ race: racePage, roadbook, camp, market, crew, championship: () => championshipPage(state) }[ui.tab]()}</main>`;
+    : `<main>${{ race: racePage, roadbook, camp, market, crew, journal: () => journalPage(state), championship: () => championshipPage(state) }[ui.tab]()}</main>`;
   $("#app").innerHTML = header() + clockBar() + content + footer();
+  renderAdmin();
   if (state && ui.tab === "race") {
     updateMap(state, ui.selectedTeam);
     bindMap();
@@ -478,6 +497,7 @@ function render() {
           startAt,
           seed: Number(f.get("seed")),
         });
+        if (!ADMIN_ENABLED) state.speed = 1;
         ui.tab = "camp";
         ui.selectedStage = 0;
         ui.drafts = {};
@@ -503,13 +523,16 @@ function refresh() {
     $("#events").innerHTML = eventsHTML();
     if ($("#map-hud")) $("#map-hud").innerHTML = mapHUD();
   }
+  if (ui.tab === "journal") $("main").innerHTML = journalPage(state);
   if (ui.tab === "camp" && $("#service-quote"))
     $("#service-quote").innerHTML = quoteHTML();
 }
 function runTime(command) {
   if (busy) return;
   busy = true;
+  if (!command.fromTimer) renderAdmin();
   const beforeStage = p().stageIndex,
+    beforeClock = state.clock,
     beforePhase = p().phase,
     beforeResults = state.championship.results.length,
     beforeAuctions = JSON.stringify(state.management.auctions);
@@ -522,10 +545,12 @@ function runTime(command) {
     busy = false;
     $("#app").classList.remove("computing");
     if (!data.ok) {
+      renderAdmin();
       toast(data.error);
       return;
     }
     state = data.state;
+    if (!command.fromTimer) renderAdmin();
     setActiveRoute(state);
     if (!command.fromTimer) lastWall = Date.now();
     if (command.type === "next-camp") {
@@ -543,7 +568,7 @@ function runTime(command) {
       beforeStage !== p().stageIndex ||
       beforePhase !== p().phase ||
       beforeResults !== state.championship.results.length ||
-      state.clock === 0
+      (beforeClock < 0 && state.clock >= 0)
     ) {
       persist();
       render();
@@ -554,6 +579,7 @@ function runTime(command) {
   };
   worker.onerror = () => {
     busy = false;
+    renderAdmin();
     worker.terminate();
     $("#app").classList.remove("computing");
     toast(
@@ -682,7 +708,7 @@ function bindMap() {
 function help() {
   const dialog = document.createElement("dialog");
   dialog.className = "dialog help-dialog";
-  dialog.innerHTML = `<div class="dialog-title"><div><span class="eyebrow">CÓMO FUNCIONA</span><h2>Una sola largada. Tu propio ritmo.</h2></div><button class="icon-button" data-action="close-modal" aria-label="Cerrar">${icon("close")}</button></div><p>Todos los equipos comparten un horario de largada. Después, conducción, averías, asistencia y descansos consumen tiempo de la misma carrera. Pueden estar en etapas diferentes. Gana quien llega antes a la meta de cada carrera.</p><h3>Preparar cada etapa</h3><p>En Campamento elegís piloto, ritmo, exigencia, chasis, gomas, transmisión, refrigeración, combustible y acciones por pieza. Guardar confirma ese plan. Al llegar, las piezas se reparan o cambian y los pilotos descansan en paralelo. La etapa arranca cuando termina la tarea más larga. Una etapa sin plan deja al equipo esperando.</p><p>El descanso se limita a las horas necesarias para recuperar 100% de energía. Los pilotos de relevo también descansan mientras otro conduce. La preparación de la primera etapa ocurre antes de largar.</p><h3>Calidad no es estado</h3><p>La calidad determina rendimiento, resistencia, tendencia térmica y riesgo base. El estado es el desgaste actual. Podés comprar repuestos nuevos o usados, reparar los instalados o intercambiarlos por piezas del lote. La pieza retirada vuelve al inventario.</p><p>Tenés una reserva gratuita de cada tipo. Nunca se avería: sigue funcionando cada vez más lenta al desgastarse. Si llegás con una pieza rota, se intenta reparar según tu plan; si continúa rota se monta la reserva disponible para seguir.</p><h3>Economía y continuidad</h3><p>El presupuesto paga vehículo, repuestos, mano de obra y combustible. Las reparaciones que no se pueden pagar se omiten. Para evitar una carrera bloqueada sin combustible, una asistencia suma 4 h y un recargo del 40%. Si falta dinero, queda una deuda que se descuenta del premio; el saldo pendiente se muestra al terminar. Los premios sólo se pagan al llegar a meta.</p><h3>Tiempo del prototipo</h3><p>1× usa tiempo real y recupera el tiempo transcurrido al volver a abrir la partida. Pausado y las velocidades aceleradas pertenecen sólo al prototipo single player. Una sesión acelerada se reabre pausada. “Mi próxima parada” avanza el reloj de todos hasta que tu equipo completa una etapa y pausa la prueba.</p><h3>Qué es real y qué es diseño del juego</h3><p>Los modelos de vehículos y las localidades son reales. La ruta deportiva, los kilómetros de etapa, el terreno, los costos, la resistencia comparativa, los consumos y las probabilidades son parámetros ficticios. La cartografía base es de Natural Earth y las localidades de GeoNames; el trazado no es navegación vial.</p><p>Se juega una modalidad de preparación libre: algunos sectores de asfalto admiten hasta 250 km/h. No reproduce el reglamento Dakar ni la velocidad homologada de los vehículos (por ejemplo, X-raid publica un límite de 170 km/h para el MINI). Un vehículo averiado circula a 30 km/h.</p><h3>Online, más adelante</h3><p>Esta versión no conecta jugadores reales. Once equipos son simulados. El motor y el contrato público del visor están separados; un servidor futuro deberá ser dueño del reloj, el estado y las compras. GitHub Pages aloja este prototipo.</p><h3>Fuentes</h3><ul>${VEHICLES.map((v) => `<li><a href="${v.source}" target="_blank" rel="noreferrer">${v.name}</a></li>`).join("")}<li><a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">Natural Earth</a> · cartografía</li><li><a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> · localidades</li></ul>`;
+  dialog.innerHTML = `<div class="dialog-title"><div><span class="eyebrow">CÓMO FUNCIONA</span><h2>Una sola largada. Tu propio ritmo.</h2></div><button class="icon-button" data-action="close-modal" aria-label="Cerrar">${icon("close")}</button></div><p>Todos los equipos comparten un horario de largada. Después, conducción, averías, asistencia y descansos consumen tiempo de la misma carrera. Pueden estar en etapas diferentes. Gana quien llega antes a la meta de cada carrera.</p><h3>Preparar cada etapa</h3><p>En Campamento elegís piloto, ritmo, exigencia, chasis, gomas, transmisión, refrigeración, combustible y acciones por pieza. Guardar confirma ese plan. Al llegar, las piezas se reparan o cambian y los pilotos descansan en paralelo. La etapa arranca cuando termina la tarea más larga. Una etapa sin plan deja al equipo esperando.</p><p>El descanso se limita a las horas necesarias para recuperar 100% de energía. Los pilotos de relevo también descansan mientras otro conduce. La preparación de la primera etapa ocurre antes de largar.</p><h3>Calidad no es estado</h3><p>La calidad determina rendimiento, resistencia, tendencia térmica y riesgo base. El estado es el desgaste actual. Podés comprar repuestos nuevos o usados, reparar los instalados o intercambiarlos por piezas del lote. La pieza retirada vuelve al inventario.</p><p>Tenés una reserva gratuita de cada tipo. Nunca se avería: sigue funcionando cada vez más lenta al desgastarse. Si llegás con una pieza rota, se intenta reparar según tu plan; si continúa rota se monta la reserva disponible para seguir.</p><h3>Economía y continuidad</h3><p>El presupuesto paga vehículo, repuestos, mano de obra y combustible. Las reparaciones que no se pueden pagar se omiten. Para evitar una carrera bloqueada sin combustible, una asistencia suma 4 h y un recargo del 40%. Si falta dinero, queda una deuda que se descuenta del premio; el saldo pendiente se muestra al terminar. Los premios sólo se pagan al llegar a meta.</p><h3>Tiempo del prototipo</h3><p>1× usa tiempo real y recupera el tiempo transcurrido al volver a abrir la partida. Pausado y las velocidades aceleradas pertenecen sólo al prototipo single player. Una sesión acelerada se reabre pausada. Los controles están reunidos en la barra Admin. “Próxima parada” avanza el reloj de todos hasta que tu equipo completa una etapa y pausa la prueba. “Próxima carrera” se habilita cuando todos terminaron la carrera actual.</p><h3>Bitácora de ruta</h3><p>El cuaderno registra una o dos notas por etapa, basadas en problemas o aciertos observados durante la simulación. Los consejos al margen ayudan a interpretar el calor, la fatiga, las averías y la configuración. Las etapas anteriores a la actualización no se reconstruyen.</p><h3>Qué es real y qué es diseño del juego</h3><p>Los modelos de vehículos y las localidades son reales. La ruta deportiva, los kilómetros de etapa, el terreno, los costos, la resistencia comparativa, los consumos y las probabilidades son parámetros ficticios. La cartografía base es de Natural Earth y las localidades de GeoNames; el trazado no es navegación vial.</p><p>Se juega una modalidad de preparación libre: algunos sectores de asfalto admiten hasta 250 km/h. No reproduce el reglamento Dakar ni la velocidad homologada de los vehículos (por ejemplo, X-raid publica un límite de 170 km/h para el MINI). Un vehículo averiado circula a 30 km/h.</p><h3>Online, más adelante</h3><p>Esta versión no conecta jugadores reales. Once equipos son simulados. El motor y el contrato público del visor están separados; un servidor futuro deberá ser dueño del reloj, el estado y las compras. GitHub Pages aloja este prototipo.</p><h3>Fuentes</h3><ul>${VEHICLES.map((v) => `<li><a href="${v.source}" target="_blank" rel="noreferrer">${v.name}</a></li>`).join("")}<li><a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">Natural Earth</a> · cartografía</li><li><a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> · localidades</li></ul>`;
   $("#modal-root").replaceChildren(dialog);
   dialog.showModal();
 }
@@ -721,6 +747,19 @@ document.addEventListener("click", (e) => {
       toast("Esperá a que termine el cálculo actual.");
       return;
     }
+    if (
+      !ADMIN_ENABLED &&
+      [
+        "toggle-time",
+        "skip-start",
+        "advance-hour",
+        "advance-day",
+        "next-camp",
+        "next-race",
+        "finish-grid",
+      ].includes(a)
+    )
+      return;
     if (a === "fullscreen-map") {
       if (document.body.classList.contains("map-fullscreen")) {
         document.body.classList.remove("map-fullscreen");
@@ -730,6 +769,9 @@ document.addEventListener("click", (e) => {
         document.body.classList.add("map-fullscreen");
         document.documentElement.requestFullscreen?.().catch(() => {});
       }
+      b.textContent = document.body.classList.contains("map-fullscreen")
+        ? "Cerrar pantalla completa"
+        : "⛶ Pantalla completa";
       return;
     }
     if (a === "bid") {
@@ -908,6 +950,7 @@ document.addEventListener("click", (e) => {
       runTime({ type: "advance", seconds: Math.max(30, -state.clock + 30) });
     } else if (a === "advance-hour")
       runTime({ type: "advance", seconds: 3600 });
+    else if (a === "advance-day") runTime({ type: "advance", seconds: 86400 });
     else if (a === "next-camp") {
       state.speed = 0;
       runTime({ type: "next-camp" });
@@ -973,7 +1016,7 @@ document.addEventListener("change", (e) => {
     } else if (el.id === "market-condition") {
       ui.marketCondition = Number(el.value);
       render();
-    } else if (el.id === "time-speed") {
+    } else if (el.id === "time-speed" && ADMIN_ENABLED) {
       if (busy) {
         el.value = state.speed;
         return;
@@ -998,7 +1041,7 @@ $("#import-file").addEventListener("change", async (e) => {
     if (state)
       localStorage.setItem(SAVE_KEY + "-before-import", encodeSave(state));
     state = imported;
-    state.speed = 0;
+    state.speed = ADMIN_ENABLED ? 0 : 1;
     ui.drafts = {};
     ui.tab = "race";
     ui.selectedTeam = "player";
@@ -1032,7 +1075,7 @@ try {
   geo = await response.json();
   const offline =
     state?.speed === 1 ? Math.max(0, (Date.now() - state.wallAt) / 1000) : 0;
-  if (state && state.speed !== 1) state.speed = 0;
+  if (state && state.speed !== 1) state.speed = ADMIN_ENABLED ? 0 : 1;
   render();
   if (offline > 30) runTime({ type: "advance", seconds: offline });
   if (bootWarning) toast(bootWarning);

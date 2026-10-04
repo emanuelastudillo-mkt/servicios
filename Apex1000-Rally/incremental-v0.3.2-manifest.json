@@ -1,0 +1,116 @@
+{
+  "version": "0.3.2",
+  "baseVersion": "0.3.1",
+  "scope": "Barra Admin y bitácora. Nuevas reglas de competición pendientes.",
+  "deletions": [],
+  "files": [
+    {
+      "path": "Apex1000-Rally/INCREMENTAL-v0.3.2.md",
+      "sha256": "e67c694f690c43eb11f1f639ed111e4c9f33f33afda7cd95e336c7bcb08565c4",
+      "baseSha256": null,
+      "bytes": 3538
+    },
+    {
+      "path": "Apex1000-Rally/README.md",
+      "sha256": "967c9c846742ec65c6c7d95910d6c3257ea380cdf8066e0d7b8a5e1bd8f2d166",
+      "baseSha256": "147b0f4d84cd2b5adaafaf0b0c07e2d3a30fa664107aacd8cbee258aa6a2682c",
+      "bytes": 7372
+    },
+    {
+      "path": "Apex1000-Rally/assets/fonts/Caveat-OFL.txt",
+      "sha256": "1f9d81d094273d82f3898a1ee8b598a717d050ecbf5ff7bede105b704880157b",
+      "baseSha256": null,
+      "bytes": 4385
+    },
+    {
+      "path": "Apex1000-Rally/assets/fonts/Caveat.ttf",
+      "sha256": "0bdb6b660482d31531b3945849fba5916b3ef8695da7024a9e6b9ee3c4157988",
+      "baseSha256": null,
+      "bytes": 403648
+    },
+    {
+      "path": "Apex1000-Rally/assets/fonts/README.txt",
+      "sha256": "6a97f4f44096a7247fda78514b6a570a4ee3f5771f73d697a91c316948a5da45",
+      "baseSha256": null,
+      "bytes": 325
+    },
+    {
+      "path": "Apex1000-Rally/package.json",
+      "sha256": "e6d54a5c8f7ef199baea63e862ddac4c29cfa666933605b09953a1f5387f15d9",
+      "baseSha256": "6955dd129cdf6456b969c78010945365aeb4ea44b11d5c0a5b445e6f34dfcf28",
+      "bytes": 450
+    },
+    {
+      "path": "Apex1000-Rally/server.mjs",
+      "sha256": "81bfb92ed007e72c611301328402d03e4a98c664fac6f3b3d11147da58acc676",
+      "baseSha256": "c3d80c77e9b8797891b8aa59f114e9c9c99e6dd484c9f9d2cbc7b119a3900e31",
+      "bytes": 1436
+    },
+    {
+      "path": "Apex1000-Rally/src/admin-ui.js",
+      "sha256": "cb901790220c925d8b51fd10ca0158a6c0fcf8ee69d90b719861aa58ebdcb930",
+      "baseSha256": null,
+      "bytes": 1662
+    },
+    {
+      "path": "Apex1000-Rally/src/app.js",
+      "sha256": "82c989b0871362699ef1b8ea501a154797ac40edc0b4df8d56bec82d3306dfe8",
+      "baseSha256": "728ca37e478b1e07f171793af4fd6cedccace78db03a154489c2d667c2a01ba4",
+      "bytes": 63620
+    },
+    {
+      "path": "Apex1000-Rally/src/catalog.js",
+      "sha256": "dbe2d598665a8d212b84b2ee5419f87763e8f213b342c977b0332d9d3a01fd91",
+      "baseSha256": "97aa468cfdd85a11fd6668405980323a4c91f6f7658ac6b452f97283e0426043",
+      "bytes": 8395
+    },
+    {
+      "path": "Apex1000-Rally/src/engine.js",
+      "sha256": "9d52b6fa430278bf15650b0a65cc5f5c8e0a234258d15397e5863e0fb489adaf",
+      "baseSha256": "1713339ea022f4a98c1f568fd503c3e23885a26258fa0479b07feedb86071037",
+      "bytes": 32443
+    },
+    {
+      "path": "Apex1000-Rally/src/journal-ui.js",
+      "sha256": "38b2de2e9abc5b3940e26a938caffab93ceb7915446bd11151260e3ed52f77df",
+      "baseSha256": null,
+      "bytes": 2554
+    },
+    {
+      "path": "Apex1000-Rally/src/journal-validation.js",
+      "sha256": "181469096c3aecd696505853a2352e04f734fc357cd8d99f512fc51b4875dfab",
+      "baseSha256": null,
+      "bytes": 2522
+    },
+    {
+      "path": "Apex1000-Rally/src/journal.js",
+      "sha256": "684250b96e47e196b1efae567ae17d39ca30f84579496d95b3834a38794ea643",
+      "baseSha256": null,
+      "bytes": 6851
+    },
+    {
+      "path": "Apex1000-Rally/src/management-ui.js",
+      "sha256": "4108a12c6161cf56f06b02aa27752f09169607c228a8d552efbe3d1631047721",
+      "baseSha256": "0327daec736af4cb52d4c71b8b50f8a1495a105a3de3eae3017b9b7727ee8d05",
+      "bytes": 9567
+    },
+    {
+      "path": "Apex1000-Rally/src/storage.js",
+      "sha256": "cc1f06010cfe04daea7f7a2648ae26e12cd7a33447de2f01c344b89faae0c85a",
+      "baseSha256": "a4d29cb25eafe89476483612048be9afa5e692d005b544155a596aaa0858b137",
+      "bytes": 14737
+    },
+    {
+      "path": "Apex1000-Rally/style.css",
+      "sha256": "c2a421fbb2a4a506ac7a34c5aa2f2f7bc0049daea984af01b4b3102fb8e96f1c",
+      "baseSha256": "b3db12ac9a246f60d27b20ca6d1203fde278fabc574325b18b30185096c1aaeb",
+      "bytes": 66177
+    },
+    {
+      "path": "Apex1000-Rally/tests/journal.test.mjs",
+      "sha256": "b2f7c23d3ef17dfb94ae0311df99f251d4234f5c968215446ef0c1b848b24d75",
+      "baseSha256": null,
+      "bytes": 4221
+    }
+  ]
+}

@@ -1,10 +1,18 @@
-# Apex1000 Rally — World Raid v0.3.1
+# Apex1000 Rally — World Raid v0.3.2
 
 Juego estático para navegador, single player, con 11 equipos rivales simulados. Se ejecuta en GitHub Pages o con `node server.mjs` y no necesita instalar dependencias para jugar.
 
 ## Esta entrega
 
-El incremental v0.3.1 mejora el visor: zoom hasta 120× (el límite anterior era 9,1×), escudos de tamaño constante, posición y distancias al anterior/siguiente, alertas rojas pulsantes por averías y amarillas por riesgo elevado. Las 120 etapas tienen curvas y desvíos de diseño. Los vehículos recorren la misma geometría que se dibuja; los kilómetros deportivos y el balance de simulación se conservan.
+El incremental v0.3.2 agrega una barra **Admin** para todos los controles de tiempo, próxima parada y próxima carrera, y una **Bitácora** con aspecto de cuaderno y letra manuscrita. Cada etapa registra una o dos notas basadas en sus averías, temperatura, fatiga, combustible, configuración e incidentes, con consejos para preparar la siguiente. Las notas anteriores a esta actualización no se inventan. Se conserva la compatibilidad con partidas anteriores.
+
+Esta entrega incluye el avance solicitado mientras se definen las nuevas reglas. **Todavía se mantiene el campeonato con puntos de v0.3.1.** Siguen pendientes las carreras independientes, inscripción por carrera, corte a las 24 horas del primer finalista, cuenta regresiva entre carreras y progresión de nivel con decaimiento, logros e hitos. No se incluyen como funciones terminadas.
+
+La barra Admin se adapta a móvil y pantalla completa. “Próxima carrera” se habilita cuando todos los equipos terminaron, según las reglas actuales; “+24 horas” permite avanzar mientras se espera. Para ocultar toda la barra, configurar `ADMIN_ENABLED = false` en `src/admin-ui.js`; se bloquean los controles de avance del prototipo y se usa el reloj a 1×. Esto no reemplaza la autoridad de un servidor futuro.
+
+## Visor y funciones existentes
+
+El visor conserva el zoom hasta 120×, escudos de tamaño constante, posición y distancias al anterior/siguiente, alertas rojas pulsantes por averías y amarillas por riesgo elevado. Las 120 etapas tienen curvas y desvíos de diseño. Los vehículos recorren la misma geometría que se dibuja; los kilómetros deportivos y el balance de simulación se conservan.
 
 Para acercar: botones, rueda sobre el punto de interés o deslizador de 1× a 120×. “Seguirme” enfoca al equipo a 12× y conserva aumentos mayores; “Ver ruta” vuelve a la vista general. Los escudos muestran el puesto. En pantalla completa, el panel detalla los kilómetros de separación según el orden de carrera; si ambos equipos terminaron, también indica la diferencia de tiempo.
 
@@ -30,18 +38,18 @@ Con Node.js 22 o superior: `node server.mjs`. Abrir http://127.0.0.1:4182. No ab
 2. En Equipo, elegir escudo. Para contratar otro piloto primero hay que liberar un cupo; se necesita al menos un piloto.
 3. En Mercado, comprar o enviar ofertas. El plazo inicial es de seis horas del reloj de simulación. Ganar paga el primer sueldo con el depósito; perder o cancelar lo devuelve.
 4. En Roadbook, estudiar terreno, temperatura y distancias. Campamento permite guardar el plan de cada etapa. Se pueden completar automáticamente los planes faltantes.
-5. En Carrera, usar el reloj o “Mi próxima parada”. El mapa permite seguir cualquier participante y entrar en pantalla completa; Escape cierra esa vista.
-6. Al llegar todos a meta, Campeonato cierra los puntos y habilita la siguiente carrera. Se cobran los siguientes sueldos. Los premios de temporada se pagan una sola vez tras la octava prueba.
+5. En la barra Admin, usar el reloj o “Próxima parada”. El mapa permite seguir cualquier participante y entrar en pantalla completa; Escape cierra esa vista. Bitácora muestra las observaciones de las etapas recorridas desde la actualización.
+6. Al llegar todos a meta, Campeonato cierra los puntos y se habilita “Próxima carrera” en Admin. Se cobran los siguientes sueldos. Los premios de temporada se pagan una sola vez tras la octava prueba; este sistema sigue vigente hasta la próxima modificación.
 
 ## Publicación e incremental
 
-El paquete incremental se aplica en la raíz del repositorio `servicios`: contiene `Apex1000-Rally/` y `.github/workflows/apex1000-catalog.yml`. Conservar todos los archivos que no figuran en el ZIP. No reemplaza otras webs del repositorio. La documentación específica de la conexión está en `docs/CATALOGOS.md`.
+El incremental **v0.3.2 requiere v0.3.1**. Descomprimir en la raíz del repositorio `servicios`, conservando la carpeta `Apex1000-Rally/`, y agregar o reemplazar sólo los archivos incluidos. No borrar los demás. Este ZIP no incluye cambios en workflows ni en la conexión de Sheets. Después de subirlo, recargar con Ctrl+F5. Ver `INCREMENTAL-v0.3.2.md` para el contenido y los límites de esta entrega.
 
 Para subir la carpeta completa, conservar `src/`, `data/`, `assets/`, `style.css` e `index.html`. La carpeta `qa/` contiene respaldos y verificaciones locales y no debe publicarse. No se eliminaron los archivos de QA que ya existían en la versión publicada.
 
 ## Validación
 
-`npm test` ejecuta pruebas de simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración y lectura CSV. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas.
+`npm test` ejecuta 49 pruebas de simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración, lectura CSV, visor y bitácora. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas. El ZIP v0.3.2 se aplicó sobre una copia de v0.3.1 y se ejecutaron las mismas pruebas sobre el resultado.
 
 ## Alcance
 

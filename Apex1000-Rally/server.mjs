@@ -10,6 +10,7 @@ const root = path.dirname(fileURLToPath(import.meta.url)),
     ".css": "text/css; charset=utf-8",
     ".svg": "image/svg+xml",
     ".webp": "image/webp",
+    ".ttf": "font/ttf",
     ".png": "image/png",
     ".json": "application/json; charset=utf-8",
     ".md": "text/plain; charset=utf-8",
@@ -22,7 +23,9 @@ http
         root,
         "." +
           decodeURIComponent(
-            url.pathname.endsWith("/") ? url.pathname + "index.html" : url.pathname,
+            url.pathname.endsWith("/")
+              ? url.pathname + "index.html"
+              : url.pathname,
           ),
       );
       if (!file.startsWith(root + path.sep)) {
@@ -44,4 +47,3 @@ http
   .listen(port, "127.0.0.1", () =>
     console.log(`Apex1000 Rally: http://127.0.0.1:${port}`),
   );
-

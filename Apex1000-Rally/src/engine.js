@@ -1,6 +1,12 @@
 import { CATALOG } from "../data/catalog.js";
 import { failureRate } from "./reliability.js";
 import {
+  startJournal,
+  noteIncident,
+  observeJournal,
+  finishJournal,
+} from "./journal.js";
+import {
   initializeManagement,
   workshopRate,
   settleAuctions,
@@ -105,6 +111,8 @@ function newTeam(id, name, vehicleId, seed, ai = false, catalog = CATALOG) {
     finishTime: null,
     prizePaid: false,
     history: [],
+    journal: [],
+    stageNotes: null,
     plans: STAGES.map(() => null),
     rng: seed >>> 0 || 1,
     ledger: [
@@ -520,6 +528,7 @@ function startStage(state, t) {
   t.stageStart = state.clock;
   t.stageKm = 0;
   t.holdUntil = 0;
+  startJournal(t, STAGES[t.stageIndex], state.clock);
   log(
     state,
     t,
@@ -728,6 +737,7 @@ function fatigue(t, dt, racing = false, effort = 1) {
 function finishStage(state, t, time) {
   const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(t);
   const s = STAGES[t.stageIndex];
+  finishJournal(t, s, time);
   t.history.push({
     stage: t.stageIndex,
     start: t.stageStart,
@@ -749,7 +759,7 @@ function finishStage(state, t, time) {
     t.phase = "finished";
     t.finishTime = time;
     t.totalKm = TOTAL_KM;
-    log(state, t, "finish", "¡Llegó a Santiago! Carrera completa.");
+    log(state, t, "finish", `¡Llegó a ${s.to.name}! Carrera completa.`);
   } else {
     t.phase = "camp";
     t.service = null;
@@ -791,6 +801,7 @@ function advanceTeam(state, t, dt) {
     }
   }
   if (t.phase !== "racing") return;
+  if (!t.stageNotes) startJournal(t, STAGES[t.stageIndex], state.clock);
   if (state.clock < t.holdUntil) {
     t.speed = 0;
     fatigue(t, dt);
@@ -800,6 +811,7 @@ function advanceTeam(state, t, dt) {
   }
   const stage = STAGES[t.stageIndex],
     p = performance(t, stage),
+    wasHot = t.heat > 112 && !p.broken,
     driveDt = Math.min(dt, ((stage.km - t.stageKm) / p.speed) * 3600),
     distance = (p.speed * driveDt) / 3600;
   if (t.fuel < (distance * p.fuelPer100) / 100) {
@@ -814,6 +826,7 @@ function advanceTeam(state, t, dt) {
     t.fuel = litres;
     t.holdUntil = state.clock + 4 * 3600;
     t.speed = 0;
+    noteIncident(t, "fuel");
     log(
       state,
       t,
@@ -836,6 +849,12 @@ function advanceTeam(state, t, dt) {
     true,
     p.terrainId === "sand" ? 1.2 : p.terrainId === "mountain" ? 1.12 : 1,
   );
+  observeJournal(t, stage, {
+    terrainId: p.terrainId,
+    distance,
+    seconds: driveDt,
+    wasHot,
+  });
   for (const type of PART_TYPES) {
     const piece = t.parts[type.id],
       grade = GRADES[piece.grade];
@@ -865,6 +884,7 @@ function advanceTeam(state, t, dt) {
       piece.broken = true;
       piece.condition = Math.min(piece.condition, 5);
       t.statistics.failures++;
+      noteIncident(t, "failure", type.id);
       t.speed = 30;
       log(
         state,
@@ -880,6 +900,7 @@ function advanceTeam(state, t, dt) {
     t.holdUntil = state.clock + delay * 3600;
     t.speed = 0;
     t.statistics.errors++;
+    noteIncident(t, "error");
     if (!navigation) {
       const target = PART_TYPES[Math.floor(random(t) * PART_TYPES.length)].id;
       const piece = t.parts[target];
