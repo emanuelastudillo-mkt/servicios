@@ -65,6 +65,7 @@ if (
       fs.readFile("data/catalog.json", "utf8"),
       fs.readFile("data/catalog.js", "utf8"),
     ]);
+    let published = false;
     for (let i = 0; i < attempts; i++) {
       let result;
       try {
@@ -76,15 +77,17 @@ if (
         console.log(
           `Catálogo publicado y verificado: ${JSON.parse(json).revision}`,
         );
-        process.exit(0);
+        published = true;
+        break;
       }
       console.log(`Comprobación ${i + 1}/${attempts}: ${result.detail}`);
       if (i + 1 < attempts)
         await new Promise((resolve) => setTimeout(resolve, 20000));
     }
-    throw Error(
-      "La publicación no coincide todavía. El próximo chequeo diario volverá a intentar publicar.",
-    );
+    if (!published)
+      throw Error(
+        "La publicación no coincide todavía. El próximo chequeo diario volverá a intentar publicar.",
+      );
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
