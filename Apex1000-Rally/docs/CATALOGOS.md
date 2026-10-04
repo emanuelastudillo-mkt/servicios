@@ -1,6 +1,6 @@
 # Catálogos y conexión con Google Sheets
 
-Estado de esta entrega: libro local creado y validado; importación nativa a Google Drive y conexión remota pendientes de reactivar el conector. No se creó una planilla ni se configuró GitHub en nombre del usuario. `config/sheets.json` queda desactivado y sin URLs inventadas.
+Estado: sincronización diaria preparada en GitHub; creación de la planilla nativa y conexión de sus siete URLs todavía pendientes. `config/sheets.json` permanece desactivado hasta verificar las hojas reales. El libro local y los CSV siguen disponibles como respaldo.
 
 Destino acordado: https://drive.google.com/drive/folders/18QOIC22BHnWJTpkL5ubRJ82AzUkuGs2I
 
@@ -24,8 +24,17 @@ Conservar IDs, encabezados y cantidad de filas. El importador rechaza duplicados
 2. Publicar **solamente las siete pestañas de catálogo** como CSV. No agregar cuentas, emails, contraseñas o datos de jugadores a este libro. La [documentación de Google](https://support.google.com/docs/answer/183965?hl=es) explica la publicación por hoja y formato.
 3. Copiar las siete URLs CSV a `config/sheets.json`, activar `enabled` y ejecutar `node scripts/sync-catalog.mjs --check`. Este paso debe verificarse contra las URLs reales.
 4. Subir la configuración junto con el incremental. El workflow `apex1000-catalog.yml` debe quedar en **`.github/workflows/` de la raíz de `servicios`**. El ZIP coloca el archivo allí; su copia dentro de `integration/` es una referencia.
-5. En GitHub, permitir a Actions crear pull requests. Crear la variable de repositorio `APEX_SHEETS_ENABLED=true` para habilitar la comprobación cada seis horas. También puede ejecutarse manualmente en Actions.
-6. El workflow valida todas las hojas, ejecuta las pruebas y propone un PR limitado a `Apex1000-Rally/data/catalog.json` y `catalog.js`. Revisar y fusionar para que el despliegue del repositorio publique los datos. Un push realizado con `GITHUB_TOKEN` no dispara por sí solo todos los workflows posteriores; por eso se usa un PR revisable. [Referencia oficial](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+5. El workflow se ejecuta todos los días a las **07:23 de Argentina (10:23 UTC)**. GitHub puede demorar el inicio. También puede lanzarse desde Actions → Apex1000 - catálogo diario → Run workflow. No necesita la variable `APEX_SHEETS_ENABLED` ni crear pull requests.
+6. Valida las siete hojas y ejecuta las pruebas. Si hay cambios, guarda automáticamente sólo `Apex1000-Rally/data/catalog.json` y `catalog.js` en `main`. Si falla la descarga, la validación o las pruebas, no publica los datos. Un cambio simultáneo de `main` hace fallar el push antes que sobrescribirlo.
+7. Comprueba que el JSON y el módulo JavaScript públicos coincidan con el catálogo validado. Si no coinciden, solicita un build de GitHub Pages y espera su publicación. Se usa el permiso `pages: write` porque el push de `GITHUB_TOKEN` no dispara por sí solo todos los workflows posteriores. [Referencia oficial](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+
+## Edición y seguimiento diario
+
+Editar los valores en las pestañas originales de Google Sheets. Conservar IDs, encabezados y filas; no reemplazar el documento por otra copia. Mantener la republicación automática de las hojas CSV. Los cambios guardados antes de la ejecución diaria se incorporan en esa ejecución, sujetos a la demora de Google al publicar y de GitHub al programar.
+
+Para revisar el resultado, abrir [Actions del catálogo](https://github.com/emanuelastudillo-mkt/servicios/actions/workflows/apex1000-catalog.yml). El resumen distingue la conexión pendiente de una publicación verificada. Una ejecución fallida incluye el motivo en el paso correspondiente. Corregir la celda indicada y ejecutar Run workflow o esperar el día siguiente. GitHub puede desactivar cron en repositorios públicos después de 60 días sin actividad; en ese caso hay que reactivar el workflow en Actions.
+
+El flujo diario actualiza el catálogo del sitio. Una pestaña del juego que ya estaba abierta debe recargarse para leer la versión nueva. No se modifica la economía de una partida en curso.
 
 Para comprobar el circuito completo sin acceso a Google: `node scripts/sync-catalog.mjs --source-dir catalogos --check`. Para regenerar el catálogo incluido: quitar `--check`. Los siete archivos se validan antes de escribir los resultados; un fallo de validación no reemplaza el catálogo vigente.
 
