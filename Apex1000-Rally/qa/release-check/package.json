@@ -1,0 +1,11 @@
+{
+  "name": "apex1000-rally",
+  "version": "0.2.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test --test-isolation=none tests/engine.test.mjs",
+    "test:browser": "node tests/browser.cjs"
+  }
+}
