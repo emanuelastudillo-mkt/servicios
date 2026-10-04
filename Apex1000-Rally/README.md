@@ -34,7 +34,7 @@ Los trazados detallados son especiales ficticias entre localidades reales; no so
 - Guardados anteriores v0.2 migrados, conservando avance, presupuesto y piezas. Se conserva un respaldo local previo a la migración.
 - Catálogo administrativo: XLSX con guía y 7 hojas, CSVs, importador validado y workflow de GitHub preparado.
 
-**Pendiente externo:** no se crearon aún las hojas nativas de Google Sheets ni se conectaron al repositorio. El usuario eligió reactivar el conector de Drive. `config/sheets.json` permanece desactivado; el juego utiliza su catálogo incluido y funciona independientemente de ese paso.
+**Catálogo diario:** GitHub Actions está configurado para las 07:23 de Argentina. Descarga y valida las siete hojas, actualiza los dos archivos del catálogo y verifica su publicación en Pages. La creación de las hojas nativas y sus URLs sigue pendiente: `config/sheets.json` permanece desactivado y el juego utiliza su catálogo incluido. Ver [estado e instrucciones](docs/CATALOGOS.md). Los cambios del catálogo se aplican a partidas nuevas; cada partida existente conserva su copia.
 
 ## Jugar localmente
 
@@ -55,7 +55,7 @@ Para subir la carpeta completa, conservar `src/`, `data/`, `assets/`, `style.css
 
 ## Validación
 
-`npm test` ejecuta 64 pruebas de simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración, lectura CSV, visor, bitácora, garaje y taller. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas. El ZIP v0.3.3 se aplica y verifica sobre una copia de v0.3.2 y se ejecutaron las mismas pruebas sobre el resultado.
+`npm test` ejecuta 65 pruebas de simulación, desgaste, energía, presupuesto, ocho carreras, premios, contratos, reservas, stock, migración, lectura CSV, publicación del catálogo, visor, bitácora, garaje y taller. `npm run catalog:check` valida los CSV locales sin modificar el catálogo. No se requieren dependencias npm para estas pruebas. El ZIP v0.3.3 se aplica y verifica sobre una copia de v0.3.2 y se ejecutaron las mismas pruebas sobre el resultado.
 
 ## Alcance
 
