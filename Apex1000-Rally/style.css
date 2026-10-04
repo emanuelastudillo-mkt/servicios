@@ -3275,3 +3275,378 @@ footer button:hover {
     white-space: nowrap;
   }
 }
+/* v0.3.1 — detailed route, constant-size shields and live telemetry */
+.route-lines path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.route-outline {
+  stroke: #07191f;
+  stroke-width: 7px;
+}
+.route-surface {
+  stroke-width: 3px;
+  pointer-events: none;
+}
+.surface-asphalt {
+  stroke: #accbeb;
+}
+.surface-gravel {
+  stroke: #e4bb7c;
+}
+.surface-sand {
+  stroke: #ffd878;
+}
+.surface-rock {
+  stroke: #e4a18b;
+}
+.surface-mountain {
+  stroke: #a1d7bd;
+}
+.stage-hit {
+  stroke: transparent;
+  stroke-width: 15px;
+  cursor: pointer;
+}
+.city-labels {
+  font-size: 11px;
+}
+.city-symbol text {
+  stroke-width: 2px;
+}
+.team-marker .team-shield {
+  width: 34px;
+  height: 34px;
+  pointer-events: none;
+}
+.marker-halo {
+  fill: #b6c5cb;
+  opacity: 0.14;
+}
+.marker-status {
+  fill: #111e28;
+  stroke: #a6b7b8;
+  stroke-width: 1.5px;
+}
+.marker-rank-bg {
+  fill: #14242e;
+  stroke: #b3c2c5;
+  stroke-width: 1px;
+}
+.team-marker .marker-position {
+  fill: #fff;
+  font: 700 10px monospace;
+}
+.team-marker.selected .marker-status {
+  stroke: #ffdf9c;
+  stroke-width: 3px;
+}
+.team-marker.selected .marker-halo {
+  fill: #ffdf9c;
+  opacity: 0.28;
+}
+.team-marker.health-warning .marker-status {
+  stroke: #ffcd46;
+  stroke-width: 3px;
+}
+.team-marker.health-warning .marker-halo {
+  fill: #ffcd46;
+  opacity: 0.3;
+}
+.team-marker.health-critical .marker-status {
+  stroke: #ff4d63;
+  stroke-width: 3px;
+  animation: map-danger-pulse 1.5s ease-in-out infinite;
+}
+.team-marker.health-critical .marker-halo {
+  fill: #ff4056;
+  animation: map-halo-pulse 1.5s ease-in-out infinite;
+}
+.team-marker:focus-visible {
+  outline: none;
+}
+.team-marker:focus-visible .marker-status {
+  stroke: #fff;
+  stroke-width: 4px;
+}
+.map-zoom {
+  display: grid;
+  grid-template-columns: 30px 62px 30px;
+  gap: 3px;
+  width: 144px;
+  padding: 7px;
+  align-items: center;
+}
+.map-zoom button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+.map-zoom #zoom-level {
+  text-align: center;
+  min-width: 0;
+  font: 12px monospace;
+}
+#map-zoom-range {
+  grid-column: 1/-1;
+  width: 100%;
+  margin: 5px 0 0;
+  padding: 0;
+  accent-color: #efc37f;
+}
+.map-fullscreen .map-hud {
+  width: 310px;
+  padding: 14px;
+}
+.hud-position {
+  clear: both;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 10px 0;
+  border-block: 1px solid #9eb2bd33;
+}
+.hud-place strong {
+  display: block;
+  font: 700 30px monospace;
+  color: #f6d59f;
+}
+.hud-place span {
+  font: 9px monospace;
+  color: #a6b4bd;
+}
+.hud-gaps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  min-width: 0;
+}
+.hud-gaps > div {
+  min-width: 0;
+}
+.hud-gaps small {
+  display: block;
+  font-size: 8px;
+  color: #92a7b2;
+  letter-spacing: 0.5px;
+}
+.hud-gaps span {
+  display: block;
+  font-size: 10px;
+  line-height: 1.6;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.hud-gaps strong {
+  display: block;
+  font: 700 13px monospace;
+  color: #e8eef1;
+}
+.hud-gaps strong small {
+  display: inline;
+}
+.gap-note {
+  grid-column: 1/-1;
+  font-size: 8px;
+  color: #91a6b2;
+}
+.hud-alerts {
+  max-height: 124px;
+  overflow: auto;
+  margin: 8px 0;
+  display: grid;
+  gap: 5px;
+}
+.vehicle-alert {
+  padding: 8px 9px;
+  border: 1px solid;
+  border-radius: 7px;
+}
+.vehicle-alert strong {
+  display: block;
+  font-size: 11px;
+}
+.vehicle-alert small {
+  display: block;
+  font-size: 9px;
+  line-height: 1.45;
+  margin-top: 3px;
+  opacity: 0.88;
+}
+.vehicle-alert.health-critical {
+  background: #471d2b;
+  color: #ffabb7;
+  border-color: #ff536e;
+  animation: panel-danger-pulse 1.5s ease-in-out infinite;
+}
+.vehicle-alert.health-warning {
+  background: #40351a;
+  color: #ffdb74;
+  border-color: #d7a63a;
+}
+.hud-clear {
+  font-size: 10px;
+  color: #b0d7bf;
+  margin: 9px 0;
+}
+.hud-vehicle {
+  height: 100px;
+  aspect-ratio: auto;
+  object-fit: contain;
+  background: #0a1119;
+  margin: 6px 0 9px;
+}
+.hud-figures {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 13px 0;
+}
+.hud-figures strong {
+  font-size: 17px;
+}
+.hud-figures small {
+  font-size: 9px;
+}
+.hud-parts {
+  gap: 7px;
+}
+.part-health {
+  padding: 5px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+}
+.part-health.health-critical {
+  border-color: #ff536e;
+  color: #ffadb8;
+  background: #451e2a;
+  animation: panel-danger-pulse 1.5s ease-in-out infinite;
+}
+.part-health.health-warning {
+  border-color: #ca9c38;
+  color: #ffdb74;
+  background: #3b321e;
+}
+.part-risk {
+  display: block;
+  font-size: 8px;
+  color: #a9bbc5;
+  margin-top: 3px;
+}
+.part-health.health-critical .part-risk,
+.part-health.health-warning .part-risk {
+  color: inherit;
+}
+.hud-driver-inline {
+  display: none !important;
+}
+@keyframes map-danger-pulse {
+  0%,
+  100% {
+    stroke-opacity: 1;
+    stroke-width: 3px;
+  }
+  50% {
+    stroke-opacity: 0.65;
+    stroke-width: 6px;
+  }
+}
+@keyframes map-halo-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+@keyframes panel-danger-pulse {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 0 #ff536e00;
+  }
+  50% {
+    box-shadow: inset 0 0 14px 1px #ff536e55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .team-marker.health-critical .marker-status,
+  .team-marker.health-critical .marker-halo,
+  .vehicle-alert.health-critical,
+  .part-health.health-critical {
+    animation: none;
+  }
+}
+@media (max-width: 650px) {
+  .map-fullscreen .map-hud {
+    width: auto;
+    max-height: 38vh;
+    padding: 10px;
+    bottom: 62px;
+  }
+  .map-fullscreen #race-map {
+    height: calc(100% - 310px);
+  }
+  .map-fullscreen .map-zoom {
+    top: 52px;
+    right: 8px;
+    width: 130px;
+    grid-template-columns: 26px 58px 26px;
+    padding: 5px;
+  }
+  .map-zoom button {
+    width: 26px;
+    height: 26px;
+  }
+  .hud-team {
+    float: none;
+    width: auto;
+  }
+  .hud-team .team-shield {
+    width: 32px;
+    height: 32px;
+  }
+  .hud-driver-inline {
+    display: block !important;
+    color: #bccad2 !important;
+    font-size: 9px !important;
+    margin-top: 3px;
+    letter-spacing: 0 !important;
+  }
+  .hud-driver,
+  .hud-vehicle {
+    display: none;
+  }
+  .hud-position {
+    margin: 7px 0;
+    padding: 6px 0;
+  }
+  .hud-place strong {
+    font-size: 26px;
+  }
+  .gap-note {
+    display: none;
+  }
+  .hud-alerts {
+    max-height: 90px;
+    margin: 5px 0;
+  }
+  .vehicle-alert {
+    padding: 6px 8px;
+  }
+  .vehicle-alert small {
+    font-size: 8px;
+  }
+  .hud-figures {
+    padding: 8px 0;
+  }
+  .hud-figures strong {
+    font-size: 16px;
+  }
+  .map-hud > label {
+    margin: 4px 0 0;
+  }
+}

@@ -1,4 +1,5 @@
 import { CATALOG } from "../data/catalog.js";
+import { failureRate } from "./reliability.js";
 import {
   initializeManagement,
   workshopRate,
@@ -859,12 +860,7 @@ function advanceTeam(state, t, dt) {
       continue;
     }
     const failure =
-      (grade.failure *
-        (1 + ((100 - piece.condition) / 35) ** 2) *
-        (t.activePlan.boost + 1) *
-        (1 + Math.max(0, t.heat - 110) * 0.07) *
-        driveDt) /
-      3600;
+      (failureRate(piece, t.heat, t.activePlan.boost) * driveDt) / 3600;
     if (!piece.broken && random(t) < failure) {
       piece.broken = true;
       piece.condition = Math.min(piece.condition, 5);

@@ -1,8 +1,16 @@
-# Apex1000 Rally — World Raid v0.3
+# Apex1000 Rally — World Raid v0.3.1
 
 Juego estático para navegador, single player, con 11 equipos rivales simulados. Se ejecuta en GitHub Pages o con `node server.mjs` y no necesita instalar dependencias para jugar.
 
 ## Esta entrega
+
+El incremental v0.3.1 mejora el visor: zoom hasta 120× (el límite anterior era 9,1×), escudos de tamaño constante, posición y distancias al anterior/siguiente, alertas rojas pulsantes por averías y amarillas por riesgo elevado. Las 120 etapas tienen curvas y desvíos de diseño. Los vehículos recorren la misma geometría que se dibuja; los kilómetros deportivos y el balance de simulación se conservan.
+
+Para acercar: botones, rueda sobre el punto de interés o deslizador de 1× a 120×. “Seguirme” enfoca al equipo a 12× y conserva aumentos mayores; “Ver ruta” vuelve a la vista general. Los escudos muestran el puesto. En pantalla completa, el panel detalla los kilómetros de separación según el orden de carrera; si ambos equipos terminaron, también indica la diferencia de tiempo.
+
+La alerta amarilla de pieza aparece desde un 8% estimado de avería en la próxima hora de conducción. Usa la fórmula real del simulador y supone estado, exigencia y temperatura constantes; no es una garantía del resultado. Las reservas mantienen riesgo de avería cero. Temperatura superior a 112 °C activa aviso amarillo y superior a 122 °C activa rojo. Las averías existentes se señalan en rojo. La animación respeta la preferencia de movimiento reducido del dispositivo.
+
+Los trazados detallados son especiales ficticias entre localidades reales; no son carreteras verificadas. Colores: azul para asfalto, ocre para ripio, amarillo para arena, coral para piedras y verde para montaña.
 
 - Campeonato de 8 carreras y 120 etapas, entre 9.300 y 12.600 km por carrera. Primera prueba: Andes, 10.240 km. Largadas compartidas y fijas, con descanso y avance independientes por equipo.
 - 4 vehículos reales ilustrados; 54 ofertas de piezas nuevas y usadas con precio y stock. Las piezas y los autos adquiridos se conservan durante el campeonato.

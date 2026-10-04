@@ -13,6 +13,8 @@ import {
   mechanicsPanel,
 } from "./management-ui.js";
 import { shieldSVG } from "./shields.js";
+import { vehicleHealth } from "./reliability.js";
+import { raceNeighbors } from "./race-telemetry.js";
 import {
   VERSION,
   STARTING_BUDGET,
@@ -64,6 +66,7 @@ import {
   focusStage,
   zoom,
   applyCamera,
+  MAX_ZOOM,
 } from "./visuals.js";
 const $ = (s) => document.querySelector(s),
   money = (n) => Math.round(n).toLocaleString("es-AR"),
@@ -222,7 +225,7 @@ function onboarding() {
   return `<main class="onboarding"><div class="intro-copy"><span class="eyebrow">8 CARRERAS · 120 ETAPAS · UN CAMPEONATO</span><h1>La carrera no se gana<br>en un día.</h1><p>Ocho travesías por el mundo. Gestioná tu equipo, elegí cuándo acelerar y construí una temporada de resistencia. La primera carrera: de Buenos Aires a Santiago.</p><div class="intro-stats">${stat("RECORRIDO", "10.240 <em>km</em>")}${stat("COMPETENCIA", "12 <em>equipos</em>")}${stat("PRESUPUESTO", money(STARTING_BUDGET) + " <em>cr</em>")}</div></div><section class="vehicle-grid">${VEHICLES.map((car) => `<button class="vehicle-card ${ui.vehicleId === car.id ? "selected" : ""}" style="--vehicle:${car.color}" data-action="choose-vehicle" data-id="${car.id}"><div class="vehicle-top"><span>${car.tag}</span>${ui.vehicleId === car.id ? icon("check") : '<span class="radio-circle"></span>'}</div>${truckSVG(car.id)}<h2>${car.name}</h2><p>${car.engine}</p><div class="vehicle-specs"><span>Tanque <b>${car.tank} L</b></span><span>Velocidad <b>${Math.round(car.speed * 100)}</b></span><span>Resistencia <b>${Math.round(car.reliability * 100)}</b></span><span>Consumo <b>${Math.round(100 / car.efficiency)}</b></span></div><div class="vehicle-bottom"><span>Uso e inscripción</span><strong>${money(car.fee)} cr</strong></div></button>`).join("")}</section><section class="panel enlist"><div><span class="eyebrow">TU PRIMERA DECISIÓN</span><h2>${v.short}</h2><p>${v.description}</p><p class="muted">Velocidad, resistencia y consumo son índices de juego (base 100); menor consumo es mejor. Los costos también pertenecen al juego. Seis piezas Sport al 92% y seis reservas gratuitas incluidas.</p></div><form id="create-form"><label>Nombre del equipo<input name="teamName" maxlength="40" value="Tu equipo" required></label><label>Largada compartida · hora local<input name="startAt" type="datetime-local" value="${local}" required></label><label>Escenario<input name="seed" type="number" min="1" max="999999" value="1729"></label><div class="enlist-balance"><span>Saldo antes de sueldos</span><strong>${money(STARTING_BUDGET - v.fee)} cr</strong></div><button class="button primary full" type="submit">Inscribir equipo ${icon("arrow")}</button></form></section><div class="intro-note">Prototipo single player. Todos comparten la largada; después cada equipo administra su propio tiempo. La aceleración sólo existe en esta versión de prueba.</div></main>`;
 }
 function mapPanel() {
-  return `<section class="panel map-panel" id="map-panel"><div class="panel-heading"><div><span class="eyebrow">VISOR DE CARRERA / RECORRIDO COMPLETO</span><h2>${esc(ROUTE_NAME)}</h2></div><button class="button ghost small" data-action="fullscreen-map">⛶ Pantalla completa</button></div><div class="map-container">${mapSVG(state, geo)}<div class="map-zoom"><button data-action="zoom-in" aria-label="Acercar mapa">+</button><span id="zoom-level">${(1000 / camera.w).toFixed(1)}×</span><button data-action="zoom-out" aria-label="Alejar mapa">−</button></div><div class="map-actions"><button data-action="fit-map">${icon("map")}Ver ruta</button><button data-action="follow" data-id="player">${icon("target")}Seguirme</button></div><div class="map-hud" id="map-hud">${mapHUD()}</div><div class="fullscreen-controls"><button class="button small" data-action="toggle-time">${state.speed ? "Pausar" : "Reanudar"}</button><button class="button small" data-action="advance-hour">+1 hora</button><button class="button small" data-action="next-camp">Próxima parada</button><button class="button small" data-action="fullscreen-map">Cerrar pantalla completa</button></div><div class="map-legend"><i></i> Trazado de la prueba <span>●</span> Campamento</div><div class="map-distance"><span>CARRERA ${state.championship.round + 1} DE 8</span><strong>${num(TOTAL_KM)} <small>km</small></strong></div></div><div class="map-footer"><span>Arrastrá para mover · rueda para acercar · tocá un equipo para seguirlo</span><span>Natural Earth · GeoNames</span></div></section>`;
+  return `<section class="panel map-panel" id="map-panel"><div class="panel-heading"><div><span class="eyebrow">VISOR DE CARRERA / RECORRIDO COMPLETO</span><h2>${esc(ROUTE_NAME)}</h2></div><button class="button ghost small" data-action="fullscreen-map">⛶ Pantalla completa</button></div><div class="map-container">${mapSVG(state, geo)}<div class="map-zoom"><button data-action="zoom-in" aria-label="Acercar mapa">+</button><span id="zoom-level">${(1000 / camera.w).toFixed(1)}×</span><button data-action="zoom-out" aria-label="Alejar mapa">−</button><input id="map-zoom-range" type="range" min="1" max="${MAX_ZOOM}" step="1" value="${Math.max(1, 1000 / camera.w)}" aria-label="Nivel de zoom del mapa" title="Zoom de 1× a 120×"></div><div class="map-actions"><button data-action="fit-map">${icon("map")}Ver ruta</button><button data-action="follow" data-id="player">${icon("target")}Seguirme</button></div><div class="map-hud" id="map-hud">${mapHUD()}</div><div class="fullscreen-controls"><button class="button small" data-action="toggle-time">${state.speed ? "Pausar" : "Reanudar"}</button><button class="button small" data-action="advance-hour">+1 hora</button><button class="button small" data-action="next-camp">Próxima parada</button><button class="button small" data-action="fullscreen-map">Cerrar pantalla completa</button></div><div class="map-legend"><i></i> Trazado de la prueba <span>●</span> Campamento</div><div class="map-distance"><span>CARRERA ${state.championship.round + 1} DE 8</span><strong>${num(TOTAL_KM)} <small>km</small></strong></div></div><div class="map-footer"><span>Arrastrá para mover · rueda para acercar · tocá un equipo para seguirlo</span><span>Natural Earth · GeoNames · trazado deportivo de diseño</span></div></section>`;
 }
 function leaderboard() {
   return `<section class="panel leaderboard"><div class="panel-heading"><div><span class="eyebrow">UNA LARGADA, DISTINTOS CAMINOS</span><h2>Orden de carrera</h2></div><span class="count-pill">12</span></div><div class="standing-head"><span>EQUIPO / ESTADO</span><span>KM TOTALES</span></div><div id="leaderboard-rows">${leaderboardRows()}</div><div class="small-note">En carrera se ordena por avance. Al llegar, por tiempo total desde la largada, incluyendo asistencia y descanso.</div></section>`;
@@ -460,7 +463,7 @@ function render() {
     : `<main>${{ race: racePage, roadbook, camp, market, crew, championship: () => championshipPage(state) }[ui.tab]()}</main>`;
   $("#app").innerHTML = header() + clockBar() + content + footer();
   if (state && ui.tab === "race") {
-    updateMap(state);
+    updateMap(state, ui.selectedTeam);
     bindMap();
   }
   if (!state) {
@@ -493,7 +496,7 @@ function refresh() {
     $("#clock-value").textContent =
       (state.clock < 0 ? "− " : "") + duration(Math.abs(state.clock));
   if (ui.tab === "race") {
-    updateMap(state);
+    updateMap(state, ui.selectedTeam);
     $("#leaderboard-rows").innerHTML = leaderboardRows();
     $("#player-metrics").innerHTML = playerMetrics();
     $("#team-inspector").innerHTML = teamInspector();
@@ -575,14 +578,47 @@ function goCamp(index = editStage()) {
   render();
   window.scrollTo({ top: 0 });
 }
+let mapResizeObserver;
 function bindMap() {
   const svg = $("#race-map");
-  let dragging = null;
+  mapResizeObserver?.disconnect();
+  mapResizeObserver = new ResizeObserver(applyCamera);
+  mapResizeObserver.observe(svg);
+  const pointers = new Map();
+  let dragging = null,
+    pinch = null,
+    dragged = false;
+  const worldPoint = (x, y) =>
+    new DOMPoint(x, y).matrixTransform(svg.getScreenCTM().inverse());
   svg.addEventListener("pointerdown", (e) => {
+    dragged = false;
     if (e.target.closest('[data-action="follow"]')) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinch = { distance: Math.hypot(a.x - b.x, a.y - b.y) };
+      svg.setPointerCapture(e.pointerId);
+      dragging = null;
+      return;
+    }
     dragging = { x: e.clientX, y: e.clientY, cx: camera.x, cy: camera.y };
   });
   svg.addEventListener("pointermove", (e) => {
+    if (pointers.has(e.pointerId))
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pointers.size === 2) {
+      const [a, b] = [...pointers.values()],
+        distance = Math.hypot(a.x - b.x, a.y - b.y);
+      if (distance > 0 && pinch.distance > 0)
+        zoom(
+          pinch.distance / distance,
+          worldPoint((a.x + b.x) / 2, (a.y + b.y) / 2),
+        );
+      pinch.distance = distance;
+      dragged = true;
+      updateMap(state, ui.selectedTeam);
+      return;
+    }
     if (!dragging) return;
     if (
       !dragging.active &&
@@ -591,25 +627,40 @@ function bindMap() {
       return;
     if (!dragging.active) {
       dragging.active = true;
+      dragged = true;
       svg.setPointerCapture(e.pointerId);
     }
-    const rect = svg.getBoundingClientRect(),
-      scale = Math.max(camera.w / rect.width, camera.h / rect.height);
+    const matrix = svg.getScreenCTM(),
+      scale = 1 / Math.hypot(matrix.a, matrix.b);
     camera.x = dragging.cx - (e.clientX - dragging.x) * scale;
     camera.y = dragging.cy - (e.clientY - dragging.y) * scale;
     camera.follow = null;
     applyCamera();
   });
-  svg.addEventListener("pointerup", () => {
+  const release = (e) => {
+    pointers.delete(e.pointerId);
     dragging = null;
-  });
-  svg.addEventListener("pointercancel", () => (dragging = null));
+    pinch = null;
+  };
+  svg.addEventListener("pointerup", release);
+  svg.addEventListener("pointercancel", release);
+  svg.addEventListener(
+    "click",
+    (e) => {
+      if (dragged) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        dragged = false;
+      }
+    },
+    true,
+  );
   svg.addEventListener(
     "wheel",
     (e) => {
       e.preventDefault();
-      zoom(e.deltaY > 0 ? 1.16 : 0.86);
-      updateMap(state);
+      zoom(e.deltaY > 0 ? 1.16 : 0.86, worldPoint(e.clientX, e.clientY));
+      updateMap(state, ui.selectedTeam);
     },
     { passive: false },
   );
@@ -624,7 +675,7 @@ function bindMap() {
       e.preventDefault();
       if (e.key === "0") fitMap();
       else zoom(e.key === "-" ? 1.3 : 0.77);
-      updateMap(state);
+      updateMap(state, ui.selectedTeam);
     }
   });
 }
@@ -777,10 +828,10 @@ document.addEventListener("click", (e) => {
       } else refresh();
     } else if (a === "zoom-in" || a === "zoom-out") {
       zoom(a === "zoom-in" ? 0.72 : 1.38);
-      updateMap(state);
+      updateMap(state, ui.selectedTeam);
     } else if (a === "fit-map") {
       fitMap();
-      updateMap(state);
+      updateMap(state, ui.selectedTeam);
     } else if (a === "choose-driver") {
       ui.selectedStage = editStage();
       draft().driverId = id;
@@ -1001,12 +1052,28 @@ function market() {
 function crew() {
   return identityPanel(state) + driversPage() + mechanicsPanel(state);
 }
+function raceContextHTML(team) {
+  const race = raceNeighbors(state, team.id);
+  const gap = (other, direction) =>
+    other
+      ? `<span>${esc(other.name)}</span><strong>${num(other.km, 2)} km${other.seconds !== null ? `<small> · ${duration(other.seconds)}</small>` : ""}</strong>`
+      : `<span>${direction === "ahead" ? "Líder de carrera" : "Último equipo"}</span><strong>—</strong>`;
+  return `<section class="hud-position" aria-label="Posición y distancias"><div class="hud-place"><strong>P${race.position}</strong><span>DE ${race.total}</span></div><div class="hud-gaps"><div><small>ANTERIOR</small>${gap(race.ahead, "ahead")}</div><div><small>SIGUIENTE</small>${gap(race.behind, "behind")}</div></div><small class="gap-note">Distancia sobre el recorrido · tiempo al llegar ambos</small></section>`;
+}
 function mapHUD() {
   const t = state.teams.find((x) => x.id === ui.selectedTeam) || p(),
-    d = t.drivers.find((x) => x.id === t.activeDriver) || t.drivers[0];
-  return `<div class="hud-team">${shieldSVG(t.shieldId)}<div><small>SEGUIMIENTO · ${PHASES[t.phase]}</small><strong>${esc(t.name)}</strong></div></div><img class="hud-vehicle" src="assets/art/${t.vehicleId}.webp" alt="${esc(vehicle(t.vehicleId).name)}"><div class="hud-driver"><img src="${d.image}" alt="${esc(d.name)}"><div><strong>${esc(d.name)}</strong><small>${esc(vehicle(t.vehicleId).short)} · Energía ${num(d.energy)}%</small></div></div><div class="hud-figures"><div><strong>${num(t.speed)}</strong><small>km/h</small></div><div><strong>${num(t.totalKm)}</strong><small>de ${num(TOTAL_KM)} km</small></div><div><strong>${num(t.fuel)} L</strong><small>combustible</small></div><div><strong>${num(t.heat)}°</strong><small>temperatura</small></div></div><div class="hud-parts">${PART_TYPES.map((type) => `<div><small>${type.short}</small><b>${t.parts[type.id].broken ? "AVERÍA" : num(t.parts[type.id].condition) + "%"}</b>${conditionBar(t.parts[type.id].condition)}</div>`).join("")}</div><label>Seguir equipo<select id="hud-team">${standings(
-    state,
-  )
+    d = t.drivers.find((x) => x.id === t.activeDriver) || t.drivers[0],
+    health = vehicleHealth(t);
+  const alerts = health.alerts.length
+    ? `<div class="hud-alerts health-${health.level}" aria-label="Alertas del vehículo">${health.alerts.map((a) => `<div class="vehicle-alert health-${a.level}" title="${esc(a.detail)}"><strong>${a.level === "critical" ? "!" : "△"} ${esc(a.text)}</strong><small>${esc(a.detail)}</small></div>`).join("")}</div>`
+    : '<div class="hud-clear">Sin alertas de avería</div>';
+  return `<div class="hud-team">${shieldSVG(t.shieldId)}<div><small>SEGUIMIENTO · ${PHASES[t.phase]}</small><strong>${esc(t.name)}</strong><small class="hud-driver-inline">${esc(d.name)} · Energía ${num(d.energy)}%</small></div></div>${raceContextHTML(t)}${alerts}<img class="hud-vehicle" src="assets/art/${t.vehicleId}.webp" alt="${esc(vehicle(t.vehicleId).name)}"><div class="hud-driver"><img src="${d.image}" alt="${esc(d.name)}"><div><strong>${esc(d.name)}</strong><small>${esc(vehicle(t.vehicleId).short)} · Energía ${num(d.energy)}%</small></div></div><div class="hud-figures"><div><strong>${num(t.speed)}</strong><small>km/h</small></div><div><strong>${num(t.totalKm, 1)}</strong><small>de ${num(TOTAL_KM)} km</small></div><div><strong>${num(t.fuel)} L</strong><small>combustible</small></div><div><strong>${num(t.heat)}°</strong><small>temperatura</small></div></div><div class="hud-parts">${PART_TYPES.map(
+    (type) => {
+      const report = health.parts.find((x) => x.id === type.id),
+        piece = t.parts[type.id];
+      return `<div class="part-health health-${report.level}" title="${report.reserve ? "Reserva: nunca se avería" : report.broken ? "Pieza averiada" : `${num(report.probability * 100, 1)}% aprox. de avería en 1 h de conducción a condiciones constantes`}"><small>${type.short}</small><b>${piece.broken ? "AVERÍA" : num(piece.condition) + "%"}</b>${conditionBar(piece.condition, report.level === "critical" ? "#ff5a68" : report.level === "warning" ? "#ffd057" : "")}<span class="part-risk">${report.reserve ? "Respaldo irrompible" : report.broken ? "Requiere reparación" : num(report.probability * 100, 1) + "% / próxima h aprox."}</span></div>`;
+    },
+  ).join("")}</div><label>Seguir equipo<select id="hud-team">${standings(state)
     .map(
       (x, i) =>
         `<option value="${x.id}" ${x.id === t.id ? "selected" : ""}>P${i + 1} · ${esc(x.name)}</option>`,
@@ -1015,11 +1082,18 @@ function mapHUD() {
       "",
     )}</select></label><small>Etapa ${Math.min(t.stageIndex + 1, 15)} / 15 · Tiempo ${duration(state.clock)} · ${money(t.budget)} cr</small>`;
 }
+
 document.addEventListener("change", (e) => {
   if (e.target.id === "hud-team") {
     ui.selectedTeam = e.target.value;
     focusTeam(state.teams.find((t) => t.id === ui.selectedTeam));
     refresh();
+  }
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id === "map-zoom-range") {
+    zoom(1000 / Number(e.target.value) / camera.w);
+    updateMap(state, ui.selectedTeam);
   }
 });
 document.addEventListener("fullscreenchange", () => {

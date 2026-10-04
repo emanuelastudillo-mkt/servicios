@@ -1,5 +1,5 @@
 import { CATALOG } from "../data/catalog.js";
-export const VERSION = "0.3.0";
+export const VERSION = "0.3.1";
 export const ENGINE_VERSION = "rally-2";
 export const STARTING_BUDGET = CATALOG.settings.find(
   (s) => s.key === "startingBudget",

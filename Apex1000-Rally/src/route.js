@@ -2,6 +2,7 @@ import * as base from "./route-base.js";
 import { ROUTE_SPECS } from "../data/routes.js";
 import { CATALOG } from "../data/catalog.js";
 import { clamp } from "./catalog.js";
+import { detailedGeometry, pointAlong } from "./route-geometry.js";
 export {
   segmentAt,
   recommendedSetup,
@@ -75,6 +76,12 @@ export function routeFor(value) {
     routes[typeof value === "string" ? value : value?.routeId] || routes.andes
   );
 }
+for (const [routeIndex, route] of Object.values(routes).entries())
+  for (const stage of route.stages)
+    Object.assign(
+      stage,
+      detailedGeometry(stage, 1729 + routeIndex * 65537 + stage.index * 991),
+    );
 // Live bindings only drive the local viewer. Simulation resolves its own state route.
 export let STAGES = base.STAGES,
   CITIES = base.CITIES,
@@ -95,12 +102,10 @@ export function stageAtDistance(km, value) {
 export function locationAt(totalKm, value) {
   const stage = stageAtDistance(totalKm, value),
     f = clamp((totalKm - stage.startKm) / stage.km, 0, 1),
-    n = f * (stage.path.length - 1),
-    a = Math.min(stage.path.length - 2, Math.floor(n)),
-    u = n - a;
+    point = pointAlong(stage, f);
   return {
-    lon: stage.path[a][0] + (stage.path[a + 1][0] - stage.path[a][0]) * u,
-    lat: stage.path[a][1] + (stage.path[a + 1][1] - stage.path[a][1]) * u,
+    lon: point[0],
+    lat: point[1],
     stage: stage.index,
   };
 }
