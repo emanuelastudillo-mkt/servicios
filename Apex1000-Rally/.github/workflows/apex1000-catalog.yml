@@ -1,0 +1,50 @@
+name: Apex1000 - sincronizar catálogo
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 */6 * * *"
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: apex1000-catalog
+  cancel-in-progress: false
+jobs:
+  catalog:
+    if: github.event_name == 'workflow_dispatch' || vars.APEX_SHEETS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Preparar rama de catálogo
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin apex1000/catalog-sync; then
+            git switch --track origin/apex1000/catalog-sync
+            git merge origin/main --no-edit
+          else
+            git switch -c apex1000/catalog-sync
+          fi
+      - name: Descargar y validar las siete hojas
+        working-directory: Apex1000-Rally
+        run: node scripts/sync-catalog.mjs
+      - name: Comprobar simulación y contratos
+        working-directory: Apex1000-Rally
+        run: npm test
+      - name: Proponer actualización del catálogo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add Apex1000-Rally/data/catalog.json Apex1000-Rally/data/catalog.js
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Apex1000: actualizar catálogo desde Google Sheets'
+          git push origin HEAD:apex1000/catalog-sync
+          if [ -z "$(gh pr list --head apex1000/catalog-sync --base main --state open --json number --jq '.[0].number // empty')" ]; then
+            gh pr create --base main --head apex1000/catalog-sync --title 'Apex1000: actualizar catálogo' --body-file Apex1000-Rally/integration/github/catalog-pr-body.txt
+          fi
