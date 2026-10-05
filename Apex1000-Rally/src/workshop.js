@@ -1,4 +1,5 @@
 import { vehicle, clamp } from "./catalog.js";
+import { modelStats } from "./vehicle-stats.js";
 import { repairQuote, repairPiece } from "./part-maintenance.js";
 
 export const GARAGE_LIMIT = 3;
@@ -26,10 +27,11 @@ export const partReserved = (t, id) =>
           ([type, piece]) => piece === id && p.actions?.[type] === "replace",
         ),
     );
-export function newCar(t, modelId) {
+export function newCar(t, modelId, catalog) {
   return {
     id: `${t.id}-car-${++t.workshop.carSequence}`,
     modelId,
+    stats: modelStats(modelId, catalog),
     condition: 100,
     performance: 50,
     reliability: 50,
@@ -55,7 +57,9 @@ export function initializeWorkshop(state) {
         legacyOverflow: models.length > GARAGE_LIMIT,
         legacyNoMechanics: t.mechanics.length === 0,
       };
-      t.garage = models.map((model) => newCar(t, model));
+      t.garage = models.map((model) =>
+        newCar(t, model, state.management.catalog),
+      );
       t.activeCarId =
         t.garage.find((c) => c.modelId === t.vehicleId)?.id || t.garage[0].id;
       t.mechanics.forEach(
@@ -167,7 +171,7 @@ export function purchaseVehicle(state, modelId, { tradeId = null } = {}) {
   }
   spend(state, t, -v.price, `Compra de vehículo: ${v.name}`);
   m.stocks[modelId]--;
-  const car = newCar(t, modelId);
+  const car = newCar(t, modelId, m.catalog);
   t.garage.push(car);
   if (wasActive || !t.activeCarId) selectVehicle(state, car.id);
   if (t.garage.length <= GARAGE_LIMIT) t.workshop.legacyOverflow = false;

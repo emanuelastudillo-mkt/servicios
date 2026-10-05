@@ -1,3 +1,4 @@
+import { STAT_KEYS, validVehicleStats } from "./vehicle-stats.js";
 const need = (ok, message) => {
   if (!ok) throw Error(`Catálogo inválido: ${message}`);
 };
@@ -69,6 +70,13 @@ export function validateCatalog(c) {
     "modelos",
   );
   c.vehicles.forEach((v) => need(text(v.name, 100), "nombre de vehículo"));
+  c.vehicles.forEach((v) => {
+    if (STAT_KEYS.some((k) => Object.hasOwn(v, k)))
+      need(
+        validVehicleStats(v),
+        "estadísticas de vehículo: cuatro enteros de 0 a 100 y peso entero de 700 a 6000 kg",
+      );
+  });
   for (const p of c.parts)
     need(
       types.includes(p.type) &&

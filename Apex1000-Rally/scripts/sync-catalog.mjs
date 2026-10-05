@@ -13,6 +13,11 @@ export const TABS = {
   settings: "Ajustes",
 };
 const numeric = new Set([
+  "speed",
+  "acceleration",
+  "comfort",
+  "control",
+  "weightKg",
   "price",
   "stock",
   "condition",

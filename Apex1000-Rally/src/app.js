@@ -1,3 +1,6 @@
+import { CATALOG } from "../data/catalog.js";
+import { modelStats, teamVehicleStats } from "./vehicle-stats.js";
+import { vehicleStatsHTML } from "./vehicle-stats-ui.js";
 import {
   initializeCompetition,
   enroll,
@@ -274,11 +277,11 @@ function onboarding() {
   )
     .map(
       (car) =>
-        `<button class="vehicle-card ${ui.vehicleId === car.id ? "selected" : ""}" style="--vehicle:${car.color}" data-action="choose-vehicle" data-id="${car.id}"><div class="vehicle-top"><span>${car.tag}</span>${ui.vehicleId === car.id ? icon("check") : '<span class="radio-circle"></span>'}</div>${truckSVG(car.id)}<h2>${car.name}</h2><p>${car.engine}</p><div class="vehicle-specs"><span>Tanque <b>${car.tank} L</b></span><span>Velocidad <b>${Math.round(car.speed * 100)}</b></span><span>Resistencia <b>${Math.round(car.reliability * 100)}</b></span><span>Consumo <b>${Math.round(100 / car.efficiency)}</b></span></div><div class="vehicle-bottom"><span>Compra de vehículo</span><strong>${money(car.fee)} cr</strong></div></button>`,
+        `<button class="vehicle-card ${ui.vehicleId === car.id ? "selected" : ""}" style="--vehicle:${car.color}" data-action="choose-vehicle" data-id="${car.id}"><div class="vehicle-top"><span>${car.tag}</span>${ui.vehicleId === car.id ? icon("check") : '<span class="radio-circle"></span>'}</div>${truckSVG(car.id)}<h2>${car.name}</h2><p>${car.engine}</p><div class="vehicle-specs"><span>Tanque <b>${car.tank} L</b></span></div>${vehicleStatsHTML(modelStats(car.id, CATALOG), car.id)}<div class="vehicle-bottom"><span>Compra de vehículo</span><strong>${money(car.fee)} cr</strong></div></button>`,
     )
     .join(
       "",
-    )}</section><section class="panel enlist"><div><span class="eyebrow">TU PRIMERA DECISIÓN</span><h2>${v.short}</h2><p>${v.description}</p><p class="muted">Velocidad, resistencia y consumo son índices de juego (base 100); menor consumo es mejor. Los costos también pertenecen al juego. Auto nuevo: estado 100, performance 50 y fiabilidad 50. Seis piezas Sport al 92% y seis reservas gratuitas incluidas.</p></div><form id="create-form"><label>Nombre del equipo<input name="teamName" maxlength="40" value="Tu equipo" required></label><label>Largada compartida · hora local<input name="startAt" type="datetime-local" value="${local}" required></label><label>Escenario<input name="seed" type="number" min="1" max="999999" value="1729"></label><div class="enlist-balance"><span>Saldo antes de sueldos</span><strong>${money(STARTING_BUDGET - v.fee)} cr</strong></div><button class="button primary full" type="submit">Crear escudería ${icon("arrow")}</button></form></section><div class="intro-note">Prototipo single player. Todos comparten la largada; después cada equipo administra su propio tiempo. La aceleración sólo existe en esta versión de prueba.</div></main>`;
+    )}</section><section class="panel enlist"><div><span class="eyebrow">TU PRIMERA DECISIÓN</span><h2>${v.short}</h2><p>${v.description}</p><p class="muted">Velocidad, aceleración, comodidad y control son índices fijos de juego de 0 a 100; más es mejor. El peso se expresa en kilogramos con una referencia real indicada en cada ficha. Los mínimos reglamentarios no son mediciones del auto cargado. Los costos también pertenecen al juego. Auto nuevo: estado 100, performance 50 y fiabilidad 50. Seis piezas Sport al 92% y seis reservas gratuitas incluidas.</p></div><form id="create-form"><label>Nombre del equipo<input name="teamName" maxlength="40" value="Tu equipo" required></label><label>Largada compartida · hora local<input name="startAt" type="datetime-local" value="${local}" required></label><label>Escenario<input name="seed" type="number" min="1" max="999999" value="1729"></label><div class="enlist-balance"><span>Saldo antes de sueldos</span><strong>${money(STARTING_BUDGET - v.fee)} cr</strong></div><button class="button primary full" type="submit">Crear escudería ${icon("arrow")}</button></form></section><div class="intro-note">Prototipo single player. Todos comparten la largada; después cada equipo administra su propio tiempo. La aceleración sólo existe en esta versión de prueba.</div></main>`;
 }
 function mapPanel() {
   return `<section class="panel map-panel" id="map-panel"><div class="panel-heading"><div><span class="eyebrow">VISOR DE CARRERA / RECORRIDO COMPLETO</span><h2>${esc(ROUTE_NAME)}</h2></div><button class="button ghost small" data-action="fullscreen-map">${document.body.classList.contains("map-fullscreen") ? "Cerrar pantalla completa" : "⛶ Pantalla completa"}</button></div><div class="map-container">${mapSVG(state, geo)}<div class="map-zoom"><button data-action="zoom-in" aria-label="Acercar mapa">+</button><span id="zoom-level">${(1000 / camera.w).toFixed(1)}×</span><button data-action="zoom-out" aria-label="Alejar mapa">−</button><input id="map-zoom-range" type="range" min="1" max="${MAX_ZOOM}" step="1" value="${Math.max(1, 1000 / camera.w)}" aria-label="Nivel de zoom del mapa" title="Zoom de 1× a ${MAX_ZOOM}×"></div><div class="map-actions"><button data-action="fit-map">${icon("map")}Ver ruta</button><button data-action="follow" data-id="player">${icon("target")}Seguirme</button></div><div class="map-hud" id="map-hud">${mapHUD()}</div><div class="map-legend"><i></i> Trazado de la prueba <span>●</span> Campamento</div><div class="map-distance"><span>${currentEvent(state)?.kind === "short" ? "SPRINT · SIN PARADAS" : "RAID DE RESISTENCIA"}</span><strong>${num(TOTAL_KM)} <small>km</small></strong></div></div><div class="map-footer"><span>Arrastrá para mover · rueda para acercar · tocá un equipo para seguirlo</span><span>Natural Earth · GeoNames · trazado deportivo de diseño</span></div></section>`;
@@ -297,7 +300,7 @@ function leaderboardRows() {
 function teamInspector() {
   const t = state.teams.find((t) => t.id === ui.selectedTeam) || p(),
     stage = STAGES[Math.min(t.stageIndex, STAGES.length - 1)];
-  return `<div class="inspector-title"><div><span class="eyebrow">EQUIPO SELECCIONADO</span><h2>${esc(t.name)}</h2></div><span class="badge">${PHASES[t.phase]}</span></div><div class="inspector-stats">${stat("VELOCIDAD", num(t.speed) + " <em>km/h</em>")}${stat("ETAPA", t.phase === "finished" ? "META" : `${t.stageIndex + 1} <em>/ ${STAGES.length}</em>`)}${stat("DESTINO", stage.to.name)}</div><p class="muted">${vehicle(t.vehicleId).name}${t.phase === "service" ? ` · Sale en ${duration(Math.max(0, t.service.until - state.clock))}` : t.phase === "racing" && t.holdUntil > state.clock ? ` · Incidente: ${duration(t.holdUntil - state.clock)} restantes` : ""}</p>${dashboardHTML(t, state.clock)}${stopChecklistHTML(state, t)}`;
+  return `<div class="inspector-title"><div><span class="eyebrow">EQUIPO SELECCIONADO</span><h2>${esc(t.name)}</h2></div><span class="badge">${PHASES[t.phase]}</span></div><div class="inspector-stats">${stat("VELOCIDAD", num(t.speed) + " <em>km/h</em>")}${stat("ETAPA", t.phase === "finished" ? "META" : `${t.stageIndex + 1} <em>/ ${STAGES.length}</em>`)}${stat("DESTINO", stage.to.name)}</div><p class="muted">${vehicle(t.vehicleId).name}${t.phase === "service" ? ` · Sale en ${duration(Math.max(0, t.service.until - state.clock))}` : t.phase === "racing" && t.holdUntil > state.clock ? ` · Incidente: ${duration(t.holdUntil - state.clock)} restantes` : ""}</p>${dashboardHTML(t, state.clock)}${stopChecklistHTML(state, t)}<details id="inspector-vehicle-attributes" data-preserve-open class="vehicle-base-details"><summary>Atributos fijos del modelo</summary>${vehicleStatsHTML(teamVehicleStats(t), t.vehicleId)}</details>`;
 }
 function playerMetrics() {
   const team = p(),
@@ -543,12 +546,19 @@ function renderAdmin() {
 }
 let pendingLiveRender = false;
 function render() {
+  const openPanels = [
+    ...document.querySelectorAll("details[data-preserve-open]"),
+  ].map((el) => [el.id, el.open]);
   pendingLiveRender = false;
   setActiveRoute(state);
   const content = !state
     ? onboarding()
     : `<main>${{ home: () => homePage(state), workshop: () => workshopPage(state), race: racePage, roadbook, camp, market, crew, journal: () => journalPage(state), championship: () => championshipPage(state) }[ui.tab]()}</main>`;
   $("#app").innerHTML = header() + clockBar() + content + footer();
+  for (const [id, open] of openPanels) {
+    const panel = document.getElementById(id);
+    if (panel) panel.open = open;
+  }
   renderAdmin();
   if (state && ui.tab === "camp" && currentEvent(state)?.kind === "short") {
     const parts = document.querySelector(".parts-panel");
@@ -997,13 +1007,11 @@ document.addEventListener("click", (e) => {
       return;
     }
     if (a === "center-timeline") {
-      document
-        .querySelector("[data-timeline-center]")
-        ?.scrollIntoView({
-          inline: "center",
-          block: "nearest",
-          behavior: "smooth",
-        });
+      document.querySelector("[data-timeline-center]")?.scrollIntoView({
+        inline: "center",
+        block: "nearest",
+        behavior: "smooth",
+      });
       return;
     }
     if (a === "enroll" || a === "cancel-enrollment") {
@@ -1375,7 +1383,7 @@ function mapHUD() {
   const alerts = health.alerts.length
     ? `<div class="hud-alerts health-${health.level}" aria-label="Alertas del vehículo">${health.alerts.map((a) => `<div class="vehicle-alert health-${a.level}" title="${esc(a.detail)}"><strong>${a.level === "critical" ? "!" : "△"} ${esc(a.text)}</strong><small>${esc(a.detail)}</small></div>`).join("")}</div>`
     : '<div class="hud-clear">Sin alertas de avería</div>';
-  return `<div class="hud-team">${shieldSVG(t.shieldId)}<div><small>SEGUIMIENTO · ${PHASES[t.phase]}</small><strong>${esc(t.name)}</strong><small class="hud-driver-inline">${esc(d.name)} · Energía ${num(d.energy)}%</small></div></div>${raceContextHTML(t)}<div class="hud-driver"><img src="${d.image}" alt="${esc(d.name)}"><div><strong>${esc(d.name)}</strong><small>${esc(vehicle(t.vehicleId).short)} · Energía ${num(d.energy)}%</small></div></div>${stopChecklistHTML(state, t)}${dashboardHTML(t, state.clock)}${alerts}<div class="hud-chassis"><span>Auto: ${num(activeCar(t)?.condition ?? 100)}/100 estado</span><span>${num(activeCar(t)?.performance ?? 50)}/100 performance · ${num(activeCar(t)?.reliability ?? 50)}/100 fiabilidad</span></div><img class="hud-vehicle" src="assets/art/${t.vehicleId}.webp" alt="${esc(vehicle(t.vehicleId).name)}"><div class="hud-parts">${PART_TYPES.map(
+  return `<div class="hud-team">${shieldSVG(t.shieldId)}<div><small>SEGUIMIENTO · ${PHASES[t.phase]}</small><strong>${esc(t.name)}</strong><small class="hud-driver-inline">${esc(d.name)} · Energía ${num(d.energy)}%</small></div></div>${raceContextHTML(t)}<div class="hud-driver"><img src="${d.image}" alt="${esc(d.name)}"><div><strong>${esc(d.name)}</strong><small>${esc(vehicle(t.vehicleId).short)} · Energía ${num(d.energy)}%</small></div></div>${stopChecklistHTML(state, t)}${dashboardHTML(t, state.clock)}${alerts}<div class="hud-chassis"><span>Auto: ${num(activeCar(t)?.condition ?? 100)}/100 estado</span><span>${num(activeCar(t)?.performance ?? 50)}/100 performance · ${num(activeCar(t)?.reliability ?? 50)}/100 fiabilidad</span></div><img class="hud-vehicle" src="assets/art/${t.vehicleId}.webp" alt="${esc(vehicle(t.vehicleId).name)}"><details id="hud-vehicle-attributes" data-preserve-open class="vehicle-base-details"><summary>Atributos fijos del modelo</summary>${vehicleStatsHTML(teamVehicleStats(t), t.vehicleId)}</details><div class="hud-parts">${PART_TYPES.map(
     (type) => {
       const report = health.parts.find((x) => x.id === type.id),
         piece = t.parts[type.id];

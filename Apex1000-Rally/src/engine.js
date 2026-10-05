@@ -15,6 +15,7 @@ import {
   cancelEnrollment,
 } from "./competition.js";
 import { CATALOG } from "../data/catalog.js";
+import { statFactors, teamVehicleStats } from "./vehicle-stats.js";
 import { failureRate } from "./reliability.js";
 import { serviceTimeline } from "./service-telemetry.js";
 import { repairQuote, repairPiece } from "./part-maintenance.js";
@@ -637,6 +638,7 @@ export function performance(
     d = driverFor(team, plan.driverId),
     pace = PACES[plan.pace],
     carFactors = vehicleFactors(team),
+    attributes = statFactors(teamVehicleStats(team), terrainId),
     p = Object.fromEntries(
       PART_TYPES.map((t) => [t.id, partEffect(team.parts[t.id]) * d.parts]),
     );
@@ -703,7 +705,7 @@ export function performance(
     ? 30
     : clamp(
         terrain.speed *
-          v.speed *
+          attributes.speed *
           v.terrain[terrainId] *
           effect *
           ride *
@@ -722,16 +724,18 @@ export function performance(
         terrain.cap,
       );
   const wear =
-    (terrain.wear *
+    ((terrain.wear *
       pace.wear *
       (1 + plan.boost * 0.45) *
       d.wear *
       (1 + Math.max(0, team.heat - 105) * 0.013)) /
-    v.reliability;
+      v.reliability) *
+    attributes.wear;
   const fuelPer100 =
     ((38 * terrain.fuel * pace.fuel * (1 + plan.boost * 0.14)) / v.efficiency) *
     (1 + team.fuel * 0.00008) *
-    (broken ? 1.15 : 1);
+    (broken ? 1.15 : 1) *
+    attributes.fuel;
   const thermalLoad = PART_TYPES.reduce(
     (sum, type) =>
       sum +
@@ -761,7 +765,8 @@ export function performance(
     pace.risk *
     d.risk *
     (1 + (100 - d.energy) / 40) *
-    (1 + plan.boost * 0.25);
+    (1 + plan.boost * 0.25) *
+    attributes.risk;
   return {
     speed,
     wear,
@@ -816,7 +821,16 @@ export function estimateStage(team, stage, raw) {
 function fatigue(t, dt, racing = false, effort = 1) {
   for (const d of t.drivers) {
     if (racing && d.id === t.activeDriver)
-      d.energy = clamp(d.energy - (dt / 3600) * 3 * d.fatigue * effort, 0, 100);
+      d.energy = clamp(
+        d.energy -
+          (dt / 3600) *
+            3 *
+            d.fatigue *
+            effort *
+            statFactors(teamVehicleStats(t), "gravel").fatigue,
+        0,
+        100,
+      );
     else
       d.energy = clamp(
         d.energy + (dt / 3600) * d.recovery * (racing ? 0.1 : 1),
@@ -1258,6 +1272,7 @@ export function publicSnapshot(state) {
       entryId: t.id,
       name: t.name,
       vehicleId: t.vehicleId,
+      vehicleStats: { ...teamVehicleStats(t) },
       level: teamLevel(t).level,
       rank: i + 1,
       phase: t.phase,

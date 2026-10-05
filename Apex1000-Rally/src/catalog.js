@@ -1,5 +1,5 @@
 import { CATALOG } from "../data/catalog.js";
-export const VERSION = "0.4.0";
+export const VERSION = "0.4.1";
 export const ENGINE_VERSION = "rally-3";
 export const STARTING_BUDGET = CATALOG.settings.find(
   (s) => s.key === "startingBudget",
@@ -106,7 +106,7 @@ VEHICLES.push(
     name: "LADA Niva Legend · Raid",
     short: "Niva Raid",
     engine: "Nafta · preparación ficticia de raid",
-    mass: 1350,
+    mass: 1210,
     tank: 300,
     fee: 16000,
     color: "#9ac093",

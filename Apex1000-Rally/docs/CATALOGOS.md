@@ -1,20 +1,22 @@
-# Catálogos v0.4.0 · Google Sheets
+# Catálogos v0.4.1 · Google Sheets
 
-Planilla activa del incremental: [Apex1000-Catalogos (v0.4.0)](https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit). Se actualizó el documento ya conectado, conservando su URL. Su respaldo anterior está en `catalogos/Respaldo-Catalogos-v0.3.5-antes-v0.4.0.xlsx`. La copia privada de trabajo `Apex1000-Catalogos-v0.4.0` no es la fuente de sincronización.
+Planilla activa del incremental: [Apex1000-Catalogos (v0.4.1)](https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit). Se actualizó el documento ya conectado, conservando su URL. Su respaldo anterior está en `catalogos/Respaldo-Catalogos-v0.4.0-antes-v0.4.1.xlsx`. La copia privada de trabajo `Apex1000-Catalogos-v0.4.0` no es la fuente de sincronización.
 
 El incremental cambia `config/sheets.json` al mismo documento actualizado; entra en uso cuando subís esos archivos a GitHub. La automatización existente en la raíz del repositorio `servicios` continúa leyendo ese archivo a las 07:23 de Argentina. No hace falta crear otra automatización ni usar credenciales en el juego. Los CSV publicados sólo contienen datos ficticios del catálogo.
 
-| Pestaña   | Filas de datos | Qué podés editar                           |
-| --------- | -------------: | ------------------------------------------ |
-| Vehiculos |              7 | price, stock, available, name, image       |
-| Repuestos |             54 | condition, price, stock, available, image  |
-| Pilotos   |             16 | name, profile, salary, available, image    |
-| Mecanicos |             28 | name, salary, efficiency, available, image |
-| Carreras  |             32 | name, region, prizeFactor, maxHours        |
-| Premios   |             12 | race, short                                |
-| Ajustes   |              4 | valores admitidos de cada regla            |
+| Pestaña   | Filas de datos | Qué podés editar                                                                      |
+| --------- | -------------: | ------------------------------------------------------------------------------------- |
+| Vehiculos |              7 | price, stock, available, name, image, speed, acceleration, comfort, control, weightKg |
+| Repuestos |             54 | condition, price, stock, available, image                                             |
+| Pilotos   |             16 | name, profile, salary, available, image                                               |
+| Mecanicos |             28 | name, salary, efficiency, available, image                                            |
+| Carreras  |             32 | name, region, prizeFactor, maxHours                                                   |
+| Premios   |             12 | race, short                                                                           |
+| Ajustes   |              4 | valores admitidos de cada regla                                                       |
 
-Conservá los encabezados y los ID: son referencias del juego. No agregues vehículos o circuitos arbitrarios: necesitan características y trazados implementados. `available` usa TRUE/FALSE; los números no llevan separador de miles y aceptan punto o coma decimal. `profile` usa technical, fast o navigator. Las rutas `image` deben existir en la carpeta del juego. Las contrataciones del prototipo son ficticias y locales, no representan empleo real.
+Conservá los encabezados y los ID: son referencias del juego. No agregues vehículos o circuitos arbitrarios: necesitan características y trazados implementados. `available` usa TRUE/FALSE; los números no llevan separador de miles y aceptan punto o coma decimal donde corresponda. `profile` usa technical, fast o navigator. Las rutas `image` deben existir en la carpeta del juego. Las contrataciones del prototipo son ficticias y locales, no representan empleo real.
+
+Los cuatro índices de vehículo (`speed`, `acceleration`, `comfort`, `control`) admiten enteros de 0 a 100. `weightKg` admite enteros de 700 a 6000 kg, sin separadores: `2010`. Se requiere el conjunto completo si hay alguna de estas columnas; los catálogos antiguos sin ninguna siguen siendo compatibles. Los pesos base usan [referencias documentadas](PESOS-VEHICULOS.md). Un peso cambiado por el administrador se indica como configurado en el catálogo. Cada auto guarda sus atributos fijos; daños y mejoras no los cambian.
 
 En Carreras, los ocho raids tienen kind=raid y los 24 sprints kind=short. Los sprints usan startDay de 2 a 48, cada dos días, y maxHours=4. Las fechas se calculan desde el inicio del calendario de prueba. Los raids están separados por 28 días. El intervalo `[inicio, inicio+maxHours)` bloquea inscripciones superpuestas, aunque el equipo termine antes. Los máximos de raid se admiten de 24 a 672 horas; la duración estimada puede modificarse dentro de esos límites.
 

@@ -1,5 +1,6 @@
 import { initializeManagement } from "./management.js";
 import { validateCatalog } from "./catalog-schema.js";
+import { migrateLegacyCatalogStats } from "./vehicle-stats.js";
 import {
   ENGINE_VERSION,
   PART_TYPES,
@@ -96,6 +97,7 @@ export function validateSave(raw) {
   raw.engineVersion = ENGINE_VERSION;
   if (!raw.management) initializeManagement(raw, { legacy: true });
   if (legacy) initializeWorkshop(raw);
+  migrateLegacyCatalogStats(raw);
   const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(raw);
   validateManagement(raw);
   const ids = new Set();

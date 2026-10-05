@@ -12,7 +12,7 @@
       if (!condition) throw Error(message);
     };
     const html = (tick) =>
-      `<section><strong>${tick}</strong><progress max="100" value="${tick}"></progress><span data-live-owned>0</span><label>Seguir equipo<select id="hud-team"><option value="player">Jugador ${tick}</option><option value="rival" selected>Rival ${tick}</option></select></label><input id="amount" value="100000"></section>`;
+      `<section><strong>${tick}</strong><progress max="100" value="${tick}"></progress><span data-live-owned>0</span><label>Seguir equipo<select id="hud-team"><option value="player">Jugador ${tick}</option><option value="rival" selected>Rival ${tick}</option></select></label><input id="amount" value="100000">${tick % 2 ? "<section>Checklist de parada</section>" : ""}<details id="stats"><summary>Atributos</summary>Velocidad 70/100</details></section>`;
     try {
       patchLivePanel(panel, html(0));
       const select = panel.querySelector("select"),
@@ -20,6 +20,7 @@
         input = panel.querySelector("input"),
         owned = panel.querySelector("[data-live-owned]");
       input.value = "234567";
+      panel.querySelector("details").open = true;
       owned.textContent = "4000";
       select.focus();
       assert(editingControl(document), "No detecta el selector activo");
@@ -41,6 +42,10 @@
         );
         assert(owned.textContent === "4000", "Reinició la animación de RPM");
         assert(input.value === "234567", "Borró el importe escrito");
+        assert(
+          panel.querySelector("details").open,
+          "Cerró los atributos desplegados",
+        );
       }
       select.blur();
       patchLivePanel(
@@ -60,7 +65,7 @@
         "No actualizó los valores de las opciones",
       );
       result.textContent =
-        "PASS: 100 actualizaciones, mismo selector/opciones/foco, progreso actualizado, RPM sin reiniciar, importe conservado y equipo correcto tras reordenar rivales.";
+        "PASS: 100 actualizaciones, mismo selector/opciones/foco, atributos desplegados pese a cambios de estructura, progreso actualizado, RPM sin reiniciar, importe conservado y equipo correcto tras reordenar rivales.";
     } catch (error) {
       result.textContent = "FAIL: " + error.message;
       throw error;

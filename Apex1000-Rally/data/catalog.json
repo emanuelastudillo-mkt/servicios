@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "revision": "c16ef3705acc6247",
+  "revision": "5441ee809085a55a",
   "vehicles": [
     {
       "id": "hilux",
@@ -8,7 +8,12 @@
       "price": 48000,
       "stock": 6,
       "available": true,
-      "image": "assets/art/hilux.webp"
+      "image": "assets/art/hilux.webp",
+      "speed": 70,
+      "acceleration": 72,
+      "comfort": 78,
+      "control": 80,
+      "weightKg": 2010
     },
     {
       "id": "raptor",
@@ -16,7 +21,12 @@
       "price": 54000,
       "stock": 6,
       "available": true,
-      "image": "assets/art/raptor.webp"
+      "image": "assets/art/raptor.webp",
+      "speed": 74,
+      "acceleration": 80,
+      "comfort": 70,
+      "control": 72,
+      "weightKg": 2010
     },
     {
       "id": "sandrider",
@@ -24,7 +34,12 @@
       "price": 56000,
       "stock": 6,
       "available": true,
-      "image": "assets/art/sandrider.webp"
+      "image": "assets/art/sandrider.webp",
+      "speed": 72,
+      "acceleration": 76,
+      "comfort": 73,
+      "control": 85,
+      "weightKg": 2010
     },
     {
       "id": "mini",
@@ -32,7 +47,12 @@
       "price": 45000,
       "stock": 6,
       "available": true,
-      "image": "assets/art/mini.webp"
+      "image": "assets/art/mini.webp",
+      "speed": 69,
+      "acceleration": 68,
+      "comfort": 83,
+      "control": 87,
+      "weightKg": 2020
     },
     {
       "id": "niva",
@@ -40,7 +60,12 @@
       "price": 16000,
       "stock": 12,
       "available": true,
-      "image": "assets/art/niva.webp"
+      "image": "assets/art/niva.webp",
+      "speed": 36,
+      "acceleration": 40,
+      "comfort": 44,
+      "control": 62,
+      "weightKg": 1210
     },
     {
       "id": "hunter",
@@ -48,7 +73,12 @@
       "price": 360000,
       "stock": 2,
       "available": true,
-      "image": "assets/art/hunter.webp"
+      "image": "assets/art/hunter.webp",
+      "speed": 86,
+      "acceleration": 90,
+      "comfort": 75,
+      "control": 88,
+      "weightKg": 2010
     },
     {
       "id": "audi",
@@ -56,7 +86,12 @@
       "price": 480000,
       "stock": 1,
       "available": true,
-      "image": "assets/art/audi.webp"
+      "image": "assets/art/audi.webp",
+      "speed": 90,
+      "acceleration": 96,
+      "comfort": 86,
+      "control": 90,
+      "weightKg": 2100
     }
   ],
   "parts": [

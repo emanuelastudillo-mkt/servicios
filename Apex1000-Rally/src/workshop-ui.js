@@ -1,4 +1,6 @@
 import { esc, conditionBar } from "./visuals.js";
+import { modelStats } from "./vehicle-stats.js";
+import { vehicleStatsHTML } from "./vehicle-stats-ui.js";
 import { vehicle, partType, GRADES } from "./catalog.js";
 import {
   activeCar,
@@ -43,7 +45,7 @@ export function vehicleShop(state) {
       const tradable = t.garage.filter(
         (c) => !jobFor(t, c.id) && (c.id !== t.activeCarId || canChangeCar(t)),
       );
-      return `<article class="panel garage-card"><img class="catalog-art" src="${v.image}" alt="${esc(v.name)}" loading="lazy"><h3>${esc(v.name)}</h3><p>${vehicle(v.id).tag}</p><div class="stock-line"><strong>${num(v.price)} cr</strong><span>${m.stocks[v.id]} nuevos disponibles</span></div>${button("purchase-car", "Comprar para el taller", `data-id="${v.id}"`, t.garage.length >= 3 || !v.available || m.stocks[v.id] < 1 || t.budget < v.price)}${tradable.length ? `<details class="trade-options"><summary>Entregar un auto como parte de pago</summary><label>Auto que vendés<select id="trade-${v.id}">${tradable.map((c) => `<option value="${c.id}">${vehicle(c.modelId).short} · ${num(c.condition)}% · ${num(vehicleSaleValue(state, c))} cr</option>`).join("")}</select></label>${button("quote-trade", "Calcular diferencia", `data-id="${v.id}"`, !v.available || m.stocks[v.id] < 1)}</details>` : ""}</article>`;
+      return `<article class="panel garage-card"><img class="catalog-art" src="${v.image}" alt="${esc(v.name)}" loading="lazy"><h3>${esc(v.name)}</h3><p>${vehicle(v.id).tag}</p>${vehicleStatsHTML(modelStats(v.id, m.catalog), v.id)}<div class="stock-line"><strong>${num(v.price)} cr</strong><span>${m.stocks[v.id]} nuevos disponibles</span></div>${button("purchase-car", "Comprar para el taller", `data-id="${v.id}"`, t.garage.length >= 3 || !v.available || m.stocks[v.id] < 1 || t.budget < v.price)}${tradable.length ? `<details class="trade-options"><summary>Entregar un auto como parte de pago</summary><label>Auto que vendés<select id="trade-${v.id}">${tradable.map((c) => `<option value="${c.id}">${vehicle(c.modelId).short} · ${num(c.condition)}% · ${num(vehicleSaleValue(state, c))} cr</option>`).join("")}</select></label>${button("quote-trade", "Calcular diferencia", `data-id="${v.id}"`, !v.available || m.stocks[v.id] < 1)}</details>` : ""}</article>`;
     })
     .join(
       "",
@@ -59,7 +61,7 @@ export function workshopPage(state) {
       const selected = c.id === t.activeCarId,
         busy = jobFor(t, c.id),
         locked = selected && !canChangeCar(t);
-      return `<article class="panel workshop-car ${selected ? "selected" : ""}"><div class="workshop-car-image"><img src="assets/art/${c.modelId}.webp" alt="${esc(vehicle(c.modelId).name)}"><span class="badge">${selected ? "AUTO DE CARRERA" : "EN LA BASE"}</span></div><div class="workshop-car-copy"><span class="eyebrow">UNIDAD ${c.id.split("-").at(-1)} · ${num(c.odometer)} KM OBSERVADOS</span><h2>${esc(vehicle(c.modelId).short)}</h2><div class="car-metrics">${["condition", "performance", "reliability"].map((k) => `<div><span>${{ condition: "Estado", performance: "Performance", reliability: "Fiabilidad" }[k]}</span><strong data-car-${k}="${c.id}">${num(c[k], 1)} <small>/100</small></strong>${conditionBar(c[k])}</div>`).join("")}</div><div class="car-work-options">${[
+      return `<article class="panel workshop-car ${selected ? "selected" : ""}"><div class="workshop-car-image"><img src="assets/art/${c.modelId}.webp" alt="${esc(vehicle(c.modelId).name)}"><span class="badge">${selected ? "AUTO DE CARRERA" : "EN LA BASE"}</span></div><div class="workshop-car-copy"><span class="eyebrow">UNIDAD ${c.id.split("-").at(-1)} · ${num(c.odometer)} KM OBSERVADOS</span><h2>${esc(vehicle(c.modelId).short)}</h2>${vehicleStatsHTML(c.stats, c.modelId)}<div class="car-metrics">${["condition", "performance", "reliability"].map((k) => `<div><span>${{ condition: "Estado", performance: "Performance", reliability: "Fiabilidad" }[k]}</span><strong data-car-${k}="${c.id}">${num(c[k], 1)} <small>/100</small></strong>${conditionBar(c[k])}</div>`).join("")}</div><div class="car-work-options">${[
         "condition",
         "performance",
         "reliability",

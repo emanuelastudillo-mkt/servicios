@@ -4836,6 +4836,55 @@ body:has(.admin-menu) {
 .enrollment-current {
   margin-bottom: 24px;
 }
+.vehicle-attributes {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 10px;
+  width: 100%;
+}
+.vehicle-attribute {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 12px;
+  text-align: left;
+  font-size: 13px;
+  color: #b6c4c4;
+}
+.vehicle-attribute strong {
+  color: #f0c286;
+  font-variant-numeric: tabular-nums;
+}
+.vehicle-attribute small {
+  color: #8c9ea3;
+  font-size: 10px;
+  margin-left: 3px;
+}
+.attribute-track {
+  grid-column: 1 / -1;
+  height: 4px;
+  background: #ffffff12;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.attribute-track i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #bc935b, #f0c286);
+}
+.vehicle-attributes-note {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #91a5aa;
+  margin: 0 0 16px;
+}
+.vehicle-base-details {
+  margin: 14px 0;
+}
+.vehicle-base-details summary {
+  color: #e1bc86;
+  cursor: pointer;
+  font-size: 12px;
+}
 .enrollment-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));

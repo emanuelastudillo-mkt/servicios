@@ -1,6 +1,12 @@
-# Apex1000 Rally · World Raid v0.4.0
+# Apex1000 Rally · World Raid v0.4.1
 
-Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. El incremental v0.4.0 requiere la versión completa v0.3.5.
+Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. Este incremental v0.4.1 se aplica sobre v0.4.0.
+
+## Atributos fijos de vehículos
+
+Velocidad, aceleración, comodidad y control son índices de juego de **0 a 100**. El **peso se expresa en kilogramos** con referencias de fabricantes o mínimos reglamentarios identificados en las fichas. Ver [pesos, fuentes y criterios](docs/PESOS-VEHICULOS.md). Comodidad reduce cansancio, control reduce errores y el peso afecta ritmo, consumo y desgaste. Aceleración aproxima la recuperación de ritmo medio en terreno técnico.
+
+Los atributos aparecen al elegir auto, en Mercado, Taller y el visor, incluida pantalla completa. Son fijos por unidad y distintos del estado, performance y fiabilidad mejorables. Las partidas antiguas incorporan los atributos sin reiniciar dinero ni daños. Las fichas desplegadas conservan su apertura durante las microactualizaciones.
 
 ## Carreras e inscripción
 
@@ -36,7 +42,7 @@ El tablero tiene velocidad real de simulación, agujas animadas, RPM y marcha ar
 
 ## Catálogo diario en Google Sheets
 
-Editá [Apex1000-Catalogos (v0.4.0)](https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit). Sus siete pestañas de datos se publican en CSV para el importador. La pestaña Guia explica los campos. El respaldo XLSX de v0.3.5 queda en `catalogos/Respaldo-Catalogos-v0.3.5-antes-v0.4.0.xlsx`.
+Editá [Apex1000-Catalogos (v0.4.1)](https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit). Sus siete pestañas de datos se publican en CSV para el importador. Vehiculos agrega `speed`, `acceleration`, `comfort`, `control`, `weightKg`. La pestaña Guia explica campos y referencias de peso. El respaldo previo queda en `catalogos/Respaldo-Catalogos-v0.4.0-antes-v0.4.1.xlsx`.
 
 Al subir el incremental a GitHub, `config/sheets.json` conecta el formato nuevo de la misma planilla. El workflow existente en la raíz de `servicios` consulta y valida los datos cada día a las **07:23 de Argentina**, actualiza `data/catalog.json` y `data/catalog.js` y verifica su publicación. Un catálogo inválido no reemplaza al válido. GitHub y Google pueden demorar la ejecución/publicación. Ver [instrucciones](docs/CATALOGOS.md).
 
@@ -52,7 +58,7 @@ Con Node.js 22 o superior: `node server.mjs`; abrir http://127.0.0.1:4182. Tambi
 4. Admin permite inyectar de 1 a 10.000.000 cr para pruebas, con registro en finanzas y saldo máximo de 100.000.000 cr. No es una función de economía online.
 5. Exportá la partida para respaldarla. Al migrar, se conserva un respaldo local de la versión anterior. Una sesión acelerada se reabre pausada.
 
-Para aplicar el ZIP, descomprimí en la raíz de `servicios`, conservando `Apex1000-Rally/`, y reemplazá sólo los archivos incluidos. No borres el resto. Commit y push a GitHub; después recargá con Ctrl+F5. No se publicó el juego automáticamente como parte de esta entrega. Ver [notas completas](INCREMENTAL-v0.4.0.md). `qa/` contiene verificaciones y respaldos locales y no debe subirse.
+Para aplicar el ZIP sobre v0.4.0, descomprimí en la raíz de `servicios`, conservando `Apex1000-Rally/`, y reemplazá sólo los archivos incluidos. No borres el resto. Commit y push a GitHub; después recargá con Ctrl+F5. No se publicó el juego automáticamente como parte de esta entrega. Ver [notas completas](INCREMENTAL-v0.4.1.md). `qa/` contiene verificaciones y respaldos locales y no debe subirse.
 
 ## Validación y alcance
 

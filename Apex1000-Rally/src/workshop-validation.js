@@ -1,4 +1,5 @@
 import { VEHICLES } from "./catalog.js";
+import { modelStats, validVehicleStats } from "./vehicle-stats.js";
 import {
   jobQuote,
   UPGRADE_LIMIT,
@@ -32,6 +33,8 @@ export function validateWorkshop(s, t) {
     throw Error("Capacidad del garaje inválida.");
   const cars = new Set();
   for (const c of t.garage) {
+    if (c.stats === undefined)
+      c.stats = modelStats(c.modelId, s.management.catalog);
     const serial = Number(c.id?.split("-car-").at(-1));
     if (
       !id(c.id) ||
@@ -40,6 +43,7 @@ export function validateWorkshop(s, t) {
       serial < 1 ||
       serial > w.carSequence ||
       !VEHICLES.some((v) => v.id === c.modelId) ||
+      !validVehicleStats(c.stats) ||
       !num(c.condition, 0, 100) ||
       !num(c.performance, 50, UPGRADE_LIMIT) ||
       !num(c.reliability, 50, UPGRADE_LIMIT) ||

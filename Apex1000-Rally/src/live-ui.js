@@ -36,11 +36,13 @@ export function patchLivePanel(root, html) {
           for (const attr of [...match.attributes])
             if (
               !next.hasAttribute(attr.name) &&
+              !(match.tagName === "DETAILS" && attr.name === "open") &&
               !(match.tagName === "INPUT" && attr.name === "value")
             )
               match.removeAttribute(attr.name);
           for (const attr of [...next.attributes])
             if (
+              !(match.tagName === "DETAILS" && attr.name === "open") &&
               !(match.tagName === "INPUT" && attr.name === "value") &&
               match.getAttribute(attr.name) !== attr.value
             )
