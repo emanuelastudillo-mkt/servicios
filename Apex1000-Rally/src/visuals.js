@@ -199,13 +199,14 @@ export function mapSVG(state, geo) {
       return `<g class="stage-trace"><path class="route-outline" d="${full}"/>${sections}<path class="stage-hit" d="${full}" data-action="map-stage" data-index="${s.index}"/></g>`;
     }).join("");
   }
-  return `<svg id="race-map" viewBox="${camera.x} ${camera.y} ${camera.w} ${camera.h}" role="img" aria-label="Mapa de la carrera con localidades y escudos de los doce equipos" tabindex="0">${cachedMap}<g class="route-lines">${cachedRoad}</g><g class="city-labels">${cityLabels()}</g><g id="team-markers">${state.teams.map((t) => `<g id="map-team-${t.id}" class="team-marker" data-action="follow" data-id="${t.id}" role="button" tabindex="0" aria-label="Seguir a ${esc(t.name)}"><title>${esc(t.name)}</title><g class="marker-symbol"><circle class="marker-halo" r="24"/><circle class="marker-status" r="21"/>${shieldSVG(t.shieldId).replace("<svg ", '<svg x="-17" y="-17" width="34" height="34" ')}<rect class="marker-rank-bg" x="8" y="10" width="20" height="16" rx="6"/><text class="marker-position" x="18" y="21" text-anchor="middle"></text></g></g>`).join("")}</g></svg>`;
+  return `<svg id="race-map" viewBox="${camera.x} ${camera.y} ${camera.w} ${camera.h}" role="img" aria-label="Mapa de la carrera con localidades y escudos de los equipos participantes" tabindex="0">${cachedMap}<g class="route-lines">${cachedRoad}</g><g class="city-labels">${cityLabels()}</g><g id="team-markers">${state.teams.map((t) => `<g id="map-team-${t.id}" class="team-marker" data-action="follow" data-id="${t.id}" role="button" tabindex="0" aria-label="Seguir a ${esc(t.name)}"><title>${esc(t.name)}</title><g class="marker-symbol"><circle class="marker-halo" r="24"/><circle class="marker-status" r="21"/>${shieldSVG(t.shieldId).replace("<svg ", '<svg x="-17" y="-17" width="34" height="34" ')}<rect class="marker-rank-bg" x="8" y="10" width="20" height="16" rx="6"/><text class="marker-position" x="18" y="21" text-anchor="middle"></text></g></g>`).join("")}</g></svg>`;
 }
 export function updateMap(state, selectedId = "player") {
   const order = standings(state);
   for (const t of state.teams) {
     const el = document.querySelector(`#map-team-${t.id}`);
     if (!el) continue;
+    el.style.display = state.competition && !t.participating ? "none" : "";
     const p = locationAt(t.totalKm),
       [x, y] = project(p.lon, p.lat);
     el.setAttribute("transform", `translate(${x} ${y})`);
@@ -224,7 +225,7 @@ export function updateMap(state, selectedId = "player") {
     selected.parentNode.append(selected);
   if (camera.follow) {
     const t = state.teams.find((t) => t.id === camera.follow);
-    if (t) {
+    if (t && (!state.competition || t.participating)) {
       const p = locationAt(t.totalKm),
         [x, y] = project(p.lon, p.lat);
       camera.x = x - camera.w / 2;

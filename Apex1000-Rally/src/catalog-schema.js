@@ -7,18 +7,25 @@ const text = (v, max = 100) =>
   typeof v === "string" && v.length > 0 && v.length <= max;
 const unique = (rows) => new Set(rows.map((r) => r.id)).size === rows.length;
 export function validateCatalog(c) {
-  need(c?.schemaVersion === 1, "versión");
+  need([1, 2].includes(c?.schemaVersion), "versión");
+  const modern = c.schemaVersion === 2;
   const sizes = {
-    vehicles: 4,
+    vehicles: modern ? 7 : 4,
     parts: 54,
-    drivers: 6,
-    mechanics: 8,
-    races: 8,
+    drivers: modern ? 16 : 6,
+    mechanics: modern ? 28 : 8,
+    races: modern ? 32 : 8,
     prizes: 12,
     settings: 4,
   };
   for (const [key, count] of Object.entries(sizes))
-    need(Array.isArray(c[key]) && c[key].length === count, key);
+    need(
+      Array.isArray(c[key]) &&
+        (modern && ["drivers", "mechanics"].includes(key)
+          ? c[key].length >= count && c[key].length <= 200
+          : c[key].length === count),
+      key,
+    );
   const types = [
     "engine",
     "transmission",
@@ -103,27 +110,50 @@ export function validateCatalog(c) {
   ];
   c.races.forEach((r, i) =>
     need(
-      r.id === routeIds[i] &&
+      (i >= 8 && modern
+        ? /^sprint-[a-z]+$/.test(r.id)
+        : r.id === routeIds[i]) &&
         r.round === i + 1 &&
         text(r.name) &&
         text(r.region) &&
         n(r.prizeFactor, 0.1, 10) &&
         Number.isInteger(r.startDay) &&
-        r.startDay >= (i ? c.races[i - 1].startDay + 21 : 0) &&
+        r.startDay >=
+          (i >= 8 && modern ? 2 : i ? c.races[i - 1].startDay + 21 : 0) &&
         r.startDay <= 330,
       "calendario",
     ),
   );
+  if (modern) {
+    need(
+      ["niva", "hunter", "audi"].every((id) =>
+        c.vehicles.some((v) => v.id === id),
+      ),
+      "nuevos modelos",
+    );
+    c.races.forEach((r, i) =>
+      need(
+        r.kind === (i < 8 ? "raid" : "short") &&
+          Number.isInteger(r.maxHours) &&
+          (i < 8
+            ? n(r.maxHours, 24, 672)
+            : r.maxHours === 4 && r.startDay === 2 * (i - 7)),
+        "duración o frecuencia",
+      ),
+    );
+    c.prizes.forEach((p) =>
+      need(Number.isInteger(p.short) && n(p.short, 0, 30000), "premio sprint"),
+    );
+  }
   need(c.races[0].startDay === 0, "primera largada");
   c.prizes.forEach((p, i) =>
     need(
       p.position === i + 1 &&
-        Number.isInteger(p.points) &&
-        n(p.points, 0, 1000) &&
+        (modern || (Number.isInteger(p.points) && n(p.points, 0, 1000))) &&
         Number.isInteger(p.race) &&
         n(p.race, 0, 10000000) &&
-        Number.isInteger(p.championship) &&
-        n(p.championship, 0, 10000000),
+        (modern ||
+          (Number.isInteger(p.championship) && n(p.championship, 0, 10000000))),
       "premios",
     ),
   );
@@ -137,7 +167,12 @@ export function validateCatalog(c) {
     "ajustes",
   );
   need(
-    c.vehicles.every((v) => v.price <= settings.startingBudget),
+    modern
+      ? c.vehicles.some(
+          (v) =>
+            v.available && v.stock > 0 && v.price < settings.startingBudget,
+        )
+      : c.vehicles.every((v) => v.price <= settings.startingBudget),
     "el presupuesto inicial debe cubrir cualquier vehículo",
   );
   need(text(c.revision, 100), "revisión");

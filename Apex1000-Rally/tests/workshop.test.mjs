@@ -138,6 +138,8 @@ test("cero mecánicos pausa la cola sin perder progreso y reasignar permite term
   validateSave(s);
   assignMechanic(s, t.mechanics[1].id, "workshop");
   advance(s, 24 * 3600);
+  assert.equal(spare.performance, 50);
+  advance(s, 100 * 3600);
   assert.equal(spare.performance, 55);
   assert.equal(t.workshop.jobs.length, 0);
   assert.equal(t.workshop.completed.length, 1);
@@ -151,8 +153,13 @@ test("performance y fiabilidad se desarrollan hasta 100; la reparación del auto
   spare.reliability = 95;
   spare.condition = 40;
   for (const kind of ["condition", "performance", "reliability"]) {
-    enqueueJob(s, kind, spare.id);
-    advance(s, 48 * 3600);
+    const job = enqueueJob(s, kind, spare.id);
+    let seconds = (job.workHours * 3600) / t.mechanics[1].efficiency + 30;
+    while (seconds > 0) {
+      const dt = Math.min(seconds, 720 * 3600);
+      advance(s, dt);
+      seconds -= dt;
+    }
   }
   assert.deepEqual(
     [spare.condition, spare.performance, spare.reliability],

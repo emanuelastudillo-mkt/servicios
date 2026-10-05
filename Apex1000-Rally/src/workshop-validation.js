@@ -27,7 +27,7 @@ export function validateWorkshop(s, t) {
     throw Error("Taller inválido.");
   if (
     !Array.isArray(t.garage) ||
-    !num(t.garage.length, 1, w.legacyOverflow ? 4 : 3)
+    !num(t.garage.length, s.competition ? 0 : 1, w.legacyOverflow ? 4 : 3)
   )
     throw Error("Capacidad del garaje inválida.");
   const cars = new Set();
@@ -48,7 +48,15 @@ export function validateWorkshop(s, t) {
       throw Error("Vehículo de taller inválido.");
     cars.add(c.id);
   }
-  if (!cars.has(t.activeCarId)) throw Error("Vehículo activo inválido.");
+  if (
+    !cars.has(t.activeCarId) &&
+    !(
+      s.competition &&
+      t.activeCarId === null &&
+      ["unregistered", "finished", "cutoff", "waiting"].includes(t.phase)
+    )
+  )
+    throw Error("Vehículo activo inválido.");
   for (const m of t.mechanics)
     if (!["race", "workshop"].includes(m.assignment))
       throw Error("Destino de mecánico inválido.");
@@ -57,7 +65,9 @@ export function validateWorkshop(s, t) {
       mechanicsAt(t, place).length > 4 ||
       (place === "race" &&
         mechanicsAt(t, place).length < 1 &&
-        !w.legacyNoMechanics)
+        !w.legacyNoMechanics &&
+        t.participating !== false &&
+        !["finished", "cutoff"].includes(t.phase))
     )
       throw Error("Carrera requiere 1–4 mecánicos; taller admite 0–4.");
   const jobs = new Set(),
@@ -91,7 +101,21 @@ export function validateWorkshop(s, t) {
     if (targets.has(j.targetId) || j.worked >= j.workHours)
       throw Error("Trabajo duplicado o completado en la cola.");
     targets.add(j.targetId);
-    const q = jobQuote(s, t, j.kind, j.targetId);
+    if (j.pricingVersion !== undefined && ![1, 2].includes(j.pricingVersion))
+      throw Error("Versión de trabajo inválida.");
+    if (
+      j.points !== undefined &&
+      (!Number.isInteger(j.points) || j.points < 1 || j.points > 5)
+    )
+      throw Error("Cantidad de mejora inválida.");
+    const q = jobQuote(
+      s,
+      t,
+      j.kind,
+      j.targetId,
+      j.points ?? 5,
+      j.pricingVersion ?? 1,
+    );
     if (
       !q.needed ||
       q.cost !== j.cost ||

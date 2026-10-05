@@ -60,8 +60,8 @@ test("los siete CSV generan catálogo verificable y revisión estable", async ()
     b = await buildCatalog(read);
   assert.deepEqual(a, b);
   assert.equal(a.parts.length, 54);
-  assert.equal(a.drivers.length, 6);
-  assert.equal(a.mechanics.length, 8);
+  assert.equal(a.drivers.length, 16);
+  assert.equal(a.mechanics.length, 28);
 });
 test("importación inválida falla antes de escribir datos y conexión pendiente se identifica", async () => {
   await assert.rejects(

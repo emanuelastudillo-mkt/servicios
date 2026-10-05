@@ -88,7 +88,7 @@ export function initializeManagement(
       : structuredClone(catalog.mechanics.find((m) => m.id === "elena"));
     t.mechanics.push(mechanic);
     state.management.owners[mechanic.id] = t.id;
-    if (!legacy) chargeSalaries(state, t);
+    if (!legacy && catalog.schemaVersion !== 2) chargeSalaries(state, t);
   });
   const selected = state.management.stocks[state.teams[0].vehicleId];
   state.management.stocks[state.teams[0].vehicleId] = Math.max(0, selected - 1);
@@ -98,9 +98,15 @@ export function chargeSalaries(state, t) {
       (sum, p) => sum + (p.salary || 0),
       0,
     ),
-    paid = Math.min(due, t.budget);
+    amount =
+      state.competition &&
+      state.management.catalog.races.find((r) => r.id === state.routeId)
+        ?.kind === "short"
+        ? Math.round(due * 0.2)
+        : due,
+    paid = Math.min(amount, t.budget);
   cash(state, t, -paid, "Sueldos de la carrera");
-  t.debt += due - paid;
+  t.debt += amount - paid;
 }
 export function workshopRate(t) {
   return Math.max(0.25, crewRate(t, "race"));
@@ -289,6 +295,7 @@ export function championshipStandings(state) {
   );
 }
 export function recordRound(state) {
+  if (state.competition) return;
   if (!state.championship || !state.teams.every((t) => t.phase === "finished"))
     return;
   const c = state.championship,

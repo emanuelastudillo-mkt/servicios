@@ -3,7 +3,8 @@ export function raceNeighbors(state, teamId) {
   const order = standings(state),
     index = order.findIndex((t) => t.id === teamId),
     team = order[index];
-  if (!team) throw Error("Equipo no encontrado.");
+  if (!team)
+    return { position: null, total: order.length, ahead: null, behind: null };
   const neighbor = (other) =>
     other
       ? {

@@ -4759,3 +4759,166 @@ body:has(.admin-menu) {
     animation: none;
   }
 }
+/* Independent race calendar and enrollment */
+.team-level {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(200px, 2fr);
+  gap: 28px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+@media (max-width: 600px) {
+  .team-level {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+.race-timeline {
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.timeline-track {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding: 20px 42%;
+  scrollbar-color: #e0ac70 #152630;
+}
+.timeline-event {
+  flex: 0 0 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  padding: 12px 22px;
+  scroll-snap-align: center;
+  border-top: 2px solid #3d525c;
+}
+.timeline-event time {
+  color: #b5c8cd;
+  font-size: 13px;
+}
+.timeline-event strong {
+  font-size: 17px;
+  line-height: 1.4;
+}
+.timeline-event small {
+  color: #a6b9c0;
+}
+.timeline-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #819ba6;
+  top: -7px;
+  left: 22px;
+}
+.timeline-current {
+  border-top-color: #f1bb73;
+  background: linear-gradient(180deg, #f1bb731a, transparent);
+  border-radius: 0 0 12px 12px;
+}
+.timeline-current .timeline-dot {
+  background: #f1bb73;
+  box-shadow: 0 0 16px #f1bb7366;
+}
+.timeline-current strong {
+  color: #ffce8e;
+}
+.race-timeline h2 {
+  text-transform: capitalize;
+}
+.race-timeline .panel-heading {
+  margin-bottom: 0;
+}
+.enrollment-current {
+  margin-bottom: 24px;
+}
+.enrollment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 20px;
+}
+.enrollment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.enrollment-card h2 {
+  font-size: 22px;
+  line-height: 1.2;
+  margin: 0;
+}
+.enrollment-card dl {
+  margin: 0;
+}
+.enrollment-card dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 8px 0;
+  border-bottom: 1px solid #ffffff0b;
+  font-size: 13px;
+}
+.enrollment-card dt {
+  color: #94adb7;
+}
+.enrollment-card dd {
+  margin: 0;
+  text-align: right;
+}
+.enrollment-card label {
+  margin-top: auto;
+}
+.enrollment-card .small-note {
+  margin: 0;
+}
+.enrollment-reason {
+  min-height: 34px;
+  color: #91abb5;
+}
+.enrollment-card.enrolled {
+  border-color: #f1bb7399;
+}
+.race-history {
+  margin-top: 26px;
+}
+.race-history p {
+  padding: 12px 0;
+  border-bottom: 1px solid #ffffff0b;
+}
+.garage-empty {
+  padding: 50px;
+  font-size: 20px;
+  line-height: 1.6;
+}
+.car-work-options > div {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.car-work-options label {
+  font-size: 12px;
+  min-width: 70px;
+}
+.car-work-options select {
+  padding: 8px;
+}
+.car-work-options > div > span {
+  flex: 1 1 130px;
+}
+@media (max-width: 600px) {
+  .timeline-event {
+    flex-basis: 215px;
+  }
+  .enrollment-grid {
+    grid-template-columns: 1fr;
+  }
+  .timeline-track {
+    padding: 18px 35%;
+  }
+  .enrollment-card dl > div {
+    font-size: 12px;
+  }
+}

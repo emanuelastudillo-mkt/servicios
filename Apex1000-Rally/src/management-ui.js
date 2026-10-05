@@ -12,32 +12,9 @@ const button = (action, label, attrs = "") =>
   `<button class="button ghost small" data-action="${action}" ${attrs}>${label}</button>`;
 export function identityPanel(s) {
   const p = s.teams.find((t) => t.id === "player");
-  return `<section class="panel identity-panel"><div class="identity-preview">${shieldSVG(p.shieldId)}<div><span class="eyebrow">IDENTIDAD DEL EQUIPO</span><h2>${esc(p.name)}</h2><p>Hasta 3 pilotos y 5 mecánicos. Los contratos duran el campeonato.</p></div></div><label>Nombre del equipo<input id="team-name" maxlength="40" value="${esc(p.name)}"></label>${button("rename-team", "Guardar nombre")}<details><summary>Elegir escudo · ${p.shieldId} / 100</summary><div class="shield-grid">${Array.from({ length: 100 }, (_, i) => `<button class="shield-option ${p.shieldId === i + 1 ? "selected" : ""}" data-action="choose-shield" data-id="${i + 1}" aria-label="Elegir escudo ${i + 1}" aria-pressed="${p.shieldId === i + 1}">${shieldSVG(i + 1)}<small>${String(i + 1).padStart(3, "0")}</small></button>`).join("")}</div></details></section>`;
+  return `<section class="panel identity-panel"><div class="identity-preview">${shieldSVG(p.shieldId)}<div><span class="eyebrow">IDENTIDAD DEL EQUIPO</span><h2>${esc(p.name)}</h2><p>Hasta 3 pilotos y 5 mecánicos. Los contratos se conservan entre carreras.</p></div></div><label>Nombre del equipo<input id="team-name" maxlength="40" value="${esc(p.name)}"></label>${button("rename-team", "Guardar nombre")}<details><summary>Elegir escudo · ${p.shieldId} / 100</summary><div class="shield-grid">${Array.from({ length: 100 }, (_, i) => `<button class="shield-option ${p.shieldId === i + 1 ? "selected" : ""}" data-action="choose-shield" data-id="${i + 1}" aria-label="Elegir escudo ${i + 1}" aria-pressed="${p.shieldId === i + 1}">${shieldSVG(i + 1)}<small>${String(i + 1).padStart(3, "0")}</small></button>`).join("")}</div></details></section>`;
 }
-export function championshipPage(s) {
-  const c = s.championship,
-    cat = s.management.catalog,
-    p = s.teams.find((t) => t.id === "player"),
-    ready = s.teams.every((t) => t.phase === "finished");
-  return `<div class="page-title"><div><span class="eyebrow">APEX WORLD RAID / TEMPORADA 01</span><h1>Ocho carreras. Un campeonato.</h1><p>La caja, los contratos y las piezas acompañan a tu equipo durante toda la temporada.</p></div><span class="badge">${c.paid ? "CAMPEONATO COMPLETO" : `CARRERA ${c.round + 1} / 8`}</span></div><section class="panel championship-summary"><div>${shieldSVG(p.shieldId)}<h2>${esc(p.name)}</h2><p>${money(p.budget)} cr disponibles · ${c.points.player} puntos</p></div><div><strong>${c.results.length} / 8</strong><span>carreras clasificadas</span></div><div><strong>${money([...p.drivers, ...p.mechanics].reduce((n, x) => n + x.salary, 0))} cr</strong><span>sueldos por carrera</span></div>${c.paid ? `<div class="notice">Premio final: ${money(c.final.find((x) => x.id === "player").net)} cr netos.</div>` : ""}</section><div class="championship-layout"><div class="race-calendar">${cat.races
-    .map((r, i) => {
-      const route = routeFor(r.id),
-        done = c.results.find((x) => x.round === i);
-      return `<article class="panel calendar-card ${i === c.round ? "current" : ""}"><span class="round-number">${String(i + 1).padStart(2, "0")}</span><div><span class="eyebrow">${esc(r.region)} · ${done ? "FINALIZADA" : i === c.round ? "EN CURSO" : "PROGRAMADA"}</span><h2>${esc(r.name)}</h2><p>${route.cities[0].name} → ${route.cities.at(-1).name}</p><small>${money(route.totalKm)} km · ${route.stages.length} etapas · ${new Date(Date.parse(c.startAt) + r.startDay * 86400000).toLocaleDateString("es-AR")}</small></div><div class="calendar-prize"><small>1.º puesto</small><strong>${money(cat.prizes[0].race * r.prizeFactor)} cr</strong>${done ? `<small>Tu resultado: P${done.entries.find((e) => e.id === "player").position}</small>` : ""}</div></article>`;
-    })
-    .join(
-      "",
-    )}</div><aside class="panel"><span class="eyebrow">CLASIFICACIÓN GENERAL</span><h2>La constancia suma.</h2><div class="table-scroll"><table><thead><tr><th>Pos.</th><th>Equipo</th><th>Pts</th><th>Premio final</th></tr></thead><tbody>${championshipStandings(
-    s,
-  )
-    .map(
-      (t, i) =>
-        `<tr class="${t.id === "player" ? "player-row" : ""}"><td>${i + 1}</td><td>${esc(t.name)}</td><td>${c.points[t.id]}</td><td>${money(cat.prizes[i].championship)}</td></tr>`,
-    )
-    .join(
-      "",
-    )}</tbody></table></div><p class="small-note">Puntos por carrera: ${cat.prizes.map((p) => p.points).join(" / ")}. Empate: menor tiempo acumulado; después ID estable. Premios de campeonato al cerrar las 8 carreras. Sueldos al contratar y al iniciar cada carrera siguiente.</p><p class="small-note">Largadas fijas compartidas, separadas por al menos 21 días. Cada equipo avanza y descansa a su ritmo. Los kilómetros deportivos incluyen especiales ficticias.</p></aside></div>`;
-}
+export { enrollmentPage as championshipPage } from "./enrollment-ui.js";
 export { vehicleShop as garagePanel } from "./workshop-ui.js";
 
 export function staffMarket(s) {

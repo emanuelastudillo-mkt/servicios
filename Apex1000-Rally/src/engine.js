@@ -1,3 +1,19 @@
+import {
+  teamLevel,
+  advanceProgression,
+  markParticipation,
+  awardProgression,
+} from "./progression.js";
+import {
+  initializeCompetition,
+  currentEvent,
+  calendar,
+  eventById,
+  raceNow,
+  raceDeadline,
+  enroll,
+  cancelEnrollment,
+} from "./competition.js";
 import { CATALOG } from "../data/catalog.js";
 import { failureRate } from "./reliability.js";
 import { serviceTimeline } from "./service-telemetry.js";
@@ -104,7 +120,7 @@ function newTeam(id, name, vehicleId, seed, ai = false, catalog = CATALOG) {
     vehicleId,
     ai,
     color: ai ? v.color : "#f1bb73",
-    budget: initialBudget - fee,
+    budget: Math.max(0, initialBudget - fee),
     debt: 0,
     parts,
     inventory,
@@ -156,7 +172,13 @@ export function createRace({
   if (!VEHICLES.some((v) => v.id === vehicleId))
     throw new Error("Vehículo desconocido.");
   const entry = catalog.vehicles.find((v) => v.id === vehicleId);
-  if (!continuation && (!entry?.available || entry.stock < 1))
+  if (
+    !continuation &&
+    (!entry?.available ||
+      entry.stock < 1 ||
+      entry.price >
+        catalog.settings.find((x) => x.key === "startingBudget").value - 1500)
+  )
     throw new Error("Vehículo sin stock para una nueva inscripción.");
   const start = Date.parse(startAt);
   if (!Number.isFinite(start) || !Number.isFinite(now))
@@ -240,6 +262,7 @@ export function createRace({
   );
   initializeManagement(state, { catalog });
   initializeWorkshop(state);
+  if (catalog.schemaVersion === 2) initializeCompetition(state);
   if (now > start) advance(state, (now - start) / 1000);
   return state;
 }
@@ -271,6 +294,11 @@ export function normalizePlan(raw = {}, team) {
       : "none";
     if (typeof raw.replacements?.[p.id] === "string")
       s.replacements[p.id] = raw.replacements[p.id];
+  }
+  if (team.routeId?.startsWith("sprint-")) {
+    s.actions = Object.fromEntries(PART_TYPES.map((p) => [p.id, "none"]));
+    s.replacements = {};
+    s.rest = 0;
   }
   return s;
 }
@@ -306,6 +334,12 @@ export function savePlan(state, stageIndex, raw) {
       );
   }
   t.plans[stageIndex] = p;
+  if (state.competition && currentEvent(state)?.kind === "short") {
+    const r = state.competition.registrations.find(
+      (r) => r.eventId === state.competition.currentId,
+    );
+    if (r && state.clock < 0) r.driverId = p.driverId;
+  }
   log(
     state,
     t,
@@ -565,7 +599,7 @@ function beginService(state, t) {
   );
   if (t.stageIndex === 0) {
     t.heat = stage.temp;
-    t.drivers.forEach((d) => (d.energy = 100));
+    if (!state.competition) t.drivers.forEach((d) => (d.energy = 100));
   }
   log(
     state,
@@ -782,12 +816,13 @@ export function estimateStage(team, stage, raw) {
 function fatigue(t, dt, racing = false, effort = 1) {
   for (const d of t.drivers) {
     if (racing && d.id === t.activeDriver)
+      d.energy = clamp(d.energy - (dt / 3600) * 3 * d.fatigue * effort, 0, 100);
+    else
       d.energy = clamp(
-        d.energy - (dt / 3600) * 11 * d.fatigue * effort,
+        d.energy + (dt / 3600) * d.recovery * (racing ? 0.1 : 1),
         0,
         100,
       );
-    else d.energy = clamp(d.energy + (dt / 3600) * d.recovery, 0, 100);
   }
 }
 function finishStage(state, t, time) {
@@ -831,6 +866,15 @@ function finishStage(state, t, time) {
 }
 function advanceTeam(state, t, dt) {
   const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(t);
+  if (
+    state.competition &&
+    (!t.participating ||
+      state.competition.closed ||
+      ["finished", "cutoff"].includes(t.phase))
+  ) {
+    fatigue(t, dt);
+    return;
+  }
   if (t.phase === "finished") return;
   if (state.clock < 0) {
     fatigue(t, dt);
@@ -844,7 +888,28 @@ function advanceTeam(state, t, dt) {
       t.statistics.waiting += dt;
       return;
     }
-    if (t.plans[t.stageIndex]?.auto) beginService(state, t);
+    if (currentEvent(state)?.kind === "short") {
+      if (!t.plans[0])
+        t.plans[0] = {
+          ...defaultPlan(0),
+          ...recommendedSetup(STAGES[0]),
+          driverId: t.activeDriver,
+          fuelTarget: vehicle(t.vehicleId).tank,
+        };
+      const plan = normalizePlan(t.plans[0], t);
+      plan.actions = Object.fromEntries(PART_TYPES.map((p) => [p.id, "none"]));
+      plan.replacements = {};
+      plan.rest = 0;
+      t.activePlan = plan;
+      t.activeDriver = plan.driverId;
+      const litres = Math.max(0, plan.fuelTarget - t.fuel),
+        cost = Math.ceil(litres * FUEL_PRICE),
+        paid = Math.min(cost, t.budget);
+      transact(state, t, -paid, "Combustible previo al sprint");
+      t.debt += cost - paid;
+      t.fuel += litres;
+      startStage(state, t);
+    } else if (t.plans[t.stageIndex]?.auto) beginService(state, t);
     else {
       fatigue(t, dt);
       t.heat += (STAGES[t.stageIndex].temp - t.heat) * Math.min(1, dt / 3600);
@@ -865,7 +930,7 @@ function advanceTeam(state, t, dt) {
   if (!t.stageNotes) startJournal(t, STAGES[t.stageIndex], state.clock);
   if (state.clock < t.holdUntil) {
     t.speed = 0;
-    fatigue(t, dt);
+    fatigue(t, dt, true, 0);
     t.heat += (70 - t.heat) * Math.min(1, dt / 3600);
     t.statistics.waiting += dt;
     return;
@@ -876,6 +941,11 @@ function advanceTeam(state, t, dt) {
     driveDt = Math.min(dt, ((stage.km - t.stageKm) / p.speed) * 3600),
     distance = (p.speed * driveDt) / 3600;
   if (t.fuel < (distance * p.fuelPer100) / 100) {
+    if (currentEvent(state)?.kind === "short") {
+      t.speed = 0;
+      t.statistics.waiting += dt;
+      return;
+    }
     const litres = Math.min(
         vehicle(t.vehicleId).tank,
         Math.ceil(((stage.km - t.stageKm) * p.fuelPer100) / 100 + 20),
@@ -986,6 +1056,7 @@ function advanceTeam(state, t, dt) {
     finishStage(state, t, state.clock + driveDt);
 }
 function award(state) {
+  if (state.competition) return;
   const finishers = state.teams
     .filter((t) => t.finishTime !== null)
     .sort((a, b) => a.finishTime - b.finishTime || a.id.localeCompare(b.id));
@@ -1032,6 +1103,83 @@ export function advance(
   let advanced = 0;
   const initialStage = getPlayer(state).stageIndex;
   while (remaining-- > 0) {
+    if (state.competition) {
+      const now = raceNow(state),
+        p = getPlayer(state);
+      const ready = state.competition.registrations
+        .map((r) => eventById(state, r.eventId))
+        .filter(
+          (e) =>
+            e &&
+            e.eventId !== state.competition.currentId &&
+            e.start <= now &&
+            e.end > now &&
+            !state.competition.results.some((r) => r.eventId === e.eventId),
+        )
+        .sort((a, b) => a.start - b.start)[0];
+      if (ready && (!p.participating || state.competition.closed))
+        activateEvent(state, ready);
+      if (
+        state.clock >= 0 &&
+        !state.competition.closed &&
+        !state.competition.started
+      ) {
+        state.competition.started = true;
+        for (const t of state.teams.filter((t) => t.participating)) {
+          const r = state.competition.registrations.find(
+            (r) => r.eventId === state.competition.currentId,
+          );
+          if (t.id === "player" && r) {
+            const car = t.garage.find((c) => c.id === r.carId);
+            if (
+              !car ||
+              jobFor(t, r.carId) ||
+              !crewRate(t, "race") ||
+              !t.drivers.some((d) => d.id === r.driverId)
+            ) {
+              t.participating = false;
+              t.phase = "unregistered";
+              continue;
+            }
+            t.activeCarId = car.id;
+            t.vehicleId = car.modelId;
+            t.activeDriver = r.driverId;
+            if (currentEvent(state)?.kind === "short" && t.plans[0])
+              t.plans[0].driverId = r.driverId;
+          }
+          chargeSalaries(state, t);
+          markParticipation(state, t);
+        }
+      }
+      updateRaceClosure(state);
+      if (stopAtAllFinished && state.competition.closed) {
+        state.remainder = 0;
+        break;
+      }
+      const dt =
+        state.competition.closed || state.clock < 0
+          ? STEP
+          : Math.min(STEP, Math.max(0, raceDeadline(state) - state.clock));
+      if (dt === 0) {
+        updateRaceClosure(state);
+        continue;
+      }
+      for (const t of state.teams) advanceTeam(state, t, dt);
+      advanceWorkshops(state, dt);
+      state.clock += dt;
+      advanceProgression(state);
+      advanced += dt;
+      settleAuctions(state);
+      updateRaceClosure(state);
+      if (
+        stopAtPlayerCamp &&
+        (getPlayer(state).stageIndex > initialStage || state.competition.closed)
+      ) {
+        state.remainder = 0;
+        break;
+      }
+      continue;
+    }
     if (
       state.teams.every((t) => t.phase === "finished") &&
       (stopAtAllFinished ||
@@ -1066,7 +1214,8 @@ export function advance(
 }
 export function nextPlayerCamp(state) {
   const player = getPlayer(state);
-  if (player.phase === "finished") return { advanced: 0 };
+  if (["finished", "cutoff", "unregistered"].includes(player.phase))
+    return { advanced: 0 };
   if (
     ["waiting", "camp"].includes(player.phase) &&
     crewRate(player, "race") === 0
@@ -1084,17 +1233,19 @@ export function nextPlayerCamp(state) {
   return advance(state, 3600 * 100, { stopAtPlayerCamp: true });
 }
 export function standings(state) {
-  return [...state.teams].sort((a, b) =>
-    a.finishTime !== null && b.finishTime !== null
-      ? a.finishTime - b.finishTime || a.id.localeCompare(b.id)
-      : a.finishTime !== null
-        ? -1
-        : b.finishTime !== null
-          ? 1
-          : b.totalKm - a.totalKm ||
-            (a.history.at(-1)?.arrival ?? Infinity) -
-              (b.history.at(-1)?.arrival ?? Infinity),
-  );
+  return [...state.teams]
+    .filter((t) => !state.competition || t.participating)
+    .sort((a, b) =>
+      a.finishTime !== null && b.finishTime !== null
+        ? a.finishTime - b.finishTime || a.id.localeCompare(b.id)
+        : a.finishTime !== null
+          ? -1
+          : b.finishTime !== null
+            ? 1
+            : b.totalKm - a.totalKm ||
+              (a.history.at(-1)?.arrival ?? Infinity) -
+                (b.history.at(-1)?.arrival ?? Infinity),
+    );
 }
 export function publicSnapshot(state) {
   return {
@@ -1107,6 +1258,7 @@ export function publicSnapshot(state) {
       entryId: t.id,
       name: t.name,
       vehicleId: t.vehicleId,
+      level: teamLevel(t).level,
       rank: i + 1,
       phase: t.phase,
       stageIndex: t.stageIndex,
@@ -1125,6 +1277,12 @@ export function dispatch(state, command) {
   if (!command || typeof command.type !== "string")
     throw new Error("Comando inválido.");
   switch (command.type) {
+    case "enroll":
+      return enroll(state, command.eventId, command.driverId);
+    case "cancel-enrollment":
+      return cancelEnrollment(state, command.eventId);
+    case "next-event":
+      return nextScheduledRace(state);
     case "bid":
       return bid(state, command.kind, command.personId, command.salary);
     case "cancel-bid":
@@ -1149,6 +1307,7 @@ export function dispatch(state, command) {
 }
 
 export function nextChampionshipRace(state) {
+  if (state.competition) return nextScheduledRace(state);
   recordRound(state);
   const c = state.championship;
   if (!state.teams.every((t) => t.phase === "finished"))
@@ -1218,4 +1377,179 @@ export function nextChampionshipRace(state) {
   if (now > Date.parse(startAt))
     advance(fresh, (now - Date.parse(startAt)) / 1000);
   return fresh;
+}
+
+// A race closes once, independent of the slowest entrant. No championship points.
+export function updateRaceClosure(state) {
+  const c = state.competition;
+  if (!c || c.closed) return;
+  const participants = state.teams.filter((t) => t.participating);
+  const times = participants
+    .filter((t) => t.finishTime !== null)
+    .map((t) => t.finishTime);
+  if (times.length) c.firstFinishAt = Math.min(...times);
+  const deadline = raceDeadline(state);
+  if (
+    state.clock < deadline &&
+    !participants.every((t) => t.phase === "finished")
+  )
+    return;
+  if (state.clock < 0) return;
+  const e = currentEvent(state),
+    order = standings(state);
+  c.closed = true;
+  c.closedAt = raceNow(state);
+  const entries = order.map((t, i) => {
+    if (t.phase !== "finished") {
+      if (t.stageNotes)
+        finishJournal(t, routeFor(t).stages[t.stageIndex], state.clock, false);
+      t.phase = "cutoff";
+      t.speed = 0;
+      t.service = null;
+    }
+    if (!t.prizePaid) {
+      const row = state.management.catalog.prizes[i];
+      const gross = Math.round(
+          (e.kind === "short" ? (row.short ?? 4200) : row.race) * e.prizeFactor,
+        ),
+        settled = Math.min(gross, t.debt);
+      t.debt -= settled;
+      t.prizePaid = true;
+      t.prize = { position: i + 1, gross, settled, net: gross - settled };
+      transact(state, t, gross - settled, `Premio de carrera P${i + 1}`);
+    }
+    return {
+      id: t.id,
+      position: i + 1,
+      time: t.finishTime,
+      finished: t.finishTime !== null,
+      km: t.totalKm,
+      prize: t.prize.net,
+      stages: t.history.length,
+    };
+  });
+  const result = {
+    eventId: c.currentId,
+    routeId: state.routeId,
+    closedAt: c.closedAt,
+    reason:
+      state.clock >= e.maxHours * 3600
+        ? "maximum"
+        : state.clock >= deadline
+          ? "first-finisher"
+          : "all-finished",
+    entries,
+  };
+  c.results.push(result);
+  for (const entry of entries)
+    awardProgression(
+      state,
+      state.teams.find((t) => t.id === entry.id),
+      e,
+      entry,
+      routeFor(state).totalKm,
+    );
+  state.championship.results.push(result);
+  log(
+    state,
+    getPlayer(state),
+    "closure",
+    `Carrera cerrada. ${result.reason === "maximum" ? "Venció el tiempo máximo." : "Clasificación definitiva."} Quienes no llegaron se ordenan por distancia.`,
+  );
+}
+export function activateEvent(state, e) {
+  const now = raceNow(state),
+    c = state.competition;
+  if (!e || !eventById(state, e.eventId)) throw Error("Carrera desconocida.");
+  const p = getPlayer(state);
+  if (p.participating && !c.closed && state.clock >= 0)
+    throw Error("Tu carrera todavía está en curso.");
+  state.startAt = new Date(e.start).toISOString();
+  state.clock = (now - e.start) / 1000;
+  state.routeId = e.id;
+  state.id = e.eventId;
+  state.events = [];
+  state.eventCounter = 0;
+  state.remainder = 0;
+  c.currentId = e.eventId;
+  c.closed = false;
+  c.firstFinishAt = null;
+  c.closedAt = null;
+  c.started = false;
+  const registration = c.registrations.find((r) => r.eventId === e.eventId);
+  state.championship.round = state.management.catalog.races.findIndex(
+    (r) => r.id === e.id,
+  );
+  for (const t of state.teams) {
+    t.routeId = e.id;
+    t.participating = t.ai || !!registration;
+    Object.assign(t, {
+      phase: t.participating ? "waiting" : "unregistered",
+      stageIndex: 0,
+      stageKm: 0,
+      totalKm: 0,
+      speed: 0,
+      heat: 25,
+      holdUntil: 0,
+      service: null,
+      stageStart: null,
+      finishTime: null,
+      prizePaid: false,
+      history: [],
+      journal: [],
+      stageNotes: null,
+      activePlan: null,
+    });
+    delete t.prize;
+    t.statistics = {
+      driving: 0,
+      service: 0,
+      waiting: 0,
+      errors: 0,
+      failures: 0,
+      fuelUsed: 0,
+    };
+    t.plans = routeFor(t).stages.map((s, i) =>
+      t.ai
+        ? {
+            ...defaultPlan(i),
+            ...recommendedSetup(s),
+            driverId: t.drivers[i % t.drivers.length].id,
+            fuelTarget: vehicle(t.vehicleId).tank,
+          }
+        : null,
+    );
+    if (registration && !t.ai && e.kind === "short")
+      t.plans[0] = {
+        ...defaultPlan(0),
+        ...recommendedSetup(routeFor(t).stages[0]),
+        driverId: registration.driverId,
+        fuelTarget: vehicle(t.vehicleId).tank,
+      };
+  }
+  return state;
+}
+export function nextScheduledRace(state) {
+  const c = state.competition,
+    p = getPlayer(state);
+  if (p.participating && !c.closed && state.clock >= 0)
+    throw Error("Esperá el cierre de tu carrera.");
+  const now = raceNow(state);
+  const pending = c.registrations
+    .map((r) => eventById(state, r.eventId))
+    .filter((e) => e.start > now)
+    .sort((a, b) => a.start - b.start)[0];
+  const e =
+    pending ||
+    calendar(state, now, now + 60 * 86400000).find((e) => e.start > now);
+  if (!e) throw Error("Sin carreras futuras.");
+  let skip = Math.max(0, (e.start - now) / 1000 - 60);
+  // Admin skips idle time without enrolling. Production advances with server time.
+  while (skip > 0) {
+    const used = Math.min(skip, 720 * 3600);
+    advance(state, used);
+    skip -= used;
+  }
+  if (c.currentId !== e.eventId) activateEvent(state, e);
+  return state;
 }

@@ -26,6 +26,8 @@ const numeric = new Set([
   "race",
   "championship",
   "value",
+  "maxHours",
+  "short",
 ]);
 export function parseCSV(input) {
   const rows = [];
@@ -94,6 +96,7 @@ export async function buildCatalog(readTab) {
     ]),
   );
   for (const [key, rows] of results) catalog[key] = rows;
+  if (catalog.races.some((r) => r.kind)) catalog.schemaVersion = 2;
   catalog.races.sort((a, b) => a.round - b.round);
   catalog.prizes.sort((a, b) => a.position - b.position);
   catalog.revision = createHash("sha256")

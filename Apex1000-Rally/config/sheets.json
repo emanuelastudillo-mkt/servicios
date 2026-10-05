@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "status": "Google Sheets conectado; sincronización diaria a las 07:23 de Argentina",
+  "status": "Catálogo v2 conectado a la planilla existente; requiere subir el incremental v0.4.0. Sincronización diaria 07:23 Argentina.",
   "driveFolder": "https://drive.google.com/drive/folders/18QOIC22BHnWJTpkL5ubRJ82AzUkuGs2I",
   "repository": "https://github.com/emanuelastudillo-mkt/servicios",
   "csvUrls": {

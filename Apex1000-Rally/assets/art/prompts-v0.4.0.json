@@ -1,0 +1,205 @@
+{
+  "version": "0.4.0",
+  "tool": "built-in image_gen",
+  "people": "Fictitious people inspired by authentic paddock documentary photography. No known identities copied.",
+  "images": [
+    {
+      "id": "agustina",
+      "asset": "assets/art/agustina.webp",
+      "prompt": "Use case: photorealistic-natural. Square documentary paddock portrait for a rally game: one entirely fictitious female rally driver aged 28, straight brown hair tied back, olive skin, cream and red racing suit, holding a helmet low. Chest-up with full head and shoulders comfortably visible. Natural candid expression, ordinary face proportions and small asymmetries. Soft daylight, an authentic outdoor rally bivouac with blurred vehicles and tents. Honest skin pores, uneven complexion, subtle wrinkles, ordinary practical motorsport clothing. Invent a distinctive new person. No actual person likeness, no celebrity, no sponsor text, no typography, no beauty filter, no waxy plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "amina",
+      "asset": "assets/art/amina.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic character portrait for a rally management game: fictitious female West African rally driver aged 31, dark skin, tied-back natural black curls, cream and orange racing suit. Chest-up, looking slightly off camera, relaxed candid expression. Outdoor rally bivouac behind the person, blurred tools and service truck. Documentary paddock photography, natural daylight, realistic uneven skin texture, subtle wrinkles, imperfect hair and ordinary human proportions. Inspired by authentic motorsport team photography, but invent a new person, do not resemble a known person. No typography, no real sponsor logos, no plastic skin, no glamour retouching, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "amira",
+      "asset": "assets/art/amira.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one completely fictitious female mechanic aged 38, medium brown skin, dark curly hair tied back, navy team polo, soft smile. Chest-up, complete head visible, generous shoulder framing. Ordinary relaxed candid expression and facial asymmetry. Soft daylight at an outdoor rally bivouac, blurred service trucks and tents behind. Motorsport documentary photograph, natural skin pores and small imperfections, worn practical clothing. Invent a new individual. No real sponsor logos, no lettering, no known likeness, no plastic skin, no retouched glamour, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "andre",
+      "asset": "assets/art/andre.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic character portrait for a rally management game: fictitious male Brazilian rally driver aged 39, brown skin, black wavy hair, slight moustache, green and white racing suit. Chest-up, looking slightly off camera, relaxed candid expression. Outdoor rally bivouac behind the person, blurred tools and service truck. Documentary paddock photography, natural daylight, realistic uneven skin texture, subtle wrinkles, imperfect hair and ordinary human proportions. Inspired by authentic motorsport team photography, but invent a new person, do not resemble a known person. No typography, no real sponsor logos, no plastic skin, no glamour retouching, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "anika",
+      "asset": "assets/art/anika.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic portrait for a rally game of a fictitious female mechanic aged 33, short light brown hair, fair skin, slight freckles, practical headset and navy polo. Chest-up with complete head and generous shoulders, slightly off-camera candid glance. Outdoor rally paddock, blurred service vehicles and equipment. Soft natural daylight, ordinary human face proportions and facial asymmetry, real pores and uneven skin texture, practical worn fabric. Authentic documentary team photography. New invented identity, no real person or celebrity likeness. No sponsor logos, no typography, no beauty filter, no plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "audi",
+      "asset": "assets/art/audi.webp",
+      "prompt": "Use case: photorealistic vehicle game asset. One square cinematic photograph of an Audi RS Q e-tron Dakar racing prototype, black and silver angular futuristic body with red accents, huge off-road tires, narrow LED headlight strips, enclosed squared cockpit, wide fenders, distinctive high-tech rally machine. Entire vehicle fully visible in front three-quarter view, centered with generous space around wheels and roof. Spectacular brightly lit professional rally service garage at night, reflective polished dark floor, realistic metal bodywork, luminous white and warm orange overhead workshop lights, crisp authentic mechanical details. Match a premium glossy metallic rally management game vehicle catalog. No people, no text, no captions, no sponsor lettering, no added watermark. Vehicle proportions and geometry physically plausible.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "beatriz",
+      "asset": "assets/art/beatriz.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic portrait for a rally game of a fictitious female mechanic aged 53, dark bob haircut, warm olive skin, reading glasses on collar, red work jacket. Chest-up with complete head and generous shoulders, slightly off-camera candid glance. Outdoor rally paddock, blurred service vehicles and equipment. Soft natural daylight, ordinary human face proportions and facial asymmetry, real pores and uneven skin texture, practical worn fabric. Authentic documentary team photography. New invented identity, no real person or celebrity likeness. No sponsor logos, no typography, no beauty filter, no plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "carlos",
+      "asset": "assets/art/carlos.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one entirely fictitious male mechanic aged 62, receding grey hair, prominent eyebrows, lined face, green service polo. Chest-up with head fully visible, natural candid expression. Outdoor rally bivouac, blurred trucks and equipment behind. Soft real daylight, authentic editorial motorsport photograph, ordinary proportions, detailed skin pores and small imperfections, uneven complexion, practical textured clothing. Invent a new person, no known likeness. No lettering, no real sponsor logos, no beauty filter, no plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "catalina",
+      "asset": "assets/art/catalina.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic character portrait for a rally management game: fictitious female rally driver aged 32, dark wavy hair, brown eyes, light freckles, blue racing suit with collar unzipped. Chest-up, looking slightly off camera, relaxed candid expression. Outdoor rally bivouac behind the person, blurred tools and service truck. Documentary paddock photography, natural daylight, realistic uneven skin texture, subtle wrinkles, imperfect hair and ordinary human proportions. Inspired by authentic motorsport team photography, but invent a new person, do not resemble a known person. No typography, no real sponsor logos, no plastic skin, no glamour retouching, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "diego",
+      "asset": "assets/art/diego.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one fictitious male mechanic aged 27, light brown skin, short buzz cut, stubble, red work polo. Chest-up, head fully visible, generous shoulder framing, relaxed ordinary candid expression. Outdoor rally bivouac and blurred service trucks behind. Soft natural daylight, documentary paddock photography with real skin texture, small wrinkles, face asymmetry, practical worn clothing. Invent a distinct person, not a known individual. No lettering or real sponsor logos, no celebrity resemblance, no beauty retouching, no plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "esteban",
+      "asset": "assets/art/esteban.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one completely fictitious male mechanic aged 31, dark tousled hair, a little acne scarring, black work shirt, friendly grin. Chest-up, complete head visible, generous shoulder framing. Ordinary relaxed candid expression and facial asymmetry. Soft daylight at an outdoor rally bivouac, blurred service trucks and tents behind. Motorsport documentary photograph, natural skin pores and small imperfections, worn practical clothing. Invent a new individual. No real sponsor logos, no lettering, no known likeness, no plastic skin, no retouched glamour, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "fatima",
+      "asset": "assets/art/fatima.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one fictitious female North African mechanic aged 36, warm brown skin, black ponytail, grey workshop polo. Chest-up, head fully visible, generous shoulder framing, relaxed ordinary candid expression. Outdoor rally bivouac and blurred service trucks behind. Soft natural daylight, documentary paddock photography with real skin texture, small wrinkles, face asymmetry, practical worn clothing. Invent a distinct person, not a known individual. No lettering or real sponsor logos, no celebrity resemblance, no beauty retouching, no plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "gabriel",
+      "asset": "assets/art/gabriel.webp",
+      "prompt": "Use case: photorealistic-natural. Asset: square photographic staff portrait for a rally management game. Subject: one completely fictitious male mechanic aged 41, round face, short black hair, slightly crooked nose, thin beard, faded grey work shirt. Chest-up with head fully visible and generous shoulder room, facing near camera with an ordinary relaxed candid expression. Blurred outdoor rally bivouac service truck and tools in the background. Authentic paddock editorial photography, soft natural daylight, realistic uneven skin texture, ordinary human proportions, distinct unretouched facial details, subtle wear on clothing. Invent a new individual, no known person's likeness. No typography, no real sponsor logos, no beauty filter, no waxy or plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "hugo",
+      "asset": "assets/art/hugo.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one fictitious male mechanic aged 49, tanned skin, wiry black moustache, dark baseball cap, worn orange coveralls. Chest-up with complete head visible, shoulders framed generously, ordinary candid expression. Soft natural daylight, blurred outdoor rally service area with tools and trucks, editorial motorsport photography. Authentic skin pores, uneven complexion, individual facial asymmetry, ordinary human proportions, work clothing with practical texture. Invent a distinct person. No real sponsor logos or typography, no resemblance to a celebrity, no airbrushed plastic skin, no glamour photography, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "hunter",
+      "asset": "assets/art/hunter.webp",
+      "prompt": "Use case: photorealistic vehicle game asset. One square cinematic photograph of a Prodrive Hunter T1+ Dakar racing prototype, deep red metallic body, very wide wheel arches, massive off-road tires, short sloping hood and compact enclosed cockpit, high rally suspension, black roof and technical vents, wide aggressive nose. Entire vehicle fully visible in front three-quarter view, centered with generous space around wheels and roof. Spectacular brightly lit professional rally service garage at night, reflective polished dark floor, realistic metal bodywork, luminous white and warm orange overhead workshop lights, crisp authentic mechanical details. Match a premium glossy metallic rally management game vehicle catalog. No people, no text, no captions, no sponsor lettering, no added watermark. Vehicle proportions and geometry physically plausible.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "jun",
+      "asset": "assets/art/jun.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one completely fictitious male Japanese mechanic aged 44, short greying black hair, rectangular glasses, blue mechanic jacket. Chest-up, complete head visible, generous shoulder framing. Ordinary relaxed candid expression and facial asymmetry. Soft daylight at an outdoor rally bivouac, blurred service trucks and tents behind. Motorsport documentary photograph, natural skin pores and small imperfections, worn practical clothing. Invent a new individual. No real sponsor logos, no lettering, no known likeness, no plastic skin, no retouched glamour, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "leila",
+      "asset": "assets/art/leila.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one fictitious female Middle Eastern mechanic aged 48, dark wavy shoulder-length hair, brown eyes, navy work jacket. Chest-up, head fully visible, generous shoulder framing, relaxed ordinary candid expression. Outdoor rally bivouac and blurred service trucks behind. Soft natural daylight, documentary paddock photography with real skin texture, small wrinkles, face asymmetry, practical worn clothing. Invent a distinct person, not a known individual. No lettering or real sponsor logos, no celebrity resemblance, no beauty retouching, no plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "mara",
+      "asset": "assets/art/mara.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one entirely fictitious female Central European mechanic aged 40, short auburn hair, grey eyes, sun freckles, blue coveralls. Chest-up with head fully visible, natural candid expression. Outdoor rally bivouac, blurred trucks and equipment behind. Soft real daylight, authentic editorial motorsport photograph, ordinary proportions, detailed skin pores and small imperfections, uneven complexion, practical textured clothing. Invent a new person, no known likeness. No lettering, no real sponsor logos, no beauty filter, no plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "marcos",
+      "asset": "assets/art/marcos.webp",
+      "prompt": "Use case: photorealistic-natural. Square documentary paddock portrait for a rally game: one entirely fictitious male mechanic aged 35, dark skin, wavy black hair, uneven stubble, faded blue workshop jacket. Chest-up with full head and shoulders comfortably visible. Natural candid expression, ordinary face proportions and small asymmetries. Soft daylight, an authentic outdoor rally bivouac with blurred vehicles and tents. Honest skin pores, uneven complexion, subtle wrinkles, ordinary practical motorsport clothing. Invent a distinctive new person. No actual person likeness, no celebrity, no sponsor text, no typography, no beauty filter, no waxy plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "matias",
+      "asset": "assets/art/matias.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic character portrait for a rally management game: fictitious male rally driver aged 25, brown short hair, fair skin, slightly prominent ears, black and red racing suit. Chest-up, looking slightly off camera, relaxed candid expression. Outdoor rally bivouac behind the person, blurred tools and service truck. Documentary paddock photography, natural daylight, realistic uneven skin texture, subtle wrinkles, imperfect hair and ordinary human proportions. Inspired by authentic motorsport team photography, but invent a new person, do not resemble a known person. No typography, no real sponsor logos, no plastic skin, no glamour retouching, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "miguel",
+      "asset": "assets/art/miguel.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic character portrait for a rally management game: fictitious male rally driver aged 48, short salt-and-pepper hair, expressive lined face, plain dark blue racing suit. Chest-up, looking slightly off camera, relaxed candid expression. Outdoor rally bivouac behind the person, blurred tools and service truck. Documentary paddock photography, natural daylight, realistic uneven skin texture, subtle wrinkles, imperfect hair and ordinary human proportions. Inspired by authentic motorsport team photography, but invent a new person, do not resemble a known person. No typography, no real sponsor logos, no plastic skin, no glamour retouching, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "naomi",
+      "asset": "assets/art/naomi.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic character portrait for a rally management game: fictitious female Japanese rally driver aged 30, chin-length black hair, brown eyes, white and navy racing suit. Chest-up, looking slightly off camera, relaxed candid expression. Outdoor rally bivouac behind the person, blurred tools and service truck. Documentary paddock photography, natural daylight, realistic uneven skin texture, subtle wrinkles, imperfect hair and ordinary human proportions. Inspired by authentic motorsport team photography, but invent a new person, do not resemble a known person. No typography, no real sponsor logos, no plastic skin, no glamour retouching, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "niva",
+      "asset": "assets/art/niva.webp",
+      "prompt": "Use case: photorealistic vehicle game asset. One square cinematic photograph of a LADA Niva Legend three-door rally preparation, recognizable compact boxy late classic Niva body, round headlights and upright grille, steel wheels with all terrain tires, modest raised suspension, olive green paint, roof rack with a spare wheel, simple inexpensive amateur rally car. Entire vehicle fully visible in front three-quarter view, centered with generous space around wheels and roof. Spectacular brightly lit professional rally service garage at night, reflective polished dark floor, realistic metal bodywork, luminous white and warm orange overhead workshop lights, crisp authentic mechanical details. Match a premium glossy metallic rally management game vehicle catalog. No people, no text, no captions, no sponsor lettering, no added watermark. Vehicle proportions and geometry physically plausible.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "oscar",
+      "asset": "assets/art/oscar.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one fictitious male mechanic aged 58, stocky, silver hair, clean shaven, faded green polo, calloused hand holding a small wrench below chest. Chest-up with complete head visible, shoulders framed generously, ordinary candid expression. Soft natural daylight, blurred outdoor rally service area with tools and trucks, editorial motorsport photography. Authentic skin pores, uneven complexion, individual facial asymmetry, ordinary human proportions, work clothing with practical texture. Invent a distinct person. No real sponsor logos or typography, no resemblance to a celebrity, no airbrushed plastic skin, no glamour photography, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "pavel",
+      "asset": "assets/art/pavel.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic portrait for a rally game of a fictitious male Eastern European mechanic aged 45, broad forehead, light eyes, short fair hair, grey work polo. Chest-up with complete head and generous shoulders, slightly off-camera candid glance. Outdoor rally paddock, blurred service vehicles and equipment. Soft natural daylight, ordinary human face proportions and facial asymmetry, real pores and uneven skin texture, practical worn fabric. Authentic documentary team photography. New invented identity, no real person or celebrity likeness. No sponsor logos, no typography, no beauty filter, no plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "pilar",
+      "asset": "assets/art/pilar.webp",
+      "prompt": "Use case: photorealistic-natural. Asset: square photographic staff portrait for a rally management game. Subject: one completely fictitious female mechanic aged 46, brown ponytail and light freckles, red workshop jacket, tired but warm smile. Chest-up with head fully visible and generous shoulder room, facing near camera with an ordinary relaxed candid expression. Blurred outdoor rally bivouac service truck and tools in the background. Authentic paddock editorial photography, soft natural daylight, realistic uneven skin texture, ordinary human proportions, distinct unretouched facial details, subtle wear on clothing. Invent a new individual, no known person's likeness. No typography, no real sponsor logos, no beauty filter, no waxy or plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "rafael",
+      "asset": "assets/art/rafael.webp",
+      "prompt": "Use case: photorealistic-natural. Square documentary paddock portrait for a rally game: one entirely fictitious male rally driver aged 36, black short curls, tanned skin, trimmed beard, navy and yellow racing suit. Chest-up with full head and shoulders comfortably visible. Natural candid expression, ordinary face proportions and small asymmetries. Soft daylight, an authentic outdoor rally bivouac with blurred vehicles and tents. Honest skin pores, uneven complexion, subtle wrinkles, ordinary practical motorsport clothing. Invent a distinctive new person. No actual person likeness, no celebrity, no sponsor text, no typography, no beauty filter, no waxy plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "ramon",
+      "asset": "assets/art/ramon.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic character portrait for a rally management game: fictitious male mechanic, about 52, salt-and-pepper stubble, brown eyes, weathered kind face, receding dark hair, wearing a navy workshop polo with a small generic unlettered orange patch. Chest-up, looking slightly off camera, relaxed candid expression. Outdoor rally bivouac behind him, blurred tools and service truck. Documentary paddock photography, natural daylight, realistic uneven skin texture, subtle wrinkles, imperfect hair and ordinary human proportions. Inspired by authentic motorsport team photography, but invent a new person, do not resemble a known person. No typography, no real sponsor logos, no plastic skin, no glamour retouching, no illustration.",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "renata",
+      "asset": "assets/art/renata.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one fictitious female mechanic aged 29, brown skin, loose dark braid, plain blue workshop polo, subtle face asymmetry. Chest-up with complete head visible, shoulders framed generously, ordinary candid expression. Soft natural daylight, blurred outdoor rally service area with tools and trucks, editorial motorsport photography. Authentic skin pores, uneven complexion, individual facial asymmetry, ordinary human proportions, work clothing with practical texture. Invent a distinct person. No real sponsor logos or typography, no resemblance to a celebrity, no airbrushed plastic skin, no glamour photography, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "samuel",
+      "asset": "assets/art/samuel.webp",
+      "prompt": "Use case: photorealistic-natural. Square photographic character portrait for a rally game: one entirely fictitious male West African mechanic aged 37, dark skin, cropped curls, close beard, navy service polo. Chest-up with head fully visible, natural candid expression. Outdoor rally bivouac, blurred trucks and equipment behind. Soft real daylight, authentic editorial motorsport photograph, ordinary proportions, detailed skin pores and small imperfections, uneven complexion, practical textured clothing. Invent a new person, no known likeness. No lettering, no real sponsor logos, no beauty filter, no plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "valeria",
+      "asset": "assets/art/valeria.webp",
+      "prompt": "Use case: photorealistic-natural. Asset: square photographic staff portrait for a rally management game. Subject: one completely fictitious female mechanic aged 34, short dark curly hair, olive skin, practical navy coveralls, expressive brown eyes. Chest-up with head fully visible and generous shoulder room, facing near camera with an ordinary relaxed candid expression. Blurred outdoor rally bivouac service truck and tools in the background. Authentic paddock editorial photography, soft natural daylight, realistic uneven skin texture, ordinary human proportions, distinct unretouched facial details, subtle wear on clothing. Invent a new individual, no known person's likeness. No typography, no real sponsor logos, no beauty filter, no waxy or plastic skin, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "youssef",
+      "asset": "assets/art/youssef.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic character portrait for a rally management game: fictitious male North African rally driver aged 43, short dark hair, weathered face, olive skin, orange racing suit. Chest-up, looking slightly off camera, relaxed candid expression. Outdoor rally bivouac behind the person, blurred tools and service truck. Documentary paddock photography, natural daylight, realistic uneven skin texture, subtle wrinkles, imperfect hair and ordinary human proportions. Inspired by authentic motorsport team photography, but invent a new person, do not resemble a known person. No typography, no real sponsor logos, no plastic skin, no glamour retouching, no illustration.\n",
+      "tool": "built-in image_gen"
+    },
+    {
+      "id": "zoe",
+      "asset": "assets/art/zoe.webp",
+      "prompt": "Use case: photorealistic-natural. Create one square photographic character portrait for a rally management game: fictitious female rally driver aged 26, dark blonde ponytail, green eyes, freckles, red and grey racing suit. Chest-up, looking slightly off camera, relaxed candid expression. Outdoor rally bivouac behind the person, blurred tools and service truck. Documentary paddock photography, natural daylight, realistic uneven skin texture, subtle wrinkles, imperfect hair and ordinary human proportions. Inspired by authentic motorsport team photography, but invent a new person, do not resemble a known person. No typography, no real sponsor logos, no plastic skin, no glamour retouching, no illustration.\n",
+      "tool": "built-in image_gen"
+    }
+  ]
+}

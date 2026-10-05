@@ -80,7 +80,15 @@ export function assignMechanic(state, id, place) {
   }));
   for (const destination of ["race", "workshop"]) {
     const n = next.filter((m) => m.assignment === destination).length;
-    if (n < (destination === "race" ? 1 : 0) || n > 4)
+    if (
+      n <
+        (destination === "race" &&
+        t.participating !== false &&
+        !["finished", "cutoff"].includes(t.phase)
+          ? 1
+          : 0) ||
+      n > 4
+    )
       throw Error("Carrera: 1–4 mecánicos. Taller: 0–4. Máximo 5 en total.");
   }
   m.assignment = place;
@@ -95,7 +103,7 @@ export function placeNewMechanic(t, m) {
   if (t.workshop) t.workshop.legacyNoMechanics = false;
 }
 export function canChangeCar(t) {
-  return ["waiting", "finished"].includes(t.phase);
+  return ["waiting", "finished", "cutoff", "unregistered"].includes(t.phase);
 }
 export function selectVehicle(state, id) {
   const t = player(state),
@@ -153,6 +161,7 @@ export function purchaseVehicle(state, modelId, { tradeId = null } = {}) {
   // Validate the complete exchange before changing money, ownership or stock.
   const wasActive = trade?.id === t.activeCarId;
   if (trade) {
+    cancelCarEnrollments(state, t, trade.id);
     spend(state, t, sale, `Venta de vehículo: ${vehicle(trade.modelId).short}`);
     t.garage = t.garage.filter((c) => c.id !== trade.id);
   }
@@ -160,7 +169,7 @@ export function purchaseVehicle(state, modelId, { tradeId = null } = {}) {
   m.stocks[modelId]--;
   const car = newCar(t, modelId);
   t.garage.push(car);
-  if (wasActive) selectVehicle(state, car.id);
+  if (wasActive || !t.activeCarId) selectVehicle(state, car.id);
   if (t.garage.length <= GARAGE_LIMIT) t.workshop.legacyOverflow = false;
   return car;
 }
@@ -168,13 +177,13 @@ export function sellVehicle(state, id) {
   const t = player(state),
     car = t.garage.find((c) => c.id === id);
   if (!car) throw Error("Auto desconocido.");
-  if (t.garage.length <= 1)
+  if (!state.competition && t.garage.length <= 1)
     throw Error(
-      "Conservá un auto para competir. Podés entregar el último como parte de pago de otro.",
+      "Conservá el último auto en una partida anterior a las inscripciones.",
     );
-  if (id === t.activeCarId)
+  if (id === t.activeCarId && !canChangeCar(t))
     throw Error(
-      "Seleccioná primero otro auto para competir, o entregá este como parte de pago.",
+      "El vehículo está participando. Esperá la llegada o el cierre.",
     );
   if (jobFor(t, id))
     throw Error(
@@ -182,11 +191,44 @@ export function sellVehicle(state, id) {
     );
   const price = vehicleSaleValue(state, car);
   t.garage = t.garage.filter((c) => c.id !== id);
+  cancelCarEnrollments(state, t, id);
+  if (id === t.activeCarId) {
+    const next = t.garage.find((c) => !jobFor(t, c.id));
+    t.activeCarId = next?.id || null;
+    if (next) t.vehicleId = next.modelId;
+    t.fuel = 0;
+    t.plans = t.plans.map(() => null);
+  }
   spend(state, t, price, `Venta de vehículo: ${vehicle(car.modelId).short}`);
   if (t.garage.length <= GARAGE_LIMIT) t.workshop.legacyOverflow = false;
   return price;
 }
-export function jobQuote(state, team, kind, id) {
+function cancelCarEnrollments(state, t, id) {
+  if (!state.competition) return;
+  const current = state.competition.registrations.find(
+    (r) => r.eventId === state.competition.currentId,
+  );
+  state.competition.registrations = state.competition.registrations.filter(
+    (r) =>
+      r.carId !== id ||
+      Number(r.eventId.split("@").at(-1)) <=
+        Date.parse(state.startAt) + state.clock * 1000,
+  );
+  if (current?.carId === id && state.clock < 0) {
+    t.participating = false;
+    t.phase = "unregistered";
+  }
+}
+export function jobQuote(
+  state,
+  team,
+  kind,
+  id,
+  points = 5,
+  pricingVersion = 2,
+) {
+  if (!Number.isInteger(points) || points < 1 || points > 5)
+    throw Error("Elegí entre 1 y 5 puntos.");
   if (kind === "part") {
     const part = team.inventory.find((p) => p.id === id);
     if (!part)
@@ -203,7 +245,7 @@ export function jobQuote(state, team, kind, id) {
     (v) => v.id === car.modelId,
   ).price;
   const target =
-    kind === "condition" ? 100 : Math.min(UPGRADE_LIMIT, car[kind] + 5);
+    kind === "condition" ? 100 : Math.min(UPGRADE_LIMIT, car[kind] + points);
   const gain = Math.max(0, target - car[kind]);
   const difficulty = kind === "condition" ? 1 : 1 + (car[kind] - 50) / 25;
   return {
@@ -214,10 +256,18 @@ export function jobQuote(state, team, kind, id) {
     cost: Math.ceil(
       price * (kind === "condition" ? 0.003 : 0.008) * gain * difficulty,
     ),
-    workHours: gain * (kind === "condition" ? 0.6 : 2) * difficulty,
+    workHours:
+      gain *
+      (kind === "condition"
+        ? 0.6
+        : pricingVersion === 1
+          ? 2 * difficulty
+          : 20 * difficulty * Math.pow(1.5, (car[kind] - 50) / 10)),
+    points: kind === "condition" ? 5 : points,
+    pricingVersion,
   };
 }
-export function enqueueJob(state, kind, id) {
+export function enqueueJob(state, kind, id, points = 5) {
   const t = player(state);
   if (t.workshop.jobs.length >= 8)
     throw Error("La cola admite hasta 8 trabajos.");
@@ -231,7 +281,7 @@ export function enqueueJob(state, kind, id) {
     throw Error(
       "La pieza está reservada en un plan. Cambiá esa elección antes de enviarla al taller.",
     );
-  const q = jobQuote(state, t, kind, id);
+  const q = jobQuote(state, t, kind, id, points);
   if (!q.needed) throw Error("No hay una mejora posible con el estado actual.");
   if (q.cost > t.budget) throw Error("Saldo insuficiente para este trabajo.");
   const job = {
@@ -242,6 +292,8 @@ export function enqueueJob(state, kind, id) {
     cost: q.cost,
     workHours: q.workHours,
     worked: 0,
+    points: q.points ?? 5,
+    pricingVersion: 2,
     originalAfter: q.originalAfter ?? null,
   };
   spend(

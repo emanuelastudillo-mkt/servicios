@@ -1,5 +1,5 @@
-"key","value"
-"auctionHours","6"
-"startingBudget","280000"
-"driverLimit","3"
-"mechanicLimit","5"
+key,value
+auctionHours,6
+startingBudget,8500000
+driverLimit,3
+mechanicLimit,5

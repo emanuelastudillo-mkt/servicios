@@ -15,6 +15,8 @@ import { validateJournal } from "./journal-validation.js";
 import { initializeWorkshop } from "./workshop.js";
 import { validateWorkshop } from "./workshop-validation.js";
 import { validServiceTimeline } from "./service-telemetry.js";
+import { validateCompetition } from "./competition.js";
+import { validateProgression } from './progression.js';
 export const SAVE_KEY = "apex1000-rally-v1";
 const validNumber = (n, min = -Infinity, max = Infinity) =>
   typeof n === "number" && Number.isFinite(n) && n >= min && n <= max;
@@ -62,7 +64,11 @@ export function validateSave(raw) {
     throw new Error("No es una partida compatible con esta versión del rally.");
   if (
     !Number.isFinite(Date.parse(raw.startAt)) ||
-    !validNumber(raw.clock, -86400 * 365, 86400 * 365) ||
+    !validNumber(
+      raw.clock,
+      -86400 * 365,
+      86400 * (raw.competition ? 3650 : 365),
+    ) ||
     !validNumber(raw.remainder, 0, 30) ||
     !validNumber(raw.wallAt, 0) ||
     ![0, 1, 60, 600, 3600].includes(raw.speed)
@@ -251,11 +257,20 @@ export function validateSave(raw) {
       t.phase === "finished" &&
       (t.stageIndex !== STAGES.length ||
         !validNumber(t.finishTime, 0) ||
-        !t.prizePaid)
+        (!t.prizePaid && !raw.competition))
     )
       throw new Error("Llegada inválida.");
     if (
-      t.phase !== "finished" &&
+      t.phase === "cutoff" &&
+      (!raw.competition?.closed ||
+        t.stageIndex >= STAGES.length ||
+        t.finishTime !== null ||
+        !t.prizePaid ||
+        t.stageKm > STAGES[t.stageIndex].km)
+    )
+      throw new Error("Cierre de etapa inválido.");
+    if (
+      !["finished", "cutoff"].includes(t.phase) &&
       (t.stageIndex >= STAGES.length ||
         t.finishTime !== null ||
         t.prizePaid ||
@@ -296,15 +311,16 @@ function validateManagement(s) {
   const m = s.management,
     c = s.championship;
   validateCatalog(m.catalog);
+  if (s.competition) {validateCompetition(s);validateProgression(s);}
   if (
     !c ||
     !Number.isInteger(c.round) ||
     c.round < 0 ||
-    c.round > 7 ||
+    c.round > (s.competition ? 31 : 7) ||
     !Number.isFinite(Date.parse(c.startAt)) ||
     typeof c.paid !== "boolean" ||
     !Array.isArray(c.results) ||
-    c.results.length > 8 ||
+    c.results.length > (s.competition ? 1000 : 8) ||
     s.routeId !== m.catalog.races[c.round].id
   )
     throw Error("Campeonato inválido.");
@@ -329,9 +345,10 @@ function validateManagement(s) {
       t.shieldId < 1 ||
       t.shieldId > 100 ||
       !Array.isArray(t.garage) ||
-      !t.garage.some(
-        (c) => c.id === t.activeCarId && c.modelId === t.vehicleId,
-      ) ||
+      (!(s.competition && t.activeCarId === null) &&
+        !t.garage.some(
+          (c) => c.id === t.activeCarId && c.modelId === t.vehicleId,
+        )) ||
       !Array.isArray(t.mechanics) ||
       t.mechanics.length > 5 ||
       !Array.isArray(t.drivers) ||
@@ -358,15 +375,18 @@ function validateManagement(s) {
     for (const mech of t.mechanics)
       if (!validNumber(mech.efficiency, 1, 1.6))
         throw Error("Mecánico inválido.");
-    if (!validNumber(c.points?.[t.id], 0, 8000))
+    if (!s.competition && !validNumber(c.points?.[t.id], 0, 8000))
       throw Error("Puntos inválidos.");
   }
   if (Object.keys(m.owners).some((id) => !persons.has(id)))
     throw Error("Titularidad sin contrato.");
-  if (c.results.length < c.round || c.results.length > c.round + 1)
+  if (
+    !s.competition &&
+    (c.results.length < c.round || c.results.length > c.round + 1)
+  )
     throw Error("Faltan resultados del campeonato.");
   const expectedPoints = Object.fromEntries(s.teams.map((t) => [t.id, 0]));
-  for (const [i, r] of c.results.entries()) {
+  for (const [i, r] of (s.competition ? [] : c.results).entries()) {
     if (
       r.round !== i ||
       r.routeId !== m.catalog.races[i].id ||
@@ -388,11 +408,12 @@ function validateManagement(s) {
     }
   }
   for (const t of s.teams)
-    if (c.points[t.id] !== expectedPoints[t.id])
+    if (!s.competition && c.points[t.id] !== expectedPoints[t.id])
       throw Error("Puntos inconsistentes.");
-  if (c.paid !== (c.results.length === 8))
+  if (!s.competition && c.paid !== (c.results.length === 8))
     throw Error("Liquidación de campeonato inválida.");
   if (
+    !s.competition &&
     c.paid &&
     (!Array.isArray(c.final) ||
       c.final.length !== 12 ||

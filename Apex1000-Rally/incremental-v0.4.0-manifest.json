@@ -1,0 +1,451 @@
+{
+  "version": "0.4.0",
+  "baseVersion": "0.3.5",
+  "deletions": [],
+  "files": [
+    {
+      "path": "Apex1000-Rally/assets/art/agustina.webp",
+      "sha256": "07dd72840520e227280d29760169a43b55c3cc3bd581ba7b415c3646dc314eef",
+      "baseSha256": null,
+      "bytes": 78128
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/amina.webp",
+      "sha256": "f6d8a46acb517a4d477cabf982f71aa842686d42d029cc8394d2bf381822a8fa",
+      "baseSha256": null,
+      "bytes": 81710
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/amira.webp",
+      "sha256": "e43b2eaa8c566e9bab90d15b4e48552c851040a206e031a5c0b2a3f5d3b8c3af",
+      "baseSha256": null,
+      "bytes": 72982
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/andre.webp",
+      "sha256": "24fa01fb6edcf7f2875b538fd14176cd0b948c157b9051bb8528974422d8b960",
+      "baseSha256": null,
+      "bytes": 70814
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/anika.webp",
+      "sha256": "64f02bbd626ac5fdaf9c579db9df0622992a7572db1b93e918fe3d5d279f975c",
+      "baseSha256": null,
+      "bytes": 64862
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/audi.webp",
+      "sha256": "6861fa77bdafe0867a47d6b99c35d661f789c52d69d41cf5c9784e2f61b4291e",
+      "baseSha256": null,
+      "bytes": 131096
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/beatriz.webp",
+      "sha256": "a7c77b2a58870e61b391e215474c30ecf87fd6303bec191fc0fae52ea6452c1a",
+      "baseSha256": null,
+      "bytes": 77132
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/carlos.webp",
+      "sha256": "a47777dd61591fc5c855911e2793f36737f9379c8820729f1f198d6d7fa982f7",
+      "baseSha256": null,
+      "bytes": 76812
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/catalina.webp",
+      "sha256": "a88358b48f3addf26264999b38de753449c1e3ee89625102f89515e05ddcb1c6",
+      "baseSha256": null,
+      "bytes": 77038
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/diego.webp",
+      "sha256": "318ea90f360df5fa3daba424128abe296b0e49fd8bf4dcd3fb274eb0cfd89d33",
+      "baseSha256": null,
+      "bytes": 60164
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/esteban.webp",
+      "sha256": "2d23a2aa953bf7f913119b752a5e8e8a96c9a359421021d23668a6806f88a6aa",
+      "baseSha256": null,
+      "bytes": 60430
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/fatima.webp",
+      "sha256": "212e5faf1ab408c6a46695a31fa028670d19d727ff19c03fd2335eedcc4e1a1d",
+      "baseSha256": null,
+      "bytes": 84036
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/gabriel.webp",
+      "sha256": "812482385838e0e35e55aab393689183b53b49bdd8bf7e32d4bf5897e4d452e8",
+      "baseSha256": null,
+      "bytes": 69962
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/hugo.webp",
+      "sha256": "71ef231e761f9b209ecaea2a1829b7ef3d10efea5c9ed7aa7f01be28366a3891",
+      "baseSha256": null,
+      "bytes": 85132
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/hunter.webp",
+      "sha256": "0dac39af0e03074d2bd7b8624ed55e653b8dbe29fae51f5b045c71610335b90e",
+      "baseSha256": null,
+      "bytes": 124582
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/jun.webp",
+      "sha256": "bd8674aedf3918cb4298c93962300c352f5e592b27e2724f5051ec62179d4751",
+      "baseSha256": null,
+      "bytes": 76108
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/leila.webp",
+      "sha256": "f2c5c5dcb7e3b82df11c1c9f1c82942a8c70e0d82caf6caad4dcdbf24371afd8",
+      "baseSha256": null,
+      "bytes": 79842
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/mara.webp",
+      "sha256": "ae65452859a3afea1b31a0f8263707bf204b409461dba5265e711b887fdfb71b",
+      "baseSha256": null,
+      "bytes": 88718
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/marcos.webp",
+      "sha256": "d63aae4a841e1476a9f317a4eeb5cec6c2904117cc1ac59b84d980e6af2139f6",
+      "baseSha256": null,
+      "bytes": 74680
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/matias.webp",
+      "sha256": "2fdf8e7a112149242b78d9ca0fe4eaa0bf7a4a71d039824a71cc85d9bf1fd420",
+      "baseSha256": null,
+      "bytes": 63712
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/miguel.webp",
+      "sha256": "1897fdcbc3fe7b3dcb44f953f30a3d14c77644239789d830862d7cff71eccdc0",
+      "baseSha256": null,
+      "bytes": 69474
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/naomi.webp",
+      "sha256": "03a43503f2d75dd66d8422c225efaf1183af8b191d837faacae51bfad3fbb746",
+      "baseSha256": null,
+      "bytes": 62650
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/niva.webp",
+      "sha256": "a008434d3216e5146d526e1de48ee3fc42cd48075b3b641d987b9d0abf8f29b4",
+      "baseSha256": null,
+      "bytes": 125684
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/oscar.webp",
+      "sha256": "b279974234567efa6a23222afb29eec06d531926fdaf259e3bb09cf9449a8c2e",
+      "baseSha256": null,
+      "bytes": 82502
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/pavel.webp",
+      "sha256": "179088db11e6d85a80902e851c7632454ed56bdf706541e7197befa2b880eb95",
+      "baseSha256": null,
+      "bytes": 60054
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/pilar.webp",
+      "sha256": "1bdb7b4ee6444804cb293d416ace30accac015aacb53a41dabb0f9bcbe20bf6b",
+      "baseSha256": null,
+      "bytes": 85930
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/prompts-v0.4.0.json",
+      "sha256": "1fcf290c9f0f0c529d04d6e6fe25f69b98251868a869c909e4c552ae0eada81b",
+      "baseSha256": null,
+      "bytes": 28364
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/rafael.webp",
+      "sha256": "d21e77aac6517876dd5dd4a823e7b52d60497e0950b31c2f7564a7c7936a835c",
+      "baseSha256": null,
+      "bytes": 68438
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/ramon.webp",
+      "sha256": "f8164bfaa70f9615f88f33b0f3c09c8b251c7c8ae205ec2f0d561031599aab41",
+      "baseSha256": null,
+      "bytes": 79174
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/renata.webp",
+      "sha256": "5fb877bc023593a4948422a4de70700e41f67b1d5a4c209dfffda7a5137a6787",
+      "baseSha256": null,
+      "bytes": 86384
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/samuel.webp",
+      "sha256": "0e3e9b64f978e8b28f5cfba5d95779a1511d0f2b1658c6d68e82e875582e46fb",
+      "baseSha256": null,
+      "bytes": 67856
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/valeria.webp",
+      "sha256": "0a9370e2d6672df0f11a5c6990a146c502c1e7609f16f3d80d6505b7b56c185d",
+      "baseSha256": null,
+      "bytes": 69576
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/youssef.webp",
+      "sha256": "d2c21eb1a04368447ea2014912255bffdfe6d6052f7aaa27f3d7d44510bec625",
+      "baseSha256": null,
+      "bytes": 72300
+    },
+    {
+      "path": "Apex1000-Rally/assets/art/zoe.webp",
+      "sha256": "cd3b4884f98d857fb53a6962f38479c556b81170b5ab58406525108dbdc83d48",
+      "baseSha256": null,
+      "bytes": 75958
+    },
+    {
+      "path": "Apex1000-Rally/catalogos/Ajustes.csv",
+      "sha256": "cdc31708faddb6565d20e388dd26acf7abc92fec118f22d67fd0f1a2501bafa3",
+      "baseSha256": "2a0fc663962e708f3e41b3a6e148b7dfb3f5cf6bf515fb3032946c4cbdb8eedb",
+      "bytes": 83
+    },
+    {
+      "path": "Apex1000-Rally/catalogos/Carreras.csv",
+      "sha256": "92189fa2a4dcb611d4ea45dfe89a830d6731630d9f15a8fe9c79d8ef5e3e54d1",
+      "baseSha256": "1a9b038b5cad6ad163fd48bfc26f69e893cf7306dc94f5334d0bcb4670c9de6d",
+      "bytes": 2280
+    },
+    {
+      "path": "Apex1000-Rally/catalogos/Mecanicos.csv",
+      "sha256": "4fc768a12a40d56998dd435987e4a0cee55d5367779b5ed343e333c8ad64c3d1",
+      "baseSha256": "f14827084ff9ea0c8b10f1cf20b727f00f249a093abc6dc90e57f98745612018",
+      "bytes": 1633
+    },
+    {
+      "path": "Apex1000-Rally/catalogos/Pilotos.csv",
+      "sha256": "0030287c3de0b564a344726be6fdb7be5afc399ea72d6233e6f3e60ff472142a",
+      "baseSha256": "be0e4105d7aadb47279e2e5b894b9e88614f6511a4922c9598e4c6167003895d",
+      "bytes": 1022
+    },
+    {
+      "path": "Apex1000-Rally/catalogos/Premios.csv",
+      "sha256": "369107a9297b6de1ddb60d2bc1ed633c50c993fb01866aaa21d6f65d27e30188",
+      "baseSha256": "e2ae7807b5d3be3ff6fa6f7abc4441854b7ae84dfb7bf12a8e679698bff61d36",
+      "bytes": 204
+    },
+    {
+      "path": "Apex1000-Rally/catalogos/Repuestos.csv",
+      "sha256": "1325dbc9fe6e053b0afdebd08c8fce0ebef471d664da8497f47752e3baa0516f",
+      "baseSha256": "8a694f038a2d099e1ee1314fd4e07be8a2be7b6fc1cd64f336af15e1ed398f1a",
+      "bytes": 4353
+    },
+    {
+      "path": "Apex1000-Rally/catalogos/Respaldo-Catalogos-v0.3.5-antes-v0.4.0.xlsx",
+      "sha256": "782bbdafabe0aa8160d4834fc65f242b02b1a3d82f9b683315620ac1c28b2f23",
+      "baseSha256": null,
+      "bytes": 64112
+    },
+    {
+      "path": "Apex1000-Rally/catalogos/Vehiculos.csv",
+      "sha256": "b46fcdd6e48633fc309b7e1e1b05de2a8cabd9d308baa6b203c0b0ca80ab420a",
+      "baseSha256": "6fe08371195850735be86f960157feb48a30f3ea10ff25c85acc388b8718d18d",
+      "bytes": 478
+    },
+    {
+      "path": "Apex1000-Rally/config/sheets.json",
+      "sha256": "e149517f2640fd085552d6cec2c310b6aea0af39bc219a97251a1fd6147d00ca",
+      "baseSha256": "12fec6f4ae15924a240f2ce6d58b4516609bd41c36202db8c2ad389295c2cb4a",
+      "bytes": 1784
+    },
+    {
+      "path": "Apex1000-Rally/data/catalog.js",
+      "sha256": "9add5aa3c359fef1c38c65a0e8ec8317b35995de3310506eabee4b0efa00f735",
+      "baseSha256": "dde707e7833fe0807d29465eeb97923748afd361418d8c882ac78543edc50264",
+      "bytes": 30107
+    },
+    {
+      "path": "Apex1000-Rally/data/catalog.json",
+      "sha256": "47712c021a3a25d459b9103a6f60ba1ea2305ed1cc79b55536f7f9ea112cbc06",
+      "baseSha256": "1df9ae679611d995c1d5feddec544851008a203231bdf01069cf9e88fca5ddf3",
+      "bytes": 30011
+    },
+    {
+      "path": "Apex1000-Rally/data/sprints.js",
+      "sha256": "770f0c78f25ab96719a2103ad45cc059cdd201e3cdb71649f3931115da31bdd1",
+      "baseSha256": null,
+      "bytes": 6992
+    },
+    {
+      "path": "Apex1000-Rally/docs/CATALOGOS.md",
+      "sha256": "51f712c5633f5b9ffc5240b87c37c0d423084415a677a64e4ed941c63c532519",
+      "baseSha256": "7eb0212cc43bb708fd7718927a2d9d49b13e9fc4a7a3ec9c28e612dd242831d9",
+      "bytes": 4124
+    },
+    {
+      "path": "Apex1000-Rally/INCREMENTAL-v0.4.0.md",
+      "sha256": "91d3f1df88495e2825e19105c651253aa56e6d8b41899230bff309d2c8e8842b",
+      "baseSha256": null,
+      "bytes": 7124
+    },
+    {
+      "path": "Apex1000-Rally/package.json",
+      "sha256": "728957b2d31e8d941f9ef0b811901f9ccafb09d71d653d78b38d151b017d277d",
+      "baseSha256": "24a9dc2bf3bd342929b57f5617b8badcaddaa50d1e3b145a337d7ff584d5b1a9",
+      "bytes": 560
+    },
+    {
+      "path": "Apex1000-Rally/README.md",
+      "sha256": "d6e52eb1310faa08117d7cb78728235bcbdbb9053db04fc3a851207ac8a9dba4",
+      "baseSha256": "ee0c9cd05e1a2a59c6b4445a1f5691e735dcac6217956ef001a4306411d746b0",
+      "bytes": 11014
+    },
+    {
+      "path": "Apex1000-Rally/scripts/sync-catalog.mjs",
+      "sha256": "9af4e8438e9aa1b7afd3c41eb74fe7ea3bf6bfa991c4af848a52ce1bfa2c6f1e",
+      "baseSha256": "592285dbc048cbc2195614531b54ad32c4c20d3174ca28b721e1f248b6750f83",
+      "bytes": 5342
+    },
+    {
+      "path": "Apex1000-Rally/src/app.js",
+      "sha256": "ad9d101baf62445975676a9c3185dace3eca6be4b975ba30eae49dd2f5145095",
+      "baseSha256": "501ec9b30f48c336dbc88ecf35fd62e0b0da660d630a0e9ed2524cbcdbbbfdc3",
+      "bytes": 76521
+    },
+    {
+      "path": "Apex1000-Rally/src/catalog-schema.js",
+      "sha256": "fef1500347fcbf454ba1b110e05ccf53d2b97be1c08901ef9b4911b0bb46bbc9",
+      "baseSha256": "b94b4bd65d6cae62f26334e7723251f64cc99c504741dd7f9906bb6ed430d583",
+      "bytes": 5323
+    },
+    {
+      "path": "Apex1000-Rally/src/catalog.js",
+      "sha256": "cdf1061952fcc0686ccf88e33744df02c1fe8946a6375093b77c83c9f084f15a",
+      "baseSha256": "3e045a742a44bb405591335a699dda6e15cd0a560147db7f79c3ade9e30329e0",
+      "bytes": 10136
+    },
+    {
+      "path": "Apex1000-Rally/src/competition.js",
+      "sha256": "2d422fcf8a257197f1b1b75379ef7b7b70892a992ba9ab3b38756b0b207e6c9d",
+      "baseSha256": null,
+      "bytes": 9081
+    },
+    {
+      "path": "Apex1000-Rally/src/engine.js",
+      "sha256": "5db1d3ed872b5d89efe99ba77ca067bd12d941efaa5ee6a8b1a67a4a6f82f19a",
+      "baseSha256": "ba9c3e453a294ab6c83dfadcc0f57e8988349a6fa4a35d2d0d219366ef47a6e1",
+      "bytes": 45587
+    },
+    {
+      "path": "Apex1000-Rally/src/enrollment-ui.js",
+      "sha256": "b6cf29f8283871b1357202e975622f5b0bd5714240d2ec34f02cc45d30660bf6",
+      "baseSha256": null,
+      "bytes": 6503
+    },
+    {
+      "path": "Apex1000-Rally/src/home-independent-ui.js",
+      "sha256": "84409327e3ecbeee2f25c2af6b7fc134be837c2f404e2fef36398d0ac3ede876",
+      "baseSha256": null,
+      "bytes": 6004
+    },
+    {
+      "path": "Apex1000-Rally/src/management-ui.js",
+      "sha256": "4a61edcfbb4c6293aed1996b9e7ba5f7a321e1b3e28668f308f728350b49ee8d",
+      "baseSha256": "db6614014d5dc24863ea1196af1287f2582d841dd318f553099723b036b6b061",
+      "bytes": 5618
+    },
+    {
+      "path": "Apex1000-Rally/src/management.js",
+      "sha256": "564427be01dd56d581022aa13ed0907218f49401b596fb0767a28900d82de791",
+      "baseSha256": "0f029961c9e124d62b4dcbe3a4268e8d202decf4ef43f6e815df1a25f4bbd568",
+      "bytes": 11648
+    },
+    {
+      "path": "Apex1000-Rally/src/progression.js",
+      "sha256": "f449eff7ac371b782bfc21f3f941f1d9f0236cb190fdb11c022001518f99e49b",
+      "baseSha256": null,
+      "bytes": 2605
+    },
+    {
+      "path": "Apex1000-Rally/src/race-telemetry.js",
+      "sha256": "29ac05811fb470fa900594ee742c57fc324d333cdfd9378e4e87b31a7ffb5ff4",
+      "baseSha256": "f365d34f0c462ba5c7d31e54856e10d1ea769772a61bcbc568589793866a72c7",
+      "bytes": 787
+    },
+    {
+      "path": "Apex1000-Rally/src/route.js",
+      "sha256": "f724fa7aad59a624f9ff98bc89181ef0258100ecc7c23cb952b206f136b724cb",
+      "baseSha256": "79588f4fc5afa3bbc037f5e5763ebc17b89ce52786433b1d0458ba4952f4ed08",
+      "bytes": 3510
+    },
+    {
+      "path": "Apex1000-Rally/src/storage.js",
+      "sha256": "5acf86c1dcbdcbe537b56994524ea448d9af59ada1518a5fce271703a77321cb",
+      "baseSha256": "cb0c53743c25ddf832aa5f359ded650cfb5b732d264ffe23be3285ab7cbab9f1",
+      "bytes": 16028
+    },
+    {
+      "path": "Apex1000-Rally/src/visuals.js",
+      "sha256": "950bdbe963ba54f3b20f41687dbe67dd550015de1fe0c2f7d95d8682e9c57f49",
+      "baseSha256": "1a0e8a0a0f01464850f486ec10daaa5353afe439e1c140e24dbeb81d63efaf47",
+      "bytes": 9789
+    },
+    {
+      "path": "Apex1000-Rally/src/workshop-ui.js",
+      "sha256": "254a3387053fd11460494bdb200870ca30fbb56c9581380b4bee79eadd44fdbd",
+      "baseSha256": "b7f2e3c6a312a25c60a0fb30872deab67bc6b2da90e8927f15cfc890d86c282f",
+      "bytes": 12220
+    },
+    {
+      "path": "Apex1000-Rally/src/workshop-validation.js",
+      "sha256": "f9e498eafc802009297f19bc9b61b198bd57295d62ac6330e87525c5bcbf1a29",
+      "baseSha256": "0405bdd9ff967ee01d03f8b4cafc37b4b750d0e2edd9b8d4130248cbc6ccaf03",
+      "bytes": 4350
+    },
+    {
+      "path": "Apex1000-Rally/src/workshop.js",
+      "sha256": "35621ca0ba66b8253b9570ac105b583c2b24c570144b0865e439cae9e38fee77",
+      "baseSha256": "deb68a645006a2d818616f9da4016cb9a1152fc9e07184067d77cb3d9afd7097",
+      "bytes": 12674
+    },
+    {
+      "path": "Apex1000-Rally/style.css",
+      "sha256": "382b0dd3992e771c09ed8dcf18fc526b7838f645b09afffebf8a555587a87ed0",
+      "baseSha256": "8d7623f4b91c941e27c773a0b597830d8f880072166d2a0ce83611e36429eb82",
+      "bytes": 84541
+    },
+    {
+      "path": "Apex1000-Rally/tests/catalog.test.mjs",
+      "sha256": "8c13160fddae31216a1a74860e84ae284705b741a45cbc08c08196a3abe4e95a",
+      "baseSha256": "ea3a82688cdb85f93c86d8342ee1ee0cc2cbc71ea07e2b662ac306fc016fef05",
+      "bytes": 3090
+    },
+    {
+      "path": "Apex1000-Rally/tests/competition.test.mjs",
+      "sha256": "4c51fca3849ca8da506d088b8f66640a4722bd1feedf47c95a0f99a50ea8ef8c",
+      "baseSha256": null,
+      "bytes": 11882
+    },
+    {
+      "path": "Apex1000-Rally/tests/management.test.mjs",
+      "sha256": "63b2cfa1abffa2b4d4b3fba12746c384acdba53648bdf7521972d997b405d62a",
+      "baseSha256": "5e34747cc9c505f691ba11c0502efeef59189a184c943edbbb82812f08df82dd",
+      "bytes": 9136
+    },
+    {
+      "path": "Apex1000-Rally/tests/progression.test.mjs",
+      "sha256": "228bc2d468c44e8b32f8c61c9e06e20ba34be768e62ee5e14d512ba992466206",
+      "baseSha256": null,
+      "bytes": 3327
+    },
+    {
+      "path": "Apex1000-Rally/tests/workshop.test.mjs",
+      "sha256": "9af35c0e77120566de677725d26f78baf1abb6ed3c3adffd39396ba4847cfaa6",
+      "baseSha256": "553a41d430a0f47714959d623a6c4204ffd489f44495959314bed9230f5a2da6",
+      "bytes": 12769
+    }
+  ]
+}

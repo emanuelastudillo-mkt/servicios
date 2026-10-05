@@ -1,6 +1,7 @@
 import * as base from "./route-base.js";
 import { ROUTE_SPECS } from "../data/routes.js";
 import { CATALOG } from "../data/catalog.js";
+import { SPRINTS } from "../data/sprints.js";
 import { clamp } from "./catalog.js";
 import { detailedGeometry, pointAlong } from "./route-geometry.js";
 export {
@@ -17,11 +18,14 @@ const routes = {
     totalKm: base.TOTAL_KM,
   },
 };
-for (const spec of ROUTE_SPECS) {
+for (const spec of [...ROUTE_SPECS, ...SPRINTS]) {
   let cumulative = 0;
   const stages = spec.cities.slice(1).map((to, i) => {
     const from = spec.cities[i],
-      km = spec.km / 15 + [0, 60, -60, 30, -30][i % 5];
+      km =
+        spec.cities.length === 2
+          ? spec.km
+          : spec.km / 15 + [0, 60, -60, 30, -30][i % 5];
     const types = [
       spec.terrain,
       ["asphalt", "rock", "sand", "gravel", "mountain"][i % 5],

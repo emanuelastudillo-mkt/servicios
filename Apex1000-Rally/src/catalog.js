@@ -1,5 +1,5 @@
 import { CATALOG } from "../data/catalog.js";
-export const VERSION = "0.3.5";
+export const VERSION = "0.4.0";
 export const ENGINE_VERSION = "rally-3";
 export const STARTING_BUDGET = CATALOG.settings.find(
   (s) => s.key === "startingBudget",
@@ -100,6 +100,81 @@ export const VEHICLES = [
       "Tanque amplio y comportamiento consistente en montaña y etapas técnicas.",
   },
 ];
+VEHICLES.push(
+  {
+    id: "niva",
+    name: "LADA Niva Legend · Raid",
+    short: "Niva Raid",
+    engine: "Nafta · preparación ficticia de raid",
+    mass: 1350,
+    tank: 300,
+    fee: 16000,
+    color: "#9ac093",
+    speed: 0.66,
+    efficiency: 1.18,
+    reliability: 1.12,
+    terrain: {
+      asphalt: 0.94,
+      gravel: 1,
+      sand: 0.85,
+      rock: 1.06,
+      mountain: 1.04,
+    },
+    tag: "Accesible, lento y sencillo",
+    source: "https://www.lada.ru/en/press-releases/121983",
+    description:
+      "Un modelo real con preparación de juego: poco costo y menor ritmo. Tanque y rendimiento son valores ficticios.",
+  },
+  {
+    id: "hunter",
+    name: "Prodrive Hunter T1+",
+    short: "Hunter T1+",
+    engine: "V6 biturbo · preparación de competición",
+    mass: 2010,
+    tank: 540,
+    fee: 360000,
+    color: "#e28d4e",
+    speed: 1.16,
+    efficiency: 0.9,
+    reliability: 1.03,
+    terrain: {
+      asphalt: 1.04,
+      gravel: 1.1,
+      sand: 1.12,
+      rock: 1.04,
+      mountain: 1.01,
+    },
+    tag: "Élite · gran ritmo y alto consumo",
+    source: "https://www.prodrive.com",
+    description:
+      "Compra de élite. Más velocidad sobre dunas y ripio; requiere un presupuesto amplio.",
+  },
+  {
+    id: "audi",
+    name: "Audi RS Q e-tron",
+    short: "RS Q e-tron",
+    engine: "Tracción eléctrica · convertidor de energía",
+    mass: 2100,
+    tank: 480,
+    fee: 480000,
+    color: "#d5dce6",
+    speed: 1.2,
+    efficiency: 1.2,
+    reliability: 0.94,
+    terrain: {
+      asphalt: 1.12,
+      gravel: 1.09,
+      sand: 1.06,
+      rock: 1.02,
+      mountain: 1.08,
+    },
+    tag: "Élite · rapidez y complejidad técnica",
+    source:
+      "https://www.audi-mediacenter.com/en/audi-at-the-dakar-rally-2024-15749/the-audi-rs-q-e-tron-new-details-for-the-technological-pioneer-15803",
+    description:
+      "Prototipo real de tracción eléctrica. El juego simplifica su convertidor con combustible y seis piezas comunes; no simula su batería.",
+  },
+);
 // Las características comparativas y económicas son balance del juego; no datos homologados.
 export const PART_TYPES = [
   {
@@ -315,6 +390,8 @@ export const PHASES = {
   service: "Asistencia y descanso",
   racing: "En carrera",
   finished: "Finalizado",
+  cutoff: "Clasificado al cierre",
+  unregistered: "En taller · sin inscripción",
 };
 export const PRIZES = [
   65000, 48000, 36000, 29000, 24000, 21000, 19000, 17000, 15000, 13000, 11000,

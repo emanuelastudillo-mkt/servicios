@@ -1,7 +1,17 @@
-"id","name","profile","salary","available","image"
-"lucia","Lucía Ferrer","technical","4200","TRUE","assets/art/lucia.webp"
-"bruno","Bruno Acosta","fast","5800","TRUE","assets/art/bruno.webp"
-"mateo","Mateo Cruz","navigator","4700","TRUE","assets/art/mateo.webp"
-"ines","Inés Vidal","technical","5300","TRUE","assets/art/ines.webp"
-"alex","Alex Duarte","fast","6200","TRUE","assets/art/alex.webp"
-"sara","Sara Benítez","navigator","5600","TRUE","assets/art/sara.webp"
+id,name,profile,salary,available,image
+lucia,Lucía Ferrer,technical,4200,True,assets/art/lucia.webp
+bruno,Bruno Acosta,fast,5800,True,assets/art/bruno.webp
+mateo,Mateo Cruz,navigator,4700,True,assets/art/mateo.webp
+ines,Inés Vidal,technical,5300,True,assets/art/ines.webp
+alex,Alex Duarte,fast,6200,True,assets/art/alex.webp
+sara,Sara Benítez,navigator,5600,True,assets/art/sara.webp
+agustina,Agustina Paredes,technical,4200,True,assets/art/agustina.webp
+rafael,Rafael Suárez,fast,5000,True,assets/art/rafael.webp
+catalina,Catalina Torres,navigator,3800,True,assets/art/catalina.webp
+youssef,Youssef Karim,navigator,4500,True,assets/art/youssef.webp
+naomi,Naomi Sato,technical,5400,True,assets/art/naomi.webp
+miguel,Miguel Leal,fast,3900,True,assets/art/miguel.webp
+zoe,Zoé Lambert,technical,4800,True,assets/art/zoe.webp
+andre,André Moreira,navigator,4100,True,assets/art/andre.webp
+amina,Amina Diallo,fast,5200,True,assets/art/amina.webp
+matias,Matías Lagos,fast,3600,True,assets/art/matias.webp

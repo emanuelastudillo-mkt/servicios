@@ -39,12 +39,16 @@ test("catálogo válido, ocho recorridos distintos y 100 escudos distintos", () 
   const paths = new Set();
   for (const race of CATALOG.races) {
     const r = routeFor(race.id);
-    assert.equal(r.stages.length, 15);
-    assert.ok(r.totalKm >= 9000 && r.totalKm <= 14000);
+    assert.equal(r.stages.length, race.kind === "short" ? 1 : 15);
+    assert.ok(
+      race.kind === "short"
+        ? r.totalKm <= 220
+        : r.totalKm >= 9000 && r.totalKm <= 14000,
+    );
     assert.ok(Number.isFinite(locationAt(r.totalKm, race.id).lon));
     paths.add(JSON.stringify(r.cities));
   }
-  assert.equal(paths.size, 8);
+  assert.equal(paths.size, 32);
 });
 test("compra descuenta stock y no permite sobreventa ni doble compra de vehículo", () => {
   const s = create(),

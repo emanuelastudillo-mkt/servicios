@@ -1,9 +1,33 @@
-"id","name","region","round","startDay","prizeFactor"
-"andes","Travesía de los Andes","Sudamérica","1","0","1"
-"sahara","Desafío del Sahara","África occidental","2","28","1.08"
-"arabia","Mar Rojo y dunas","Arabia","3","56","1.16"
-"australia","Gran travesía austral","Australia","4","84","1.24"
-"africa","Ruta de los baobabs","África austral","5","112","1.32"
-"america","Desiertos del Pacífico","Norteamérica","6","140","1.4"
-"iberia","Sierras y Atlántico","Península ibérica","7","168","1.48"
-"asia","La ruta de la estepa","Asia central","8","196","1.56"
+id,name,region,round,startDay,prizeFactor,kind,maxHours
+andes,Travesía de los Andes,Sudamérica,1,0,1,raid,576
+sahara,Desafío del Sahara,África occidental,2,28,1.08,raid,576
+arabia,Mar Rojo y dunas,Arabia,3,56,1.16,raid,600
+australia,Gran travesía austral,Australia,4,84,1.24,raid,672
+africa,Ruta de los baobabs,África austral,5,112,1.32,raid,576
+america,Desiertos del Pacífico,Norteamérica,6,140,1.4,raid,624
+iberia,Sierras y Atlántico,Península ibérica,7,168,1.48,raid,552
+asia,La ruta de la estepa,Asia central,8,196,1.56,raid,624
+sprint-salta,Sprint · Salta → Cafayate,Argentina,9,2,1,short,4
+sprint-mendoza,Sprint · Mendoza → Uspallata,Argentina,10,4,1,short,4
+sprint-atacama,Sprint · Copiapó → Caldera,Chile,11,6,1,short,4
+sprint-cordoba,Sprint · Villa Carlos Paz → Mina Clavero,Argentina,12,8,1,short,4
+sprint-uyuni,Sprint · Uyuni → Colchani,Bolivia,13,10,1,short,4
+sprint-nazca,Sprint · Nazca → Ica,Perú,14,12,1,short,4
+sprint-merzouga,Sprint · Erfoud → Merzouga,Marruecos,15,14,1,short,4
+sprint-agadir,Sprint · Agadir → Taroudant,Marruecos,16,16,1,short,4
+sprint-tozeur,Sprint · Tozeur → Douz,Túnez,17,18,1,short,4
+sprint-tabuk,Sprint · Tabuk → Duba,Arabia Saudita,18,20,1,short,4
+sprint-alula,Sprint · AlUla → Khaybar,Arabia Saudita,19,22,1,short,4
+sprint-oman,Sprint · Nizwa → Bahla,Omán,20,24,1,short,4
+sprint-namib,Sprint · Walvis Bay → Swakopmund,Namibia,21,26,1,short,4
+sprint-cape,Sprint · Ceres → Worcester,Sudáfrica,22,28,1,short,4
+sprint-naivasha,Sprint · Naivasha → Nakuru,Kenia,23,30,1,short,4
+sprint-bardenas,Sprint · Tudela → Ejea de los Caballeros,España,24,32,1,short,4
+sprint-almeria,Sprint · Almería → Tabernas,España,25,34,1,short,4
+sprint-algarve,Sprint · Loulé → Tavira,Portugal,26,36,1,short,4
+sprint-sardinia,Sprint · Olbia → Alà dei Sardi,Italia,27,38,1,short,4
+sprint-finland,Sprint · Jyväskylä → Jämsä,Finlandia,28,40,1,short,4
+sprint-baja,Sprint · Ensenada → San Felipe,México,29,42,1,short,4
+sprint-moab,Sprint · Moab → Green River,Estados Unidos,30,44,1,short,4
+sprint-outback,Sprint · Alice Springs → Hermannsburg,Australia,31,46,1,short,4
+sprint-wanaka,Sprint · Wanaka → Cromwell,Nueva Zelanda,32,48,1,short,4
