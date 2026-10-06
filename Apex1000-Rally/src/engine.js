@@ -43,6 +43,7 @@ import {
   vehicleFactors,
   wearVehicle,
   crewRate,
+  sellPart,
 } from "./workshop.js";
 import {
   startJournal,
@@ -1405,6 +1406,8 @@ export function dispatch(state, command) {
       return buyVehicle(state, command.id);
     case "save-plan":
       return savePlan(state, command.stageIndex, command.plan);
+    case "sell-part":
+      return sellPart(state, command.id);
     case "buy-part":
       return buyPart(state, command.partType, command.grade, command.condition);
     case "advance":

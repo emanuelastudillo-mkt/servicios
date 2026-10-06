@@ -1,6 +1,6 @@
 import { recordCash } from "./employment.js";
 import { staffCondition } from "./staff.js";
-import { vehicle, clamp } from "./catalog.js";
+import { vehicle, clamp, priceFor, partType, GRADES } from "./catalog.js";
 import { modelStats } from "./vehicle-stats.js";
 import {
   repairQuote,
@@ -125,6 +125,72 @@ export function placeNewMechanic(t, m) {
 }
 export function canChangeCar(t) {
   return ["waiting", "finished", "cutoff", "unregistered"].includes(t.phase);
+}
+export function partSaleValue(state, piece) {
+  if (piece.grade === "reserve") return 0;
+  const price =
+    state.management.catalog.parts.find(
+      (p) =>
+        p.type === piece.type && p.grade === piece.grade && p.condition === 100,
+    )?.price ?? priceFor(piece.type, piece.grade, 100);
+  return Math.floor(
+    ((((price * 0.05 * clamp(piece.condition, 0, 100)) / 100) *
+      clamp(piece.original ?? 100, 0, 100)) /
+      100) *
+      (piece.broken ? 0.15 : 1) +
+      1e-8,
+  );
+}
+export function partSaleQuote(state, id) {
+  const t = player(state),
+    piece = workshopPieces(t).find((p) => p.id === id);
+  if (!piece) throw Error("Pieza desconocida o ya vendida.");
+  const installed = !!installedPiece(t, id),
+    value = partSaleValue(state, piece);
+  const replacement = installed
+    ? t.inventory.find((p) => p.type === piece.type && p.grade === "reserve")
+    : null;
+  const reserved = (p) =>
+    partReserved(t, p.id) ||
+    Object.entries(t.activePlan?.replacements || {}).some(
+      ([type, itemId]) =>
+        itemId === p.id && t.activePlan.actions?.[type] === "replace",
+    );
+  let reason = "";
+  if (piece.grade === "reserve")
+    reason = "Reserva irrompible protegida: no se puede vender.";
+  else if (jobFor(t, id))
+    reason = "Completá o cancelá la reparación antes de vender esta pieza.";
+  else if (reserved(piece))
+    reason = "Liberá la pieza de su plan antes de venderla.";
+  else if (installed && !canChangeCar(t))
+    reason = "La pieza está montada en carrera. Esperá el regreso a la base.";
+  else if (
+    installed &&
+    (!replacement || jobFor(t, replacement.id) || reserved(replacement))
+  )
+    reason =
+      "Necesitás una reserva estándar libre del mismo tipo para reemplazarla.";
+  else if (t.budget + value > 100000000)
+    reason = "La venta supera el saldo máximo del prototipo.";
+  return { piece, value, installed, replacement, allowed: !reason, reason };
+}
+export function sellPart(state, id) {
+  const t = player(state),
+    quote = partSaleQuote(state, id);
+  if (!quote.allowed) throw Error(quote.reason);
+  // Revalidate the quote before changing ownership and cash; installed sales keep a complete kit.
+  if (quote.installed) {
+    t.parts[quote.piece.type] = quote.replacement;
+    t.inventory = t.inventory.filter((p) => p.id !== quote.replacement.id);
+  } else t.inventory = t.inventory.filter((p) => p.id !== id);
+  recordCash(
+    state,
+    t,
+    quote.value,
+    `Venta de pieza: ${partType(quote.piece.type).short} ${GRADES[quote.piece.grade].name}`,
+  );
+  return quote.value;
 }
 export function selectVehicle(state, id) {
   const t = player(state),

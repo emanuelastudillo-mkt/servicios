@@ -13,6 +13,7 @@ import {
   jobQuote,
   canChangeCar,
   vehicleSaleValue,
+  partSaleQuote,
 } from "./workshop.js";
 import { repairQuote, REPAIR_TIME_MULTIPLIER } from "./part-maintenance.js";
 const num = (n, d = 0) =>
@@ -90,7 +91,7 @@ export function workshopPage(state) {
     })
     .join("")}</div>
   <section class="panel workshop-queue"><div class="panel-heading"><div><span class="eyebrow">TRABAJOS PROGRAMADOS / ${w.jobs.length} DE 8</span><h2>${rate ? "Una tarea a la vez, todo el equipo." : "El taller espera mecánicos."}</h2></div><span class="badge">${rate ? `${num(rate, 2)}× de trabajo` : "PAUSADO"}</span></div><div id="workshop-jobs">${jobsHTML(state)}</div><p class="small-note">El tiempo del juego mueve la cola, también durante una carrera y al volver en modo 1×. Cancelar devuelve la parte del costo que aún no se trabajó; el trabajo inconcluso no modifica el auto o la pieza.</p></section>
-  <section class="panel workshop-inventory"><div class="panel-heading"><div><span class="eyebrow">RECUPERACIÓN DE REPUESTOS / ${workshopPieces(t).length} PIEZAS · LOTE E INSTALADAS</span><h2>El desgaste deja una historia.</h2></div>${button("tab", "Comprar repuestos", 'data-tab="market"')}</div><p class="small-note">“Original” empieza en 100 y baja tras cada reparación, en taller o campamento. Menos original significa más horas, mayor costo y menor estado recuperable en la siguiente reparación. Las piezas estándar irrompibles también se pueden reparar. Las instaladas se trabajan cuando el auto está en la base y bloquean la salida hasta completar el trabajo. Una pieza reservada en un plan debe liberarse antes de trabajarla acá.</p><div class="workshop-parts">${workshopPieces(
+  <section class="panel workshop-inventory"><div class="panel-heading"><div><span class="eyebrow">RECUPERACIÓN DE REPUESTOS / ${workshopPieces(t).length} PIEZAS · LOTE E INSTALADAS</span><h2>El desgaste deja una historia.</h2></div>${button("tab", "Comprar repuestos", 'data-tab="market"')}</div><p class="small-note">“Original” empieza en 100 y baja tras cada reparación, en taller o campamento. Menos original significa más horas, mayor costo y menor estado recuperable en la siguiente reparación. Las piezas estándar irrompibles también se pueden reparar y se conservan como reserva. Vendé las demás por hasta el 5% de su precio nuevo, reducido por estado, original y averías. Al vender una instalada en la base se monta su reserva estándar automáticamente. Las instaladas se trabajan cuando el auto está en la base y bloquean la salida hasta completar el trabajo. Una pieza reservada en un plan debe liberarse antes de trabajarla acá.</p><div class="workshop-parts">${workshopPieces(
     t,
   )
     .map((p) => {
@@ -98,8 +99,9 @@ export function workshopPage(state) {
         busy = jobFor(t, p.id),
         reserved = partReserved(t, p.id),
         installed = !!installedPiece(t, p.id),
-        locked = installed && !canChangeCar(t);
-      return `<article><img src="assets/art/${p.type}.webp" alt="${esc(partType(p.type).name)}" loading="lazy"><div><span class="eyebrow">${p.grade === "reserve" ? "Estándar irrompible" : GRADES[p.grade].name}${installed ? " · INSTALADA" : " · EN EL LOTE"}${p.broken ? " · AVERIADA" : ""}</span><h3>${partType(p.type).short}</h3><p>Estado <b>${num(p.condition, 1)}</b> · Original <b>${num(p.original)}</b></p>${conditionBar(p.condition)}<small>Potencial de reparación: ${num(q.ceiling, 1)}% · ${num(q.cost)} cr<br>${eta(q.hours, rate)} · Original después: ${num(q.originalAfter)}</small>${button("enqueue-work", busy ? "En la cola" : locked ? "En carrera · no disponible" : reserved ? "Reservada en un plan" : q.needed ? "Reparar pieza" : "Sin reparación necesaria", `data-kind="part" data-id="${p.id}"`, !!busy || locked || reserved || !q.needed || q.cost > t.budget)}</div></article>`;
+        locked = installed && !canChangeCar(t),
+        sale = partSaleQuote(state, p.id);
+      return `<article><img src="assets/art/${p.type}.webp" alt="${esc(partType(p.type).name)}" loading="lazy"><div><span class="eyebrow">${p.grade === "reserve" ? "Estándar irrompible" : GRADES[p.grade].name}${installed ? " · INSTALADA" : " · EN EL LOTE"}${p.broken ? " · AVERIADA" : ""}</span><h3>${partType(p.type).short}</h3><p>Estado <b>${num(p.condition, 1)}</b> · Original <b>${num(p.original)}</b></p>${conditionBar(p.condition)}<small>Potencial de reparación: ${num(q.ceiling, 1)}% · ${num(q.cost)} cr<br>${eta(q.hours, rate)} · Original después: ${num(q.originalAfter)}</small><div class="part-actions">${button("enqueue-work", busy ? "En la cola" : locked ? "En carrera · no disponible" : reserved ? "Reservada en un plan" : q.needed ? "Reparar pieza" : "Sin reparación necesaria", `data-kind="part" data-id="${p.id}"`, !!busy || locked || reserved || !q.needed || q.cost > t.budget)}${button("quote-part-sale", p.grade === "reserve" ? "Reserva protegida" : `Vender · ${num(sale.value)} cr`, `data-id="${p.id}" title="${esc(sale.reason || "Ver tasación y confirmar venta")}"`, !sale.allowed)}</div>${!sale.allowed && p.grade !== "reserve" ? `<small>${esc(sale.reason)}</small>` : ""}</div></article>`;
     })
     .join("")}</div></section>`;
 }

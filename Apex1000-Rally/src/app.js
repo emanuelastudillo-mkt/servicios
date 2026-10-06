@@ -35,6 +35,7 @@ import {
   jobQuote,
   crewRate,
   cancelJob,
+  partSaleQuote,
 } from "./workshop.js";
 import { repairQuote } from "./part-maintenance.js";
 import { adminBar, ADMIN_ENABLED } from "./admin-ui.js";
@@ -1030,6 +1031,7 @@ document.addEventListener("click", (e) => {
         "purchase-car",
         "select-car",
         "confirm-sale",
+        "confirm-part-sale",
         "confirm-trade",
         "enqueue-work",
         "cancel-work",
@@ -1041,6 +1043,10 @@ document.addEventListener("click", (e) => {
         ui.drafts = {};
       }
       if (a === "confirm-sale") sellVehicle(state, id);
+      if (a === "confirm-part-sale") {
+        dispatch(state, { type: "sell-part", id });
+        ui.drafts = {};
+      }
       if (a === "confirm-trade") {
         purchaseVehicle(state, id, { tradeId: b.dataset.trade });
         ui.drafts = {};
@@ -1064,6 +1070,16 @@ document.addEventListener("click", (e) => {
           ? "Trabajo reservado. Avanza con el reloj y los mecánicos asignados al taller."
           : "Taller actualizado.",
       );
+      return;
+    }
+    if (a === "quote-part-sale") {
+      const q = partSaleQuote(state, id);
+      if (!q.allowed) throw Error(q.reason);
+      const dialog = document.createElement("dialog");
+      dialog.className = "dialog";
+      dialog.innerHTML = `<h2>Vender pieza</h2><p>${esc(partType(q.piece.type).short)} · ${esc(GRADES[q.piece.grade].name)} · estado ${num(q.piece.condition, 1)}/100 · original ${num(q.piece.original ?? 100)}/100${q.piece.broken ? " · averiada" : ""}.</p><p>Recibís <strong>${money(q.value)} cr</strong>. Saldo posterior: ${money(p().budget + q.value)} cr.</p><p>Hasta el 5% del precio nuevo, reducido por estado y original. Una avería reduce el valor un 85% adicional.</p>${q.installed ? `<p>Se montará automáticamente la reserva estándar de ${esc(partType(q.piece.type).short)} (estado ${num(q.replacement.condition, 1)}/100).</p>` : ""}<div class="button-row"><button class="button ghost" data-action="close-modal">Volver</button><button class="button primary" data-action="confirm-part-sale" data-id="${id}">Confirmar venta</button></div>`;
+      $("#modal-root").replaceChildren(dialog);
+      dialog.showModal();
       return;
     }
     if (a === "quote-sale" || a === "quote-trade") {

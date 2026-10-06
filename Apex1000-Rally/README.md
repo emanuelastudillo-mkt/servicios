@@ -1,6 +1,6 @@
-# Apex1000 Rally · World Raid v0.4.6
+# Apex1000 Rally · World Raid v0.4.7
 
-Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. Este incremental v0.4.6 se aplica sobre v0.4.5. Amplía las diferencias entre modelos, incluye piezas estándar e instaladas en el taller y agrega fluctuaciones ocultas de ritmo por piloto. El menú superior agrupa las secciones en Carreras, Escudería y Economía, con Inicio como acceso directo. Admin incorpora Reset total con confirmación y respaldo local. Incluye 48 escudos originales seleccionables y un usuario del director independiente del nombre de la escudería.
+Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. Este incremental v0.4.7 se aplica sobre v0.4.6. Agrega venta de piezas con confirmación desde el taller; el valor máximo es 5% del precio nuevo, multiplicado por estado y original, y reducido otro 85% si está averiada. Las reservas irrompibles se conservan. Las piezas en reparación o reservadas en planes no se venden. Una pieza instalada sólo se vende en la base, montando su reserva estándar libre. Las ventas se registran en Finanzas y no reponen stock nuevo. Amplía las diferencias entre modelos, incluye piezas estándar e instaladas en el taller y agrega fluctuaciones ocultas de ritmo por piloto. El menú superior agrupa las secciones en Carreras, Escudería y Economía, con Inicio como acceso directo. Admin incorpora Reset total con confirmación y respaldo local. Incluye 48 escudos originales seleccionables y un usuario del director independiente del nombre de la escudería.
 
 ## Atributos fijos de vehículos
 
