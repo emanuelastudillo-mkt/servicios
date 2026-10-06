@@ -13,6 +13,9 @@ export const TABS = {
   settings: "Ajustes",
 };
 const numeric = new Set([
+  "age",
+  "form",
+  "morale",
   "speed",
   "acceleration",
   "comfort",

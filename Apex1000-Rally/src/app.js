@@ -1,3 +1,10 @@
+import { financePage, staffPanel, dateBadge } from "./economy-ui.js";
+import {
+  gameNow,
+  gameDate,
+  renewalQuote,
+  renewContract,
+} from "./employment.js";
 import { CATALOG } from "../data/catalog.js";
 import { modelStats, teamVehicleStats } from "./vehicle-stats.js";
 import { vehicleStatsHTML } from "./vehicle-stats-ui.js";
@@ -248,6 +255,7 @@ function header() {
     ["camp", "tools", "Campamento"],
     ["market", "shop", "Mercado"],
     ["crew", "crew", "Equipo"],
+    ["finance", "shop", "Finanzas"],
     ["championship", "flag", "Inscripción"],
   ]
     .map(
@@ -256,7 +264,7 @@ function header() {
     )
     .join(
       "",
-    )}</nav><div class="top-meta"><span class="prototype"><i></i> SINGLE PLAYER</span><button class="icon-button" data-action="help" aria-label="Guía del juego">${icon("info")}</button></div></header>`;
+    )}</nav><div class="top-meta">${state ? dateBadge(state) : ""}<span class="prototype"><i></i> SINGLE PLAYER</span><button class="icon-button" data-action="help" aria-label="Guía del juego">${icon("info")}</button></div></header>`;
 }
 function clockBar() {
   if (!state) return "";
@@ -304,10 +312,14 @@ function teamInspector() {
 }
 function playerMetrics() {
   const team = p(),
-    d = team.drivers.find((d) => d.id === team.activeDriver),
+    d = team.drivers.find((d) => d.id === team.activeDriver) || {
+      energy: 0,
+      name: "Sin piloto",
+      role: "Contratá en Mercado",
+    },
     condition =
       PART_TYPES.reduce((a, t) => a + team.parts[t.id].condition, 0) / 6;
-  return `${stat("PRESUPUESTO DISPONIBLE", money(team.budget) + " <em>cr</em>", team.debt ? `${money(team.debt)} cr de asistencia pendientes` : "Los premios se pagan al finalizar", "budget")}${stat("COMBUSTIBLE", num(team.fuel) + " <em>L</em>", `Tanque: ${vehicle(team.vehicleId).tank} L`)}${stat("ENERGÍA DEL PILOTO", num(d.energy) + "<em>%</em>", `${esc(d.name)} · ${d.role}`)}${stat("ESTADO DEL VEHÍCULO", num(condition) + "<em>%</em>", `${Object.values(team.parts).filter((p) => p.broken).length} piezas averiadas · ${num(team.heat)} °C`)}`;
+  return `${stat("PRESUPUESTO DISPONIBLE", money(team.budget) + " <em>cr</em>", team.debt ? `${money(team.debt)} cr de deuda del equipo` : "Los premios se pagan al finalizar", "budget")}${stat("COMBUSTIBLE", num(team.fuel) + " <em>L</em>", `Tanque: ${vehicle(team.vehicleId).tank} L`)}${stat("ENERGÍA DEL PILOTO", num(d.energy) + "<em>%</em>", `${esc(d.name)} · ${d.role}`)}${stat("ESTADO DEL VEHÍCULO", num(condition) + "<em>%</em>", `${Object.values(team.parts).filter((p) => p.broken).length} piezas averiadas · ${num(team.heat)} °C`)}`;
 }
 function eventsHTML() {
   const events = state.events
@@ -347,6 +359,8 @@ function roadbook() {
 const select = (key, label, values, value) =>
   `<label>${label}<select data-plan="${key}" id="plan-${key}">${values.map(([v, n]) => `<option value="${v}" ${String(value) === String(v) ? "selected" : ""}>${n}</option>`).join("")}</select></label>`;
 function camp() {
+  if (!p().drivers.length)
+    return `<section class="panel"><h1>Necesitás un piloto</h1><p>Los contratos vencieron. Contratá personal antes de preparar la próxima etapa.</p><button class="button primary" data-action="tab" data-tab="market">Ir al mercado</button></section>`;
   const index = ui.selectedStage,
     stage = STAGES[index],
     team = p(),
@@ -480,35 +494,7 @@ function partsMarket() {
     )}</div><div class="reserve-note panel"><span>∞</span><div><h3>Tu respaldo para llegar.</h3><p>Ya tenés una pieza de reserva de cada tipo. Nunca se avería ni desaparece del lote: puede estar instalada o guardada. Es lenta y pierde rendimiento con el desgaste.</p></div><button class="button ghost" data-action="open-camp">Ver mis repuestos</button></div><p class="footnote">Los precios y probabilidades son parámetros de juego. El riesgo real aumenta con el desgaste, la exigencia y el sobrecalentamiento. Los vehículos no reciben una mejora hasta que la pieza se monta.</p>`;
 }
 function driversPage() {
-  return `${title("EQUIPO / ENERGÍA Y ESPECIALIZACIÓN", "Tres formas de leer el camino.", "Elegí quién conduce cada etapa. Los otros pilotos recuperan energía mientras viajan como parte del equipo.")}<div class="drivers-grid">${p()
-    .drivers.map(
-      (d) =>
-        `<article class="panel driver-card" style="--driver:${d.color}"><div class="driver-banner"><span class="driver-number">${String(p().drivers.findIndex((x) => x.id === d.id) + 1).padStart(2, "0")}</span><img class="driver-portrait" src="${d.image}" alt="${esc(d.name)}"><span class="badge">${p().activeDriver === d.id && p().phase === "racing" ? "AL VOLANTE" : "EN EL EQUIPO"}</span></div><span class="eyebrow">${d.role}</span><h2>${esc(d.name)}</h2><p>${d.description}</p><div class="energy-heading"><span>Energía actual</span><strong>${num(d.energy)}%</strong></div>${conditionBar(d.energy, d.color)}<dl><div><dt>Velocidad base</dt><dd>${num(d.speed, 3)}×</dd></div><div><dt>Rendimiento de piezas</dt><dd>${num(d.parts, 3)}×</dd></div><div><dt>Desgaste de piezas</dt><dd>${num(d.wear, 2)}×</dd></div><div><dt>Riesgo de error</dt><dd>${num(d.risk, 2)}×</dd></div><div><dt>Consumo de energía</dt><dd>${num(3 * d.fatigue, 1)} pt/h base</dd></div><div><dt>Para volver al 100%</dt><dd>${num((100 - d.energy) / d.recovery, 1)} h</dd></div></dl><button class="button ghost full" data-action="choose-driver" data-id="${d.id}" ${p().phase === "finished" ? "disabled" : ""}>Asignar a próxima etapa ${icon("arrow")}</button><p class="small-note">${money(d.salary)} cr / carrera</p><button class="text-button" data-action="release" data-kind="driver" data-id="${d.id}" ${teamReleaseDisabled()}>Liberar contrato</button></article>`,
-    )
-    .join(
-      "",
-    )}</div><section class="panel finance-panel"><div class="panel-heading"><div><span class="eyebrow">PRESUPUESTO DEL CAMPEONATO</span><h2>Cada crédito tiene un destino.</h2></div><button class="button ghost small" data-action="export">${icon("download")}Exportar partida</button></div><div class="finance-stats">${stat("INICIAL", money(p().initialBudget ?? STARTING_BUDGET) + " <em>cr</em>")}${stat(
-    "EGRESOS",
-    money(
-      -p()
-        .ledger.filter((x) => x.amount < 0)
-        .reduce((a, x) => a + x.amount, 0),
-    ) + " <em>cr</em>",
-  )}${stat("DISPONIBLE", money(p().budget) + " <em>cr</em>")}${stat(
-    "INGRESOS",
-    money(
-      p()
-        .ledger.filter((x) => x.amount > 0)
-        .reduce((a, x) => a + x.amount, 0),
-    ) + " <em>cr</em>",
-  )}</div><div class="table-scroll"><table><thead><tr><th>Momento</th><th>Movimiento</th><th>Créditos</th></tr></thead><tbody>${p()
-    .ledger.slice(-18)
-    .reverse()
-    .map(
-      (l) =>
-        `<tr><td>${l.time < 0 ? "Previa" : duration(l.time)}</td><td>${esc(l.label)}</td><td class="mono ${l.amount > 0 ? "good" : ""}">${l.amount > 0 ? "+" : ""}${money(l.amount)}</td></tr>`,
-    )
-    .join("")}</tbody></table></div></section>`;
+  return staffPanel(state, "driver");
 }
 function finishPanel() {
   const t = p();
@@ -553,7 +539,7 @@ function render() {
   setActiveRoute(state);
   const content = !state
     ? onboarding()
-    : `<main>${{ home: () => homePage(state), workshop: () => workshopPage(state), race: racePage, roadbook, camp, market, crew, journal: () => journalPage(state), championship: () => championshipPage(state) }[ui.tab]()}</main>`;
+    : `<main>${{ home: () => homePage(state), finance: () => financePage(state), workshop: () => workshopPage(state), race: racePage, roadbook, camp, market, crew, journal: () => journalPage(state), championship: () => championshipPage(state) }[ui.tab]()}</main>`;
   $("#app").innerHTML = header() + clockBar() + content + footer();
   for (const [id, open] of openPanels) {
     const panel = document.getElementById(id);
@@ -604,6 +590,32 @@ function render() {
 }
 function refresh() {
   if (!state) return;
+  if (ui.tab === "finance")
+    patchLivePanel(document.querySelector("main"), financePage(state));
+  if (ui.tab === "crew") {
+    for (const kind of ["driver", "mechanic"]) {
+      const el = document.querySelector(
+        kind === "driver"
+          ? ".personnel-section"
+          : ".personnel-section:last-child",
+      );
+      if (el)
+        patchLivePanel(
+          el,
+          staffPanel(state, kind)
+            .replace(/^<section[^>]*>/, " ")
+            .replace(/<\/section>$/, ""),
+        );
+    }
+  }
+  const dateEl = document.getElementById("game-date");
+  if (dateEl)
+    patchLivePanel(
+      dateEl,
+      dateBadge(state)
+        .replace(/^<time[^>]*>/, " ")
+        .replace(/<\/time>$/, ""),
+    );
   if (ui.tab === "home" || ui.tab === "championship")
     patchLivePanel(
       document.querySelector("main"),
@@ -837,7 +849,7 @@ function bindMap() {
 function help() {
   const dialog = document.createElement("dialog");
   dialog.className = "dialog help-dialog";
-  dialog.innerHTML = `<div class="dialog-title"><div><span class="eyebrow">CÓMO FUNCIONA</span><h2>Una sola largada. Tu propio ritmo.</h2></div><button class="icon-button" data-action="close-modal" aria-label="Cerrar">${icon("close")}</button></div><p>Todos los equipos comparten un horario de largada. Después, conducción, averías, asistencia y descansos consumen tiempo de la misma carrera. Pueden estar en etapas diferentes. Gana quien llega antes a la meta de cada carrera.</p><h3>Inscripción y calendario</h3><p>Las carreras son independientes y no entregan puntos de campeonato. Hay ocho raids de varios días y 24 sprints que rotan cada 48 horas. Debés inscribirte antes de cada largada: si no lo hacés, permanecés en la base y el taller sigue trabajando. Cada inscripción reserva el intervalo máximo publicado, aunque termines antes, y bloquea las carreras que se superponen. El piloto y el auto de largada quedan registrados; vender ese auto cancela sus inscripciones futuras.</p><h3>Preparar cada etapa</h3><p>En Campamento elegís piloto, ritmo, exigencia, chasis, gomas, transmisión, refrigeración, combustible y acciones por pieza. Guardar confirma ese plan. Al llegar, las piezas se reparan o cambian y los pilotos descansan en paralelo. La etapa arranca cuando termina la tarea más larga. Una etapa sin plan deja al equipo esperando.</p><p>El descanso se limita a las horas necesarias para recuperar 100% de energía. Los pilotos de relevo recuperan energía a 0,1× mientras otro conduce y a 1× en campamento o en la base. Una carga completa suele alcanzar para una etapa con una preparación normal. La preparación de la primera etapa ocurre antes de largar.</p><h3>Home y taller</h3><p>La Home resume la próxima largada, tu caja y los hitos de recorrido. El Taller admite hasta 3 autos; cada uno conserva estado, performance y fiabilidad. Un auto nuevo empieza en 100/50/50. Las mejoras de performance y fiabilidad permiten elegir entre 1 y 5 puntos hasta 100. Empiezan en 20 horas de trabajo por punto y se vuelven progresivamente más lentas cerca de 100. Podés vender cualquier auto fuera de una carrera en curso, incluso el seleccionado o el último, o entregarlo como parte de pago; el auto seleccionado se cambia antes de largar o después de llegar a la meta.</p><p>Distribuí hasta 5 mecánicos: 1–4 en carrera y 0–4 en la base. Con cero en el taller la cola se pausa. Los trabajos se pagan al programar y se completan por orden; cancelar devuelve sólo la parte no trabajada. El auto que está participando no se puede desarrollar en la base, pero los otros sí. Las piezas instaladas forman el kit del equipo y se conservan al cambiar de auto.</p><h3>Calidad no es estado</h3><p>La calidad determina rendimiento, resistencia, tendencia térmica y riesgo base. El estado es el desgaste actual. Podés comprar repuestos nuevos o usados, reparar los instalados o intercambiarlos por piezas del lote. La pieza retirada vuelve al inventario.</p><p>Original mide el potencial de reconstrucción: empieza en 100 y baja al reparar, tanto en la base como en campamento. Menos original implica más horas, mayor costo por punto recuperado y menor estado máximo recuperable. El taller muestra el presupuesto y el resultado antes de programar.</p><p>Tenés una reserva gratuita de cada tipo. Nunca se avería: sigue funcionando cada vez más lenta al desgastarse. Si llegás con una pieza rota, se intenta reparar según tu plan; si continúa rota se monta la reserva disponible para seguir.</p><h3>Economía y continuidad</h3><p>El presupuesto paga vehículo, repuestos, mano de obra y combustible. Las reparaciones que no se pueden pagar se omiten. Para evitar una carrera bloqueada sin combustible, una asistencia suma 4 h y un recargo del 40%. Si falta dinero, queda una deuda que se descuenta del premio; el saldo pendiente se muestra al terminar. Cada carrera paga sus premios cuando se cierra. El cierre ocurre al terminar todos, a las 24 horas desde la primera llegada o al agotar su tiempo máximo, lo que ocurra antes. Los que no llegaron se clasifican por avance. En un sprint no hay reparaciones, descansos ni asistencia en ruta: un solo piloto corre hasta la meta o el límite de 4 horas.</p><h3>Tiempo del prototipo</h3><p>1× usa tiempo real y recupera el tiempo transcurrido al volver a abrir la partida. Pausado y las velocidades aceleradas pertenecen sólo al prototipo single player. Una sesión acelerada se reabre pausada. Los controles están reunidos en la barra Admin. “Próxima parada” avanza el reloj de todos hasta que tu equipo completa una etapa y pausa la prueba. “Próxima carrera” permite saltar hasta un minuto antes de una carrera futura cuando estás en la base o tu carrera ya cerró; elegirá primero una inscripción pendiente. No inscribe automáticamente.</p><h3>Bitácora de ruta</h3><p>El cuaderno registra una o dos notas por etapa, basadas en problemas o aciertos observados durante la simulación. Los consejos al margen ayudan a interpretar el calor, la fatiga, las averías y la configuración. Las etapas anteriores a la actualización no se reconstruyen.</p><h3>Qué es real y qué es diseño del juego</h3><p>Los modelos de vehículos y las localidades son reales. La ruta deportiva, los kilómetros de etapa, el terreno, los costos, la resistencia comparativa, los consumos y las probabilidades son parámetros ficticios. La cartografía base es de Natural Earth y las localidades de GeoNames; el trazado no es navegación vial.</p><p>Se juega una modalidad de preparación libre: algunos sectores de asfalto admiten hasta 250 km/h. No reproduce el reglamento Dakar ni la velocidad homologada de los vehículos (por ejemplo, X-raid publica un límite de 170 km/h para el MINI). Un vehículo averiado circula a 30 km/h.</p><h3>Online, más adelante</h3><p>Esta versión no conecta jugadores reales. Once equipos son simulados. El motor y el contrato público del visor están separados; un servidor futuro deberá ser dueño del reloj, el estado y las compras. GitHub Pages aloja este prototipo.</p><h3>Fuentes</h3><ul>${VEHICLES.map((v) => `<li><a href="${v.source}" target="_blank" rel="noreferrer">${v.name}</a></li>`).join("")}<li><a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">Natural Earth</a> · cartografía</li><li><a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> · localidades</li></ul>`;
+  dialog.innerHTML = `<div class="dialog-title"><div><span class="eyebrow">CÓMO FUNCIONA</span><h2>Una sola largada. Tu propio ritmo.</h2></div><button class="icon-button" data-action="close-modal" aria-label="Cerrar">${icon("close")}</button></div><p>Todos los equipos comparten un horario de largada. Después, conducción, averías, asistencia y descansos consumen tiempo de la misma carrera. Pueden estar en etapas diferentes. Gana quien llega antes a la meta de cada carrera.</p><h3>Inscripción y calendario</h3><p>Las carreras son independientes y no entregan puntos de campeonato. Hay ocho raids de varios días y 24 sprints que rotan cada 48 horas. Debés inscribirte antes de cada largada: si no lo hacés, permanecés en la base y el taller sigue trabajando. Cada inscripción reserva el intervalo máximo publicado, aunque termines antes, y bloquea las carreras que se superponen. El piloto y el auto de largada quedan registrados; vender ese auto cancela sus inscripciones futuras.</p><h3>Preparar cada etapa</h3><p>En Campamento elegís piloto, ritmo, exigencia, chasis, gomas, transmisión, refrigeración, combustible y acciones por pieza. Guardar confirma ese plan. Al llegar, las piezas se reparan o cambian y los pilotos descansan en paralelo. La etapa arranca cuando termina la tarea más larga. Una etapa sin plan deja al equipo esperando.</p><p>El descanso se limita a las horas necesarias para recuperar 100% de energía. Los pilotos de relevo recuperan energía a 0,1× mientras otro conduce y a 1× en campamento o en la base. Una carga completa suele alcanzar para una etapa con una preparación normal. La preparación de la primera etapa ocurre antes de largar.</p><h3>Home y taller</h3><p>La Home resume la próxima largada, tu caja y los hitos de recorrido. El Taller admite hasta 3 autos; cada uno conserva estado, performance y fiabilidad. Un auto nuevo empieza en 100/50/50. Las mejoras de performance y fiabilidad permiten elegir entre 1 y 5 puntos hasta 100. Empiezan en 20 horas de trabajo por punto y se vuelven progresivamente más lentas cerca de 100. Podés vender cualquier auto fuera de una carrera en curso, incluso el seleccionado o el último, o entregarlo como parte de pago; el auto seleccionado se cambia antes de largar o después de llegar a la meta.</p><p>Distribuí hasta 5 mecánicos: 1–4 en carrera y 0–4 en la base. Con cero en el taller la cola se pausa. Los trabajos se pagan al programar y se completan por orden; cancelar devuelve sólo la parte no trabajada. El auto que está participando no se puede desarrollar en la base, pero los otros sí. Las piezas instaladas forman el kit del equipo y se conservan al cambiar de auto.</p><h3>Calidad no es estado</h3><p>La calidad determina rendimiento, resistencia, tendencia térmica y riesgo base. El estado es el desgaste actual. Podés comprar repuestos nuevos o usados, reparar los instalados o intercambiarlos por piezas del lote. La pieza retirada vuelve al inventario.</p><p>Original mide el potencial de reconstrucción: empieza en 100 y baja al reparar, tanto en la base como en campamento. Menos original implica más horas, mayor costo por punto recuperado y menor estado máximo recuperable. El taller muestra el presupuesto y el resultado antes de programar.</p><p>Tenés una reserva gratuita de cada tipo. Nunca se avería: sigue funcionando cada vez más lenta al desgastarse. Si llegás con una pieza rota, se intenta reparar según tu plan; si continúa rota se monta la reserva disponible para seguir.</p><h3>Sueldos y contratos</h3><p>La fecha del juego aparece arriba. En el prototipo puede acelerarse; el modo online futuro usará la fecha real del servidor. Los sueldos y gastos fijos de base/taller se liquidan el día 1 a las 00:00 de Argentina, incluso sin correr. El primer mes se prorratea por tiempo contratado. Compras, combustible y reparaciones se pagan al hacerlas. No se vuelve a cobrar un sueldo en cada largada.</p><p>Los contratos duran 12 meses calendario. Renovar agrega 12 meses al vencimiento y actualiza el nivel de referencia: subir 2 o más niveles pide +20%, subir 1 pide +10%, mantener pide +3% y bajar niveles pide −20%. El nuevo sueldo comienza después de la próxima liquidación. Si no renovás, el empleado vuelve al mercado; si su contrato vence en carrera, conserva su puesto hasta el cierre. Sin piloto o mecánico no podés participar. La reserva de una oferta se devuelve también al adjudicar; no hay prima de firma.</p><h3>Forma, moral y especialidades</h3><p>La forma se recupera en reposo y baja al conducir; influye en cansancio y rendimiento. La moral afecta rendimiento y trabajo: sube con pagos al día y renovaciones, y baja con sueldos impagos. La edad avanza al cumplir años. Expertos en ripio, asfalto, montaña, arena y roca mejoran el ritmo sólo en esa superficie. Los expertos con un modelo mejoran sólo ese auto. Cada experto en motor, caja, suspensión, neumáticos, refrigeración o frenos evita averías aleatorias de esa pieza; el piloto debe conducir o el mecánico estar en carrera. No elimina desgaste, calor, daños por accidente ni una avería que ya existía. El experto en refrigeración también baja 8 °C la temperatura objetivo. Las bonificaciones iguales no se acumulan.</p><h3>Economía y continuidad</h3><p>El presupuesto paga vehículo, repuestos, mano de obra y combustible. Las reparaciones que no se pueden pagar se omiten. Para evitar una carrera bloqueada sin combustible, una asistencia suma 4 h y un recargo del 40%. Si falta dinero, queda una deuda que se descuenta del premio; el saldo pendiente se muestra al terminar. Cada carrera paga sus premios cuando se cierra. El cierre ocurre al terminar todos, a las 24 horas desde la primera llegada o al agotar su tiempo máximo, lo que ocurra antes. Los que no llegaron se clasifican por avance. En un sprint no hay reparaciones, descansos ni asistencia en ruta: un solo piloto corre hasta la meta o el límite de 4 horas.</p><h3>Tiempo del prototipo</h3><p>1× usa tiempo real y recupera el tiempo transcurrido al volver a abrir la partida. Pausado y las velocidades aceleradas pertenecen sólo al prototipo single player. Una sesión acelerada se reabre pausada. Los controles están reunidos en la barra Admin. “Próxima parada” avanza el reloj de todos hasta que tu equipo completa una etapa y pausa la prueba. “Próxima carrera” permite saltar hasta un minuto antes de una carrera futura cuando estás en la base o tu carrera ya cerró; elegirá primero una inscripción pendiente. No inscribe automáticamente.</p><h3>Bitácora de ruta</h3><p>El cuaderno registra una o dos notas por etapa, basadas en problemas o aciertos observados durante la simulación. Los consejos al margen ayudan a interpretar el calor, la fatiga, las averías y la configuración. Las etapas anteriores a la actualización no se reconstruyen.</p><h3>Qué es real y qué es diseño del juego</h3><p>Los modelos de vehículos y las localidades son reales. La ruta deportiva, los kilómetros de etapa, el terreno, los costos, la resistencia comparativa, los consumos y las probabilidades son parámetros ficticios. La cartografía base es de Natural Earth y las localidades de GeoNames; el trazado no es navegación vial.</p><p>Se juega una modalidad de preparación libre: algunos sectores de asfalto admiten hasta 250 km/h. No reproduce el reglamento Dakar ni la velocidad homologada de los vehículos (por ejemplo, X-raid publica un límite de 170 km/h para el MINI). Un vehículo averiado circula a 30 km/h.</p><h3>Online, más adelante</h3><p>Esta versión no conecta jugadores reales. Once equipos son simulados. El motor y el contrato público del visor están separados; un servidor futuro deberá ser dueño del reloj, el estado y las compras. GitHub Pages aloja este prototipo.</p><h3>Fuentes</h3><ul>${VEHICLES.map((v) => `<li><a href="${v.source}" target="_blank" rel="noreferrer">${v.name}</a></li>`).join("")}<li><a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">Natural Earth</a> · cartografía</li><li><a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> · localidades</li></ul>`;
   $("#modal-root").replaceChildren(dialog);
   dialog.showModal();
 }
@@ -883,6 +895,7 @@ document.addEventListener("click", (e) => {
         "skip-start",
         "advance-hour",
         "advance-day",
+        "next-payroll",
         "next-camp",
         "next-race",
         "finish-grid",
@@ -902,6 +915,28 @@ document.addEventListener("click", (e) => {
       b.textContent = document.body.classList.contains("map-fullscreen")
         ? "Cerrar pantalla completa"
         : "⛶ Pantalla completa";
+      return;
+    }
+    if (a === "renew-preview") {
+      const person = (
+        b.dataset.kind === "driver" ? p().drivers : p().mechanics
+      ).find((x) => x.id === id);
+      const q = renewalQuote(p(), person);
+      const dialog = document.createElement("dialog");
+      dialog.className = "dialog";
+      dialog.innerHTML = `<h2>Renovar a ${esc(person.name)}</h2><p>Nuevo vencimiento: <b>${gameDate(q.expiresAt)}</b>.</p><p>El equipo cambió ${q.delta >= 0 ? "+" : ""}${q.delta} niveles desde el último acuerdo. Pedido: <b>${money(q.salary)} cr/mes (${q.change >= 0 ? "+" : ""}${Math.round(q.change * 100)}%)</b>.</p><p>El sueldo actual se mantiene hasta la próxima liquidación; después comienza el nuevo. No se paga una prima por renovar.</p><div class="button-row"><button class="button ghost" data-action="close-modal">Volver</button><button class="button primary" data-action="renew-confirm" data-kind="${b.dataset.kind}" data-id="${id}">Aceptar renovación</button></div>`;
+      $("#modal-root").append(dialog);
+      dialog.showModal();
+      return;
+    }
+    if (a === "renew-confirm") {
+      renewContract(state, b.dataset.kind, id);
+      b.closest("dialog").close();
+      persist();
+      render();
+      toast(
+        "Contrato extendido 12 meses. Sueldo actualizado desde la próxima liquidación.",
+      );
       return;
     }
     if (a === "bid") {
@@ -1164,7 +1199,8 @@ document.addEventListener("click", (e) => {
       lastWall = Date.now();
       persist();
       render();
-    } else if (a === "skip-start") {
+    } else if (a === "next-payroll") runTime({ type: "next-payroll" });
+    else if (a === "skip-start") {
       state.speed = 0;
       runTime({ type: "advance", seconds: Math.max(30, -state.clock + 30) });
     } else if (a === "advance-hour")
@@ -1363,7 +1399,7 @@ function crew() {
     identityPanel(state) +
     driversPage() +
     allocationPanel(state) +
-    mechanicsPanel(state)
+    staffPanel(state, "mechanic")
   );
 }
 function raceContextHTML(team) {
@@ -1378,7 +1414,12 @@ function raceContextHTML(team) {
 }
 function mapHUD() {
   const t = state.teams.find((x) => x.id === ui.selectedTeam) || p(),
-    d = t.drivers.find((x) => x.id === t.activeDriver) || t.drivers[0],
+    d = t.drivers.find((x) => x.id === t.activeDriver) ||
+      t.drivers[0] || {
+        name: "Sin piloto",
+        energy: 0,
+        image: "assets/art/lucia.webp",
+      },
     health = vehicleHealth(t);
   const alerts = health.alerts.length
     ? `<div class="hud-alerts health-${health.level}" aria-label="Alertas del vehículo">${health.alerts.map((a) => `<div class="vehicle-alert health-${a.level}" title="${esc(a.detail)}"><strong>${a.level === "critical" ? "!" : "△"} ${esc(a.text)}</strong><small>${esc(a.detail)}</small></div>`).join("")}</div>`
@@ -1387,7 +1428,7 @@ function mapHUD() {
     (type) => {
       const report = health.parts.find((x) => x.id === type.id),
         piece = t.parts[type.id];
-      return `<div class="part-health health-${report.level}" title="${report.reserve ? "Reserva: nunca se avería" : report.broken ? "Pieza averiada" : `${num(report.probability * 100, 1)}% aprox. de avería en 1 h de conducción a condiciones constantes`}"><small>${type.short}</small><b>${piece.broken ? "AVERÍA" : num(piece.condition) + "%"}</b>${conditionBar(piece.condition, report.level === "critical" ? "#ff5a68" : report.level === "warning" ? "#ffd057" : "")}<span class="part-risk">${report.reserve ? "Respaldo irrompible" : report.broken ? "Requiere reparación" : num(report.probability * 100, 1) + "% / próxima h aprox."}</span></div>`;
+      return `<div class="part-health health-${report.level}" title="${report.reserve ? "Reserva: nunca se avería" : report.broken ? "Pieza averiada" : `${num(report.probability * 100, 1)}% aprox. de avería en 1 h de conducción a condiciones constantes`}"><small>${type.short}</small><b>${piece.broken ? "AVERÍA" : num(piece.condition) + "%"}</b>${conditionBar(piece.condition, report.level === "critical" ? "#ff5a68" : report.level === "warning" ? "#ffd057" : "")}<span class="part-risk">${report.reserve ? "Respaldo irrompible" : report.broken ? "Requiere reparación" : report.protected ? "Protegida por especialista" : num(report.probability * 100, 1) + "% / próxima h aprox."}</span></div>`;
     },
   ).join("")}</div><label>Seguir equipo<select id="hud-team">${standings(state)
     .map(

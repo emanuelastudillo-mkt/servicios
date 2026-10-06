@@ -1,3 +1,4 @@
+import { initializeEmployment } from "./employment.js";
 import { CATALOG } from "../data/catalog.js";
 import { routeFor } from "./route.js";
 import { activeCar, jobFor, crewRate } from "./workshop.js";
@@ -63,8 +64,10 @@ export function enrollmentReason(s, e) {
     [...t.drivers, ...t.mechanics].reduce((n, p) => n + (p.salary || 0), 0) *
       (e.kind === "short" ? 0.2 : 1),
   );
-  if (t.budget < due + 1500)
-    return "Reservá saldo para sueldos y combustible (1.500 cr).";
+  if (t.budget < (s.employment ? 0 : due) + 1500)
+    return s.employment
+      ? "Reservá 1.500 cr para combustible."
+      : "Reservá saldo para sueldos y combustible (1.500 cr).";
   return "";
 }
 export function enroll(s, id, driverId) {
@@ -170,6 +173,7 @@ export function initializeCompetition(s, { legacy = false } = {}) {
     }
   } else t.phase = "unregistered";
   s.championship.paid = false;
+  initializeEmployment(s);
 }
 export function raceDeadline(s) {
   const e = currentEvent(s);

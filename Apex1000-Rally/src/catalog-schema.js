@@ -1,3 +1,4 @@
+import { validTraits } from "./staff.js";
 import { STAT_KEYS, validVehicleStats } from "./vehicle-stats.js";
 const need = (ok, message) => {
   if (!ok) throw Error(`Catálogo inválido: ${message}`);
@@ -17,7 +18,7 @@ export function validateCatalog(c) {
     mechanics: modern ? 28 : 8,
     races: modern ? 32 : 8,
     prizes: 12,
-    settings: 4,
+    settings: c.settings?.some((x) => x.key === "monthlyBaseCost") ? 5 : 4,
   };
   for (const [key, count] of Object.entries(sizes))
     need(
@@ -27,6 +28,20 @@ export function validateCatalog(c) {
           : c[key].length === count),
       key,
     );
+  for (const row of [...c.drivers, ...c.mechanics]) {
+    for (const [key, min, max] of [
+      ["age", 18, 120],
+      ["form", 0, 100],
+      ["morale", 0, 100],
+    ])
+      if (Object.hasOwn(row, key))
+        need(
+          Number.isInteger(row[key]) && n(row[key], min, max),
+          "atributo del personal: " + key,
+        );
+    if (Object.hasOwn(row, "traits"))
+      need(validTraits(row.traits), "especialidades del personal");
+  }
   const types = [
     "engine",
     "transmission",
@@ -59,7 +74,7 @@ export function validateCatalog(c) {
         need(
           text(row.name, 60) &&
             Number.isInteger(row.salary) &&
-            n(row.salary, 0, 100000),
+            n(row.salary, 0, 1000000),
           "sueldo o nombre",
         );
     }
@@ -167,7 +182,19 @@ export function validateCatalog(c) {
   );
   const settings = Object.fromEntries(c.settings.map((s) => [s.key, s.value]));
   need(
-    Object.keys(settings).length === 4 &&
+    Object.keys(settings).length === c.settings.length &&
+      Object.keys(settings).every((k) =>
+        [
+          "driverLimit",
+          "mechanicLimit",
+          "auctionHours",
+          "startingBudget",
+          "monthlyBaseCost",
+        ].includes(k),
+      ) &&
+      (settings.monthlyBaseCost === undefined ||
+        (Number.isInteger(settings.monthlyBaseCost) &&
+          n(settings.monthlyBaseCost, 0, 100000))) &&
       settings.driverLimit === 3 &&
       settings.mechanicLimit === 5 &&
       n(settings.auctionHours, 1, 168) &&

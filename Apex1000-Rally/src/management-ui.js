@@ -1,3 +1,5 @@
+import { traitsHTML } from "./economy-ui.js";
+import { staffDefaults } from "./staff.js";
 import { esc, conditionBar } from "./visuals.js";
 import { shieldSVG } from "./shields.js";
 import {
@@ -21,7 +23,7 @@ export function staffMarket(s) {
   const m = s.management,
     t = s.teams.find((t) => t.id === "player"),
     now = seasonTime(s);
-  return `<section class="staff-market"><div class="page-title"><div><span class="eyebrow">CONTRATACIONES / OFERTAS TEMPORIZADAS</span><h2>Un lugar en tu equipo.</h2><p>Se reserva el sueldo ofrecido. Al cierre gana la oferta mayor; en empate, la primera. Si perdés o cancelás, recuperás el dinero.</p></div></div>${[
+  return `<section class="staff-market"><div class="page-title"><div><span class="eyebrow">CONTRATACIONES / OFERTAS TEMPORIZADAS</span><h2>Un lugar en tu equipo.</h2><p>Se reserva el sueldo ofrecido. Al cierre gana la oferta mayor; en empate, la primera. Se devuelve la reserva al adjudicar, perder o cancelar. Los contratos duran 12 meses y el sueldo se cobra el día 1 de cada mes.</p></div></div>${[
     "driver",
     "mechanic",
   ]
@@ -39,7 +41,7 @@ export function staffMarket(s) {
               ),
               best = a ? Math.max(...a.bids.map((b) => b.salary), 0) : 0,
               own = a?.bids.find((b) => b.teamId === "player");
-            return `<article class="panel staff-card"><img src="${person.image}" alt="Retrato ficticio de ${esc(person.name)}" class="portrait" loading="lazy"><div class="staff-copy"><span class="eyebrow">${kind === "driver" ? { technical: "Técnica y piezas", fast: "Velocidad y riesgo", navigator: "Navegación y resistencia" }[person.profile] : `Eficiencia ${person.efficiency.toFixed(2)}×`}</span><h3>${esc(person.name)}</h3><p>${owner ? `Contrato: ${esc(s.teams.find((t) => t.id === owner)?.name || "Asignado")}` : !person.available ? "No disponible" : a ? `Cierra en ${Math.max(0, (a.closesAt - now) / 3600).toFixed(1)} h · mejor ${money(best)} cr` : "Sin ofertas · plazo de " + m.catalog.settings.find((x) => x.key === "auctionHours").value + " h"}</p><small>Mínimo ${money(person.salary)} cr por carrera</small>${!owner && person.available ? `<label>Sueldo por carrera<input type="number" id="bid-${person.id}" min="${person.salary}" step="100" value="${Math.max(person.salary, best + 100)}"></label>${button("bid", own ? "Mejorar mi oferta" : "Enviar oferta", `data-kind="${kind}" data-id="${person.id}"`)}${own ? button("cancel-bid", "Cancelar · devolver reserva", `data-id="${a.id}"`) : ""}` : ""}</div></article>`;
+            return `<article class="panel staff-card"><img src="${person.image}" alt="Retrato ficticio de ${esc(person.name)}" class="portrait" loading="lazy"><div class="staff-copy"><span class="eyebrow">${kind === "driver" ? { technical: "Técnica y piezas", fast: "Velocidad y riesgo", navigator: "Navegación y resistencia" }[person.profile] : `Eficiencia ${person.efficiency.toFixed(2)}×`}</span><h3>${esc(person.name)}</h3><p>${staffDefaults(person, kind).age} años · Forma ${staffDefaults(person, kind).form}/100 · Moral ${staffDefaults(person, kind).morale}/100</p>${traitsHTML({ ...person, ...staffDefaults(person, kind) }, kind)}<p>${owner ? `Contrato: ${esc(s.teams.find((t) => t.id === owner)?.name || "Asignado")}` : !person.available ? "No disponible" : a ? `Cierra en ${Math.max(0, (a.closesAt - now) / 3600).toFixed(1)} h · mejor ${money(best)} cr` : "Sin ofertas · plazo de " + m.catalog.settings.find((x) => x.key === "auctionHours").value + " h"}</p><small>Mínimo ${money(person.salary)} cr por mes</small>${!owner && person.available ? `<label>Sueldo mensual<input type="number" id="bid-${person.id}" min="${person.salary}" step="100" value="${Math.max(person.salary, best + 100)}"></label>${button("bid", own ? "Mejorar mi oferta" : "Enviar oferta", `data-kind="${kind}" data-id="${person.id}"`)}${own ? button("cancel-bid", "Cancelar · devolver reserva", `data-id="${a.id}"`) : ""}` : ""}</div></article>`;
           })
           .join("")}</div>`,
     )
@@ -59,5 +61,5 @@ export function staffMarket(s) {
 }
 export function mechanicsPanel(s) {
   const p = s.teams.find((t) => t.id === "player");
-  return `<section class="panel"><div class="panel-heading"><div><span class="eyebrow">CONTRATOS / ${p.mechanics.length} DE 5 MECÁNICOS</span><h2>Más capacidad de asistencia.</h2></div><span class="badge">Trabajo ${((1 / workshopRate(p)) * 100).toFixed(0)}% del tiempo base</span></div><p>Sólo los mecánicos asignados a carrera intervienen en estas asistencias. El descanso del piloto conserva su propia duración.</p><div class="staff-grid">${p.mechanics.map((m) => `<article class="mechanic-card"><img src="${m.image}" class="portrait" alt="${esc(m.name)}"><h3>${esc(m.name)}</h3><p>${m.assignment === "workshop" ? "Taller" : "Carrera"} · ${money(m.salary)} cr / carrera · eficiencia ${m.efficiency.toFixed(2)}×</p>${button("release", "Liberar contrato", `data-kind="mechanic" data-id="${m.id}" ${["racing", "service"].includes(p.phase) ? "disabled" : ""}`)}</article>`).join("")}</div>${button("tab", "Buscar contrataciones", 'data-tab="market"')}</section>`;
+  return `<section class="panel"><div class="panel-heading"><div><span class="eyebrow">CONTRATOS / ${p.mechanics.length} DE 5 MECÁNICOS</span><h2>Más capacidad de asistencia.</h2></div><span class="badge">Trabajo ${((1 / workshopRate(p)) * 100).toFixed(0)}% del tiempo base</span></div><p>Sólo los mecánicos asignados a carrera intervienen en estas asistencias. El descanso del piloto conserva su propia duración.</p><div class="staff-grid">${p.mechanics.map((m) => `<article class="mechanic-card"><img src="${m.image}" class="portrait" alt="${esc(m.name)}"><h3>${esc(m.name)}</h3><p>${m.assignment === "workshop" ? "Taller" : "Carrera"} · ${money(m.salary)} cr / mes · eficiencia ${m.efficiency.toFixed(2)}×</p>${button("release", "Liberar contrato", `data-kind="mechanic" data-id="${m.id}" ${["racing", "service"].includes(p.phase) ? "disabled" : ""}`)}</article>`).join("")}</div>${button("tab", "Buscar contrataciones", 'data-tab="market"')}</section>`;
 }

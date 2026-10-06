@@ -1,6 +1,6 @@
-# Catálogos v0.4.1 · Google Sheets
+# Catálogos v0.4.2 · Google Sheets
 
-Planilla activa del incremental: [Apex1000-Catalogos (v0.4.1)](https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit). Se actualizó el documento ya conectado, conservando su URL. Su respaldo anterior está en `catalogos/Respaldo-Catalogos-v0.4.0-antes-v0.4.1.xlsx`. La copia privada de trabajo `Apex1000-Catalogos-v0.4.0` no es la fuente de sincronización.
+Planilla activa del incremental: [Apex1000-Catalogos (v0.4.2)](https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit). Se actualizó el documento ya conectado, conservando su URL. Su respaldo anterior está en `catalogos/Respaldo-Catalogos-v0.4.1-antes-v0.4.2.xlsx`. La copia privada de trabajo `Apex1000-Catalogos-v0.4.0` no es la fuente de sincronización.
 
 El incremental cambia `config/sheets.json` al mismo documento actualizado; entra en uso cuando subís esos archivos a GitHub. La automatización existente en la raíz del repositorio `servicios` continúa leyendo ese archivo a las 07:23 de Argentina. No hace falta crear otra automatización ni usar credenciales en el juego. Los CSV publicados sólo contienen datos ficticios del catálogo.
 
@@ -20,7 +20,7 @@ Los cuatro índices de vehículo (`speed`, `acceleration`, `comfort`, `control`)
 
 En Carreras, los ocho raids tienen kind=raid y los 24 sprints kind=short. Los sprints usan startDay de 2 a 48, cada dos días, y maxHours=4. Las fechas se calculan desde el inicio del calendario de prueba. Los raids están separados por 28 días. El intervalo `[inicio, inicio+maxHours)` bloquea inscripciones superpuestas, aunque el equipo termine antes. Los máximos de raid se admiten de 24 a 672 horas; la duración estimada puede modificarse dentro de esos límites.
 
-Premios contiene position, race y short. No hay points ni premio de campeonato. El pago usa el factor de la carrera y ocurre una sola vez al cerrar. Los sprints cobran 20% de los sueldos contratados y tienen premios mínimos. Ajustar salarios puede cambiar su rentabilidad.
+Premios contiene position, race y short. No hay points ni premio de campeonato. El pago usa el factor de la carrera y ocurre una sola vez al cerrar. Los sprints tienen premios mínimos. Los sueldos se pagan el día 1 del mes; no se vuelven a cobrar por carrera. Ajustar salarios puede cambiar su rentabilidad.
 
 El importador valida todas las hojas antes de escribir `data/catalog.json` y `data/catalog.js`. Un error mantiene el catálogo anterior. Cada partida guarda su propio catálogo; las modificaciones diarias se aplican a partidas nuevas. No recalculan las compras o contratos existentes.
 
@@ -29,3 +29,5 @@ Revisá [Actions del catálogo](https://github.com/emanuelastudillo-mkt/servicio
 Validación local: `node scripts/sync-catalog.mjs --source-dir catalogos --check`. Comprobar Sheets sin escribir: `node --use-system-ca scripts/sync-catalog.mjs --check` en un equipo cuya configuración de certificados lo requiera. Sin `--check`, el comando genera ambos archivos de datos. No pongas datos personales ni credenciales en las pestañas publicadas.
 
 La planilla conectada ya usa el formato v2. Hasta subir el incremental, el importador anterior de GitHub rechazará la nueva estructura sin reemplazar el catálogo válido ni alterar el juego publicado. Aplicar los archivos del ZIP y ejecutar el workflow recupera la sincronización con el catálogo nuevo. La copia privada preparada durante la edición no se usa como fuente.
+
+Personal añade age (edad), form y morale (0–100), y traits (especialidades separadas por |). Ajustes añade monthlyBaseCost, gastos mensuales de base/taller. Ver [reglas y valores](ECONOMIA-PERSONAL.md).

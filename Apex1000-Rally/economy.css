@@ -1,0 +1,515 @@
+.game-date {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 3px 8px;
+  white-space: nowrap;
+  padding: 9px 13px;
+  border-left: 1px solid #ffffff18;
+  background: #152126;
+  font-size: 12px;
+}
+.game-date small {
+  grid-column: 1/-1;
+  font-size: 8px;
+  letter-spacing: 1.1px;
+  color: #97a7ad;
+}
+.game-date strong {
+  color: #d9e8e7;
+}
+.game-date span {
+  color: #85babd;
+}
+.top-meta .game-date {
+  min-width: 146px;
+}
+.economy-layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 20px;
+}
+.economy-summary,
+.economy-detail {
+  background: linear-gradient(150deg, #1c2831e6, #0b131bef);
+  border-color: #34424a;
+  padding: 26px;
+}
+.finance-team {
+  text-align: center;
+  padding: 10px 0 23px;
+  border-bottom: 1px solid #ffffff16;
+}
+.finance-team svg {
+  width: 92px;
+  height: 100px;
+  margin: auto;
+}
+.finance-team h2 {
+  margin: 12px 0;
+}
+.economy-health {
+  padding: 22px 0;
+}
+.economy-health strong {
+  display: block;
+  color: #90cc87;
+  font-size: 19px;
+  margin-top: 8px;
+}
+.economy-health p {
+  font-size: 12px;
+  color: #a5b3ba;
+  line-height: 1.6;
+}
+.contract-details {
+  font-size: 12px;
+  margin: 15px 0;
+}
+.contract-details div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ffffff0b;
+}
+.contract-details dt {
+  color: #95a6ad;
+}
+.contract-details dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+}
+.economy-headline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #ffffff06;
+  padding: 20px 10px;
+  border-bottom: 1px solid #3a4b53;
+}
+.economy-headline > div {
+  text-align: center;
+  padding: 0 16px;
+}
+.economy-headline > div + div {
+  border-left: 1px solid #ffffff20;
+}
+.economy-headline small {
+  display: block;
+  color: #9dadaf;
+}
+.economy-headline strong {
+  display: block;
+  color: #90cc87;
+  font-size: clamp(23px, 3vw, 38px);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  margin-top: 9px;
+}
+.economy-headline em {
+  font-size: 13px;
+  font-style: normal;
+  color: #7e9499;
+}
+.payroll-banner {
+  display: grid;
+  gap: 7px;
+  text-align: center;
+  background: #365d6640;
+  border-bottom: 1px solid #506c7544;
+  padding: 18px;
+  margin-bottom: 22px;
+}
+.payroll-banner span {
+  color: #a0c9cd;
+  font-size: 13px;
+}
+.payroll-banner strong {
+  font-size: 20px;
+}
+.payroll-banner small {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #9fb0b4;
+}
+.finance-breakdown {
+  min-width: 520px;
+  width: 100%;
+}
+.economy-detail th {
+  background: #ffffff08;
+  color: #b2c1c5;
+  font-weight: 500;
+}
+.economy-detail td {
+  border-bottom: 1px solid #ffffff0c;
+  font-size: 12px;
+}
+.economy-detail th:not(:first-child),
+.economy-detail td:not(:first-child) {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.negative {
+  color: #e67379 !important;
+}
+.positive {
+  color: #90cc87 !important;
+}
+.balance-chart {
+  margin: 28px 0;
+  color: #879da2;
+}
+.balance-chart figcaption {
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  margin-bottom: 10px;
+}
+.balance-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.balance-chart text {
+  font-size: 11px;
+  fill: #899b9e;
+}
+.balance-chart small {
+  font-size: 10px;
+}
+.economy-detail details {
+  margin: 24px 0 0;
+}
+.economy-detail details summary,
+.personnel-main summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: #b9d2d3;
+  padding: 13px 0;
+}
+.personnel-section {
+  margin-top: 24px;
+}
+.personnel-roster {
+  display: grid;
+  gap: 22px;
+}
+.personnel-card {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  padding: 0;
+  overflow: hidden;
+  background: linear-gradient(140deg, #1b2933, #0e1721);
+}
+.personnel-identity {
+  padding: 24px;
+  border-right: 1px solid #ffffff10;
+  background: #ffffff02;
+}
+.staff-photo {
+  position: relative;
+  height: 170px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.staff-photo img {
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 50%;
+  border: 4px solid #374650;
+}
+.staff-photo .badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #142a30;
+}
+.personnel-identity h2 {
+  font-size: 23px;
+  margin-bottom: 8px;
+}
+.personnel-identity > p {
+  font-size: 12px;
+  color: #a6b4b9;
+  line-height: 1.7;
+}
+.contract-heading {
+  background: #ffffff08;
+  margin: 20px -8px 0;
+  padding: 8px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #aebbbf;
+}
+.contract-warning,
+.contract-warning dd {
+  color: #edb967 !important;
+}
+.renewal-preview {
+  display: block;
+  margin: 10px 0 16px;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #9fb5b9;
+}
+.personnel-main {
+  padding: 28px;
+}
+.staff-attributes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 24px 0;
+}
+.staff-attributes > div {
+  text-align: center;
+  border-bottom: 3px solid #7da46d;
+  background: linear-gradient(135deg, #566b414c, #455b3d88);
+  padding: 18px 8px;
+}
+.staff-attributes small {
+  display: block;
+  font-size: 11px;
+  color: #b3c4b2;
+  margin-bottom: 12px;
+}
+.staff-attributes strong {
+  font-weight: 400;
+  font-size: 27px;
+  white-space: nowrap;
+}
+.staff-condition {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  padding: 10px 0 22px;
+}
+.staff-condition > div > strong {
+  display: block;
+  font-size: 25px;
+  font-weight: 400;
+  margin: 15px 0;
+}
+.morale-gauge {
+  position: relative;
+  width: 170px;
+  margin: 10px auto 0;
+  color: #95a6ad;
+  font-size: 10px;
+}
+.gauge-face {
+  position: relative;
+  height: 85px;
+  border-radius: 100px 100px 0 0;
+  background: conic-gradient(
+    from 270deg at 50% 100%,
+    #32414b,
+    #51684e 180deg,
+    #0000 180deg
+  );
+  overflow: hidden;
+}
+.gauge-face:after {
+  content: "";
+  position: absolute;
+  width: 108px;
+  height: 54px;
+  background: #17222d;
+  bottom: 0;
+  left: 31px;
+  border-radius: 80px 80px 0 0;
+}
+.gauge-face i {
+  position: absolute;
+  z-index: 2;
+  width: 3px;
+  height: 65px;
+  background: #7dced0;
+  left: 84px;
+  bottom: 0;
+  transform-origin: 50% 100%;
+  transition: transform 0.8s ease;
+}
+.gauge-face b {
+  position: absolute;
+  z-index: 3;
+  left: 65px;
+  bottom: 5px;
+  color: #d1e4dd;
+  font-size: 18px;
+}
+.morale-gauge > span {
+  display: inline-block;
+  width: 50%;
+  padding-top: 6px;
+}
+.morale-gauge > span:last-child {
+  text-align: right;
+}
+.staff-traits {
+  display: grid;
+  gap: 8px;
+}
+.staff-trait {
+  background: #174a4350;
+  border-left: 3px solid #598f81;
+  padding: 12px 14px;
+}
+.staff-trait span {
+  display: block;
+  color: #b7d5c8;
+  font-size: 13px;
+}
+.staff-trait small {
+  display: block;
+  color: #96b4b0;
+  font-size: 11px;
+  line-height: 1.65;
+  margin-top: 5px;
+}
+.staff-card .staff-traits {
+  margin: 12px 0;
+}
+.staff-card .staff-trait {
+  padding: 8px;
+}
+.staff-card .staff-trait small {
+  font-size: 10px;
+}
+@media (min-width: 1400px) {
+  .personnel-roster {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .personnel-card {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .personnel-main {
+    padding: 22px;
+  }
+  .staff-attributes {
+    gap: 10px;
+  }
+  .staff-attributes strong {
+    font-size: 22px;
+  }
+  .staff-condition {
+    gap: 16px;
+  }
+  .morale-gauge {
+    width: 150px;
+  }
+  .gauge-face:after {
+    left: 21px;
+  }
+  .gauge-face i {
+    left: 74px;
+  }
+  .gauge-face b {
+    left: 57px;
+  }
+}
+@media (max-width: 1050px) {
+  .economy-layout {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .economy-summary,
+  .economy-detail {
+    padding: 20px;
+  }
+  .topbar {
+    flex-wrap: wrap;
+  }
+  .top-meta {
+    margin-left: auto;
+  }
+  .staff-attributes {
+    gap: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .economy-layout {
+    grid-template-columns: 1fr;
+  }
+  .economy-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  .finance-team {
+    padding: 0;
+    border: 0;
+  }
+  .finance-team svg {
+    width: 65px;
+    height: 75px;
+  }
+  .economy-summary .contract-details,
+  .economy-summary .balance-chart,
+  .economy-summary > .button {
+    grid-column: 1/-1;
+  }
+  .economy-summary .balance-chart {
+    margin: 5px auto;
+    max-width: 340px;
+    width: 100%;
+  }
+  .economy-headline {
+    padding: 15px 0;
+  }
+  .economy-headline > div {
+    padding: 0 8px;
+  }
+  .economy-headline small {
+    font-size: 10px;
+  }
+  .personnel-card {
+    grid-template-columns: 1fr;
+  }
+  .personnel-identity {
+    border-right: 0;
+    border-bottom: 1px solid #ffffff16;
+  }
+  .personnel-main {
+    padding: 22px;
+  }
+  .staff-attributes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .staff-condition {
+    gap: 15px;
+  }
+  .morale-gauge {
+    width: 150px;
+  }
+  .gauge-face:after {
+    left: 21px;
+  }
+  .gauge-face i {
+    left: 74px;
+  }
+  .gauge-face b {
+    left: 57px;
+  }
+  .page-title .game-date {
+    align-self: flex-start;
+  }
+  .top-meta .game-date {
+    padding: 6px 9px;
+    min-width: 140px;
+  }
+  .prototype {
+    font-size: 9px;
+  }
+  .economy-detail {
+    padding: 16px;
+  }
+  .personnel-main .small-note {
+    line-height: 1.8;
+  }
+}

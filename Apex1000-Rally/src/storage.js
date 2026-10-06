@@ -1,3 +1,4 @@
+import { validateEmployment } from "./employment.js";
 import { initializeManagement } from "./management.js";
 import { validateCatalog } from "./catalog-schema.js";
 import { migrateLegacyCatalogStats } from "./vehicle-stats.js";
@@ -17,7 +18,7 @@ import { initializeWorkshop } from "./workshop.js";
 import { validateWorkshop } from "./workshop-validation.js";
 import { validServiceTimeline } from "./service-telemetry.js";
 import { validateCompetition } from "./competition.js";
-import { validateProgression } from './progression.js';
+import { validateProgression } from "./progression.js";
 export const SAVE_KEY = "apex1000-rally-v1";
 const validNumber = (n, min = -Infinity, max = Infinity) =>
   typeof n === "number" && Number.isFinite(n) && n >= min && n <= max;
@@ -99,6 +100,7 @@ export function validateSave(raw) {
   if (legacy) initializeWorkshop(raw);
   migrateLegacyCatalogStats(raw);
   const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(raw);
+  if (raw.competition || raw.employment) validateEmployment(raw);
   validateManagement(raw);
   const ids = new Set();
   for (const t of raw.teams) {
@@ -114,7 +116,13 @@ export function validateSave(raw) {
     if (
       !boundedText(t.name, 80) ||
       !/^#[0-9a-f]{6}$/i.test(t.color) ||
-      !t.drivers?.some((d) => d.id === t.activeDriver) ||
+      !(
+        t.drivers?.some((d) => d.id === t.activeDriver) ||
+        (raw.employment &&
+          !t.drivers.length &&
+          t.activeDriver === null &&
+          ["unregistered", "finished", "cutoff"].includes(t.phase))
+      ) ||
       typeof t.prizePaid !== "boolean" ||
       !validNumber(t.holdUntil, 0) ||
       !validNumber(t.speed, 0, 250) ||
@@ -141,7 +149,7 @@ export function validateSave(raw) {
       !Array.isArray(t.plans) ||
       t.plans.length !== STAGES.length ||
       !Array.isArray(t.drivers) ||
-      t.drivers.length < 1 ||
+      t.drivers.length < (raw.employment ? 0 : 1) ||
       t.drivers.length > 3 ||
       !Array.isArray(t.ledger) ||
       t.ledger.length > 5000
@@ -218,7 +226,10 @@ export function validateSave(raw) {
       if (
         !validNumber(l.time) ||
         !validNumber(l.amount) ||
-        !boundedText(l.label, 300)
+        !boundedText(l.label, 300) ||
+        (l.at !== undefined && !validNumber(l.at)) ||
+        (l.category !== undefined &&
+          !["drivers", "mechanics", "base"].includes(l.category))
       )
         throw new Error("Movimiento de presupuesto inválido.");
     for (const d of t.drivers) {
@@ -313,7 +324,10 @@ function validateManagement(s) {
   const m = s.management,
     c = s.championship;
   validateCatalog(m.catalog);
-  if (s.competition) {validateCompetition(s);validateProgression(s);}
+  if (s.competition) {
+    validateCompetition(s);
+    validateProgression(s);
+  }
   if (
     !c ||
     !Number.isInteger(c.round) ||
@@ -354,7 +368,7 @@ function validateManagement(s) {
       !Array.isArray(t.mechanics) ||
       t.mechanics.length > 5 ||
       !Array.isArray(t.drivers) ||
-      t.drivers.length < 1 ||
+      t.drivers.length < (s.employment ? 0 : 1) ||
       t.drivers.length > 3
     )
       throw Error("Plantel o identidad inválidos.");

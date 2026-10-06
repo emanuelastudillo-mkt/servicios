@@ -1,3 +1,4 @@
+import { partProtected } from "./staff.js";
 import { GRADES, PART_TYPES, STEP } from "./catalog.js";
 import { vehicleFactors, activeCar } from "./workshop.js";
 
@@ -28,13 +29,15 @@ export function vehicleHealth(team) {
   const plan = team.activePlan || team.plans[team.stageIndex];
   const parts = PART_TYPES.map((type) => {
     const piece = team.parts[type.id];
-    const probability = failureProbability(
-      piece,
-      team.heat,
-      plan?.boost || 0,
-      1,
-      vehicleFactors(team).risk,
-    );
+    const probability = partProtected(team, type.id)
+      ? 0
+      : failureProbability(
+          piece,
+          team.heat,
+          plan?.boost || 0,
+          1,
+          vehicleFactors(team).risk,
+        );
     return {
       id: type.id,
       name: type.name,
@@ -47,6 +50,7 @@ export function vehicleHealth(team) {
           : "normal",
       broken: piece.broken,
       reserve: piece.grade === "reserve",
+      protected: partProtected(team, type.id),
     };
   });
   const alerts = parts

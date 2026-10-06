@@ -1,17 +1,17 @@
-id,name,profile,salary,available,image
-lucia,Lucía Ferrer,technical,4200,True,assets/art/lucia.webp
-bruno,Bruno Acosta,fast,5800,True,assets/art/bruno.webp
-mateo,Mateo Cruz,navigator,4700,True,assets/art/mateo.webp
-ines,Inés Vidal,technical,5300,True,assets/art/ines.webp
-alex,Alex Duarte,fast,6200,True,assets/art/alex.webp
-sara,Sara Benítez,navigator,5600,True,assets/art/sara.webp
-agustina,Agustina Paredes,technical,4200,True,assets/art/agustina.webp
-rafael,Rafael Suárez,fast,5000,True,assets/art/rafael.webp
-catalina,Catalina Torres,navigator,3800,True,assets/art/catalina.webp
-youssef,Youssef Karim,navigator,4500,True,assets/art/youssef.webp
-naomi,Naomi Sato,technical,5400,True,assets/art/naomi.webp
-miguel,Miguel Leal,fast,3900,True,assets/art/miguel.webp
-zoe,Zoé Lambert,technical,4800,True,assets/art/zoe.webp
-andre,André Moreira,navigator,4100,True,assets/art/andre.webp
-amina,Amina Diallo,fast,5200,True,assets/art/amina.webp
-matias,Matías Lagos,fast,3600,True,assets/art/matias.webp
+id,name,profile,salary,available,image,age,form,morale,traits
+lucia,Lucía Ferrer,technical,4200,true,assets/art/lucia.webp,24,85,80,terrain:gravel|car:hilux
+bruno,Bruno Acosta,fast,5800,true,assets/art/bruno.webp,25,84,79,terrain:asphalt
+mateo,Mateo Cruz,navigator,4700,true,assets/art/mateo.webp,26,83,78,terrain:mountain
+ines,Inés Vidal,technical,5300,true,assets/art/ines.webp,27,82,77,terrain:sand|car:mini
+alex,Alex Duarte,fast,6200,true,assets/art/alex.webp,28,81,76,terrain:rock
+sara,Sara Benítez,navigator,5600,true,assets/art/sara.webp,29,80,75,terrain:gravel
+agustina,Agustina Paredes,technical,4200,true,assets/art/agustina.webp,30,79,74,terrain:asphalt|car:audi
+rafael,Rafael Suárez,fast,5000,true,assets/art/rafael.webp,31,78,73,terrain:mountain
+catalina,Catalina Torres,navigator,3800,true,assets/art/catalina.webp,32,77,72,terrain:sand
+youssef,Youssef Karim,navigator,4500,true,assets/art/youssef.webp,33,76,71,terrain:rock|car:sandrider
+naomi,Naomi Sato,technical,5400,true,assets/art/naomi.webp,34,75,70,terrain:gravel
+miguel,Miguel Leal,fast,3900,true,assets/art/miguel.webp,35,74,80,terrain:asphalt
+zoe,Zoé Lambert,technical,4800,true,assets/art/zoe.webp,36,73,79,terrain:mountain|car:hunter
+andre,André Moreira,navigator,4100,true,assets/art/andre.webp,37,85,78,terrain:sand
+amina,Amina Diallo,fast,5200,true,assets/art/amina.webp,38,84,77,terrain:rock
+matias,Matías Lagos,fast,3600,true,assets/art/matias.webp,39,83,76,terrain:gravel|car:raptor

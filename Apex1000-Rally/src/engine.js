@@ -14,6 +14,14 @@ import {
   enroll,
   cancelEnrollment,
 } from "./competition.js";
+import {
+  initializeEmployment,
+  advanceEmployment,
+  processContracts,
+  recordCash,
+  renewContract,
+} from "./employment.js";
+import { staffFactors, partProtected } from "./staff.js";
 import { CATALOG } from "../data/catalog.js";
 import { statFactors, teamVehicleStats } from "./vehicle-stats.js";
 import { failureRate } from "./reliability.js";
@@ -97,8 +105,7 @@ export function log(state, team, type, text) {
     state.events.splice(0, state.events.length - 600);
 }
 function transact(state, team, amount, label) {
-  team.budget = round(team.budget + amount);
-  team.ledger.push({ time: state.clock, amount: round(amount), label });
+  recordCash(state, team, amount, label);
 }
 function item(id, type, grade, condition = 100) {
   return { id, type, grade, condition, original: 100, broken: false };
@@ -263,7 +270,14 @@ export function createRace({
   );
   initializeManagement(state, { catalog });
   initializeWorkshop(state);
-  if (catalog.schemaVersion === 2) initializeCompetition(state);
+  for (const t of state.teams)
+    for (const entry of t.ledger)
+      if (entry.at === undefined)
+        entry.at = Date.parse(state.startAt) + state.clock * 1000;
+  if (catalog.schemaVersion === 2) {
+    initializeCompetition(state);
+    initializeEmployment(state);
+  }
   if (now > start) advance(state, (now - start) / 1000);
   return state;
 }
@@ -273,6 +287,8 @@ export function getPlayer(state) {
 export function normalizePlan(raw = {}, team) {
   const s = defaultPlan(),
     v = vehicle(team.vehicleId);
+  if (!team.drivers.length)
+    throw Error("Contratá un piloto para preparar una etapa.");
   s.driverId = team.drivers[0].id;
   for (const [key, allowed] of Object.entries({
     driverId: team.drivers.map((d) => d.id),
@@ -636,6 +652,7 @@ export function performance(
     terrain = TERRAINS[segmentAt(stage, km).type],
     terrainId = segmentAt(stage, km).type,
     d = driverFor(team, plan.driverId),
+    staff = staffFactors(team, d, terrainId),
     pace = PACES[plan.pace],
     carFactors = vehicleFactors(team),
     attributes = statFactors(teamVehicleStats(team), terrainId),
@@ -717,6 +734,7 @@ export function performance(
           boost *
           pace.speed *
           d.speed *
+          staff.speed *
           carFactors.speed *
           coolingDrag *
           hot,
@@ -758,7 +776,8 @@ export function performance(
     (plan.pace === "attack" ? 7 : 0) +
     (plan.cooling === "closed" ? 12 : plan.cooling === "open" ? -14 : 0) +
     (1 - p.cooling / GRADES[team.parts.cooling.grade].heat) * 38 +
-    (thermalLoad - 1) * 35;
+    (thermalLoad - 1) * 35 -
+    staff.cooling;
   const risk =
     0.019 *
     terrain.risk *
@@ -766,7 +785,8 @@ export function performance(
     d.risk *
     (1 + (100 - d.energy) / 40) *
     (1 + plan.boost * 0.25) *
-    attributes.risk;
+    attributes.risk *
+    staff.risk;
   return {
     speed,
     wear,
@@ -826,6 +846,7 @@ function fatigue(t, dt, racing = false, effort = 1) {
           (dt / 3600) *
             3 *
             d.fatigue *
+            (1 + (100 - (d.form ?? 100)) / 250) *
             effort *
             statFactors(teamVehicleStats(t), "gravel").fatigue,
         0,
@@ -1029,7 +1050,7 @@ function advanceTeam(state, t, dt) {
         vehicleFactors(t).risk *
         driveDt) /
       3600;
-    if (!piece.broken && random(t) < failure) {
+    if (!piece.broken && random(t) < failure && !partProtected(t, type.id)) {
       piece.broken = true;
       piece.condition = Math.min(piece.condition, 5);
       t.statistics.failures++;
@@ -1105,7 +1126,11 @@ function award(state) {
 export function advance(
   state,
   seconds,
-  { stopAtPlayerCamp = false, stopAtAllFinished = false } = {},
+  {
+    stopAtPlayerCamp = false,
+    stopAtAllFinished = false,
+    stopAtPayroll = false,
+  } = {},
 ) {
   if (!Number.isFinite(seconds) || seconds < 0)
     throw new Error("Avance de tiempo inválido.");
@@ -1116,8 +1141,12 @@ export function advance(
   state.remainder -= remaining * STEP;
   let advanced = 0;
   const initialStage = getPlayer(state).stageIndex;
+  const payrollTarget = stopAtPayroll
+    ? state.employment?.nextPayrollAt
+    : Infinity;
   while (remaining-- > 0) {
     if (state.competition) {
+      if (state.employment) processContracts(state);
       const now = raceNow(state),
         p = getPlayer(state);
       const ready = state.competition.registrations
@@ -1170,10 +1199,19 @@ export function advance(
         state.remainder = 0;
         break;
       }
-      const dt =
+      const baseDt =
         state.competition.closed || state.clock < 0
           ? STEP
           : Math.min(STEP, Math.max(0, raceDeadline(state) - state.clock));
+      const dt = Math.min(
+        baseDt,
+        state.employment
+          ? Math.max(
+              0,
+              (state.employment.nextPayrollAt - raceNow(state)) / 1000,
+            )
+          : STEP,
+      );
       if (dt === 0) {
         updateRaceClosure(state);
         continue;
@@ -1182,9 +1220,14 @@ export function advance(
       advanceWorkshops(state, dt);
       state.clock += dt;
       advanceProgression(state);
+      if (state.employment) advanceEmployment(state);
       advanced += dt;
       settleAuctions(state);
       updateRaceClosure(state);
+      if (stopAtPayroll && raceNow(state) >= payrollTarget) {
+        state.remainder = 0;
+        break;
+      }
       if (
         stopAtPlayerCamp &&
         (getPlayer(state).stageIndex > initialStage || state.competition.closed)
@@ -1192,6 +1235,11 @@ export function advance(
         state.remainder = 0;
         break;
       }
+      // A deadline may split a tick. Retain its unused seconds instead of losing game time.
+      state.remainder += STEP - dt;
+      const carried = Math.floor(state.remainder / STEP);
+      remaining += carried;
+      state.remainder -= carried * STEP;
       continue;
     }
     if (
@@ -1203,6 +1251,7 @@ export function advance(
         advanceWorkshops(state, remaining * STEP + STEP);
         state.clock += remaining * STEP + STEP;
         advanced += remaining * STEP + STEP;
+        if (state.employment) advanceEmployment(state);
       }
       settleAuctions(state);
       recordRound(state);
@@ -1213,6 +1262,7 @@ export function advance(
     advanceWorkshops(state, STEP);
     award(state);
     state.clock += STEP;
+    if (state.employment) advanceEmployment(state);
     settleAuctions(state);
     recordRound(state);
     advanced += STEP;
@@ -1266,6 +1316,9 @@ export function publicSnapshot(state) {
     raceId: state.id,
     engineVersion: state.engineVersion,
     startAt: state.startAt,
+    gameAt: new Date(
+      Date.parse(state.startAt) + state.clock * 1000,
+    ).toISOString(),
     elapsedSeconds: state.clock,
     routeKm: routeFor(state).totalKm,
     entries: standings(state).map((t, i) => ({
@@ -1292,12 +1345,28 @@ export function dispatch(state, command) {
   if (!command || typeof command.type !== "string")
     throw new Error("Comando inválido.");
   switch (command.type) {
+    case "next-payroll": {
+      if (!state.employment)
+        throw Error("La partida todavía usa sueldos por carrera.");
+      const target = state.employment.nextPayrollAt;
+      while (raceNow(state) < target) {
+        const used = Math.max(
+          STEP,
+          Math.min((target - raceNow(state)) / 1000, 720 * 3600),
+        );
+        advance(state, used, { stopAtPayroll: true });
+      }
+      state.speed = 0;
+      return state;
+    }
     case "enroll":
       return enroll(state, command.eventId, command.driverId);
     case "cancel-enrollment":
       return cancelEnrollment(state, command.eventId);
     case "next-event":
       return nextScheduledRace(state);
+    case "renew-contract":
+      return renewContract(state, command.kind, command.id);
     case "bid":
       return bid(state, command.kind, command.personId, command.salary);
     case "cancel-bid":
@@ -1465,6 +1534,7 @@ export function updateRaceClosure(state) {
       routeFor(state).totalKm,
     );
   state.championship.results.push(result);
+  if (state.employment) processContracts(state);
   log(
     state,
     getPlayer(state),

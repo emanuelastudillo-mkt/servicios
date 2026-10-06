@@ -76,8 +76,8 @@ const lampPaths = {
 };
 export function dashboardHTML(team, clock) {
   const health = vehicleHealth(team),
-    driver =
-      team.drivers.find((d) => d.id === team.activeDriver) || team.drivers[0];
+    driver = team.drivers.find((d) => d.id === team.activeDriver) ||
+      team.drivers[0] || { energy: 0 };
   const fuel = clamp((team.fuel / vehicle(team.vehicleId).tank) * 100, 0, 100);
   const lamps = [
     ...[

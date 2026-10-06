@@ -1,3 +1,5 @@
+import { recordCash } from "./employment.js";
+import { staffCondition } from "./staff.js";
 import { vehicle, clamp } from "./catalog.js";
 import { modelStats } from "./vehicle-stats.js";
 import { repairQuote, repairPiece } from "./part-maintenance.js";
@@ -7,14 +9,16 @@ export const UPGRADE_LIMIT = 100;
 const round = (n) => Math.round(n * 100) / 100;
 const player = (s) => s.teams.find((t) => t.id === "player");
 const spend = (s, t, amount, label) => {
-  t.budget = round(t.budget + amount);
-  t.ledger.push({ time: s.clock, amount: round(amount), label });
+  recordCash(s, t, amount, label);
 };
 export const activeCar = (t) => t.garage?.find((c) => c.id === t.activeCarId);
 export const mechanicsAt = (t, place) =>
   (t.mechanics || []).filter((m) => (m.assignment || "race") === place);
 export const crewRate = (t, place) =>
-  mechanicsAt(t, place).reduce((sum, m) => sum + m.efficiency, 0);
+  mechanicsAt(t, place).reduce(
+    (sum, m) => sum + m.efficiency * staffCondition(m),
+    0,
+  );
 export const jobFor = (t, id) =>
   t.workshop?.jobs.find((j) => j.targetId === id);
 export const partReserved = (t, id) =>

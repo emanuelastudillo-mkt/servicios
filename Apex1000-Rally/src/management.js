@@ -1,3 +1,4 @@
+import { recordCash, startContract } from "./employment.js";
 import { CATALOG } from "../data/catalog.js";
 import { DRIVER_PROFILES, vehicle } from "./catalog.js";
 import {
@@ -16,8 +17,7 @@ const people = (state, kind) =>
 export const seasonTime = (s) =>
   (Date.parse(s.startAt) - Date.parse(s.championship.startAt)) / 1000 + s.clock;
 export function cash(state, t, amount, label) {
-  t.budget = Math.round((t.budget + amount) * 100) / 100;
-  t.ledger.push({ time: state.clock, amount: amount || 0, label });
+  recordCash(state, t, amount, label);
 }
 export function initializeManagement(
   state,
@@ -94,6 +94,7 @@ export function initializeManagement(
   state.management.stocks[state.teams[0].vehicleId] = Math.max(0, selected - 1);
 }
 export function chargeSalaries(state, t) {
+  if (state.employment) return; // Monthly payroll replaces per-race salaries.
   const due = [...t.drivers, ...t.mechanics].reduce(
       (sum, p) => sum + (p.salary || 0),
       0,
@@ -221,7 +222,14 @@ export function settleAuctions(state) {
       if (b !== winner && b.escrow)
         cash(state, t, b.escrow, `Oferta no ganadora: ${person.name}`);
       if (b === winner) {
-        if (b.salary > b.escrow)
+        if (state.employment && b.escrow)
+          cash(
+            state,
+            t,
+            b.escrow,
+            `Reserva liberada al firmar: ${person.name}`,
+          );
+        if (!state.employment && b.salary > b.escrow)
           cash(state, t, -(b.salary - b.escrow), `Contrato: ${person.name}`);
         const hired =
           a.kind === "driver"
@@ -234,7 +242,17 @@ export function settleAuctions(state) {
                 salary: b.salary,
               }
             : { ...person, salary: b.salary };
+        if (state.employment)
+          startContract(
+            state,
+            t,
+            hired,
+            a.kind,
+            Date.parse(state.championship.startAt) + a.closesAt * 1000,
+            people(state, a.kind).findIndex((p) => p.id === person.id),
+          );
         roster(t, a.kind).push(hired);
+        if (a.kind === "driver" && !t.activeDriver) t.activeDriver = hired.id;
         if (a.kind === "mechanic") placeNewMechanic(t, hired);
         m.owners[person.id] = t.id;
       }
@@ -261,6 +279,26 @@ export function releasePerson(state, kind, id) {
       "Debe quedar al menos un mecánico en carrera. El taller puede quedar sin personal y pausado.",
     );
   const [person] = list.splice(at, 1);
+  if (state.employment) {
+    const ref = people(state, kind).find(
+      (p) => p.id === (person.personId || person.id),
+    );
+    if (ref)
+      Object.assign(ref, {
+        salary: person.salary,
+        age: person.age,
+        form: Math.round(person.form),
+        morale: Math.round(person.morale),
+        traits: person.traits,
+      });
+    if (state.competition && kind === "driver")
+      state.competition.registrations = state.competition.registrations.filter(
+        (r) =>
+          r.driverId !== id ||
+          Number(r.eventId.split("@").at(-1)) <
+            Date.parse(state.startAt) + state.clock * 1000,
+      );
+  }
   delete state.management.owners[person.personId || person.id];
   if (kind === "driver") {
     if (t.activeDriver === id) t.activeDriver = t.drivers[0].id;

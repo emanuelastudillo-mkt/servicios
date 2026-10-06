@@ -1,6 +1,6 @@
-# Apex1000 Rally · World Raid v0.4.1
+# Apex1000 Rally · World Raid v0.4.2
 
-Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. Este incremental v0.4.1 se aplica sobre v0.4.0.
+Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. Este incremental v0.4.2 se aplica sobre v0.4.1.
 
 ## Atributos fijos de vehículos
 
@@ -10,7 +10,7 @@ Los atributos aparecen al elegir auto, en Mercado, Taller y el visor, incluida p
 
 ## Carreras e inscripción
 
-Hay ocho raids de 9.300 a 12.600 km con quince etapas y campamentos, y **24 sprints distintos que rotan cada 48 horas**, de 105 a 215 km. El sprint es una experiencia de hasta cuatro horas con un solo piloto, sin paradas, reparaciones ni asistencia en ruta. Su premio es pequeño y sus sueldos son el 20% de un raid. Los raids continúan durante varios días de tiempo real.
+Hay ocho raids de 9.300 a 12.600 km con quince etapas y campamentos, y **24 sprints distintos que rotan cada 48 horas**, de 105 a 215 km. El sprint es una experiencia de hasta cuatro horas con un solo piloto, sin paradas, reparaciones ni asistencia en ruta. Su premio es pequeño; los sueldos se pagan mensualmente, igual que en raids. Los raids continúan durante varios días de tiempo real.
 
 Cada carrera tiene largada fija, inscripción individual, premio por posición y un intervalo máximo publicado. No existen puntos ni ranking de campeonato. Inscribirse reserva el auto, el piloto y el intervalo completo; no permite participar en carreras que se superpongan, aunque se termine antes. Se puede cancelar antes de largar. Sin inscripción, el equipo permanece en la base y aprovecha el tiempo para descansar y trabajar en el taller.
 
@@ -28,7 +28,7 @@ Los máximos de los raids se estimaron a 30 km/h, 12 horas de margen por campame
 - Energía ajustada para que 100% normalmente alcance una etapa. Los otros pilotos recuperan a **0,1× durante el trayecto** y a **1× en campamento/base**. Exigencia alta, averías y errores pueden producir fatiga adicional.
 - Catálogo: siete vehículos, 54 repuestos, 16 pilotos y 28 mecánicos. Se suman 20 mecánicos, 10 pilotos y LADA Niva Legend · Raid, Prodrive Hunter T1+ y Audi RS Q e-tron. Ofertas por personal con cierre, adjudicación y exclusividad dentro de la simulación; tres perfiles de piloto con ventajas y riesgos diferentes.
 
-Los sueldos contratados se pagan al largar una carrera inscripta: 100% en un raid y 20% en un sprint. No se cobran a equipos sin inscripción. El presupuesto inicial y los premios se leen del catálogo. Las finanzas registran transacciones; el nivel tiene una curva exigente y decaimiento por malos resultados e inactividad. Los hitos de la Home son informativos y no agregan premios.
+Los sueldos y gastos fijos se liquidan el día 1 de cada mes a las 00:00 ART, también sin inscripción. Los contratos duran 12 meses calendario, renovables con un sueldo ajustado al cambio de nivel de la escudería. El personal añade edad, forma, moral y especialidades por superficie, modelo o pieza. Finanzas muestra caja, próximo cobro, gasto por categoría y evolución del saldo. Ver [reglas de economía y personal](docs/ECONOMIA-PERSONAL.md). El presupuesto inicial y los premios se leen del catálogo. Las finanzas registran transacciones; el nivel tiene una curva exigente y decaimiento por malos resultados e inactividad. Los hitos de la Home son informativos y no agregan premios.
 
 ## Carrera y visor
 
@@ -42,7 +42,7 @@ El tablero tiene velocidad real de simulación, agujas animadas, RPM y marcha ar
 
 ## Catálogo diario en Google Sheets
 
-Editá [Apex1000-Catalogos (v0.4.1)](https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit). Sus siete pestañas de datos se publican en CSV para el importador. Vehiculos agrega `speed`, `acceleration`, `comfort`, `control`, `weightKg`. La pestaña Guia explica campos y referencias de peso. El respaldo previo queda en `catalogos/Respaldo-Catalogos-v0.4.0-antes-v0.4.1.xlsx`.
+Editá [Apex1000-Catalogos (v0.4.2)](https://docs.google.com/spreadsheets/d/1RnlQEN6uLO1nxxxXP74Q2sl1AGmUrqwsk1MpJuOF3qk/edit). Sus siete pestañas de datos se publican en CSV para el importador. Vehiculos agrega `speed`, `acceleration`, `comfort`, `control`, `weightKg`. Pilotos/Mecanicos añaden `age`, `form`, `morale` y `traits`; Ajustes añade `monthlyBaseCost`. La pestaña Guia explica los campos y referencias de peso. El respaldo previo queda en `catalogos/Respaldo-Catalogos-v0.4.1-antes-v0.4.2.xlsx`.
 
 Al subir el incremental a GitHub, `config/sheets.json` conecta el formato nuevo de la misma planilla. El workflow existente en la raíz de `servicios` consulta y valida los datos cada día a las **07:23 de Argentina**, actualiza `data/catalog.json` y `data/catalog.js` y verifica su publicación. Un catálogo inválido no reemplaza al válido. GitHub y Google pueden demorar la ejecución/publicación. Ver [instrucciones](docs/CATALOGOS.md).
 
@@ -52,13 +52,13 @@ Al subir el incremental a GitHub, `config/sheets.json` conecta el formato nuevo 
 
 Con Node.js 22 o superior: `node server.mjs`; abrir http://127.0.0.1:4182. También se puede alojar la carpeta en un servidor estático. No abrir `index.html` con `file://`: el juego utiliza módulos y Web Worker.
 
-1. Elegí vehículo, nombre, escudo y horario del calendario de prueba. Se entregan tres pilotos y una mecánica. Se paga el auto; los sueldos esperan una carrera inscripta.
+1. Elegí vehículo, nombre, escudo y horario del calendario de prueba. Se entregan tres pilotos y una mecánica. Se paga el auto; los sueldos se devengan y liquidan el día 1.
 2. Abrí Inscripción y elegí un raid o sprint antes de su largada. Prepará el plan y comprobá el intervalo reservado.
 3. Usá 1× para tiempo real. En el prototipo, Admin permite acelerar, saltar a la largada, avanzar horas, llegar a la próxima parada y pasar a una carrera futura. “Próxima carrera” no inscribe por sí solo.
 4. Admin permite inyectar de 1 a 10.000.000 cr para pruebas, con registro en finanzas y saldo máximo de 100.000.000 cr. No es una función de economía online.
 5. Exportá la partida para respaldarla. Al migrar, se conserva un respaldo local de la versión anterior. Una sesión acelerada se reabre pausada.
 
-Para aplicar el ZIP sobre v0.4.0, descomprimí en la raíz de `servicios`, conservando `Apex1000-Rally/`, y reemplazá sólo los archivos incluidos. No borres el resto. Commit y push a GitHub; después recargá con Ctrl+F5. No se publicó el juego automáticamente como parte de esta entrega. Ver [notas completas](INCREMENTAL-v0.4.1.md). `qa/` contiene verificaciones y respaldos locales y no debe subirse.
+Para aplicar el ZIP sobre v0.4.1, descomprimí en la raíz de `servicios`, conservando `Apex1000-Rally/`, y reemplazá sólo los archivos incluidos. No borres el resto. Commit y push a GitHub; después recargá con Ctrl+F5. No se publicó el juego automáticamente como parte de esta entrega. Ver [notas completas](INCREMENTAL-v0.4.2.md). `qa/` contiene verificaciones y respaldos locales y no debe subirse.
 
 ## Validación y alcance
 
