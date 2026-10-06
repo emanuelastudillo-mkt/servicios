@@ -47,6 +47,7 @@ function closedRaceHTML() {
 }
 function applyOnline(d, full = false) {
   const previous = state?.id;
+  const wasClosed = state?.competition?.closed;
   onlineData = d;
   state = d.view;
   setActiveRoute(state);
@@ -59,8 +60,17 @@ function applyOnline(d, full = false) {
   }
   if (!state.teams.some((t) => t.id === ui.selectedTeam))
     ui.selectedTeam = "player";
+  if (wasClosed !== state.competition.closed) full = true;
   if (full || !document.querySelector("main")) render();
   else refresh();
+  const toolbar = $(".online-toolbar");
+  if (toolbar)
+    patchLivePanel(
+      toolbar,
+      onlineBanner()
+        .replace(/^<section[^>]*>/, "")
+        .replace(/<\/section>$/, ""),
+    );
   const sync = $("#online-sync");
   if (sync)
     sync.textContent = `Servidor: ${localDate(d.at)} · consulta cada 60 s`;
