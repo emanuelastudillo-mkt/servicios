@@ -2,6 +2,7 @@ import {readFile,writeFile,mkdir,cp} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
+import {createHash} from 'node:crypto';
 const require=createRequire(import.meta.url);
 const {build}=require(require.resolve('esbuild',{paths:[path.dirname(require.resolve('wrangler/package.json'))]}));
 const online=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'), root=path.dirname(online);
@@ -55,4 +56,6 @@ await build({entryPoints:[path.join(online,'client/passkey-client.js')],outfile:
 s=s.replaceAll('new URL("../assets/world.json", import.meta.url)','new URL("./assets/world.json", import.meta.url)');
 await writeFile(path.join(out,'src/app.js'),s);
 await build({entryPoints:[path.join(out,'src/app.js')],outfile:path.join(out,'online-game.js'),bundle:true,format:'esm',platform:'browser',minify:true});
+const bundleVersion=createHash('sha256').update(await readFile(path.join(out,'online-game.js'))).digest('hex').slice(0,12);
+await writeFile(path.join(out,'index.html'),html.replace('src="./online-game.js"',`src="./online-game.js?v=${bundleVersion}"`));
 console.log('Interfaz online generada en '+out);
