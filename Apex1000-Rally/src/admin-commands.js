@@ -1,5 +1,26 @@
 import { ADMIN_ENABLED } from "./admin-ui.js";
 import { cash } from "./management.js";
+import { SAVE_KEY, encodeSave } from "./storage.js";
+
+export function resetPrototypeSave(
+  storage,
+  state,
+  { enabled = ADMIN_ENABLED, now = Date.now() } = {},
+) {
+  if (!enabled || state?.mode !== "single")
+    throw Error(
+      "El reset total sólo está disponible en el prototipo single player.",
+    );
+  const base = `${SAVE_KEY}-archive-reset-${now}`;
+  let backupKey = base,
+    suffix = 0;
+  while (storage.getItem(backupKey) !== null) backupKey = `${base}-${++suffix}`;
+  // Store the backup first. A quota/error must leave the active game intact.
+  storage.setItem(backupKey, encodeSave(state));
+  // An empty active slot starts onboarding on reload. Keep other saves/settings.
+  storage.setItem(SAVE_KEY, "");
+  return backupKey;
+}
 
 export function injectMoney(state, amount, { enabled = ADMIN_ENABLED } = {}) {
   if (!enabled || state?.mode !== "single")

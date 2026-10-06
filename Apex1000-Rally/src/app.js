@@ -36,7 +36,7 @@ import {
 } from "./workshop.js";
 import { repairQuote } from "./part-maintenance.js";
 import { adminBar, ADMIN_ENABLED } from "./admin-ui.js";
-import { injectMoney } from "./admin-commands.js";
+import { injectMoney, resetPrototypeSave } from "./admin-commands.js";
 import {
   dashboardHTML,
   stopChecklistHTML,
@@ -163,7 +163,7 @@ let state = null,
   geo = null,
   busy = false,
   bootWarning = "";
-const ui = {
+const initialUI = () => ({
   tab: "home",
   vehicleId: "hilux",
   createShieldId: 1,
@@ -172,7 +172,8 @@ const ui = {
   drafts: {},
   marketType: "engine",
   marketCondition: 100,
-};
+});
+const ui = initialUI();
 try {
   const raw = localStorage.getItem(SAVE_KEY);
   if (raw) {
@@ -961,6 +962,8 @@ document.addEventListener("click", (e) => {
         "next-race",
         "finish-grid",
         "inject-money",
+        "admin-reset",
+        "confirm-admin-reset",
       ].includes(a)
     )
       return;
@@ -1273,23 +1276,32 @@ document.addEventListener("click", (e) => {
         },
         "Apex1000-Rally-resultado.json",
       );
-    else if (a === "new-race") {
+    else if (a === "admin-reset") {
+      const dialog = document.createElement("dialog");
+      dialog.className = "dialog";
+      dialog.innerHTML = `<h2>Reset total del prototipo</h2><p>Vas a reiniciar toda la partida: escudería, director, dinero, nivel, autos, piezas, personal, inscripciones, carreras y reloj. Volverás a la creación de escudería.</p><p>Se conserva un respaldo local de la partida actual. También podés exportarlo antes de continuar.</p><div class="button-row"><button class="button ghost" data-action="close-modal">Cancelar</button><button class="button ghost" data-action="export">Exportar partida</button><button class="button admin-reset" data-action="confirm-admin-reset">Confirmar reset total</button></div>`;
+      $("#modal-root").replaceChildren(dialog);
+      dialog.showModal();
+    } else if (a === "new-race") {
       const dialog = document.createElement("dialog");
       dialog.className = "dialog";
       dialog.innerHTML = `<h2>Inscribir un nuevo equipo</h2><p>Se conservará un respaldo de la partida actual en este navegador. También podés exportarla antes de comenzar.</p><div class="button-row"><button class="button ghost" data-action="close-modal">Volver</button><button class="button primary" data-action="confirm-new">Crear otra carrera</button></div>`;
       $("#modal-root").replaceChildren(dialog);
       dialog.showModal();
-    } else if (a === "confirm-new") {
-      localStorage.setItem(
-        SAVE_KEY + "-archive-" + Date.now(),
-        encodeSave(state),
-      );
+    } else if (a === "confirm-new" || a === "confirm-admin-reset") {
+      resetPrototypeSave(localStorage, state, { enabled: true });
       state = null;
-      ui.drafts = {};
-      ui.tab = "race";
+      Object.assign(ui, initialUI());
+      saveTick = 0;
+      lastWall = Date.now();
+      instrumentTime = 0;
+      bootWarning = "";
+      document.body.classList.remove("map-fullscreen");
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
       fitMap();
       $("#modal-root").replaceChildren();
       render();
+      toast("Partida reiniciada. Creá una nueva escudería.");
     }
   } catch (err) {
     toast(err.message);
