@@ -1,10 +1,10 @@
-# Tutorial offline 1.6.2
+# Tutorial offline 1.6.3
 
 Corrección de llegada: el cambio de etapa requiere recorrer sus kilómetros. No
 hay traslado automático a los cinco minutos. Combustible agotado o límite de 40
 minutos cierran el intento en su posición real, con el informe correspondiente.
 
-El tutorial incluye un mapa vectorial del recorrido virtual, seis equipos en
+El tutorial incluye un fondo satelital ilustrado local con trazado vectorial del recorrido virtual, seis equipos en
 movimiento, posición e intervalos, zoom ×1–×16 y pantalla completa. La interfaz
 del visor permanece montada durante las transiciones y funciona sin consultas
 al Worker ni descarga de mapas externos.
@@ -17,7 +17,7 @@ No consulta el Worker ni modifica dinero, inventario, estadísticas o inscripcio
 El Worker conserva 1.5.0: esta entrega sólo publica archivos estáticos, sin SQL ni
 migraciones. Ver `tutorial/README.md` y `tests/tutorial.test.mjs`.
 
-# Apex1000 Rally Online 1.6.2
+# Apex1000 Rally Online 1.6.3
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/
 API: https://apex1000-online.emanuelmkt.workers.dev
@@ -141,3 +141,5 @@ Nunca publicar node_modules, .wrangler, .dev.vars, .env, claves o archivos de qa
 ## Catálogo online 1.4
 
 Ocho vehículos con pesos operativos de juego diferenciados, 18 modelos de repuestos de marca y especialistas activos por pieza. Ver [CATALOGO-1.4.md](CATALOGO-1.4.md). La fuente editable sigue siendo Google Sheets y el presupuesto de equipos nuevos es 30.000 cr.
+
+Guía estética de mapas para futuros circuitos: `../docs/mapas/GUIA-ESTETICA-MAPAS.md`. Incluye ficha, prompt exacto y plantilla reutilizable.

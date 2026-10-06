@@ -1,11 +1,11 @@
-# Incremental online 1.6.2 · Tutorial y visor virtual
+# Incremental online 1.6.3 · Tutorial y visor virtual
 
 Las etapas sólo cambian cuando el auto llega al campamento. Una demora sigue
 en ruta; sin combustible o al agotar 40 minutos, el intento termina en su posición
 real. Los rivales también alcanzan sus campamentos por distancia. Los guardados
 anteriores que ya saltaron etapas se respaldan y reinician conservando el setup.
 
-Mapa virtual de cinco superficies con los seis equipos, zoom hasta ×16,
+Mapa satelital ilustrado de cinco superficies con los seis equipos, zoom hasta ×16,
 seguimiento, intervalos, desplazamiento y pantalla completa. Funciona offline y
 mantiene el visor y su selección al cambiar de etapa.
 
@@ -124,3 +124,6 @@ Nunca publicar node_modules, .wrangler, .dev.vars, .env, claves o archivos de qa
 ## Catálogo online 1.4
 
 Ocho vehículos con pesos operativos de juego diferenciados, 18 modelos de repuestos de marca y especialistas activos por pieza. Ver [CATALOGO-1.4.md](online/CATALOGO-1.4.md). La fuente editable sigue siendo Google Sheets y el presupuesto de equipos nuevos es 30.000 cr.
+
+Guía estética de mapas para futuros circuitos: `docs/mapas/GUIA-ESTETICA-MAPAS.md`
+(en esta carpeta raíz del juego). Incluye ficha, prompt exacto y plantilla reutilizable.

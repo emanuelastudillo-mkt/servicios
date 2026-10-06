@@ -501,7 +501,7 @@ footer,
 }
 .viewer-map-box {
   aspect-ratio: 1200/460;
-  background: #101f28;
+  background: #343e30;
   border: 1px solid #4d626b;
   border-radius: 10px;
   overflow: hidden;
@@ -519,15 +519,21 @@ footer,
   cursor: grabbing;
 }
 .map-terrain-label {
-  fill: #c0d4d3;
-  opacity: 0.55;
-  font-size: 13px;
-  letter-spacing: 3px;
-  font-weight: 700;
+  fill: #f5f0df;
+  font-size: 11px;
+  letter-spacing: 1.3px;
+  font-weight: 750;
+  paint-order: stroke;
+  stroke: #142017;
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 .map-coordinate {
-  fill: #9bb7bd;
-  font: 10px system-ui;
+  fill: #f2eedf;
+  paint-order: stroke;
+  stroke: #1a271c;
+  stroke-width: 2px;
+  font: 9px system-ui;
   letter-spacing: 1.6px;
 }
 .map-stop text {
@@ -543,7 +549,10 @@ footer,
   stroke-linejoin: round;
 }
 .map-compass text {
-  fill: #c7d7d7;
+  fill: #f2eedf;
+  paint-order: stroke;
+  stroke: #142017;
+  stroke-width: 2px;
   font: 10px system-ui;
 }
 .map-marker {
@@ -687,4 +696,13 @@ footer,
   inset: 0;
   z-index: 9999;
   margin: 0;
+}
+
+.map-terrain-label tspan {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1.8px;
+}
+.map-terrain-image {
+  pointer-events: none;
 }

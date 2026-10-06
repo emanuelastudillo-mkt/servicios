@@ -5,8 +5,8 @@ import {
   trainingField,
   routePoint,
   cameraBounds,
-} from "./viewer-model.js?v=1.6.2";
-import { STAGES } from "./engine.js?v=1.6.2";
+} from "./viewer-model.js?v=1.6.3";
+import { STAGES } from "./engine.js?v=1.6.3";
 const fmt = (n) =>
   n.toLocaleString("es-AR", {
     minimumFractionDigits: 2,
@@ -16,32 +16,10 @@ const path = (points) =>
   points
     .map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`)
     .join(" ");
+export const TERRAIN_ASSET = "./assets/tutorial-terrain-v1.png";
 function scenery() {
-  // Original vector terrain. No map tiles, external fonts or image requests.
-  return `<defs><linearGradient id="terrain-night" x2="0" y2="1"><stop stop-color="#253c43"/><stop offset="1" stop-color="#10202b"/></linearGradient><pattern id="terrain-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#b6d6d7" stroke-opacity=".055"/></pattern><pattern id="sand-lines" width="80" height="32" patternUnits="userSpaceOnUse"><path d="M-10 20Q15 0 40 20T90 20" fill="none" stroke="#e7bd72" stroke-opacity=".13"/></pattern><pattern id="gravel-grain" width="33" height="27" patternUnits="userSpaceOnUse"><path d="m8 8 5-2 2 5-6 2Z M24 20l3-2 3 3-4 2Z" fill="#d0be91" fill-opacity=".18"/></pattern><g id="mountain-mark"><path d="m0 66 36-62 19 31 12-20 29 51Z" fill="#52747c" stroke="#91b5bd" stroke-opacity=".4"/><path d="m23 25 13-21 13 22-13-6Z" fill="#c4d6d3" fill-opacity=".7"/></g><g id="rock-mark"><path d="m0 22 9-19 23 2 14 17-7 17-27-1Z" fill="#65606f" stroke="#bca7c7" stroke-opacity=".4"/><path d="m9 3 8 23 15-21M17 26l-5 12" fill="none" stroke="#a192ab" stroke-opacity=".4"/></g></defs><rect width="1200" height="460" fill="url(#terrain-night)"/><path d="M0 240Q130 95 285 195L278 460H0Z" fill="#655d43" fill-opacity=".24"/><path d="M262 90Q410 80 493 235L494 460H270Z" fill="#ad7837" fill-opacity=".19"/><path d="M263 130H493V460H263Z" fill="url(#sand-lines)"/><path d="M0 250H272V460H0Z" fill="url(#gravel-grain)"/><path d="M475 80Q560 0 740 70L748 270 640 302 473 328Z" fill="#608c97" fill-opacity=".18"/><path d="M719 146Q897 114 953 328L909 432 728 393Z" fill="#8b6d97" fill-opacity=".15"/><path d="M914 56Q1080 9 1200 0V367L946 360Z" fill="#617c91" fill-opacity=".14"/><path d="M488 425Q560 360 556 320T658 228T724 28" fill="none" stroke="#69b7c6" stroke-opacity=".2" stroke-width="15"/><path d="M488 425Q560 360 556 320T658 228T724 28" fill="none" stroke="#acd8de" stroke-opacity=".16" stroke-width="3"/>${[
-    [492, 56, 1],
-    [553, 26, 1.3],
-    [640, 53, 0.9],
-    [543, 304, 0.7],
-  ]
-    .map(
-      ([x, y, z]) =>
-        `<use href="#mountain-mark" transform="translate(${x} ${y}) scale(${z})"/>`,
-    )
-    .join("")}${[
-    [744, 310, 1.2],
-    [798, 155, 0.7],
-    [833, 345, 0.9],
-    [896, 182, 0.6],
-    [717, 230, 0.5],
-  ]
-    .map(
-      ([x, y, z]) =>
-        `<use href="#rock-mark" transform="translate(${x} ${y}) scale(${z})"/>`,
-    )
-    .join(
-      "",
-    )}<g fill="none" stroke="#f3d49f" stroke-opacity=".12"><path d="M286 179q45-46 100 0t72-12M302 204q45-46 100 0t72-12M290 369q50-40 95 0t87-8M319 394q50-40 95 0t70-8"/></g><g fill="#d6e2df" fill-opacity=".14">${Array.from({ length: 24 }, (_, i) => `<rect x="${968 + (i % 6) * 25}" y="${302 + Math.floor(i / 6) * 23}" width="${12 + (i % 3) * 3}" height="14" rx="2"/>`).join("")}</g><rect width="1200" height="460" fill="url(#terrain-grid)"/><g class="map-terrain-label"><text x="82" y="217">RIPIO</text><text x="342" y="159">DUNAS · 46 °C</text><text x="546" y="103">MONTAÑA</text><text x="755" y="388">CAÑÓN DE ROCA</text><text x="1000" y="269">ASFALTO</text></g><text x="34" y="43" class="map-coordinate">HORIZONTE VIRTUAL / SECTOR DE ENTRENAMIENTO</text><g transform="translate(1154 389)" class="map-compass"><path d="m0-27 8 28-8-5-8 5Z" fill="#e6c18a"/><text y="-34" text-anchor="middle">N</text></g>`;
+  // Terrain is a local illustration. Geometry, labels and live cars stay in SVG.
+  return `<defs><linearGradient id="terrain-fallback" x2="1" y2="0"><stop stop-color="#66614a"/><stop offset=".32" stop-color="#b29155"/><stop offset=".52" stop-color="#626859"/><stop offset=".72" stop-color="#965e43"/><stop offset="1" stop-color="#6c7853"/></linearGradient><linearGradient id="map-edge-shade" x2="0" y2="1"><stop stop-color="#071310" stop-opacity=".1"/><stop offset=".5" stop-color="#071310" stop-opacity="0"/><stop offset="1" stop-color="#071310" stop-opacity=".18"/></linearGradient></defs><rect width="1200" height="460" fill="url(#terrain-fallback)"/><image class="map-terrain-image" href="${TERRAIN_ASSET}" x="0" y="0" width="1200" height="460" preserveAspectRatio="none"/><rect width="1200" height="460" fill="url(#map-edge-shade)" pointer-events="none"/><g class="map-terrain-label"><text x="89" y="227">QUEBRADA DE ENTRADA<tspan x="89" dy="16">RIPIO</tspan></text><text x="313" y="193">DUNAS DEL HORNO<tspan x="313" dy="16">ARENA · 46 °C</tspan></text><text x="501" y="96">PASO DEL CÓNDOR<tspan x="501" dy="16">MONTAÑA</tspan></text><text x="767" y="394">CAÑÓN DE LAS AGUJAS<tspan x="767" dy="16">ROCA</tspan></text><text x="989" y="294">RECTA DEL HORIZONTE<tspan x="989" dy="16">ASFALTO</tspan></text></g><text x="28" y="31" class="map-coordinate">HORIZONTE VIRTUAL / TERRENO ILUSTRADO</text><g transform="translate(1154 399)" class="map-compass"><path d="m0-27 8 28-8-5-8 5Z" fill="#f0ead8" stroke="#182219" stroke-width="1"/><text y="-34" text-anchor="middle">N</text></g>`;
 }
 function mapSVG() {
   const stops = [
@@ -51,7 +29,7 @@ function mapSVG() {
       name: i === 4 ? "META · 40 KM" : `CAMPAMENTO ${i + 1}`,
     })),
   ];
-  return `<svg id="training-map" viewBox="0 0 1200 460" aria-label="Mapa del recorrido virtual de cinco etapas" role="group">${scenery()}${ROUTE.map((r, i) => `<path d="${path(r.points)}" fill="none" stroke="#081117" stroke-width="16" stroke-linecap="round"/><path d="${path(r.points)}" fill="none" stroke="${r.color}" stroke-width="7" stroke-linecap="round"/><path d="${path(r.points)}" fill="none" stroke="#f2eee1" stroke-opacity=".35" stroke-width="1" ${i === 4 ? 'stroke-dasharray="6 7"' : ""}/>`).join("")}${stops
+  return `<svg id="training-map" viewBox="0 0 1200 460" aria-label="Mapa del recorrido virtual de cinco etapas" role="group">${scenery()}${ROUTE.map((r, i) => `<path d="${path(r.points)}" fill="none" stroke="#081117" stroke-width="6" stroke-opacity=".8" stroke-linecap="round" vector-effect="non-scaling-stroke"/><path d="${path(r.points)}" fill="none" stroke="${r.color}" stroke-width="3.5" stroke-linecap="round" vector-effect="non-scaling-stroke"/><path d="${path(r.points)}" fill="none" stroke="#f2eee1" stroke-opacity=".95" stroke-width="1.4" vector-effect="non-scaling-stroke" ${i === 4 ? 'stroke-dasharray="6 7"' : ""}/>`).join("")}${stops
     .map((stop, i) => {
       const p = routePoint(stop.km);
       return `<g class="map-stop" transform="translate(${p.x} ${p.y})"><circle r="10" fill="#12242c" stroke="#d7e5df" stroke-width="2"/><text y="4" text-anchor="middle">${i === 5 ? "⚑" : i}</text><text y="${i % 2 ? 33 : -24}" text-anchor="middle" class="map-stop-name">${stop.name}</text></g>`;
@@ -73,6 +51,12 @@ export function createRaceViewer(root, actions = {}) {
       "afterbegin",
       `<button type="button" data-viewer="pause">Pausar simulación</button><select id="viewer-speed-control" aria-label="Velocidad del visor"><option value="1">×1</option><option value="2">×2</option><option value="10">×10</option></select><button type="button" data-viewer="plan">Configurar etapa</button>`,
     );
+  const terrain = root.querySelector(".map-terrain-image");
+  terrain.addEventListener("error", () => {
+    root.classList.add("terrain-unavailable");
+    root.querySelector(".viewer-legend span").textContent =
+      "El fondo no pudo cargarse. El trazado y los rivales siguen disponibles; recargá conectado para guardar el mapa offline.";
+  });
   const svg = root.querySelector("svg"),
     teamSelect = root.querySelector("#viewer-team");
   const write = (id, value) => {

@@ -13,9 +13,9 @@ import {
   telemetry,
   advanceTraining,
   resumeTraining,
-} from "./engine.js?v=1.6.2";
-import { createRaceViewer } from "./viewer.js?v=1.6.2";
-import { trainingField } from "./viewer-model.js?v=1.6.2";
+} from "./engine.js?v=1.6.3";
+import { createRaceViewer } from "./viewer.js?v=1.6.3";
+import { trainingField } from "./viewer-model.js?v=1.6.3";
 const $ = (q) => document.querySelector(q);
 const raceViewer = createRaceViewer($("#race-viewer"), {
   onPause() {

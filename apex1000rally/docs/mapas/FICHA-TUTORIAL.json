@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "tutorial-horizonte",
+  "regionType": "ficticia",
+  "styleGuide": "GUIA-ESTETICA-MAPAS.md",
+  "prompt": "PROMPT-TUTORIAL-TERRENO.txt",
+  "asset": "../../tutorial/assets/tutorial-terrain-v1.png",
+  "raster": {
+    "width": 2020,
+    "height": 779,
+    "bytes": 3683712,
+    "format": "PNG",
+    "sha256": "71ae8ef763fc34a9df70e532722774c64d9665335d19bcfe668a73e1b8b1ce78"
+  },
+  "world": {
+    "width": 1200,
+    "height": 460,
+    "origin": "top-left",
+    "north": "up"
+  },
+  "lighting": "northwest, soft daylight, short southeast shadows",
+  "geometry": "../../tutorial/viewer-model.js: ROUTE (unchanged)",
+  "stages": [
+    {
+      "name": "Quebrada de entrada",
+      "km": 8,
+      "terrain": "ripio",
+      "heatC": 30,
+      "corridorPercent": {
+        "x": [5, 22],
+        "y": [57, 75]
+      }
+    },
+    {
+      "name": "Dunas del horno",
+      "km": 7,
+      "terrain": "arena",
+      "heatC": 46,
+      "corridorPercent": {
+        "x": [22, 39],
+        "y": [53, 74]
+      }
+    },
+    {
+      "name": "Paso del Cóndor",
+      "km": 6,
+      "terrain": "montaña",
+      "heatC": 18,
+      "corridorPercent": {
+        "x": [39, 58],
+        "y": [28, 59]
+      }
+    },
+    {
+      "name": "Cañón de las agujas",
+      "km": 7,
+      "terrain": "roca",
+      "heatC": 34,
+      "corridorPercent": {
+        "x": [58, 76],
+        "y": [35, 71]
+      }
+    },
+    {
+      "name": "Recta del horizonte",
+      "km": 12,
+      "terrain": "asfalto",
+      "heatC": 25,
+      "corridorPercent": {
+        "x": [75, 95],
+        "y": [21, 62]
+      }
+    }
+  ],
+  "overlays": ["labels", "route", "start", "camps", "finish", "cars", "ranks"],
+  "source": "built-in imagegen, original terrain, user references used for art direction"
+}

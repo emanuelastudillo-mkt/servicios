@@ -160,8 +160,8 @@ test("offline cache includes both map modules; map is mounted outside rerendered
       new URL("../tutorial/viewer.js", import.meta.url),
       "utf8",
     );
-  assert.match(sw, /viewer\.js\?v=1\.6\.2/);
-  assert.match(sw, /viewer-model\.js\?v=1\.6\.2/);
+  assert.match(sw, /viewer\.js\?v=1\.6\.3/);
+  assert.match(sw, /viewer-model\.js\?v=1\.6\.3/);
   assert.ok(html.indexOf('id="race-viewer"') < html.indexOf('id="app"'));
   assert.doesNotMatch(viewer, /fetch\(|workers\.dev|ApexAPI|sessionStorage/);
 });
@@ -222,5 +222,53 @@ test("rivals stop only at their own exact camp coordinates", () => {
     assert.deepEqual(rival.location, routePoint(8));
     assert.equal(rival.speed, 0);
     assert.equal(rival.phase, "Asistencia en campamento");
+  }
+});
+test("illustrated terrain is a project-local PNG aligned with the world and cached offline", async () => {
+  const viewer = await readFile(
+    new URL("../tutorial/viewer.js", import.meta.url),
+    "utf8",
+  );
+  const sw = await readFile(
+    new URL("../tutorial/sw.js", import.meta.url),
+    "utf8",
+  );
+  const png = await readFile(
+    new URL("../tutorial/assets/tutorial-terrain-v1.png", import.meta.url),
+  );
+  assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  const width = png.readUInt32BE(16),
+    height = png.readUInt32BE(20);
+  assert.ok(width >= 2000 && height >= 750);
+  assert.ok(Math.abs(width / height / (WORLD.width / WORLD.height) - 1) < 0.01);
+  assert.ok(png.length < 5 * 1024 * 1024);
+  assert.match(
+    viewer,
+    /TERRAIN_ASSET = "\.\/assets\/tutorial-terrain-v1\.png"/,
+  );
+  assert.match(viewer, /preserveAspectRatio="none"/);
+  assert.match(viewer, /vector-effect="non-scaling-stroke"/);
+  assert.match(viewer, /terrain-unavailable/);
+  assert.match(sw, /\.\/assets\/tutorial-terrain-v1\.png/);
+});
+test("map art specification matches stage distances, temperatures and delivered raster", async () => {
+  const spec = JSON.parse(
+    await readFile(
+      new URL("../docs/mapas/FICHA-TUTORIAL.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const png = await readFile(
+    new URL("../tutorial/assets/tutorial-terrain-v1.png", import.meta.url),
+  );
+  assert.equal(spec.raster.width, png.readUInt32BE(16));
+  assert.equal(spec.raster.height, png.readUInt32BE(20));
+  assert.equal(spec.raster.bytes, png.length);
+  assert.equal(spec.world.width, WORLD.width);
+  assert.equal(spec.world.height, WORLD.height);
+  for (let i = 0; i < 5; i++) {
+    assert.equal(spec.stages[i].name, STAGES[i].name);
+    assert.equal(spec.stages[i].km, STAGES[i].km);
+    assert.equal(spec.stages[i].heatC, STAGES[i].heat);
   }
 });

@@ -4,7 +4,7 @@ import {
   telemetry,
   DRIVERS,
   rivalReference,
-} from "./engine.js?v=1.6.2";
+} from "./engine.js?v=1.6.3";
 export const WORLD = { width: 1200, height: 460, km: 40 };
 export const TEAMS = [
   {

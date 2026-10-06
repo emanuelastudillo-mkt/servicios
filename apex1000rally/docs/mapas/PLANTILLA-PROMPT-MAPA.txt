@@ -1,0 +1,12 @@
+Use case: stylized-concept
+Asset type: illustrated satellite terrain background for an interactive rally game.
+Primary request: original top-down terrain for {NOMBRE_CARRERA}, host/start country {PAIS}, region {REGION}, season {ESTACION}.
+Reference: use the approved Apex1000 tutorial terrain only for art direction: painterly satellite relief, continuous geography, natural textures. Do not copy its geography. Other reference images are style evidence, not authorization to copy logos or map layouts.
+World coordinates: {ANCHO_MUNDO} x {ALTO_MUNDO}; north up. Target raster {ANCHO_PX} x {ALTO_PX}. Vertical orthographic camera, edge-to-edge terrain, no horizon.
+Confirmed setting: {CIUDADES_RELIEVE_VEGETACION_CLIMA}.
+Artistic approximations: {APROXIMACIONES_DECLARADAS}.
+For each stage: {NOMBRE, KM, SUPERFICIE, CLIMA, CORREDOR_XY_EN_PORCENTAJES, PARADAS_Y_CRUCES}. Coordinates start at top-left. Treat this as the composition guide, not text to render.
+Sculpt terrain around the traversable corridors. Match the specified vegetation, geology and climate. Dunes need wind crests; gravel needs erosion fans and stony scrub; mountains need plausible passes; canyon needs layered walls and valley floors; asphalt needs proportionate roads/infrastructure. Avoid obstacles across the corridor unless the stage explicitly contains a bridge/pass/ford.
+Style: premium rally game cartography, hand-painted satellite illustration, believable shaded relief and fine material texture. Large landforms, medium vegetation masses, small surface detail. Soft natural biome transitions, never colored rectangular sectors.
+Light: uniform soft daylight from northwest, short shadows toward southeast. Natural muted earth and olive palette adapted to the region; sufficient midtone detail for white route overlays.
+Output ONLY terrain. No labels, letters, numerals, country flag, compass, grid, borders, logo, watermark, race route, player marker, vehicle or UI. All those belong in the interactive overlay. No clouds, haze, horizon, neon, giant decorative landmarks, copy of another game's geography, or unjustified water crossings.
