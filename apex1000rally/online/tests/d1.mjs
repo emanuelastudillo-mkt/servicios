@@ -8,6 +8,7 @@ export function database() {
       "utf8",
     ),
   );
+  sql.exec(readFileSync(new URL("../migrations/0002_passkeys.sql", import.meta.url),"utf8"));
   let reads = 0,
     writes = 0;
   const db = {
@@ -17,6 +18,7 @@ export function database() {
       const p = {
         params: [],
         bind(...args) {
+          if (args.length > 100) throw Error('D1: más de 100 parámetros en una consulta');
           this.params = args;
           return this;
         },
@@ -48,6 +50,7 @@ export function database() {
       return p;
     },
     async batch(statements) {
+      if (statements.length > 40) throw Error('El lote no deja margen dentro de Workers Free');
       sql.exec("BEGIN IMMEDIATE");
       try {
         const result = statements.map((s) => s.execute());

@@ -1,16 +1,21 @@
 {
   "name": "apex1000-online",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "build": "node scripts/build-client.mjs",
+    "deploy": "node scripts/build-client.mjs && wrangler deploy",
     "db:local": "wrangler d1 migrations apply apex1000-online --local",
     "db:remote": "wrangler d1 migrations apply apex1000-online --remote",
     "test": "node --test --test-isolation=none tests/*.test.mjs"
   },
   "devDependencies": {
     "wrangler": "4.147.0"
+  },
+  "dependencies": {
+    "@simplewebauthn/browser": "14.0.0",
+    "@simplewebauthn/server": "14.0.3"
   }
 }

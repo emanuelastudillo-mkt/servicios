@@ -1,0 +1,172 @@
+.identity-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+.identity-form label {
+  margin: 0;
+  flex: 1;
+  min-width: 210px;
+}
+.identity-form > .button {
+  margin: 0;
+  height: 46px;
+}
+.identity-preview .director-label {
+  margin: 5px 0;
+  color: #a9bdcc;
+}
+.director-label strong {
+  color: #e8c184;
+}
+.shield-picker {
+  width: 100%;
+}
+.shield-picker > summary {
+  padding: 14px 0;
+  color: #e4c390;
+  cursor: pointer;
+}
+.shield-grid {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 12px;
+}
+.shield-option {
+  position: relative;
+  padding: 12px 6px;
+  background: linear-gradient(140deg, #20303e, #121c25);
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.shield-option:hover {
+  border-color: #adc1d4;
+  background: #2b3e50;
+}
+.shield-option:focus-visible {
+  outline: 3px solid #e6bd79;
+  outline-offset: 3px;
+}
+.shield-option .team-shield {
+  max-width: 86px;
+  height: auto;
+  aspect-ratio: 1;
+}
+.shield-option strong {
+  display: block;
+  font-size: 12px;
+  margin: 8px 0 3px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.shield-option small {
+  display: block;
+  color: #a1b7ca;
+  font-size: 10px;
+}
+.shield-option.selected {
+  background: linear-gradient(145deg, #55432a, #2c281f);
+  border-color: #e5b365;
+  box-shadow: 0 0 0 1px #e5b365;
+}
+.shield-check {
+  position: absolute;
+  right: 6px;
+  top: 5px;
+  color: #ffd18b;
+  font-weight: 700;
+}
+.create-identity-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #101923;
+  border-radius: 12px;
+  margin: 12px 0;
+}
+.create-identity-preview .team-shield {
+  width: 66px;
+  height: 66px;
+}
+.create-identity-preview span {
+  color: #a5b7c7;
+}
+.enlist .shield-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.enlist .shield-option .team-shield {
+  max-width: 64px;
+}
+.home-identity {
+  flex-wrap: wrap;
+}
+.home-identity .director-label {
+  display: block;
+  width: 100%;
+  text-align: right;
+  font-size: 12px;
+}
+.hud-team .director-label {
+  color: #d8bf9c;
+  font-size: 11px;
+}
+.identity-panel {
+  overflow: visible;
+}
+@media (max-width: 1050px) {
+  .shield-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+@media (max-width: 650px) {
+  .shield-grid,
+  .enlist .shield-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .identity-panel {
+    padding: 16px;
+  }
+  .identity-form {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .identity-form label {
+    min-width: 0;
+    width: 100%;
+  }
+  .identity-form .button {
+    width: 100%;
+  }
+  .identity-preview {
+    gap: 12px;
+  }
+  .identity-preview .team-shield {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+  }
+  .identity-preview h2 {
+    font-size: 22px;
+    overflow-wrap: anywhere;
+  }
+  .shield-option {
+    padding: 8px 3px;
+  }
+  .shield-option strong {
+    font-size: 11px;
+  }
+  .shield-option .team-shield {
+    max-width: 68px;
+  }
+  .identity-panel details {
+    min-width: 0;
+  }
+  .home-identity .director-label {
+    text-align: left;
+  }
+}

@@ -186,6 +186,7 @@ export function createRace({
   shieldId = 1,
   catalog = CATALOG,
   continuation = false,
+  rivalCount = 11,
 } = {}) {
   const username = directorName(director);
   if (
@@ -254,7 +255,7 @@ export function createRace({
     "Estepa Racing",
     "Altiplano Crew",
   ];
-  names.forEach((n, i) => {
+  names.slice(0, rivalCount).forEach((n, i) => {
     const t = newTeam(
       `rival-${i + 1}`,
       n,

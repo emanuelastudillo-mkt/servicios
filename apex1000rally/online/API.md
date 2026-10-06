@@ -1,13 +1,15 @@
-# API online 1.0
+# API online 1.1
 
-Usar HTTPS y mismo origen. El servidor obtiene el director de la cookie; nunca aceptar `teamId`, saldo, kilómetros ni tiempos enviados por el cliente. Un navegador no calcula resultados autoritativos.
+Usar HTTPS. El servidor obtiene el director de la sesión (cookie o Bearer); nunca aceptar `teamId`, saldo, kilómetros ni tiempos enviados por el cliente. Un navegador no calcula resultados autoritativos.
 
 ## Endpoints
 
 | Método / ruta                                  | Uso                                                                                                                                                      |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /api/register`                           | `{username,email,password,teamName,shieldId,vehicleId}`; último opcional, default `niva`. Retorna usuario y cookie.                                      |
-| `POST /api/login`                              | `{login,password}`; usuario o email.                                                                                                                     |
+| `POST /api/passkey/register/options` | `{username,email,teamName,shieldId,vehicleId}` → `{challengeId,options}` para WebAuthn. |
+| `POST /api/passkey/register/verify` | `{challengeId,response}` con la respuesta WebAuthn → usuario y sesión. |
+| `POST /api/passkey/login/options` | `{}` → desafío y opciones para credencial descubrible. |
+| `POST /api/passkey/login/verify` | `{challengeId,response}` → usuario y sesión. |
 | `POST /api/logout`                             | Cierra sesión y cookie.                                                                                                                                  |
 | `GET /api/bootstrap`                           | Sesión requerida. Usuario, revisión, fecha UTC en ms, equipo completo, catálogo, stock, ofertas propias, calendario, inscripciones y proyección pública. |
 | `GET /api/public`                              | BOT, stock/modelos iniciales, directores públicos y carreras con posiciones. Caché 30 s. Primera inicialización mediante cron o registro.                |
@@ -16,7 +18,7 @@ Usar HTTPS y mismo origen. El servidor obtiene el director de la cookie; nunca a
 | `GET /api/profile?id=USER_ID`                  | Estadísticas históricas agrupadas por circuito y modelo, sin email ni finanzas privadas.                                                                 |
 | `GET /api/ledger?limit=50&before=SEQUENCE`     | Economía propia, más recientes primero; usar última secuencia como cursor de página siguiente.                                                           |
 | `GET /api/health`                              | Salud/versión, sin D1.                                                                                                                                   |
-| `POST /api/command`                            | Intención validada; requiere cookie e `Idempotency-Key`. Retorna confirmación mínima.                                                                    |
+| `POST /api/command`                            | Intención validada; requiere sesión e `Idempotency-Key`. Retorna confirmación mínima.                                                                    |
 
 `rules=online-1` filtra rankings por versión de reglas (default actual). `vehicle` es modelo (`niva`, `hilux`...), no ID de una unidad del garaje. Los récords son registros de llegadas; un director puede tener varios tiempos. Para mostrar su mejor marca agrupá por director o agregá una consulta específica. `race` usa `eventId` completo, incluyendo fecha, tomado del calendario. La clasificación de una edición cerrada es definitiva.
 
@@ -60,16 +62,16 @@ Todos se envían a `/api/command`; los ID se obtienen del `bootstrap`.
 {"type":"enqueue-work","kind":"reliability","id":"CAR_ID","points":2}
 {"type":"enqueue-work","kind":"part","id":"PIECE_ID","points":5}
 {"type":"cancel-work","id":"JOB_ID"}
-{"type":"assign-mechanic","id":"MECHANIC_ID","place":"base"}
+{"type":"assign-mechanic","id":"MECHANIC_ID","place":"workshop"}
 {"type":"bid","kind":"mechanic","personId":"PERSON_ID","salary":3000}
 {"type":"cancel-bid","id":"AUCTION_ID"}
 {"type":"renew-contract","kind":"driver","id":"DRIVER_ID"}
 {"type":"release","kind":"mechanic","id":"MECHANIC_ID"}
-{"type":"choose-shield","id":12}
+{"type":"choose-shield","shieldId":12}
 {"type":"rename-team","name":"Pampa Raid"}
 ```
 
-Para `save-plan`, copiar un plan completo de `entries[].plans`, modificar opciones y enviarlo entero; `{}` es ilustrativo, no válido. `stageIndex` comienza en cero. `enqueue-work kind=part` repara una pieza. La asignación del mecánico utiliza `base`/`race`. `kind` de personal admite `driver`/`mechanic`. `tradeId` es unidad propia opcional, no modelo.
+Para `save-plan`, copiar un plan completo de `entries[].plans`, modificar opciones y enviarlo entero; `{}` es ilustrativo, no válido. `stageIndex` comienza en cero. `enqueue-work kind=part` repara una pieza. La asignación del mecánico utiliza `workshop`/`race`. `kind` de personal admite `driver`/`mechanic`. `tradeId` es unidad propia opcional, no modelo.
 
 La inscripción guarda el auto activo y piloto; reserva todo el intervalo máximo. Si falta piloto, mecánico o auto disponible al largar se marca DNS y no se corre. En la versión actual esos DNS no producen fila de resultados ni premio. Vender/entregar un auto cancela sus inscripciones futuras. El kit de carrera queda bloqueado hasta el cierre global; los autos y piezas de reserva sí pueden trabajarse. Planes con piloto secundario que ya no esté en el equipo se reemplazan por el piloto inscrito al largar.
 
@@ -77,9 +79,11 @@ Estados: `scheduled`, `running`, `closed`. Cada equipo puede estar esperando, en
 
 ## Consistencia y autenticación
 
-Claves de 12–128 caracteres: HMAC con pepper secreto + PBKDF2 SHA-256 100.000 iteraciones, sal aleatoria por clave. Sesiones de siete días, token aleatorio de 256 bits y sólo hash en D1; cookie HttpOnly/SameSite Strict/Secure en HTTPS. Sin secretos ni tokens en localStorage. No hay recuperación de clave ni verificación de email implementadas.
+Passkeys ES256 con verificación de usuario, RP ID y origen. Desafíos de cinco minutos y un solo uso. Sesiones de siete días, token aleatorio de 256 bits; sólo hash en D1. Cookie HttpOnly/Secure/SameSite Strict en mismo origen. Para el frontend autorizado en otro origen, token Bearer devuelto al autenticar y conservado en sessionStorage. No hay recuperación de cuenta ni verificación de email implementadas.
 
-Intentos de acceso: 12 por IP en 15 minutos en D1. Acciones: 30/minuto por usuario mediante binding nativo, por ubicación Cloudflare (no límite global estricto). Protecciones de origen y validación de propiedad/presupuesto/stock en servidor. Retentar una acción conserva su clave, incluso tras refrescar: la interfaz final debe persistir únicamente la intención pendiente y su clave, nunca el saldo autoritativo.
+Sólo se admite Origin de ALLOWED_ORIGINS o del propio Worker; WebAuthn exige además AUTH_ORIGINS/RP_ID. OPTIONS responde con CORS para los orígenes permitidos. 60 intentos passkey por IP en 15 minutos; acciones 30/minuto por usuario y ubicación Cloudflare. Los endpoints /api/login y /api/register antiguos devuelven 410 en producción.
+
+GET /api/bootstrap?race=EVENT_ID agrega `view`, la proyección de interfaz con el equipo propio identificado como player y sólo atributos públicos del rival. `save-plans` admite hasta 24 filas `{stageIndex,plan}` para un eventId, en una sola transacción. El frontend mantiene la clave idempotente pendiente en sessionStorage para reintentar sin duplicar operaciones.
 
 La revisión se comprueba antes de guardar y todas las escrituras posteriores dependen del mismo `commit_key`; una colisión revierte o reintenta desde el estado reciente. No usar `INSERT OR REPLACE` para usuarios/stock. Los recibos tienen clave única usuario+acción. Cierre y premio quedan archivados de forma atómica con el estado actualizado.
 

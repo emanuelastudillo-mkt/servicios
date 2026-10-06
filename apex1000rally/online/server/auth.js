@@ -57,10 +57,12 @@ export function cookie(request, token = "", age = 0) {
   const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
   return `apex_session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${secure}`;
 }
+export function sessionToken(request) {
+  const bearer = request.headers.get("Authorization")?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];
+  return bearer || request.headers.get("Cookie")?.match(/(?:^|;\s*)apex_session=([a-f0-9]{64})(?:;|$)/)?.[1];
+}
 export async function session(request, db, now) {
-  const token = request.headers
-    .get("Cookie")
-    ?.match(/(?:^|;\s*)apex_session=([a-f0-9]{64})(?:;|$)/)?.[1];
+  const token = sessionToken(request);
   if (!token) return null;
   return db
     .prepare(
@@ -69,7 +71,7 @@ export async function session(request, db, now) {
     .bind(await digest(token), now)
     .first();
 }
-export async function limitAuth(request, db, now) {
+export async function limitAuth(request, db, now, maximum = 12) {
   const ip = request.headers.get("CF-Connecting-IP") || "local",
     span = 15 * 60000;
   const key = await digest(`${ip}/${Math.floor(now / span)}`);
@@ -79,7 +81,7 @@ export async function limitAuth(request, db, now) {
     )
     .bind(key, now + span)
     .first();
-  if (row.count > 12) {
+  if (row.count > maximum) {
     const e = Error("Demasiados intentos. Esperá 15 minutos.");
     e.status = 429;
     throw e;

@@ -1,5 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  "account_id": "d2cdef3f9ea09724bea15ce392e12016",
   "name": "apex1000-online",
   "main": "server/worker.js",
   "compatibility_date": "2026-10-06",
@@ -12,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "apex1000-online",
-      "database_id": "REEMPLAZAR_CON_ID_DE_D1",
+      "database_id": "f470cfe4-4ce6-40d3-b0d6-101a6468b21c",
       "migrations_dir": "migrations",
     },
   ],
@@ -27,6 +28,10 @@
   "vars": {
     "SEASON_EPOCH": "2026-10-07T03:00:00Z",
     "MAX_PLAYERS": "20",
+    "RP_ID": "emanuelmkt.com.ar",
+    "AUTH_ORIGINS": "https://emanuelmkt.com.ar",
+    "MAX_TICK_SECONDS": "120",
+    "ALLOWED_ORIGINS": "https://emanuelmkt.com.ar",
   },
-  "limits": { "cpu_ms": 30000 },
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 },
 }

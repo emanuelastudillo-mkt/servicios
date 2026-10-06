@@ -279,6 +279,7 @@ test("20 jugadores y cinco BOT: seis horas de simulación, estado compacto y ava
     db.sql.prepare("SELECT state_json FROM world").get().state_json,
   );
   assert.ok(bytes < 1800000, `Estado demasiado grande: ${bytes}`);
+  assert.ok(db.metrics().writes <= 40, 'La sala completa debe caber en un lote Free');
   console.log(
     JSON.stringify({
       loadPlayers: 20,

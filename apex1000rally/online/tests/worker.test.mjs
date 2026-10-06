@@ -9,6 +9,7 @@ const NOW = Date.parse("2026-10-06T12:00:00Z"),
   epoch = "2026-10-06T12:01:00Z";
 const env = () => ({
   DB: database(),
+  AUTH_MODE: "password-test",
   AUTH_PEPPER: "local-test-pepper-only-12345678901234567890",
   SEASON_EPOCH: epoch,
   MAX_PLAYERS: "20",

@@ -1,3 +1,6 @@
+import { passkeyOptions, verifyPasskey, toBase64 } from "./passkeys.js";
+import { viewWorld } from "./view.js";
+import { allowedOrigin, cors, browserSession } from "./origins.js";
 import {
   addDirector,
   advanceWorld,
@@ -17,6 +20,7 @@ import {
   randomToken,
   session,
   limitAuth,
+  sessionToken,
 } from "./auth.js";
 import { directorName } from "../../src/identity.js";
 const SESSION_SECONDS = 7 * 86400;
@@ -46,19 +50,13 @@ async function body(request) {
     bad("JSON inválido.");
   }
 }
-function sameOrigin(request) {
-  const origin = request.headers.get("Origin");
-  if (origin && origin !== new URL(request.url).origin)
-    bad("Origen no permitido.", 403);
-  if (request.headers.get("Sec-Fetch-Site") === "cross-site")
-    bad("Solicitud cruzada no permitida.", 403);
-}
+function sameOrigin(request, env) { allowedOrigin(request, env); }
 async function mutate(env, now, key, work, extras = []) {
   for (let attempt = 0; attempt < 4; attempt++) {
     const previous = await readWorld(env.DB, now, env.SEASON_EPOCH),
       w = previous.world;
     syncCatalog(w);
-    const sync = advanceWorld(w, now);
+    const sync = advanceWorld(w, now, Number(env.MAX_TICK_SECONDS || 60));
     if (!sync.caughtUp) {
       if (await commit(env.DB, previous, w, crypto.randomUUID()))
         bad(
@@ -112,7 +110,7 @@ async function register(request, env, now) {
         ).bind(tokenHash, id, now + SESSION_SECONDS * 1000, k),
     ],
   );
-  return json({ ok: true, user: { id, username } }, 201, {
+  return json({ ok: true, ...browserSession(request, token), user: { id, username } }, 201, {
     "Set-Cookie": cookie(request, token, SESSION_SECONDS),
   });
 }
@@ -144,10 +142,33 @@ async function login(request, env, now) {
     .bind(await digest(token), user.id, now + SESSION_SECONDS * 1000)
     .run();
   return json(
-    { ok: true, user: { id: user.id, username: user.username } },
+    { ok: true, ...browserSession(request, token), user: { id: user.id, username: user.username } },
     200,
     { "Set-Cookie": cookie(request, token, SESSION_SECONDS) },
   );
+}
+async function passkeyAccess(request, env, now, kind, step) {
+  const b=await body(request);
+  if(step==='options')return json(await passkeyOptions(request,env,now,kind,b));
+  const result=await verifyPasskey(env,now,kind,b), token=randomToken(), tokenHash=await digest(token);
+  const p=result.registration, user=p?{id:p.id,username:p.username}:result.user;
+  if(p) {
+    await mutate(env,now,crypto.randomUUID(),w=>{
+      if(w.engine.teams.length>=Number(env.MAX_PLAYERS||20))bad('Sala completa.',409);
+      addDirector(w,p.id,p.username,p.teamName,p.shieldId,p.vehicleId);
+    },[
+      (guard,k)=>env.DB.prepare(`INSERT INTO users(id,username,username_key,email,password_hash,created_at) SELECT ?,?,?,?,?,? WHERE ${guard}`).bind(p.id,p.username,p.username.normalize('NFKC').toLowerCase(),p.email,'passkey-only',now,k),
+      (guard,k)=>env.DB.prepare(`INSERT INTO passkeys(credential_id,user_id,public_key,counter,transports_json,created_at) SELECT ?,?,?,?,?,? WHERE ${guard}`).bind(result.credential.id,p.id,toBase64(result.credential.publicKey),result.credential.counter,JSON.stringify(result.credential.transports||[]),now,k),
+      (guard,k)=>env.DB.prepare(`INSERT INTO sessions(token_hash,user_id,expires_at) SELECT ?,?,? WHERE ${guard}`).bind(tokenHash,p.id,now+SESSION_SECONDS*1000,k)
+    ]);
+  } else {
+    const out=await env.DB.batch([
+      env.DB.prepare('UPDATE passkeys SET counter=? WHERE credential_id=? AND counter=?').bind(result.newCounter,result.credentialId,result.oldCounter),
+      env.DB.prepare('INSERT INTO sessions(token_hash,user_id,expires_at) SELECT ?,?,? WHERE changes()=1').bind(tokenHash,user.id,now+SESSION_SECONDS*1000)
+    ]);
+    if(!out[0].meta.changes)bad('Hubo otro acceso simultáneo. Intentá nuevamente.',409);
+  }
+  return json({ok:true,user,...browserSession(request,token)},p?201:200,{'Set-Cookie':cookie(request,token,SESSION_SECONDS)});
 }
 async function publicSnapshot(request, env, ctx) {
   const cacheKey = new Request(new URL("/api/public", request.url).href),
@@ -225,6 +246,7 @@ async function api(request, env, ctx, now) {
       user,
       revision: data.revision,
       ...privateWorld(data.world, user.id),
+      view: viewWorld(data.world, user.id, url.searchParams.get("race")),
     });
   }
   if (request.method === "GET" && path === "/api/ledger") {
@@ -242,7 +264,7 @@ async function api(request, env, ctx, now) {
     return json({ movements: rows.results });
   }
   if (request.method === "POST" && path === "/api/command") {
-    sameOrigin(request);
+    sameOrigin(request, env);
     if (
       env.COMMAND_LIMIT &&
       !(await env.COMMAND_LIMIT.limit({ key: user.id })).success
@@ -294,10 +316,8 @@ async function api(request, env, ctx, now) {
     return json(response);
   }
   if (request.method === "POST" && path === "/api/logout") {
-    sameOrigin(request);
-    const token = request.headers
-      .get("Cookie")
-      ?.match(/apex_session=([a-f0-9]{64})/)?.[1];
+    sameOrigin(request, env);
+    const token = sessionToken(request);
     if (token)
       await env.DB.prepare("DELETE FROM sessions WHERE token_hash=?")
         .bind(await digest(token))
@@ -308,11 +328,22 @@ async function api(request, env, ctx, now) {
 }
 export default {
   async fetch(request, env, ctx) {
+    if (!new URL(request.url).pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+    try {
+      allowedOrigin(request, env);
+      if (request.method === "OPTIONS") return cors(new Response(null, {status:204}), request, env);
+      return cors(await this.handle(request, env, ctx), request, env);
+    } catch (e) { return json({error:e.message}, e.status || 500); }
+  },
+  async handle(request, env, ctx) {
     const path = new URL(request.url).pathname,
       now = Date.now();
     if (!path.startsWith("/api/")) return env.ASSETS.fetch(request);
     try {
-      if (request.method === "POST") sameOrigin(request);
+      if (request.method === "POST") sameOrigin(request, env);
+      const passkey = path.match(/^\/api\/passkey\/(register|login)\/(options|verify)$/);
+      if(request.method === "POST" && passkey) return await passkeyAccess(request,env,now,passkey[1],passkey[2]);
+      if ((path === "/api/register" || path === "/api/login") && env.AUTH_MODE !== "password-test") bad("El acceso online utiliza passkeys.",410);
       if (request.method === "POST" && path === "/api/register")
         return await register(request, env, now);
       if (request.method === "POST" && path === "/api/login")
@@ -345,7 +376,7 @@ export default {
         w = previous.world;
       const before = w.at;
       const catalogChanged = syncCatalog(w);
-      advanceWorld(w, now);
+      advanceWorld(w, now, Number(env.MAX_TICK_SECONDS || 60));
       if (previous.revision >= 0 && w.at === before && !catalogChanged) break;
       if (await commit(env.DB, previous, w, crypto.randomUUID())) break;
       if (attempt === 3)
@@ -355,6 +386,7 @@ export default {
       await env.DB.batch([
         env.DB.prepare("DELETE FROM sessions WHERE expires_at<=?").bind(now),
         env.DB.prepare("DELETE FROM auth_limits WHERE expires_at<=?").bind(now),
+        env.DB.prepare("DELETE FROM passkey_challenges WHERE expires_at<=?").bind(now),
       ]);
   },
 };

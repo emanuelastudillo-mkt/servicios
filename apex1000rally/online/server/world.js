@@ -126,6 +126,7 @@ function template(now, options = {}) {
     now,
     startAt: new Date(now + 3600000).toISOString(),
     continuation: true,
+    rivalCount: 0,
     ...options,
   });
 }
@@ -311,7 +312,7 @@ function resetEntry(t, e, plans) {
   t.plans = copy(plans);
 }
 export function makeBots(w, r) {
-  const source = template(w.at, { seed: hash(`${w.seed}/${r.event.eventId}`) }),
+  const source = template(w.at, { seed: hash(`${w.seed}/${r.event.eventId}`), rivalCount: 5 }),
     random = rng(`${w.seed}/${w.epoch}/${r.event.eventId}`);
   return BOT_PROFILES.map((b, i) => {
     const t = rekey(copy(source.teams[i + 1]), b.id);
@@ -728,6 +729,11 @@ export function command(w, id, c) {
         throw Error("No se puede cancelar la inscripción.");
       delete race.entries[id];
       return { cancelled: true };
+    }
+    case "save-plans": {
+      if (!Array.isArray(c.plans) || c.plans.length < 1 || c.plans.length > 24) throw Error("Lote de planes inválido.");
+      for (const row of c.plans) command(w, id, {type:"save-plan",eventId:c.eventId,stageIndex:row.stageIndex,plan:row.plan});
+      return {saved:c.plans.length};
     }
     case "save-plan": {
       const race = c.eventId ? w.races[c.eventId] : r;
