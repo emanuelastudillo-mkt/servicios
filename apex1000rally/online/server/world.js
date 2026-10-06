@@ -329,6 +329,7 @@ function resetEntry(t, e, plans) {
     activePlan: null,
   });
   delete t.prize;
+  delete t.stageStaff;
   t.statistics = {
     driving: 0,
     service: 0,
@@ -518,11 +519,64 @@ function closeRace(w, r, f, reason, closedAt = w.at) {
   w.processed.push(...result);
   refreshAssignments(w);
 }
-export function advanceWorld(w, now, maxSeconds = 600) {
+export function advanceWorld(w, now, maxSeconds = 600, options = {}) {
   normalizeEntries(w);
   refreshAssignments(w);
   const target = Math.min(minute30(now), w.at + maxSeconds * 1000);
+  const boundary = options.boundary?.(w);
   while (w.at < target) {
+    if (
+      options.idleJump &&
+      !Object.values(w.races).some((r) => r.status === "running") &&
+      !w.engine.teams.some(
+        (t) => t.workshop?.jobs.length && crewRate(t, "workshop") > 0,
+      )
+    ) {
+      const future = events(
+        w,
+        w.at + 1,
+        Math.min(target, w.at + 3 * 86400000),
+      ).find((e) => e.start > w.at);
+      const deadlines = [
+        target,
+        future?.start,
+        w.engine.employment?.nextPayrollAt,
+        ...Object.values(w.races)
+          .filter((r) => r.status === "scheduled")
+          .map((r) => r.event.start),
+        ...w.engine.teams.flatMap((t) =>
+          [...t.drivers, ...t.mechanics].map((p) => p.contract.expiresAt),
+        ),
+        ...w.engine.management.auctions
+          .filter((a) => a.status === "open")
+          .map((a) => Date.parse(w.epoch) + a.closesAt * 1000),
+      ].filter((at) => Number.isFinite(at) && at > w.at);
+      const stop = Math.min(...deadlines);
+      // A due event still needs the ordinary 30-second transition below.
+      const due =
+        Object.values(w.races).some(
+          (r) => r.status === "scheduled" && r.event.start <= w.at,
+        ) || events(w, w.at, w.at + 1).some((e) => e.start === w.at);
+      if (!due && stop - w.at >= 30000) {
+        const seconds = (stop - w.at) / 1000;
+        for (const t of w.engine.teams)
+          advanceTeam(
+            {
+              ...w.engine,
+              competition: { ...w.engine.competition, closed: true },
+            },
+            t,
+            seconds,
+          );
+        w.at = stop;
+        w.engine.clock = (w.at - Date.parse(w.epoch)) / 1000;
+        advanceEmployment(w.engine);
+        advanceProgression(w.engine);
+        settleAuctions(w.engine);
+        if (options.boundary && options.boundary(w) !== boundary) break;
+        continue;
+      }
+    }
     // Calendar generated once per minute; no request per car, sector or player.
     if (w.at % 60000 === 0)
       for (const e of events(w, w.at, w.at + 60000))
@@ -609,6 +663,7 @@ export function advanceWorld(w, now, maxSeconds = 600) {
     advanceEmployment(w.engine);
     advanceProgression(w.engine);
     settleAuctions(w.engine);
+    if (options.boundary && options.boundary(w) !== boundary) break;
   }
   return { caughtUp: w.at >= minute30(now), at: w.at };
 }
@@ -796,6 +851,10 @@ export function command(w, id, c) {
         throw Error("Inscribite antes de configurar.");
       const preview = participant(w, race, id);
       if (!preview) throw Error("No hay equipo disponible en esta carrera.");
+      if (race.status === "running" && preview.phase !== "camp")
+        throw Error(
+          "La configuración está fija durante la etapa y la asistencia. Podés cambiarla en el campamento.",
+        );
       if (!preview.drivers.some((d) => d.id === c.plan?.driverId))
         throw Error("El piloto no está asignado a esta carrera.");
       const allocated = new Set(race.entries[id].spareIds);

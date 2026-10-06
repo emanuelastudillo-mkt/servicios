@@ -12,6 +12,15 @@ import {
   RULES_VERSION,
 } from "./world.js";
 import { readWorld, commit } from "./store.js";
+export { RaceRoom } from "./room.js";
+const currentWorld = (env, now) =>
+  env.ROOM_RUNTIME
+    ? env.ROOM_RUNTIME.current(now)
+    : readWorld(env.DB, now, env.SEASON_EPOCH);
+const saveWorld = (env, previous, w, key, extras = []) =>
+  env.ROOM_RUNTIME
+    ? env.ROOM_RUNTIME.persist(previous, w, key, extras)
+    : commit(env.DB, previous, w, key, extras);
 import {
   cookie,
   digest,
@@ -50,15 +59,17 @@ async function body(request) {
     bad("JSON inválido.");
   }
 }
-function sameOrigin(request, env) { allowedOrigin(request, env); }
+function sameOrigin(request, env) {
+  allowedOrigin(request, env);
+}
 async function mutate(env, now, key, work, extras = []) {
   for (let attempt = 0; attempt < 4; attempt++) {
-    const previous = await readWorld(env.DB, now, env.SEASON_EPOCH),
+    const previous = await currentWorld(env, now),
       w = previous.world;
     syncCatalog(w);
     const sync = advanceWorld(w, now, Number(env.MAX_TICK_SECONDS || 60));
     if (!sync.caughtUp) {
-      if (await commit(env.DB, previous, w, crypto.randomUUID()))
+      if (await saveWorld(env, previous, w, crypto.randomUUID()))
         bad(
           "El servidor está recuperando tiempo pendiente. Reintentá en un minuto.",
           503,
@@ -66,7 +77,7 @@ async function mutate(env, now, key, work, extras = []) {
       continue;
     }
     const result = await work(w, previous.revision + 1);
-    if (await commit(env.DB, previous, w, key, extras)) return result;
+    if (await saveWorld(env, previous, w, key, extras)) return result;
   }
   bad("Otra operación actualizó la sala. Reintentá con la misma clave.", 409);
 }
@@ -110,9 +121,13 @@ async function register(request, env, now) {
         ).bind(tokenHash, id, now + SESSION_SECONDS * 1000, k),
     ],
   );
-  return json({ ok: true, ...browserSession(request, token), user: { id, username } }, 201, {
-    "Set-Cookie": cookie(request, token, SESSION_SECONDS),
-  });
+  return json(
+    { ok: true, ...browserSession(request, token), user: { id, username } },
+    201,
+    {
+      "Set-Cookie": cookie(request, token, SESSION_SECONDS),
+    },
+  );
 }
 async function login(request, env, now) {
   await limitAuth(request, env.DB, now);
@@ -142,35 +157,90 @@ async function login(request, env, now) {
     .bind(await digest(token), user.id, now + SESSION_SECONDS * 1000)
     .run();
   return json(
-    { ok: true, ...browserSession(request, token), user: { id: user.id, username: user.username } },
+    {
+      ok: true,
+      ...browserSession(request, token),
+      user: { id: user.id, username: user.username },
+    },
     200,
     { "Set-Cookie": cookie(request, token, SESSION_SECONDS) },
   );
 }
 async function passkeyAccess(request, env, now, kind, step) {
-  const b=await body(request);
-  if(step==='options')return json(await passkeyOptions(request,env,now,kind,b));
-  const result=await verifyPasskey(env,now,kind,b), token=randomToken(), tokenHash=await digest(token);
-  const p=result.registration, user=p?{id:p.id,username:p.username}:result.user;
-  if(p) {
-    await mutate(env,now,crypto.randomUUID(),w=>{
-      if(w.engine.teams.length>=Number(env.MAX_PLAYERS||20))bad('Sala completa.',409);
-      addDirector(w,p.id,p.username,p.teamName,p.shieldId,p.vehicleId);
-    },[
-      (guard,k)=>env.DB.prepare(`INSERT INTO users(id,username,username_key,email,password_hash,created_at) SELECT ?,?,?,?,?,? WHERE ${guard}`).bind(p.id,p.username,p.username.normalize('NFKC').toLowerCase(),p.email,'passkey-only',now,k),
-      (guard,k)=>env.DB.prepare(`INSERT INTO passkeys(credential_id,user_id,public_key,counter,transports_json,created_at) SELECT ?,?,?,?,?,? WHERE ${guard}`).bind(result.credential.id,p.id,toBase64(result.credential.publicKey),result.credential.counter,JSON.stringify(result.credential.transports||[]),now,k),
-      (guard,k)=>env.DB.prepare(`INSERT INTO sessions(token_hash,user_id,expires_at) SELECT ?,?,? WHERE ${guard}`).bind(tokenHash,p.id,now+SESSION_SECONDS*1000,k)
-    ]);
+  const b = await body(request);
+  if (step === "options")
+    return json(await passkeyOptions(request, env, now, kind, b));
+  const result = await verifyPasskey(env, now, kind, b),
+    token = randomToken(),
+    tokenHash = await digest(token);
+  const p = result.registration,
+    user = p ? { id: p.id, username: p.username } : result.user;
+  if (p) {
+    await mutate(
+      env,
+      now,
+      crypto.randomUUID(),
+      (w) => {
+        if (w.engine.teams.length >= Number(env.MAX_PLAYERS || 20))
+          bad("Sala completa.", 409);
+        addDirector(w, p.id, p.username, p.teamName, p.shieldId, p.vehicleId);
+      },
+      [
+        (guard, k) =>
+          env.DB.prepare(
+            `INSERT INTO users(id,username,username_key,email,password_hash,created_at) SELECT ?,?,?,?,?,? WHERE ${guard}`,
+          ).bind(
+            p.id,
+            p.username,
+            p.username.normalize("NFKC").toLowerCase(),
+            p.email,
+            "passkey-only",
+            now,
+            k,
+          ),
+        (guard, k) =>
+          env.DB.prepare(
+            `INSERT INTO passkeys(credential_id,user_id,public_key,counter,transports_json,created_at) SELECT ?,?,?,?,?,? WHERE ${guard}`,
+          ).bind(
+            result.credential.id,
+            p.id,
+            toBase64(result.credential.publicKey),
+            result.credential.counter,
+            JSON.stringify(result.credential.transports || []),
+            now,
+            k,
+          ),
+        (guard, k) =>
+          env.DB.prepare(
+            `INSERT INTO sessions(token_hash,user_id,expires_at) SELECT ?,?,? WHERE ${guard}`,
+          ).bind(tokenHash, p.id, now + SESSION_SECONDS * 1000, k),
+      ],
+    );
   } else {
-    const out=await env.DB.batch([
-      env.DB.prepare('UPDATE passkeys SET counter=? WHERE credential_id=? AND counter=?').bind(result.newCounter,result.credentialId,result.oldCounter),
-      env.DB.prepare('INSERT INTO sessions(token_hash,user_id,expires_at) SELECT ?,?,? WHERE changes()=1').bind(tokenHash,user.id,now+SESSION_SECONDS*1000)
+    const out = await env.DB.batch([
+      env.DB.prepare(
+        "UPDATE passkeys SET counter=? WHERE credential_id=? AND counter=?",
+      ).bind(result.newCounter, result.credentialId, result.oldCounter),
+      env.DB.prepare(
+        "INSERT INTO sessions(token_hash,user_id,expires_at) SELECT ?,?,? WHERE changes()=1",
+      ).bind(tokenHash, user.id, now + SESSION_SECONDS * 1000),
     ]);
-    if(!out[0].meta.changes)bad('Hubo otro acceso simultáneo. Intentá nuevamente.',409);
+    if (!out[0].meta.changes)
+      bad("Hubo otro acceso simultáneo. Intentá nuevamente.", 409);
   }
-  return json({ok:true,user,...browserSession(request,token)},p?201:200,{'Set-Cookie':cookie(request,token,SESSION_SECONDS)});
+  return json(
+    { ok: true, user, ...browserSession(request, token) },
+    p ? 201 : 200,
+    { "Set-Cookie": cookie(request, token, SESSION_SECONDS) },
+  );
 }
 async function publicSnapshot(request, env, ctx) {
+  if (env.ROOM_RUNTIME) {
+    const data = await currentWorld(env, Date.now());
+    return json({ ...publicWorld(data.world), revision: data.revision }, 200, {
+      "Cache-Control": "public, max-age=30",
+    });
+  }
   const cacheKey = new Request(new URL("/api/public", request.url).href),
     cache = globalThis.caches?.default;
   if (cache) {
@@ -193,7 +263,13 @@ async function api(request, env, ctx, now) {
   const url = new URL(request.url),
     path = url.pathname;
   if (request.method === "GET" && path === "/api/health")
-    return json({ ok: true, version: RULES_VERSION });
+    return json({
+      ok: true,
+      version: RULES_VERSION,
+      ...(env.ROOM_RUNTIME
+        ? { scheduler: "events", nextEventAt: env.ROOM_RUNTIME.forecast?.at }
+        : {}),
+    });
   if (request.method === "GET" && path === "/api/public")
     return publicSnapshot(request, env, ctx);
   if (request.method === "GET" && path === "/api/rankings") {
@@ -241,7 +317,7 @@ async function api(request, env, ctx, now) {
   const user = await session(request, env.DB, now);
   if (!user) bad("Iniciá sesión.", 401);
   if (request.method === "GET" && path === "/api/bootstrap") {
-    const data = await readWorld(env.DB, now, env.SEASON_EPOCH);
+    const data = await currentWorld(env, now);
     return json({
       user,
       revision: data.revision,
@@ -261,7 +337,23 @@ async function api(request, env, ctx, now) {
     )
       .bind(user.id, before, limit)
       .all();
-    return json({ movements: rows.results });
+    const data = env.ROOM_RUNTIME ? await currentWorld(env, now) : null;
+    const team = data?.world.engine.teams.find((t) => t.id === user.id);
+    const pending = (team?.ledger || [])
+      .map((l, i) => ({
+        sequence: (team.ledgerOffset || 0) + i,
+        at: l.at,
+        amount_cents: Math.round(l.amount * 100),
+        label: l.label,
+      }))
+      .filter(
+        (l) => l.sequence >= (team.ledgerSaved || 0) && l.sequence < before,
+      );
+    return json({
+      movements: [...pending, ...rows.results]
+        .sort((a, b) => b.sequence - a.sequence)
+        .slice(0, limit),
+    });
   }
   if (request.method === "POST" && path === "/api/command") {
     sameOrigin(request, env);
@@ -326,14 +418,21 @@ async function api(request, env, ctx, now) {
   }
   bad("Ruta inexistente.", 404);
 }
-export default {
+const handler = {
   async fetch(request, env, ctx) {
-    if (!new URL(request.url).pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+    if (!new URL(request.url).pathname.startsWith("/api/"))
+      return env.ASSETS.fetch(request);
     try {
       allowedOrigin(request, env);
-      if (request.method === "OPTIONS") return cors(new Response(null, {status:204}), request, env);
-      return cors(await this.handle(request, env, ctx), request, env);
-    } catch (e) { return json({error:e.message}, e.status || 500); }
+      if (request.method === "OPTIONS")
+        return cors(new Response(null, { status: 204 }), request, env);
+      const response = env.ROOM
+        ? await env.ROOM.getByName("main").fetch(request)
+        : await this.handle(request, env, ctx);
+      return cors(response, request, env);
+    } catch (e) {
+      return json({ error: e.message }, e.status || 500);
+    }
   },
   async handle(request, env, ctx) {
     const path = new URL(request.url).pathname,
@@ -341,9 +440,16 @@ export default {
     if (!path.startsWith("/api/")) return env.ASSETS.fetch(request);
     try {
       if (request.method === "POST") sameOrigin(request, env);
-      const passkey = path.match(/^\/api\/passkey\/(register|login)\/(options|verify)$/);
-      if(request.method === "POST" && passkey) return await passkeyAccess(request,env,now,passkey[1],passkey[2]);
-      if ((path === "/api/register" || path === "/api/login") && env.AUTH_MODE !== "password-test") bad("El acceso online utiliza passkeys.",410);
+      const passkey = path.match(
+        /^\/api\/passkey\/(register|login)\/(options|verify)$/,
+      );
+      if (request.method === "POST" && passkey)
+        return await passkeyAccess(request, env, now, passkey[1], passkey[2]);
+      if (
+        (path === "/api/register" || path === "/api/login") &&
+        env.AUTH_MODE !== "password-test"
+      )
+        bad("El acceso online utiliza passkeys.", 410);
       if (request.method === "POST" && path === "/api/register")
         return await register(request, env, now);
       if (request.method === "POST" && path === "/api/login")
@@ -370,6 +476,15 @@ export default {
     }
   },
   async scheduled(controller, env, ctx) {
+    if (env.ROOM) {
+      // Daily recovery only: the room's durable alarm runs the actual event schedule.
+      const response = await env.ROOM.getByName("main").fetch(
+        new Request("https://apex.internal/api/health"),
+      );
+      if (!response.ok)
+        throw Error("No se pudo recuperar el coordinador de eventos.");
+      return;
+    }
     const now = Date.now();
     for (let attempt = 0; attempt < 4; attempt++) {
       const previous = await readWorld(env.DB, now, env.SEASON_EPOCH),
@@ -386,7 +501,12 @@ export default {
       await env.DB.batch([
         env.DB.prepare("DELETE FROM sessions WHERE expires_at<=?").bind(now),
         env.DB.prepare("DELETE FROM auth_limits WHERE expires_at<=?").bind(now),
-        env.DB.prepare("DELETE FROM passkey_challenges WHERE expires_at<=?").bind(now),
+        env.DB.prepare(
+          "DELETE FROM passkey_challenges WHERE expires_at<=?",
+        ).bind(now),
       ]);
   },
 };
+export const handleRoomRequest = (request, env, ctx) =>
+  handler.handle(request, env, ctx);
+export default handler;

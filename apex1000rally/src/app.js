@@ -355,6 +355,7 @@ function camp() {
     team = p(),
     plan = draft(),
     locked =
+      (state.mode === "online" && ["racing", "service"].includes(team.phase)) ||
       index < team.stageIndex ||
       (index === team.stageIndex &&
         ["racing", "service", "finished"].includes(team.phase));

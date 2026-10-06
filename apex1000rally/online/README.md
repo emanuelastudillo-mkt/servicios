@@ -1,4 +1,4 @@
-# Apex1000 Rally Online 1.2.0
+# Apex1000 Rally Online 1.3.0
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/
 API: https://apex1000-online.emanuelmkt.workers.dev
@@ -39,11 +39,29 @@ El email no se verifica ni permite recuperar una cuenta. La primera versión adm
 
 ## Free y consumo
 
-Se mantiene Workers Free. No se habilitó ningún plan pago. Cron cada minuto; cada navegador visible consulta cada 60 segundos y deja de hacerlo al ocultarse. Las acciones generan una petición y una actualización posterior. No hay peticiones por pieza o vehículo.
+Se mantiene costo cero. Worker + D1 incorpora un coordinador Durable Object SQLite,
+disponible en Free, con alarmas persistentes para el siguiente evento. Se quitó el
+cron de cada minuto; queda una recuperación diaria a las 00:00 UTC. D1 no cambia
+ni se reinicia. Ver [EVENTOS.md](EVENTOS.md) para detalle, instalación y recuperación.
 
-20 navegadores abiertos todo el día generan aproximadamente 28.800 consultas más 1.440 cron diarios, acciones y preflight CORS. Los límites gratuitos son compartidos con otros Workers de la cuenta. El paso máximo recupera 60 segundos por ejecución; una interrupción prolongada necesita varias ejecuciones. Si el servidor está atrasado, una acción devuelve 503 para que se reintente con la misma clave.
+El mundo sólo se guarda al cambiar una fase/etapa, terminar un trabajo, cerrar una
+carrera, vencer una oferta o contrato, liquidar sueldos o confirmar una acción.
+El visor consulta cada 60 segundos y pausa oculto; mientras la sala vive en memoria,
+esas consultas no leen ni escriben el mundo en D1. La sesión todavía se valida en
+D1; rankings e histórico contable consultan sus tablas. No son cero requests:
+20 navegadores siempre visibles generan unas 28.800 consultas por día, más acciones,
+preflight, alarmas de eventos y una recuperación diaria.
 
-La carga de 20 directores + 5 BOT se comprobó con seis horas simuladas, estado de unos 490 KB y menos de 40 sentencias por lote. Los lotes respetan 100 parámetros por consulta. Las pruebas sintéticas remotas tuvieron ticks calientes de 8–10 ms y un arranque de 16 ms. No equivalen a una prueba sostenida con 20 personas reales: Workers Free tiene 10 ms de CPU garantizados por invocación y puede tolerar algunos picos. Mantener el límite de 20 y revisar métricas antes de ampliar.
+Las predicciones usan el mismo motor y RNG por vehículo; no revelan resultados
+futuros al cliente. Las configuraciones se bloquean durante la etapa y asistencia,
+y se editan en el campamento o antes de largar. La beta mantiene su flujo independiente.
+Una interrupción larga se recupera en tramos, con 503 y reintento cuando aún hay atraso.
+
+La integración real con Wrangler local se comprobó con el binding DO y D1. La
+prueba de 20 directores y 40 participaciones calculó el siguiente evento en unos
+0,4 segundos en Node local: no equivale a una prueba sostenida con personas reales.
+Se conservan los límites de 20 directores, 1,8 MB por estado, 100 parámetros por
+sentencia y 40 sentencias por lote. Revisar métricas antes de ampliar.
 
 ## Persistencia
 
@@ -67,7 +85,11 @@ Cada inscripción asigna una unidad del garaje, 1–3 pilotos y 1–4 mecánicos
 
 Los avances, planes, combustible, averías y paradas se guardan por inscripción. Los autos, piezas y empleados existen una sola vez en el patrimonio del director. La caja, deuda, nómina y nivel son comunes; el día 1 se paga una sola nómina. Los pilotos enviados de relevo descansan a 0,1× en ruta y a 1× en campamento; el piloto que queda en la base descansa a 1×. El taller utiliza únicamente sus mecánicos disponibles. El visor permite alternar entre el raid y el sprint. La migración del estado JSON es automática, sin reinicios ni nuevas tablas D1.
 
-La prueba local de carga simuló 193 horas con 20 directores, dos inscripciones cada uno y diez instancias BOT en el pico simultáneo. Archivó 60 resultados y mantuvo el estado por debajo de 1,34 MB. Las mediciones sintéticas remotas de esta concurrencia registraron picos de CPU de 17–33 ms; no garantizan operación sostenida dentro del límite de Workers Free. Se conservó el plan gratuito y se redujo el lote máximo a 60 segundos por invocación. La consulta del navegador sigue siendo cada 60 segundos, sin peticiones adicionales por auto ni carrera. Revisar capacidad antes de llenar la sala con 40 participaciones activas.
+La prueba anterior simuló 193 horas, 20 directores con dos inscripciones y diez
+instancias BOT en el pico: 60 resultados y estado menor a 1,34 MB. El procesamiento
+directo en Workers Free mostró picos de 17–33 ms; desde 1.3.0 el coordinador DO
+recibe el cálculo y las alarmas, usando un margen de CPU mayor. La validación
+sostenida remota sigue siendo distinta de estas pruebas sintéticas.
 
 ## Catálogos
 

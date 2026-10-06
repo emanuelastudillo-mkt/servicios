@@ -16,6 +16,7 @@ export const RUNTIME_KEYS = [
   "holdUntil",
   "finishTime",
   "stageStart",
+  "stageStaff",
   "activePlan",
   "plans",
   "history",
@@ -80,6 +81,25 @@ export function normalizeEntries(w) {
           ]),
         );
     }
+    // Adopt an in-progress legacy stage without changing any employee ID or race progress.
+    for (const [id, e] of Object.entries(r.entries)) {
+      const t = w.engine.teams.find((t) => t.id === id),
+        rt = e.runtime;
+      if (t && rt?.phase === "racing" && !rt.stageStaff) {
+        const d = t.drivers.find((d) => d.id === rt.activeDriver);
+        if (d) {
+          rt.stageStaff = { driverId: d.id, form: d.form, morale: d.morale };
+          if (t.onlineRace === r.event.eventId)
+            t.stageStaff = { ...rt.stageStaff };
+        }
+      }
+    }
+    for (const t of r.bots)
+      if (t.phase === "racing" && !t.stageStaff) {
+        const d = t.drivers.find((d) => d.id === t.activeDriver);
+        if (d)
+          t.stageStaff = { driverId: d.id, form: d.form, morale: d.morale };
+      }
   }
 }
 export function allocation(w, t, r, c) {

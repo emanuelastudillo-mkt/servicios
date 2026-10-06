@@ -657,6 +657,10 @@ function startStage(state, t) {
   t.phase = "racing";
   t.service = null;
   t.stageStart = state.clock;
+  if (state.mode === "online") {
+    const d = driverFor(t);
+    t.stageStaff = { driverId: d.id, form: d.form, morale: d.morale };
+  }
   t.stageKm = 0;
   t.holdUntil = 0;
   startJournal(t, STAGES[t.stageIndex], state.clock);
@@ -677,7 +681,15 @@ export function performance(
   const v = vehicle(team.vehicleId),
     terrain = TERRAINS[segmentAt(stage, km).type],
     terrainId = segmentAt(stage, km).type,
-    d = driverFor(team, plan.driverId),
+    liveDriver = driverFor(team, plan.driverId),
+    d =
+      team.stageStaff?.driverId === liveDriver.id
+        ? {
+            ...liveDriver,
+            form: team.stageStaff.form,
+            morale: team.stageStaff.morale,
+          }
+        : liveDriver,
     staff = staffFactors(team, d, terrainId),
     pace = PACES[plan.pace],
     carFactors = vehicleFactors(team),
@@ -869,7 +881,12 @@ function fatigue(t, dt, racing = false, effort = 1) {
           (dt / 3600) *
             3 *
             d.fatigue *
-            (1 + (100 - (d.form ?? 100)) / 250) *
+            (1 +
+              (100 -
+                (t.stageStaff?.driverId === d.id
+                  ? t.stageStaff.form
+                  : (d.form ?? 100))) /
+                250) *
             effort *
             statFactors(teamVehicleStats(t), "gravel").fatigue,
         0,
@@ -886,6 +903,7 @@ function fatigue(t, dt, racing = false, effort = 1) {
 function finishStage(state, t, time) {
   const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(t);
   const s = STAGES[t.stageIndex];
+  delete t.stageStaff;
   finishJournal(t, s, time);
   t.history.push({
     stage: t.stageIndex,
