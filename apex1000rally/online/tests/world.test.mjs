@@ -250,6 +250,8 @@ test("20 jugadores y cinco BOT: seis horas de simulación, estado compacto y ava
   const { database } = await import("./d1.mjs");
   const w = fresh(),
     e = events(w).find((e) => e.id === "andes");
+  // This load test covers several car classes independently of the live starting funds.
+  w.engine.management.catalog.settings.find(s => s.key === "startingBudget").value = 8500000;
   for (let i = 0; i < 20; i++) {
     const t = addDirector(
       w,

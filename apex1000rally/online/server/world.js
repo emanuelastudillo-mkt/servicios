@@ -50,6 +50,15 @@ import {
 import { routeFor, recommendedSetup } from "../../src/route.js";
 
 export const RULES_VERSION = "online-1";
+const ACADEMY_DRIVER_SALARIES = [1000, 1200, 1400];
+const ACADEMY_MECHANIC_SALARY = 1000;
+function initialFinance(w) {
+  const settings = w.engine.management.catalog.settings;
+  const startingBudget = settings.find(s => s.key === "startingBudget").value;
+  const initialMonthlySalary = ACADEMY_DRIVER_SALARIES.reduce((a, b) => a + b, 0) + ACADEMY_MECHANIC_SALARY;
+  const initialMonthlyBaseCost = settings.find(s => s.key === "monthlyBaseCost")?.value ?? 1500;
+  return { startingBudget, initialMonthlySalary, initialMonthlyBaseCost, initialReserve: initialMonthlySalary + initialMonthlyBaseCost };
+}
 export const BOT_PROFILES = [
   {
     id: "bot-1",
@@ -191,10 +200,8 @@ export function addDirector(w, id, username, name, shieldId, modelId = "niva") {
   );
   if (!offer?.available || w.engine.management.stocks[modelId] < 1)
     throw Error("Auto inicial sin stock.");
-  const initialBudget = w.engine.management.catalog.settings.find(
-    (s) => s.key === "startingBudget",
-  ).value;
-  if (offer.price > initialBudget - 1500)
+  const {startingBudget, initialReserve} = initialFinance(w);
+  if (offer.price > startingBudget - initialReserve)
     throw Error("Presupuesto insuficiente para este auto inicial.");
   const source = template(w.at, {
     seed: hash(`${w.seed}/${id}`),
@@ -210,7 +217,7 @@ export function addDirector(w, id, username, name, shieldId, modelId = "niva") {
     d.id = `${id}-academy-driver-${i + 1}`;
     d.personId = d.id;
     d.name = `${["Alex", "Dani", "Sol"][i]} · Academia`;
-    d.salary = 1000 + i * 200;
+    d.salary = ACADEMY_DRIVER_SALARIES[i];
     d.traits = "";
     startContract(w.engine, t, d, "driver", w.at, i);
   });
@@ -218,7 +225,7 @@ export function addDirector(w, id, username, name, shieldId, modelId = "niva") {
   t.mechanics.forEach((m) => {
     m.id = `${id}-academy-mechanic`;
     m.name = "Asistencia de academia";
-    m.salary = 1000;
+    m.salary = ACADEMY_MECHANIC_SALARY;
     m.traits = "";
     startContract(w.engine, t, m, "mechanic", w.at);
   });
@@ -815,10 +822,11 @@ export function command(w, id, c) {
 }
 export function publicWorld(w) {
   return {
+    ...initialFinance(w),
     version: RULES_VERSION,
     at: w.at,
     epoch: w.epoch,
-    vehicles: w.engine.management.catalog.vehicles.map((v) => ({
+    vehicles: [...w.engine.management.catalog.vehicles].sort((a, b) => a.price - b.price).map((v) => ({
       id: v.id,
       name: v.name,
       price: v.price,

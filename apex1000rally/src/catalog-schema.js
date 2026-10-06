@@ -198,7 +198,7 @@ export function validateCatalog(c) {
       settings.driverLimit === 3 &&
       settings.mechanicLimit === 5 &&
       n(settings.auctionHours, 1, 168) &&
-      n(settings.startingBudget, 100000, 10000000),
+      n(settings.startingBudget, 1000, 10000000),
     "ajustes",
   );
   need(
@@ -208,7 +208,7 @@ export function validateCatalog(c) {
             v.available && v.stock > 0 && v.price < settings.startingBudget,
         )
       : c.vehicles.every((v) => v.price <= settings.startingBudget),
-    "el presupuesto inicial debe cubrir cualquier vehículo",
+    modern ? "el presupuesto inicial debe cubrir al menos un vehículo disponible" : "el presupuesto inicial debe cubrir cualquier vehículo",
   );
   need(text(c.revision, 100), "revisión");
   return c;

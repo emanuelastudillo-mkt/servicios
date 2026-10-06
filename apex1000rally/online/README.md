@@ -1,4 +1,4 @@
-# Apex1000 Rally Online 1.1
+# Apex1000 Rally Online 1.1.1
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/
 API: https://apex1000-online.emanuelmkt.workers.dev
@@ -24,6 +24,10 @@ npm run deploy
 La base y el Worker ya existen; no volver a crearlos. `wrangler.jsonc` contiene sus identificadores públicos. Las dos migraciones son incrementales y Wrangler registra cuáles ya aplicó. No cambiar SEASON_EPOCH para reiniciar: la fecha inicial queda persistida en D1.
 
 Para publicar cambios visuales, copiar de `online/public/` al directorio público `apex1000rally/`: `index.html`, `online-game.js`, `style.css`, `economy.css`, `identity.css`, `online.css`, `favicon.svg` y `assets/`. Conservar los fuentes originales `src/` y `data/` junto con `online/`; no reemplazarlos por `online/public/src/`. Subir el resultado al repositorio servicios/main.
+
+## Presupuesto inicial
+
+30.000 créditos por nueva escudería. Niva: 16.000; saldo tras comprar: 14.000. Incluye tres pilotos y un mecánico de academia, con sueldos de 4.600 créditos/mes. Base y taller: 1.500 créditos/mes. Al comprar el auto inicial el servidor exige conservar esos 6.100 créditos; quedan 7.900 de margen operativo con el Niva. Los vehículos se muestran de menor a mayor precio. El cambio afecta a nuevas escuderías; los saldos ya guardados permanecen como están.
 
 ## Acceso
 

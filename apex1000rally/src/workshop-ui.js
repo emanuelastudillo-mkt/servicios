@@ -43,7 +43,7 @@ export function allocationPanel(state) {
 export function vehicleShop(state) {
   const t = state.teams.find((t) => t.id === "player"),
     m = state.management;
-  return `<section><div class="panel-heading"><div><span class="eyebrow">VEHÍCULOS NUEVOS / ${t.garage.length} DE 3 PLAZAS OCUPADAS</span><h2>Elegí tu próxima máquina.</h2></div>${button("tab", "Ver mi taller", 'data-tab="workshop"')}</div><p class="small-note">Todos salen con estado 100, performance 50 y fiabilidad 50. La compra incorpora un auto al taller; elegí cuál usar antes de largar. Podés tener varias unidades del mismo modelo.</p><div class="vehicle-grid">${m.catalog.vehicles
+  return `<section><div class="panel-heading"><div><span class="eyebrow">VEHÍCULOS NUEVOS / ${t.garage.length} DE 3 PLAZAS OCUPADAS</span><h2>Elegí tu próxima máquina.</h2></div>${button("tab", "Ver mi taller", 'data-tab="workshop"')}</div><p class="small-note">Ordenados de menor a mayor precio. Todos salen con estado 100, performance 50 y fiabilidad 50. La compra incorpora un auto al taller; elegí cuál usar antes de largar. Podés tener varias unidades del mismo modelo.</p><div class="vehicle-grid">${[...m.catalog.vehicles].sort((a, b) => a.price - b.price)
     .map((v) => {
       const tradable = t.garage.filter(
         (c) => !jobFor(t, c.id) && (c.id !== t.activeCarId || canChangeCar(t)),
