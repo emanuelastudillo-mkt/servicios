@@ -1,4 +1,4 @@
-# Apex1000 Rally Online 1.1.1
+# Apex1000 Rally Online 1.2.0
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/
 API: https://apex1000-online.emanuelmkt.workers.dev
@@ -41,7 +41,7 @@ El email no se verifica ni permite recuperar una cuenta. La primera versión adm
 
 Se mantiene Workers Free. No se habilitó ningún plan pago. Cron cada minuto; cada navegador visible consulta cada 60 segundos y deja de hacerlo al ocultarse. Las acciones generan una petición y una actualización posterior. No hay peticiones por pieza o vehículo.
 
-20 navegadores abiertos todo el día generan aproximadamente 28.800 consultas más 1.440 cron diarios, acciones y preflight CORS. Los límites gratuitos son compartidos con otros Workers de la cuenta. El paso máximo recupera 120 segundos por ejecución; una interrupción prolongada necesita varias ejecuciones. Si el servidor está atrasado, una acción devuelve 503 para que se reintente con la misma clave.
+20 navegadores abiertos todo el día generan aproximadamente 28.800 consultas más 1.440 cron diarios, acciones y preflight CORS. Los límites gratuitos son compartidos con otros Workers de la cuenta. El paso máximo recupera 60 segundos por ejecución; una interrupción prolongada necesita varias ejecuciones. Si el servidor está atrasado, una acción devuelve 503 para que se reintente con la misma clave.
 
 La carga de 20 directores + 5 BOT se comprobó con seis horas simuladas, estado de unos 490 KB y menos de 40 sentencias por lote. Los lotes respetan 100 parámetros por consulta. Las pruebas sintéticas remotas tuvieron ticks calientes de 8–10 ms y un arranque de 16 ms. No equivalen a una prueba sostenida con 20 personas reales: Workers Free tiene 10 ms de CPU garantizados por invocación y puede tolerar algunos picos. Mantener el límite de 20 y revisar métricas antes de ampliar.
 
@@ -61,7 +61,13 @@ El estado compacto conserva 120 movimientos recientes y tres carreras cerradas r
 
 Polvo Sur (nivel 1), Ruta Vieja (1), Pampa Taller (2), Horizonte Amateur (3), Cóndor Club (5). Al comenzar cada carrera se sortean estado de auto y piezas, forma, moral y energía mediante semilla privada persistida. Al cerrar se restauran. Las cinco identidades son permanentes; en pruebas simultáneas corren instancias independientes.
 
-Inscripción previa obligatoria, bloqueo por intervalo máximo, sprints cada 48 horas y raids de varios días. Cierre al terminar todos, al máximo publicado o 24 horas después de la primera llegada, lo que ocurra antes. Se ordena por distancia a quienes no llegaron y se pagan premios una sola vez. Rankings por circuito y modelo, sin puntos de campeonato. El personal de academia inicial es propio de cada director; las contrataciones del mercado son exclusivas y las ofertas rivales privadas.
+Inscripción previa obligatoria. Los ocho raids tienen 15 etapas (dentro del rango 12–16) y un límite de 192 horas: ocho días. Sprints cada 48 horas, una etapa y hasta cuatro horas. Cierre al terminar todos, al máximo publicado o 24 horas después de la primera llegada, lo que ocurra antes. Se ordena por distancia a quienes no llegaron y se pagan premios una sola vez. Rankings por circuito y modelo, sin puntos de campeonato.
+
+Cada inscripción asigna una unidad del garaje, 1–3 pilotos y 1–4 mecánicos para un raid; un sprint exige exactamente un auto, un piloto y un mecánico. El formulario propone dos pilotos para los raids, dejando el tercero para un sprint. Siempre exige las seis piezas de un kit propio; los repuestos adicionales son opcionales. El servidor compara los intervalos máximos de las inscripciones y rechaza compartir cualquier auto, persona o pieza entre carreras superpuestas. Una carrera cerrada antes conserva su reserva hasta el límite publicado. Se puede modificar la asignación o cancelar antes de largar. No se regalan recursos adicionales.
+
+Los avances, planes, combustible, averías y paradas se guardan por inscripción. Los autos, piezas y empleados existen una sola vez en el patrimonio del director. La caja, deuda, nómina y nivel son comunes; el día 1 se paga una sola nómina. Los pilotos enviados de relevo descansan a 0,1× en ruta y a 1× en campamento; el piloto que queda en la base descansa a 1×. El taller utiliza únicamente sus mecánicos disponibles. El visor permite alternar entre el raid y el sprint. La migración del estado JSON es automática, sin reinicios ni nuevas tablas D1.
+
+La prueba local de carga simuló 193 horas con 20 directores, dos inscripciones cada uno y diez instancias BOT en el pico simultáneo. Archivó 60 resultados y mantuvo el estado por debajo de 1,34 MB. Las mediciones sintéticas remotas de esta concurrencia registraron picos de CPU de 17–33 ms; no garantizan operación sostenida dentro del límite de Workers Free. Se conservó el plan gratuito y se redujo el lote máximo a 60 segundos por invocación. La consulta del navegador sigue siendo cada 60 segundos, sin peticiones adicionales por auto ni carrera. Revisar capacidad antes de llenar la sala con 40 participaciones activas.
 
 ## Catálogos
 

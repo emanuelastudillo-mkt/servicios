@@ -1,3 +1,12 @@
+import {
+  normalizeEntries,
+  allocation,
+  participant,
+  saveParticipant,
+  refreshAssignments,
+  protectResources,
+  RUNTIME_KEYS,
+} from "./resources.js";
 import { CATALOG } from "../../data/catalog.js";
 import {
   createRace,
@@ -54,10 +63,18 @@ const ACADEMY_DRIVER_SALARIES = [1000, 1200, 1400];
 const ACADEMY_MECHANIC_SALARY = 1000;
 function initialFinance(w) {
   const settings = w.engine.management.catalog.settings;
-  const startingBudget = settings.find(s => s.key === "startingBudget").value;
-  const initialMonthlySalary = ACADEMY_DRIVER_SALARIES.reduce((a, b) => a + b, 0) + ACADEMY_MECHANIC_SALARY;
-  const initialMonthlyBaseCost = settings.find(s => s.key === "monthlyBaseCost")?.value ?? 1500;
-  return { startingBudget, initialMonthlySalary, initialMonthlyBaseCost, initialReserve: initialMonthlySalary + initialMonthlyBaseCost };
+  const startingBudget = settings.find((s) => s.key === "startingBudget").value;
+  const initialMonthlySalary =
+    ACADEMY_DRIVER_SALARIES.reduce((a, b) => a + b, 0) +
+    ACADEMY_MECHANIC_SALARY;
+  const initialMonthlyBaseCost =
+    settings.find((s) => s.key === "monthlyBaseCost")?.value ?? 1500;
+  return {
+    startingBudget,
+    initialMonthlySalary,
+    initialMonthlyBaseCost,
+    initialReserve: initialMonthlySalary + initialMonthlyBaseCost,
+  };
 }
 export const BOT_PROFILES = [
   {
@@ -200,7 +217,7 @@ export function addDirector(w, id, username, name, shieldId, modelId = "niva") {
   );
   if (!offer?.available || w.engine.management.stocks[modelId] < 1)
     throw Error("Auto inicial sin stock.");
-  const {startingBudget, initialReserve} = initialFinance(w);
+  const { startingBudget, initialReserve } = initialFinance(w);
   if (offer.price > startingBudget - initialReserve)
     throw Error("Presupuesto insuficiente para este auto inicial.");
   const source = template(w.at, {
@@ -270,13 +287,16 @@ function frame(w, r, teams = null) {
     routeId: r.event.id,
     teams: teams || [
       ...Object.keys(r.entries)
-        .map((id) => w.engine.teams.find((t) => t.id === id))
+        .map((id) => participant(w, r, id))
         .filter(Boolean),
       ...r.bots,
     ],
     management: {
       ...w.engine.management,
-      catalog: r.catalog || w.engine.management.catalog,
+      catalog:
+        r.catalog ||
+        w.catalogs?.[r.catalogRevision] ||
+        w.engine.management.catalog,
     },
     competition: {
       ...w.engine.competition,
@@ -319,7 +339,10 @@ function resetEntry(t, e, plans) {
   t.plans = copy(plans);
 }
 export function makeBots(w, r) {
-  const source = template(w.at, { seed: hash(`${w.seed}/${r.event.eventId}`), rivalCount: 5 }),
+  const source = template(w.at, {
+      seed: hash(`${w.seed}/${r.event.eventId}`),
+      rivalCount: 5,
+    }),
     random = rng(`${w.seed}/${w.epoch}/${r.event.eventId}`);
   return BOT_PROFILES.map((b, i) => {
     const t = rekey(copy(source.teams[i + 1]), b.id);
@@ -371,21 +394,25 @@ function startRace(w, r) {
   r.status = "running";
   r.bots = makeBots(w, r);
   for (const [id, entry] of Object.entries(r.entries)) {
-    const t = w.engine.teams.find((t) => t.id === id),
-      car = t.garage.find((c) => c.id === entry.carId);
+    const base = w.engine.teams.find((t) => t.id === id);
+    const t = participant(w, r, id);
     if (
-      !car ||
-      jobFor(t, car.id) ||
-      !crewRate(t, "race") ||
-      !t.drivers.some((d) => d.id === entry.driverId)
+      !t ||
+      !t.garage.length ||
+      !t.drivers.length ||
+      !t.mechanics.length ||
+      Object.values(t.parts).some((p) => !p) ||
+      jobFor(base, entry.carId) ||
+      entry.reservedPartIds.some((id) => jobFor(base, id))
     ) {
       entry.dns = true;
       continue;
     }
-    t.activeCarId = car.id;
-    t.vehicleId = car.modelId;
-    t.activeDriver = entry.driverId;
-    const plans = entry.plans.map(
+    entry.driverId = t.drivers.some((d) => d.id === entry.driverId)
+      ? entry.driverId
+      : t.drivers[0].id;
+    resetEntry(t, r.event, entry.plans);
+    t.plans = t.plans.map(
       (p) =>
         p && {
           ...p,
@@ -394,13 +421,17 @@ function startRace(w, r) {
             : entry.driverId,
         },
     );
-    resetEntry(t, r.event, plans);
-    t.onlineRace = r.event.eventId;
-    entry.vehicleId = t.vehicleId;
-    markParticipation(frame(w, r, [t]), t);
+    t.activeDriver = entry.driverId;
+    t.fuel = t.garage[0].fuel || 0;
+    t.rng = hash(`${w.seed}/${id}/${r.event.eventId}`) || 1;
+    saveParticipant(w, r, t);
+    markParticipation(frame(w, r, [t]), base);
   }
+  refreshAssignments(w);
 }
 function closeRace(w, r, f, reason, closedAt = w.at) {
+  const catalog =
+    r.catalog || w.catalogs?.[r.catalogRevision] || w.engine.management.catalog;
   f = { ...f, clock: (closedAt - r.event.start) / 1000 };
   r.snapshot = publicSnapshot(f).entries;
   r.status = "closed";
@@ -410,7 +441,7 @@ function closeRace(w, r, f, reason, closedAt = w.at) {
     result = [];
   ordered.forEach((t, index) => {
     const pos = index + 1,
-      ref = r.catalog.prizes[index];
+      ref = catalog.prizes[index];
     const gross = ref
       ? Math.round(
           (r.event.kind === "short" ? ref.short : ref.race) *
@@ -431,7 +462,7 @@ function closeRace(w, r, f, reason, closedAt = w.at) {
       isBot: t.ai,
       vehicleId: r.entries[t.id]?.vehicleId || t.vehicleId,
       rulesVersion: RULES_VERSION,
-      catalogRevision: r.catalog.revision,
+      catalogRevision: catalog.revision,
       position: pos,
       finished: t.finishTime !== null,
       finishSeconds: t.finishTime,
@@ -470,7 +501,7 @@ function closeRace(w, r, f, reason, closedAt = w.at) {
       t.speed = 0;
       t.service = null;
       t.activePlan = null;
-      t.onlineRace = null;
+      saveParticipant(w, r, t);
     } else {
       // Asistencia virtual del BOT después del cierre; el próximo sorteo ocurre sólo en la siguiente carrera.
       activeCar(t).condition = 100;
@@ -484,8 +515,11 @@ function closeRace(w, r, f, reason, closedAt = w.at) {
   });
   r.results = result;
   w.processed.push(...result);
+  refreshAssignments(w);
 }
 export function advanceWorld(w, now, maxSeconds = 600) {
+  normalizeEntries(w);
+  refreshAssignments(w);
   const target = Math.min(minute30(now), w.at + maxSeconds * 1000);
   while (w.at < target) {
     // Calendar generated once per minute; no request per car, sector or player.
@@ -502,7 +536,8 @@ export function advanceWorld(w, now, maxSeconds = 600) {
       const teams = [
         ...Object.entries(r.entries)
           .filter(([, e]) => !e.dns)
-          .map(([id]) => w.engine.teams.find((t) => t.id === id)),
+          .map(([id]) => participant(w, r, id))
+          .filter(Boolean),
         ...r.bots,
       ];
       const f = frame(w, r, teams),
@@ -532,7 +567,10 @@ export function advanceWorld(w, now, maxSeconds = 600) {
       const dt = Math.min(30, (deadline - w.at) / 1000);
       for (const t of teams) {
         advanceTeam(f, t, dt);
-        if (!t.ai) active.add(t.id);
+        if (!t.ai) {
+          saveParticipant(w, r, t);
+          for (const d of t.drivers) active.add(d.id);
+        }
       }
       w.engine.eventCounter = f.eventCounter;
       const times = teams
@@ -551,16 +589,19 @@ export function advanceWorld(w, now, maxSeconds = 600) {
         w.at -= dt * 1000;
       }
     }
-    for (const t of w.engine.teams)
-      if (!active.has(t.id))
-        advanceTeam(
-          {
-            ...w.engine,
-            competition: { ...w.engine.competition, closed: true },
-          },
-          t,
-          30,
-        );
+    refreshAssignments(w);
+    for (const t of w.engine.teams) {
+      const idle = {
+        ...t,
+        drivers: t.drivers.filter((d) => !active.has(d.id)),
+        participating: false,
+      };
+      advanceTeam(
+        { ...w.engine, competition: { ...w.engine.competition, closed: true } },
+        idle,
+        30,
+      );
+    }
     advanceWorkshops(w.engine, 30);
     w.at += 30000;
     w.engine.clock = (w.at - Date.parse(w.epoch)) / 1000;
@@ -590,11 +631,38 @@ function withPlayer(w, t, fn, r = null) {
   };
   t.id = "player";
   replace(id, "player");
-  const s = r ? frame(w, r, [t]) : { ...w.engine, teams: [t] };
+  const prior = { phase: t.phase, participating: t.participating };
+  const driving =
+    !r && t.onlineRace
+      ? Object.fromEntries(
+          RUNTIME_KEYS.filter((k) => t[k] !== undefined).map((k) => [
+            k,
+            ["plans", "activePlan"].includes(k) ? copy(t[k]) : t[k],
+          ]),
+        )
+      : null;
+  if (!r && !t.plans) t.plans = [];
+  if (!r) {
+    t.phase = "unregistered";
+    t.participating = false;
+  }
+  const s = r
+    ? frame(w, r, [t])
+    : {
+        ...w.engine,
+        teams: [t],
+        competition: { ...w.engine.competition, closed: true },
+      };
   try {
     return fn(s);
   } finally {
     t.id = id;
+    if (!r) Object.assign(t, prior);
+    if (driving)
+      for (const k of RUNTIME_KEYS) {
+        if (k in driving) t[k] = driving[k];
+        else delete t[k];
+      }
     replace("player", id);
     w.engine.itemCounter = s.itemCounter;
     w.engine.eventCounter = s.eventCounter;
@@ -664,70 +732,42 @@ export function command(w, id, c) {
   const t = w.engine.teams.find((t) => t.id === id);
   if (!t) throw Error("Escudería desconocida.");
   if (!c || typeof c.type !== "string") throw Error("Comando inválido.");
+  normalizeEntries(w);
+  protectResources(w, t, c);
   const r = t.onlineRace ? w.races[t.onlineRace] : null;
-  if (
-    r?.status === "running" &&
-    (c.type === "select-car" ||
-      (c.type === "sell-car" && c.id === t.activeCarId) ||
-      (c.type === "purchase-car" && c.tradeId === t.activeCarId) ||
-      (["sell-part", "enqueue-work"].includes(c.type) &&
-        (c.id === t.activeCarId ||
-          Object.values(t.parts).some((p) => p.id === c.id))))
-  )
-    throw Error(
-      "Esperá el cierre de la carrera antes de modificar el kit o auto de carrera.",
-    );
-  if (
-    ["sell-part", "enqueue-work"].includes(c.type) &&
-    Object.values(w.races).some(
-      (x) =>
-        x.status === "scheduled" &&
-        x.entries[id]?.plans.some(
-          (p) =>
-            p &&
-            Object.entries(p.replacements || {}).some(
-              ([type, piece]) =>
-                piece === c.id && p.actions[type] === "replace",
-            ),
-        ),
-    )
-  )
-    throw Error("La pieza está reservada en una carrera futura.");
   switch (c.type) {
-    case "enroll": {
+    case "enroll":
+    case "configure-enrollment": {
       const race = raceFor(w, c.eventId),
         e = race.event,
-        car = activeCar(t);
-      if (w.at >= e.start || race.entries[id])
+        existing = race.entries[id];
+      if (w.at >= e.start || (c.type === "enroll" ? !!existing : !existing))
         throw Error("Inscripción cerrada o duplicada.");
+      const assigned = allocation(w, t, race, c);
+      const plans = routeFor(e.id).stages.map((s, i) => ({
+        ...(existing?.plans[i] || {
+          ...defaultPlan(i),
+          ...recommendedSetup(s),
+        }),
+        driverId:
+          existing?.plans[i] &&
+          assigned.driverIds.includes(existing.plans[i].driverId)
+            ? existing.plans[i].driverId
+            : assigned.driverIds[i % assigned.driverIds.length],
+        fuelTarget: vehicle(assigned.vehicleId).tank,
+      }));
       if (
-        Object.values(w.races).some(
-          (x) =>
-            x.entries[id] && e.start < x.event.end && x.event.start < e.end,
+        existing &&
+        plans.some((p) =>
+          Object.values(p.replacements || {}).some(
+            (id) => !assigned.spareIds.includes(id),
+          ),
         )
       )
-        throw Error("Se superpone con otra inscripción.");
-      if (
-        !car ||
-        jobFor(t, car.id) ||
-        !crewRate(t, "race") ||
-        !t.drivers.some((d) => d.id === c.driverId) ||
-        t.budget < 1500
-      )
-        throw Error("Necesitás auto disponible, piloto, mecánico y 1.500 cr.");
-      const plans = routeFor(e.id).stages.map((s, i) => ({
-        ...defaultPlan(i),
-        ...recommendedSetup(s),
-        driverId: c.driverId,
-        fuelTarget: vehicle(t.vehicleId).tank,
-      }));
-      race.entries[id] = {
-        carId: car.id,
-        vehicleId: car.modelId,
-        driverId: c.driverId,
-        plans,
-        dns: false,
-      };
+        throw Error(
+          "El nuevo lote debe conservar los repuestos usados en los planes, o quitarlos antes.",
+        );
+      race.entries[id] = { ...assigned, plans, dns: false };
       return { eventId: e.eventId };
     }
     case "cancel-enrollment": {
@@ -738,23 +778,35 @@ export function command(w, id, c) {
       return { cancelled: true };
     }
     case "save-plans": {
-      if (!Array.isArray(c.plans) || c.plans.length < 1 || c.plans.length > 24) throw Error("Lote de planes inválido.");
-      for (const row of c.plans) command(w, id, {type:"save-plan",eventId:c.eventId,stageIndex:row.stageIndex,plan:row.plan});
-      return {saved:c.plans.length};
+      if (!Array.isArray(c.plans) || c.plans.length < 1 || c.plans.length > 24)
+        throw Error("Lote de planes inválido.");
+      for (const row of c.plans)
+        command(w, id, {
+          type: "save-plan",
+          eventId: c.eventId,
+          stageIndex: row.stageIndex,
+          plan: row.plan,
+        });
+      return { saved: c.plans.length };
     }
     case "save-plan": {
       const race = c.eventId ? w.races[c.eventId] : r;
       if (!race?.entries[id] || race.status === "closed")
         throw Error("Inscribite antes de configurar.");
-      if (race.status === "scheduled") {
-        const preview = copy(t);
-        preview.routeId = race.event.id;
-        preview.phase = "waiting";
-        preview.stageIndex = 0;
-        preview.plans = copy(race.entries[id].plans);
-        withPlayer(w, preview, (s) => savePlan(s, c.stageIndex, c.plan), race);
-        race.entries[id].plans = preview.plans;
-      } else withPlayer(w, t, (s) => savePlan(s, c.stageIndex, c.plan), race);
+      const preview = participant(w, race, id);
+      if (!preview) throw Error("No hay equipo disponible en esta carrera.");
+      if (!preview.drivers.some((d) => d.id === c.plan?.driverId))
+        throw Error("El piloto no está asignado a esta carrera.");
+      const allocated = new Set(race.entries[id].spareIds);
+      if (
+        Object.values(c.plan?.replacements || {}).some(
+          (piece) => piece && !allocated.has(piece),
+        )
+      )
+        throw Error("El repuesto no está asignado a esta carrera.");
+      withPlayer(w, preview, (s) => savePlan(s, c.stageIndex, c.plan), race);
+      if (race.status === "scheduled") race.entries[id].plans = preview.plans;
+      else saveParticipant(w, race, preview);
       return { saved: true };
     }
     case "bid":
@@ -779,7 +831,25 @@ export function command(w, id, c) {
       return out;
     }
     case "select-car":
-      return withPlayer(w, t, (s) => selectVehicle(s, c.id));
+      return withPlayer(w, t, (s) => {
+        const out = selectVehicle(s, c.id),
+          kit = activeCar(t).kitIds;
+        if (kit) {
+          const all = [...Object.values(t.parts), ...t.inventory];
+          if (
+            PART_TYPES.every((type) => all.some((p) => p.id === kit[type.id]))
+          ) {
+            t.parts = Object.fromEntries(
+              Object.entries(kit).map(([type, id]) => [
+                type,
+                all.find((p) => p.id === id),
+              ]),
+            );
+            t.inventory = all.filter((p) => !Object.values(kit).includes(p.id));
+          }
+        }
+        return out;
+      });
     case "sell-car": {
       const out = withPlayer(w, t, (s) => sellVehicle(s, c.id));
       for (const race of Object.values(w.races))
@@ -821,18 +891,21 @@ export function command(w, id, c) {
   }
 }
 export function publicWorld(w) {
+  normalizeEntries(w);
   return {
     ...initialFinance(w),
     version: RULES_VERSION,
     at: w.at,
     epoch: w.epoch,
-    vehicles: [...w.engine.management.catalog.vehicles].sort((a, b) => a.price - b.price).map((v) => ({
-      id: v.id,
-      name: v.name,
-      price: v.price,
-      stock: w.engine.management.stocks[v.id],
-      available: v.available,
-    })),
+    vehicles: [...w.engine.management.catalog.vehicles]
+      .sort((a, b) => a.price - b.price)
+      .map((v) => ({
+        id: v.id,
+        name: v.name,
+        price: v.price,
+        stock: w.engine.management.stocks[v.id],
+        available: v.available,
+      })),
     bots: BOT_PROFILES.map((b) => ({ ...b, stats: w.stats[b.id] })),
     races: Object.values(w.races).map((r) => ({
       eventId: r.event.eventId,
@@ -861,9 +934,15 @@ export function publicWorld(w) {
   };
 }
 export function privateWorld(w, id) {
+  normalizeEntries(w);
   const t = w.engine.teams.find((t) => t.id === id);
   if (!t) throw Error("Escudería desconocida.");
   const own = copy(t);
+  const runtime = w.races[t.onlineRace]?.entries[id]?.runtime;
+  if (runtime)
+    Object.assign(own, copy(runtime), {
+      plans: copy(w.races[t.onlineRace].entries[id].plans),
+    });
   delete own.rng;
   delete own.ledgerSaved;
   delete own.ledgerOffset;
@@ -890,7 +969,9 @@ export function privateWorld(w, id) {
       .map((r) => ({
         eventId: r.event.eventId,
         status: r.status,
-        ...r.entries[id],
+        ...Object.fromEntries(
+          Object.entries(r.entries[id]).filter(([key]) => key !== "runtime"),
+        ),
       })),
     public: publicWorld(w),
   };

@@ -19,9 +19,10 @@ export function calendar(
     const first = Math.max(0, Math.floor((from - base) / cycle));
     for (let i = first; base + i * cycle <= to; i++) {
       const start = base + i * cycle,
-        end = start + (r.maxHours || 480) * HOUR;
+        maxHours = Math.min(r.maxHours || 192, r.kind === "short" ? 4 : 192),
+        end = start + maxHours * HOUR;
       if (end < from) continue;
-      events.push({ ...r, eventId: `${r.id}@${start}`, start, end });
+      events.push({ ...r, maxHours, eventId: `${r.id}@${start}`, start, end });
     }
   }
   return events.sort((a, b) => a.start - b.start || a.id.localeCompare(b.id));
@@ -38,7 +39,8 @@ export function eventById(s, id) {
     r.startDay * DAY;
   const cycle = (r.kind === "short" ? 48 : 224) * DAY;
   if (start < base || (start - base) % cycle !== 0) return null;
-  return { ...r, eventId: id, start, end: start + (r.maxHours || 480) * HOUR };
+  const maxHours = Math.min(r.maxHours || 192, r.kind === "short" ? 4 : 192);
+  return { ...r, maxHours, eventId: id, start, end: start + maxHours * HOUR };
 }
 export function currentEvent(s) {
   return eventById(s, s.competition?.currentId);

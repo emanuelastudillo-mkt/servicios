@@ -30,7 +30,7 @@
     "MAX_PLAYERS": "20",
     "RP_ID": "emanuelmkt.com.ar",
     "AUTH_ORIGINS": "https://emanuelmkt.com.ar",
-    "MAX_TICK_SECONDS": "120",
+    "MAX_TICK_SECONDS": "60",
     "ALLOWED_ORIGINS": "https://emanuelmkt.com.ar",
   },
   "observability": { "enabled": true, "head_sampling_rate": 0.1 },

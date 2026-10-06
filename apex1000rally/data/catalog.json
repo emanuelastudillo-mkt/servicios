@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "revision": "1604da1645070d1e",
+  "revision": "0005498a5d8af10e",
   "vehicles": [
     {
       "id": "niva",
@@ -1177,7 +1177,7 @@
       "startDay": 0,
       "prizeFactor": 1,
       "kind": "raid",
-      "maxHours": 576
+      "maxHours": 192
     },
     {
       "id": "sahara",
@@ -1187,7 +1187,7 @@
       "startDay": 28,
       "prizeFactor": 1.08,
       "kind": "raid",
-      "maxHours": 576
+      "maxHours": 192
     },
     {
       "id": "arabia",
@@ -1197,7 +1197,7 @@
       "startDay": 56,
       "prizeFactor": 1.16,
       "kind": "raid",
-      "maxHours": 600
+      "maxHours": 192
     },
     {
       "id": "australia",
@@ -1207,7 +1207,7 @@
       "startDay": 84,
       "prizeFactor": 1.24,
       "kind": "raid",
-      "maxHours": 672
+      "maxHours": 192
     },
     {
       "id": "africa",
@@ -1217,7 +1217,7 @@
       "startDay": 112,
       "prizeFactor": 1.32,
       "kind": "raid",
-      "maxHours": 576
+      "maxHours": 192
     },
     {
       "id": "america",
@@ -1227,7 +1227,7 @@
       "startDay": 140,
       "prizeFactor": 1.4,
       "kind": "raid",
-      "maxHours": 624
+      "maxHours": 192
     },
     {
       "id": "iberia",
@@ -1237,7 +1237,7 @@
       "startDay": 168,
       "prizeFactor": 1.48,
       "kind": "raid",
-      "maxHours": 552
+      "maxHours": 192
     },
     {
       "id": "asia",
@@ -1247,7 +1247,7 @@
       "startDay": 196,
       "prizeFactor": 1.56,
       "kind": "raid",
-      "maxHours": 624
+      "maxHours": 192
     },
     {
       "id": "sprint-salta",

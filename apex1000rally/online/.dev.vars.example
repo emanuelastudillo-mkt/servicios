@@ -1,0 +1,2 @@
+# Sólo para desarrollo local. Producción: wrangler secret put AUTH_PEPPER
+AUTH_PEPPER=reemplazar-por-un-secreto-aleatorio-de-al-menos-32-caracteres

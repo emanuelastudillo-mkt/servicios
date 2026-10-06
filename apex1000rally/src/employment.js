@@ -179,9 +179,14 @@ export function processContracts(s, at = gameNow(s)) {
             p.contract.expiresAt = addMonths(p.contract.expiresAt, 12);
           continue;
         }
-        const running = s.competition
-          ? t.participating && !s.competition.closed && s.competition.started
-          : ["racing", "service", "camp"].includes(t.phase);
+        const running =
+          s.mode === "online" && t.onlineActiveStaffIds
+            ? t.onlineActiveStaffIds.includes(p.id)
+            : s.competition
+              ? t.participating &&
+                !s.competition.closed &&
+                s.competition.started
+              : ["racing", "service", "camp"].includes(t.phase);
         if (!running) returnToMarket(s, t, p, kind);
       }
 }
@@ -255,9 +260,11 @@ export function advanceEmployment(s) {
         for (const p of list) {
           t.finance.accrued[kind] += (p.salary * elapsed) / span;
           const racing =
-            t.phase === "racing" &&
-            (!s.competition || t.participating) &&
-            p.id === t.activeDriver;
+            s.mode === "online" && t.onlineRacingDriverIds
+              ? t.onlineRacingDriverIds.includes(p.id)
+              : t.phase === "racing" &&
+                (!s.competition || t.participating) &&
+                p.id === t.activeDriver;
           p.form = Math.max(
             0,
             Math.min(100, p.form + (elapsed / HOUR) * (racing ? -0.1 : 0.03)),

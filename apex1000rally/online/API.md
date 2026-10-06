@@ -1,4 +1,4 @@
-# API online 1.1
+# API online 1.2
 
 Usar HTTPS. El servidor obtiene el director de la sesión (cookie o Bearer); nunca aceptar `teamId`, saldo, kilómetros ni tiempos enviados por el cliente. Un navegador no calcula resultados autoritativos.
 
@@ -6,10 +6,10 @@ Usar HTTPS. El servidor obtiene el director de la sesión (cookie o Bearer); nun
 
 | Método / ruta                                  | Uso                                                                                                                                                      |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /api/passkey/register/options` | `{username,email,teamName,shieldId,vehicleId}` → `{challengeId,options}` para WebAuthn. |
-| `POST /api/passkey/register/verify` | `{challengeId,response}` con la respuesta WebAuthn → usuario y sesión. |
-| `POST /api/passkey/login/options` | `{}` → desafío y opciones para credencial descubrible. |
-| `POST /api/passkey/login/verify` | `{challengeId,response}` → usuario y sesión. |
+| `POST /api/passkey/register/options`           | `{username,email,teamName,shieldId,vehicleId}` → `{challengeId,options}` para WebAuthn.                                                                  |
+| `POST /api/passkey/register/verify`            | `{challengeId,response}` con la respuesta WebAuthn → usuario y sesión.                                                                                   |
+| `POST /api/passkey/login/options`              | `{}` → desafío y opciones para credencial descubrible.                                                                                                   |
+| `POST /api/passkey/login/verify`               | `{challengeId,response}` → usuario y sesión.                                                                                                             |
 | `POST /api/logout`                             | Cierra sesión y cookie.                                                                                                                                  |
 | `GET /api/bootstrap`                           | Sesión requerida. Usuario, revisión, fecha UTC en ms, equipo completo, catálogo, stock, ofertas propias, calendario, inscripciones y proyección pública. |
 | `GET /api/public`                              | BOT, stock/modelos iniciales, directores públicos y carreras con posiciones. Caché 30 s. Primera inicialización mediante cron o registro.                |
@@ -49,7 +49,8 @@ El servidor no recibe ticks del navegador. Animar el mapa a 60 FPS puede interpo
 Todos se envían a `/api/command`; los ID se obtienen del `bootstrap`.
 
 ```json
-{"type":"enroll","eventId":"EVENT_ID","driverId":"DRIVER_ID"}
+{"type":"enroll","eventId":"EVENT_ID","carId":"CAR_ID","driverIds":["DRIVER_1","DRIVER_2"],"mechanicIds":["MECHANIC_ID"],"partIds":{"engine":"PIECE_ID","gearbox":"PIECE_ID","suspension":"PIECE_ID","tyres":"PIECE_ID","cooling":"PIECE_ID","brakes":"PIECE_ID"},"spareIds":[]}
+{"type":"configure-enrollment","eventId":"EVENT_ID","carId":"CAR_ID","driverIds":["DRIVER_ID"],"mechanicIds":["MECHANIC_ID"],"partIds":{},"spareIds":[]}
 {"type":"cancel-enrollment","eventId":"EVENT_ID"}
 {"type":"save-plan","eventId":"EVENT_ID","stageIndex":0,"plan":{}}
 {"type":"buy-part","partType":"engine","grade":"endurance","condition":50}
@@ -75,7 +76,9 @@ Para `save-plan`, copiar un plan completo de `entries[].plans`, modificar opcion
 
 La inscripción guarda el auto activo y piloto; reserva todo el intervalo máximo. Si falta piloto, mecánico o auto disponible al largar se marca DNS y no se corre. En la versión actual esos DNS no producen fila de resultados ni premio. Vender/entregar un auto cancela sus inscripciones futuras. El kit de carrera queda bloqueado hasta el cierre global; los autos y piezas de reserva sí pueden trabajarse. Planes con piloto secundario que ya no esté en el equipo se reemplazan por el piloto inscrito al largar.
 
-Estados: `scheduled`, `running`, `closed`. Cada equipo puede estar esperando, en servicio, conduciendo o terminado. Un plan puede bloquear la salida si lo configura el director; la inscripción genera planes iniciales válidos para todas las etapas. Las carreras cortas siguen las reglas existentes: un piloto, sin asistencia/reparaciones.
+Estados: `scheduled`, `running`, `closed`. Cada inscripción tiene su propio avance y planes. Los raids aceptan 1–3 pilotos, 1–4 mecánicos y un auto; los sprints exactamente uno de cada rol. `partIds` debe contener los seis tipos y sus IDs físicos; `spareIds` reserva los repuestos adicionales. Ningún recurso puede repetirse en intervalos máximos superpuestos. `configure-enrollment` utiliza el mismo cuerpo completo y solo se admite antes de largar. El JSON de ejemplo usa IDs simbólicos: reemplazar cada `PIECE_ID` por una pieza distinta y completar `partIds`; `{}` se rechaza. Los planes solo pueden usar los pilotos y repuestos asignados a esa inscripción. Las largas se limitan a 192 horas y 15 etapas; las cortas a cuatro horas, sin asistencia ni reparaciones durante el trayecto.
+
+`view.teams[0]` es el equipo enviado a la carrera del visor, con su kit y plantilla asignados. `view.online.baseTeam` conserva el patrimonio completo para taller, personal y finanzas. `view.online.ownRaces` permite cambiar entre las participaciones activas y `view.online.reservations` contiene las reservas y límites por inscripción. No publicar el estado autoritativo ni los RNG internos. No requiere otro endpoint, polling ni tabla SQL por carrera simultánea.
 
 ## Consistencia y autenticación
 
