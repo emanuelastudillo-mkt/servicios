@@ -1,5 +1,6 @@
 import { PART_TYPES } from "../../src/catalog.js";
 import { jobFor } from "../../src/workshop.js";
+import { normalizeStaffNames } from "./staff.js";
 
 export const RUNTIME_KEYS = [
   "routeId",
@@ -46,6 +47,7 @@ export function reservations(w, id) {
     }));
 }
 export function normalizeEntries(w) {
+  normalizeStaffNames(w);
   for (const r of Object.values(w.races)) {
     if (r.status !== "closed" && r.event.kind !== "short") {
       r.event.maxHours = Math.min(r.event.maxHours || 192, 192);

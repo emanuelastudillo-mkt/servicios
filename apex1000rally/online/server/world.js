@@ -8,6 +8,7 @@ import {
   RUNTIME_KEYS,
 } from "./resources.js";
 import { CATALOG } from "../../data/catalog.js";
+import { starterStaffName } from "./staff.js";
 import {
   createRace,
   getPlayer,
@@ -233,7 +234,7 @@ export function addDirector(w, id, username, name, shieldId, modelId = "niva") {
   t.drivers.forEach((d, i) => {
     d.id = `${id}-academy-driver-${i + 1}`;
     d.personId = d.id;
-    d.name = `${["Alex", "Dani", "Sol"][i]} · Academia`;
+    d.name = starterStaffName(id, "driver", i);
     d.salary = ACADEMY_DRIVER_SALARIES[i];
     d.traits = "";
     startContract(w.engine, t, d, "driver", w.at, i);
@@ -241,7 +242,7 @@ export function addDirector(w, id, username, name, shieldId, modelId = "niva") {
   t.activeDriver = t.drivers[0].id;
   t.mechanics.forEach((m) => {
     m.id = `${id}-academy-mechanic`;
-    m.name = "Asistencia de academia";
+    m.name = starterStaffName(id, "mechanic");
     m.salary = ACADEMY_MECHANIC_SALARY;
     m.traits = "";
     startContract(w.engine, t, m, "mechanic", w.at);
