@@ -1,9 +1,15 @@
-# Apex1000 Rally Online 1.5.0
+# Apex1000 Rally Online 1.5.1
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/
 API: https://apex1000-online.emanuelmkt.workers.dev
 
 La interfaz completa (mapa, tablero, campamento, taller, mercado, personal, finanzas, inscripciones y rankings) utiliza el servidor autoritativo Worker + D1. La beta offline permanece independiente. No se admiten importación de partidas, dinero admin, reset ni aceleración online.
+
+## Logos de carrera (interfaz 1.5.1)
+
+32 emblemas SVG para los ocho raids y 24 sprints. Cada uno lleva la bandera del país de largada y un pictograma del terreno predominante, calculado por kilómetros de recorrido. Se muestran en home, calendario, inscripciones y encabezado del mapa. Sus descripciones accesibles incluyen país, localidad inicial y terreno. Los trazados pequeños son decorativos.
+
+Los archivos están en `assets/races/`; datos en `data/race-logos.js` y generador en `scripts/build-race-logos.mjs` (desde la raíz). Las banderas locales de flag-icons 7.3.2 conservan su licencia MIT en `assets/race-flags/LICENSE.txt`. No hay imágenes remotas durante el juego ni consultas nuevas al Worker. Esta actualización sólo publica la interfaz; Worker 1.5.0, D1 y Sheets conservan su configuración.
 
 ## Reglajes y puesta a punto (1.5.0)
 

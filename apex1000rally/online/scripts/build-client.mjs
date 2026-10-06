@@ -215,6 +215,11 @@ html = html.replace(
 html = html
   .replace("</head>", '<link rel="stylesheet" href="./online.css" />\n</head>')
   .replace("./src/app.js", "./online-game.js");
+const styleVersion = createHash("sha256")
+  .update(await readFile(path.join(out, "style.css")))
+  .digest("hex")
+  .slice(0, 12);
+html = html.replace('href="./style.css"', `href="./style.css?v=${styleVersion}"`);
 await writeFile(path.join(out, "index.html"), html);
 await build({
   entryPoints: [path.join(online, "client/passkey-client.js")],

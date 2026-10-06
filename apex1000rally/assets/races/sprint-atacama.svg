@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 144" role="img" aria-labelledby="title"><title id="title">Sprint · Copiapó → Caldera · Largada en Chile · Arena</title><defs><linearGradient id="metal" x2=".9" y2="1"><stop stop-color="#f2e6cb"/><stop offset=".27" stop-color="#657681"/><stop offset=".56" stop-color="#e6eaf0"/><stop offset="1" stop-color="#596774"/></linearGradient><linearGradient id="face" x2="0" y2="1"><stop stop-color="#253139"/><stop offset="1" stop-color="#0b1219"/></linearGradient><clipPath id="face-clip"><path d="M8 18L64 4L120 18V102Q111 126 64 139Q17 126 8 102Z"/></clipPath></defs><path d="M8 18L64 4L120 18V102Q111 126 64 139Q17 126 8 102Z" fill="url(#face)" stroke="url(#metal)" stroke-width="4"/><path d="M14 23L64 11L114 23V100Q101 121 64 132Q27 121 14 100Z" fill="none" stroke="#f79a50" opacity=".75"/><g clip-path="url(#face-clip)"><path d="M9 33H119" stroke="#f79a50" opacity=".35"/><circle cx="91" cy="43" r="9" fill="#f79a50" opacity=".9"/><path d="M18 69Q48 36 76 67T110 62V92H18Z" fill="#f79a50" opacity=".35"/><path d="M18 81Q58 57 90 77L110 70V93H18Z" fill="#f79a50"/><path d="M22 78Q47 62 72 76" fill="none" stroke="#fff5df" stroke-width="2"/><path d="M28 85C40 83 82 89 84 75S52 64 70 56" fill="none" stroke="#0b1219" stroke-width="5"/><path d="M28 85C40 83 82 89 84 75S52 64 70 56" fill="none" stroke="#f5f1df" stroke-width="2.5" stroke-linecap="round"/><circle cx="70" cy="56" r="3" fill="#f79a50"/><rect x="40" y="93" width="48" height="37" rx="3" fill="#080d12" stroke="url(#metal)" stroke-width="1.5"/><svg x="42" y="95" width="44" height="33" xmlns="http://www.w3.org/2000/svg" id="flag-icons-cl" viewBox="0 0 640 480">
+  <defs>
+    <clipPath id="cl-a">
+      <path fill-opacity=".7" d="M0 0h682.7v512H0z"/>
+    </clipPath>
+  </defs>
+  <g fill-rule="evenodd" clip-path="url(#cl-a)" transform="scale(.9375)">
+    <path fill="#fff" d="M256 0h512v256H256z"/>
+    <path fill="#0039a6" d="M0 0h256v256H0z"/>
+    <path fill="#fff" d="M167.8 191.7 128.2 162l-39.5 30 14.7-48.8L64 113.1l48.7-.5L127.8 64l15.5 48.5 48.7.1-39.2 30.4z"/>
+    <path fill="#d52b1e" d="M0 256h768v256H0z"/>
+  </g>
+</svg>
+</g><text x="64" y="27" text-anchor="middle" fill="#f3f0e7" font-family="Arial,sans-serif" font-size="10" font-weight="800" letter-spacing="1">COPIAPÓ</text><path d="M19 104l9 10M109 104l-9 10" stroke="#f79a50" stroke-width="2"/></svg>
