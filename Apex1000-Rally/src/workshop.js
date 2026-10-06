@@ -2,7 +2,11 @@ import { recordCash } from "./employment.js";
 import { staffCondition } from "./staff.js";
 import { vehicle, clamp } from "./catalog.js";
 import { modelStats } from "./vehicle-stats.js";
-import { repairQuote, repairPiece } from "./part-maintenance.js";
+import {
+  repairQuote,
+  repairPiece,
+  REPAIR_TIME_MULTIPLIER,
+} from "./part-maintenance.js";
 
 export const GARAGE_LIMIT = 3;
 export const UPGRADE_LIMIT = 100;
@@ -21,6 +25,15 @@ export const crewRate = (t, place) =>
   );
 export const jobFor = (t, id) =>
   t.workshop?.jobs.find((j) => j.targetId === id);
+export const workshopPieces = (t) => [
+  ...t.inventory,
+  ...Object.values(t.parts),
+];
+export const installedPiece = (t, id) =>
+  Object.values(t.parts).find((p) => p.id === id);
+export const raceWorkPending = (t) =>
+  jobFor(t, t.activeCarId) ||
+  Object.values(t.parts).some((p) => jobFor(t, p.id));
 export const partReserved = (t, id) =>
   t.plans
     .slice(t.stageIndex)
@@ -233,17 +246,17 @@ export function jobQuote(
   kind,
   id,
   points = 5,
-  pricingVersion = 2,
+  pricingVersion = 3,
 ) {
   if (!Number.isInteger(points) || points < 1 || points > 5)
     throw Error("Elegí entre 1 y 5 puntos.");
   if (kind === "part") {
-    const part = team.inventory.find((p) => p.id === id);
+    const part = workshopPieces(team).find((p) => p.id === id);
     if (!part)
-      throw Error(
-        "Sólo se reparan en la base las piezas disponibles del lote.",
-      );
-    const q = repairQuote(part);
+      throw Error("La pieza no está en el lote ni instalada en el vehículo.");
+    const q = repairQuote(part, {
+      timeMultiplier: pricingVersion >= 3 ? REPAIR_TIME_MULTIPLIER : 1,
+    });
     return { ...q, kind, targetId: id, workHours: q.hours };
   }
   const car = team.garage.find((c) => c.id === id);
@@ -267,7 +280,7 @@ export function jobQuote(
     workHours:
       gain *
       (kind === "condition"
-        ? 0.6
+        ? 0.6 * (pricingVersion >= 3 ? REPAIR_TIME_MULTIPLIER : 1)
         : pricingVersion === 1
           ? 2 * difficulty
           : 20 * difficulty * Math.pow(1.5, (car[kind] - 50) / 10)),
@@ -285,6 +298,10 @@ export function enqueueJob(state, kind, id, points = 5) {
     throw Error(
       "El auto en carrera no puede repararse ni mejorarse en la base.",
     );
+  if (kind === "part" && installedPiece(t, id) && !canChangeCar(t))
+    throw Error(
+      "La pieza instalada sólo se repara en el taller cuando el auto está en la base.",
+    );
   if (kind === "part" && partReserved(t, id))
     throw Error(
       "La pieza está reservada en un plan. Cambiá esa elección antes de enviarla al taller.",
@@ -301,7 +318,7 @@ export function enqueueJob(state, kind, id, points = 5) {
     workHours: q.workHours,
     worked: 0,
     points: q.points ?? 5,
-    pricingVersion: 2,
+    pricingVersion: 3,
     originalAfter: q.originalAfter ?? null,
   };
   spend(
@@ -337,7 +354,7 @@ export function advanceWorkshops(state, seconds) {
       if (j.worked < j.workHours - 1e-9) break;
       const target =
         j.kind === "part"
-          ? t.inventory.find((p) => p.id === j.targetId)
+          ? workshopPieces(t).find((p) => p.id === j.targetId)
           : t.garage.find((c) => c.id === j.targetId);
       if (!target) throw Error("El trabajo perdió su auto o repuesto.");
       if (j.kind === "part") repairPiece(target);

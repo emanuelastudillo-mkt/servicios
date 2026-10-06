@@ -1,3 +1,4 @@
+import { driverRhythm, terrainPartFactors } from "./race-dynamics.js";
 import { directorName, chooseShield, renameIdentity } from "./identity.js";
 import {
   teamLevel,
@@ -24,7 +25,11 @@ import {
 } from "./employment.js";
 import { staffFactors, partProtected } from "./staff.js";
 import { CATALOG } from "../data/catalog.js";
-import { statFactors, teamVehicleStats } from "./vehicle-stats.js";
+import {
+  statFactors,
+  teamVehicleStats,
+  migrateVehicleBalance,
+} from "./vehicle-stats.js";
 import { failureRate } from "./reliability.js";
 import { serviceTimeline } from "./service-telemetry.js";
 import { repairQuote, repairPiece } from "./part-maintenance.js";
@@ -32,6 +37,7 @@ export { repairQuote } from "./part-maintenance.js";
 import {
   initializeWorkshop,
   advanceWorkshops,
+  raceWorkPending,
   activeCar,
   jobFor,
   vehicleFactors,
@@ -286,6 +292,7 @@ export function createRace({
   getPlayer(state).name = name.trim();
   chooseShield(state, shieldId);
   initializeWorkshop(state);
+  migrateVehicleBalance(state);
   for (const t of state.teams)
     for (const entry of t.ledger)
       if (entry.at === undefined)
@@ -663,6 +670,7 @@ export function performance(
   stage = routeFor(team).stages[team.stageIndex],
   plan = team.activePlan || team.plans[team.stageIndex] || defaultPlan(),
   km = team.stageKm,
+  rhythmSeconds = team.statistics?.driving || 0,
 ) {
   const v = vehicle(team.vehicleId),
     terrain = TERRAINS[segmentAt(stage, km).type],
@@ -675,13 +683,8 @@ export function performance(
     p = Object.fromEntries(
       PART_TYPES.map((t) => [t.id, partEffect(team.parts[t.id]) * d.parts]),
     );
-  const effect =
-    p.engine ** 0.31 *
-    p.transmission ** 0.16 *
-    p.suspension ** 0.19 *
-    p.tyres ** 0.19 *
-    p.brakes ** 0.09 *
-    p.cooling ** 0.06;
+  const partFactors = terrainPartFactors(p, terrainId),
+    effect = partFactors.speed;
   const ride =
     terrainId === "asphalt"
       ? plan.ride === "low"
@@ -750,6 +753,7 @@ export function performance(
           boost *
           pace.speed *
           d.speed *
+          driverRhythm(team, d, rhythmSeconds) *
           staff.speed *
           carFactors.speed *
           coolingDrag *
@@ -802,7 +806,8 @@ export function performance(
     (1 + (100 - d.energy) / 40) *
     (1 + plan.boost * 0.25) *
     attributes.risk *
-    staff.risk;
+    staff.risk *
+    partFactors.risk;
   return {
     speed,
     wear,
@@ -843,7 +848,7 @@ export function estimateStage(team, stage, raw) {
   let hours = 0,
     fuel = 0;
   for (const seg of stage.segments) {
-    const p = performance(forecast, stage, plan, seg.start + 0.01);
+    const p = performance(forecast, stage, plan, seg.start + 0.01, null);
     hours += seg.km / p.speed;
     fuel += (seg.km * p.fuelPer100) / 100;
   }
@@ -934,7 +939,7 @@ function advanceTeam(state, t, dt) {
   if (t.phase === "waiting") t.phase = "camp";
   if (t.phase === "camp") {
     t.speed = 0;
-    if (jobFor(t, t.activeCarId) || crewRate(t, "race") === 0) {
+    if (raceWorkPending(t) || crewRate(t, "race") === 0) {
       fatigue(t, dt);
       t.statistics.waiting += dt;
       return;
@@ -1301,7 +1306,7 @@ export function nextPlayerCamp(state) {
     crewRate(player, "race") === 0
   )
     throw Error("Contratá al menos un mecánico para iniciar la próxima etapa.");
-  if (jobFor(player, player.activeCarId) && crewRate(player, "workshop") === 0)
+  if (raceWorkPending(player) && crewRate(player, "workshop") === 0)
     throw Error(
       "El auto de carrera está en el taller sin mecánicos. Asigná personal o cancelá su trabajo.",
     );

@@ -1,3 +1,4 @@
+import { migrateVehicleBalance } from "./vehicle-stats.js";
 import { migrateIdentity } from "./identity.js";
 import { validateEmployment } from "./employment.js";
 import { initializeManagement } from "./management.js";
@@ -100,6 +101,7 @@ export function validateSave(raw) {
   if (!raw.management) initializeManagement(raw, { legacy: true });
   if (legacy) initializeWorkshop(raw);
   migrateLegacyCatalogStats(raw);
+  migrateVehicleBalance(raw);
   const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(raw);
   if (raw.competition || raw.employment) validateEmployment(raw);
   validateManagement(raw);

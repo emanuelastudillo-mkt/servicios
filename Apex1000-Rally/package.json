@@ -1,11 +1,11 @@
 {
   "name": "apex1000-rally",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "type": "module",
   "private": true,
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test --test-isolation=none tests/engine.test.mjs tests/management.test.mjs tests/catalog.test.mjs tests/visor.test.mjs tests/journal.test.mjs tests/workshop.test.mjs tests/admin.test.mjs tests/cockpit.test.mjs tests/competition.test.mjs tests/progression.test.mjs tests/vehicle-stats.test.mjs tests/employment.test.mjs tests/identity.test.mjs",
+    "test": "node --test --test-isolation=none tests/engine.test.mjs tests/management.test.mjs tests/catalog.test.mjs tests/visor.test.mjs tests/journal.test.mjs tests/workshop.test.mjs tests/admin.test.mjs tests/cockpit.test.mjs tests/competition.test.mjs tests/progression.test.mjs tests/vehicle-stats.test.mjs tests/employment.test.mjs tests/identity.test.mjs tests/race-dynamics.test.mjs",
     "test:browser": "node tests/browser.cjs",
     "catalog:check": "node scripts/sync-catalog.mjs --source-dir catalogos --check"
   }

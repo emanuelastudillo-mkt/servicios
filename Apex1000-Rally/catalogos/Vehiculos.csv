@@ -1,8 +1,8 @@
 id,name,price,stock,available,image,speed,acceleration,comfort,control,weightKg
-hilux,Toyota GR DKR Hilux EVO,48000,6,true,assets/art/hilux.webp,70,72,78,80,2010
-raptor,Ford Raptor T1+,54000,6,true,assets/art/raptor.webp,74,80,70,72,2010
-sandrider,Dacia Sandrider,56000,6,true,assets/art/sandrider.webp,72,76,73,85,2010
-mini,MINI JCW Rally 3.0i,45000,6,true,assets/art/mini.webp,69,68,83,87,2020
-niva,LADA Niva Legend · Raid,16000,12,true,assets/art/niva.webp,36,40,44,62,1210
-hunter,Prodrive Hunter T1+,360000,2,true,assets/art/hunter.webp,86,90,75,88,2010
-audi,Audi RS Q e-tron,480000,1,true,assets/art/audi.webp,90,96,86,90,2100
+hilux,Toyota GR DKR Hilux EVO,48000,6,true,assets/art/hilux.webp,72,64,85,76,2010
+raptor,Ford Raptor T1+,54000,6,true,assets/art/raptor.webp,84,78,58,63,2010
+sandrider,Dacia Sandrider,56000,6,true,assets/art/sandrider.webp,77,86,70,88,2010
+mini,MINI JCW Rally 3.0i,45000,6,true,assets/art/mini.webp,62,58,92,94,2020
+niva,LADA Niva Legend · Raid,16000,12,true,assets/art/niva.webp,34,38,42,66,1210
+hunter,Prodrive Hunter T1+,360000,2,true,assets/art/hunter.webp,93,94,52,79,2010
+audi,Audi RS Q e-tron,480000,1,true,assets/art/audi.webp,96,100,82,86,2100

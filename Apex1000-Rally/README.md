@@ -1,12 +1,16 @@
-# Apex1000 Rally · World Raid v0.4.5
+# Apex1000 Rally · World Raid v0.4.6
 
-Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. Este incremental v0.4.5 se aplica sobre v0.4.4. El menú superior agrupa las secciones en Carreras, Escudería y Economía, con Inicio como acceso directo. Admin incorpora Reset total con confirmación y respaldo local. Incluye 48 escudos originales seleccionables y un usuario del director independiente del nombre de la escudería.
+Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. Este incremental v0.4.6 se aplica sobre v0.4.5. Amplía las diferencias entre modelos, incluye piezas estándar e instaladas en el taller y agrega fluctuaciones ocultas de ritmo por piloto. El menú superior agrupa las secciones en Carreras, Escudería y Economía, con Inicio como acceso directo. Admin incorpora Reset total con confirmación y respaldo local. Incluye 48 escudos originales seleccionables y un usuario del director independiente del nombre de la escudería.
 
 ## Atributos fijos de vehículos
 
 Velocidad, aceleración, comodidad y control son índices de juego de **0 a 100**. El **peso se expresa en kilogramos** con referencias de fabricantes o mínimos reglamentarios identificados en las fichas. Ver [pesos, fuentes y criterios](docs/PESOS-VEHICULOS.md). Comodidad reduce cansancio, control reduce errores y el peso afecta ritmo, consumo y desgaste. Aceleración aproxima la recuperación de ritmo medio en terreno técnico.
 
 Los atributos aparecen al elegir auto, en Mercado, Taller y el visor, incluida pantalla completa. Son fijos por unidad y distintos del estado, performance y fiabilidad mejorables. Las partidas antiguas incorporan los atributos sin reiniciar dinero ni daños. Las fichas desplegadas conservan su apertura durante las microactualizaciones.
+
+Las reparaciones nuevas del taller duran diez veces más que antes. Las de campamento y las mejoras mantienen sus tiempos. El taller admite reparar piezas estándar e instaladas, siempre que el auto esté en la base; trabajos pendientes en las piezas montadas bloquean la salida. Los trabajos anteriores conservan su duración.
+
+El ritmo combina los atributos del auto, estado y calidad de piezas, terreno, configuración y capacidades del piloto. Las piezas tienen pesos distintos por superficie. Las fluctuaciones suaves y ocultas de cada piloto permiten cambios de posición entre rivales comparables; las estimaciones de etapa usan el ritmo medio.
 
 ## Carreras e inscripción
 
@@ -58,7 +62,7 @@ Con Node.js 22 o superior: `node server.mjs`; abrir http://127.0.0.1:4182. Tambi
 4. Admin permite inyectar de 1 a 10.000.000 cr para pruebas, con registro en finanzas y saldo máximo de 100.000.000 cr. No es una función de economía online.
 5. Exportá la partida para respaldarla. Al migrar, se conserva un respaldo local de la versión anterior. Una sesión acelerada se reabre pausada.
 
-Para aplicar el ZIP sobre v0.4.4, descomprimí en la raíz de `servicios`, conservando `Apex1000-Rally/`, y reemplazá sólo los archivos incluidos. No borres el resto. Commit y push a GitHub; después recargá con Ctrl+F5. No se publicó el juego automáticamente como parte de esta entrega. Ver [notas completas](INCREMENTAL-v0.4.5.md). `qa/` contiene verificaciones y respaldos locales y no debe subirse.
+Para aplicar el ZIP sobre v0.4.5, descomprimí en la raíz de `servicios`, conservando `Apex1000-Rally/`, y reemplazá sólo los archivos incluidos. No borres el resto. Commit y push a GitHub; después recargá con Ctrl+F5. No se publicó el juego automáticamente como parte de esta entrega. Ver [notas completas](INCREMENTAL-v0.4.6.md). `qa/` contiene verificaciones y respaldos locales y no debe subirse.
 
 ## Validación y alcance
 

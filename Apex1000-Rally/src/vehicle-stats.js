@@ -22,14 +22,14 @@ export const WEIGHT_REFERENCES = {
   hunter: { kg: 2010, kind: "Referencia: mínimo FIA T1+ gasolina 2024" },
   audi: { kg: 2100, kind: "Referencia: mínimo reglamentario Dakar 2024" },
 };
-const defaults = {
-  hilux: [70, 72, 78, 80],
-  raptor: [74, 80, 70, 72],
-  sandrider: [72, 76, 73, 85],
-  mini: [69, 68, 83, 87],
-  niva: [36, 40, 44, 62],
-  hunter: [86, 90, 75, 88],
-  audi: [90, 96, 86, 90],
+export const VEHICLE_BALANCE = {
+  hilux: [72, 64, 85, 76],
+  raptor: [84, 78, 58, 63],
+  sandrider: [77, 86, 70, 88],
+  mini: [62, 58, 92, 94],
+  niva: [34, 38, 42, 66],
+  hunter: [93, 94, 52, 79],
+  audi: [96, 100, 82, 86],
 };
 export function validVehicleStats(stats) {
   return (
@@ -50,7 +50,7 @@ export function modelStats(id, catalog) {
       row?.[k] ??
         (k === "weightKg"
           ? (WEIGHT_REFERENCES[id] || WEIGHT_REFERENCES.hilux).kg
-          : (defaults[id] || defaults.hilux)[i]),
+          : (VEHICLE_BALANCE[id] || VEHICLE_BALANCE.hilux)[i]),
     ]),
   );
   return values;
@@ -83,9 +83,11 @@ export function statFactors(stats, terrain) {
   const acceleration =
     1 +
     (stats.acceleration - 70) *
-      (technical ? 0.0018 : terrain === "sand" ? 0.0012 : 0.0008);
+      (technical ? 0.003 : terrain === "sand" ? 0.002 : 0.0008);
   const control =
-    1 + (stats.control - 70) * (terrain === "asphalt" ? 0.0003 : 0.001);
+    1 +
+    (stats.control - 70) *
+      (terrain === "asphalt" ? 0.0003 : technical ? 0.0025 : 0.0015);
   const massDelta = (stats.weightKg - 2010) / 2010;
   const weight =
     1 / (1 + massDelta * (technical || terrain === "sand" ? 0.3 : 0.1));
@@ -96,4 +98,34 @@ export function statFactors(stats, terrain) {
     fuel: 1 + massDelta * 0.3,
     wear: 1 + massDelta * 0.3,
   };
+}
+
+// Adopt the new defaults once, preserving manually customized indices and all wear/upgrades.
+const PREVIOUS_BALANCE = {
+  hilux: [70, 72, 78, 80],
+  raptor: [74, 80, 70, 72],
+  sandrider: [72, 76, 73, 85],
+  mini: [69, 68, 83, 87],
+  niva: [36, 40, 44, 62],
+  hunter: [86, 90, 75, 88],
+  audi: [90, 96, 86, 90],
+};
+export function migrateVehicleBalance(state) {
+  if (state.vehicleBalance === 2) return;
+  const keys = STAT_KEYS.slice(0, 4);
+  const adopt = (stats, id) => {
+    if (
+      PREVIOUS_BALANCE[id] &&
+      keys.every((key, i) => stats?.[key] === PREVIOUS_BALANCE[id][i])
+    ) {
+      keys.forEach((key, i) => {
+        stats[key] = VEHICLE_BALANCE[id][i];
+      });
+    }
+  };
+  for (const row of state.management?.catalog?.vehicles || [])
+    adopt(row, row.id);
+  for (const team of state.teams || [])
+    for (const car of team.garage || []) adopt(car.stats, car.modelId);
+  state.vehicleBalance = 2;
 }

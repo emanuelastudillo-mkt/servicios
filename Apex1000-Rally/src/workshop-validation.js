@@ -5,6 +5,7 @@ import {
   UPGRADE_LIMIT,
   mechanicsAt,
   partReserved,
+  installedPiece,
 } from "./workshop.js";
 const num = (n, a = 0, b = Infinity) =>
   typeof n === "number" && Number.isFinite(n) && n >= a && n <= b;
@@ -105,7 +106,7 @@ export function validateWorkshop(s, t) {
     if (targets.has(j.targetId) || j.worked >= j.workHours)
       throw Error("Trabajo duplicado o completado en la cola.");
     targets.add(j.targetId);
-    if (j.pricingVersion !== undefined && ![1, 2].includes(j.pricingVersion))
+    if (j.pricingVersion !== undefined && ![1, 2, 3].includes(j.pricingVersion))
       throw Error("Versión de trabajo inválida.");
     if (
       j.points !== undefined &&
@@ -130,6 +131,14 @@ export function validateWorkshop(s, t) {
       throw Error("Presupuesto de taller inconsistente.");
     if (j.targetId === t.activeCarId && ["racing", "service"].includes(t.phase))
       throw Error("El auto activo no puede estar en la base y en carrera.");
+    if (
+      j.kind === "part" &&
+      installedPiece(t, j.targetId) &&
+      ["racing", "service"].includes(t.phase)
+    )
+      throw Error(
+        "La pieza instalada no puede repararse en base durante la carrera.",
+      );
     if (j.kind === "part" && partReserved(t, j.targetId))
       throw Error("Pieza en taller también reservada para la carrera.");
   }
