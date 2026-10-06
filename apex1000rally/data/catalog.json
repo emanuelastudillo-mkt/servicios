@@ -1,0 +1,1577 @@
+{
+  "schemaVersion": 2,
+  "revision": "fee2d5ec60b13b28",
+  "vehicles": [
+    {
+      "id": "hilux",
+      "name": "Toyota GR DKR Hilux EVO",
+      "price": 48000,
+      "stock": 6,
+      "available": true,
+      "image": "assets/art/hilux.webp",
+      "speed": 72,
+      "acceleration": 64,
+      "comfort": 85,
+      "control": 76,
+      "weightKg": 2010
+    },
+    {
+      "id": "raptor",
+      "name": "Ford Raptor T1+",
+      "price": 54000,
+      "stock": 6,
+      "available": true,
+      "image": "assets/art/raptor.webp",
+      "speed": 84,
+      "acceleration": 78,
+      "comfort": 58,
+      "control": 63,
+      "weightKg": 2010
+    },
+    {
+      "id": "sandrider",
+      "name": "Dacia Sandrider",
+      "price": 56000,
+      "stock": 6,
+      "available": true,
+      "image": "assets/art/sandrider.webp",
+      "speed": 77,
+      "acceleration": 86,
+      "comfort": 70,
+      "control": 88,
+      "weightKg": 2010
+    },
+    {
+      "id": "mini",
+      "name": "MINI JCW Rally 3.0i",
+      "price": 45000,
+      "stock": 6,
+      "available": true,
+      "image": "assets/art/mini.webp",
+      "speed": 62,
+      "acceleration": 58,
+      "comfort": 92,
+      "control": 94,
+      "weightKg": 2020
+    },
+    {
+      "id": "niva",
+      "name": "LADA Niva Legend · Raid",
+      "price": 16000,
+      "stock": 12,
+      "available": true,
+      "image": "assets/art/niva.webp",
+      "speed": 34,
+      "acceleration": 38,
+      "comfort": 42,
+      "control": 66,
+      "weightKg": 1210
+    },
+    {
+      "id": "hunter",
+      "name": "Prodrive Hunter T1+",
+      "price": 360000,
+      "stock": 2,
+      "available": true,
+      "image": "assets/art/hunter.webp",
+      "speed": 93,
+      "acceleration": 94,
+      "comfort": 52,
+      "control": 79,
+      "weightKg": 2010
+    },
+    {
+      "id": "audi",
+      "name": "Audi RS Q e-tron",
+      "price": 480000,
+      "stock": 1,
+      "available": true,
+      "image": "assets/art/audi.webp",
+      "speed": 96,
+      "acceleration": 100,
+      "comfort": 82,
+      "control": 86,
+      "weightKg": 2100
+    }
+  ],
+  "parts": [
+    {
+      "id": "engine-endurance-100",
+      "type": "engine",
+      "grade": "endurance",
+      "condition": 100,
+      "price": 15680,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/engine.webp"
+    },
+    {
+      "id": "engine-endurance-75",
+      "type": "engine",
+      "grade": "endurance",
+      "condition": 75,
+      "price": 12936,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/engine.webp"
+    },
+    {
+      "id": "engine-endurance-50",
+      "type": "engine",
+      "grade": "endurance",
+      "condition": 50,
+      "price": 10192,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/engine.webp"
+    },
+    {
+      "id": "engine-standard-100",
+      "type": "engine",
+      "grade": "standard",
+      "condition": 100,
+      "price": 14000,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/engine.webp"
+    },
+    {
+      "id": "engine-standard-75",
+      "type": "engine",
+      "grade": "standard",
+      "condition": 75,
+      "price": 11550,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/engine.webp"
+    },
+    {
+      "id": "engine-standard-50",
+      "type": "engine",
+      "grade": "standard",
+      "condition": 50,
+      "price": 9100,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/engine.webp"
+    },
+    {
+      "id": "engine-racing-100",
+      "type": "engine",
+      "grade": "racing",
+      "condition": 100,
+      "price": 24500,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/engine.webp"
+    },
+    {
+      "id": "engine-racing-75",
+      "type": "engine",
+      "grade": "racing",
+      "condition": 75,
+      "price": 20213,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/engine.webp"
+    },
+    {
+      "id": "engine-racing-50",
+      "type": "engine",
+      "grade": "racing",
+      "condition": 50,
+      "price": 15925,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/engine.webp"
+    },
+    {
+      "id": "transmission-endurance-100",
+      "type": "transmission",
+      "grade": "endurance",
+      "condition": 100,
+      "price": 11200,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/transmission.webp"
+    },
+    {
+      "id": "transmission-endurance-75",
+      "type": "transmission",
+      "grade": "endurance",
+      "condition": 75,
+      "price": 9240,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/transmission.webp"
+    },
+    {
+      "id": "transmission-endurance-50",
+      "type": "transmission",
+      "grade": "endurance",
+      "condition": 50,
+      "price": 7280,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/transmission.webp"
+    },
+    {
+      "id": "transmission-standard-100",
+      "type": "transmission",
+      "grade": "standard",
+      "condition": 100,
+      "price": 10000,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/transmission.webp"
+    },
+    {
+      "id": "transmission-standard-75",
+      "type": "transmission",
+      "grade": "standard",
+      "condition": 75,
+      "price": 8250,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/transmission.webp"
+    },
+    {
+      "id": "transmission-standard-50",
+      "type": "transmission",
+      "grade": "standard",
+      "condition": 50,
+      "price": 6500,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/transmission.webp"
+    },
+    {
+      "id": "transmission-racing-100",
+      "type": "transmission",
+      "grade": "racing",
+      "condition": 100,
+      "price": 17500,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/transmission.webp"
+    },
+    {
+      "id": "transmission-racing-75",
+      "type": "transmission",
+      "grade": "racing",
+      "condition": 75,
+      "price": 14438,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/transmission.webp"
+    },
+    {
+      "id": "transmission-racing-50",
+      "type": "transmission",
+      "grade": "racing",
+      "condition": 50,
+      "price": 11375,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/transmission.webp"
+    },
+    {
+      "id": "suspension-endurance-100",
+      "type": "suspension",
+      "grade": "endurance",
+      "condition": 100,
+      "price": 8960,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/suspension.webp"
+    },
+    {
+      "id": "suspension-endurance-75",
+      "type": "suspension",
+      "grade": "endurance",
+      "condition": 75,
+      "price": 7392,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/suspension.webp"
+    },
+    {
+      "id": "suspension-endurance-50",
+      "type": "suspension",
+      "grade": "endurance",
+      "condition": 50,
+      "price": 5824,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/suspension.webp"
+    },
+    {
+      "id": "suspension-standard-100",
+      "type": "suspension",
+      "grade": "standard",
+      "condition": 100,
+      "price": 8000,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/suspension.webp"
+    },
+    {
+      "id": "suspension-standard-75",
+      "type": "suspension",
+      "grade": "standard",
+      "condition": 75,
+      "price": 6600,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/suspension.webp"
+    },
+    {
+      "id": "suspension-standard-50",
+      "type": "suspension",
+      "grade": "standard",
+      "condition": 50,
+      "price": 5200,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/suspension.webp"
+    },
+    {
+      "id": "suspension-racing-100",
+      "type": "suspension",
+      "grade": "racing",
+      "condition": 100,
+      "price": 14000,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/suspension.webp"
+    },
+    {
+      "id": "suspension-racing-75",
+      "type": "suspension",
+      "grade": "racing",
+      "condition": 75,
+      "price": 11550,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/suspension.webp"
+    },
+    {
+      "id": "suspension-racing-50",
+      "type": "suspension",
+      "grade": "racing",
+      "condition": 50,
+      "price": 9100,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/suspension.webp"
+    },
+    {
+      "id": "tyres-endurance-100",
+      "type": "tyres",
+      "grade": "endurance",
+      "condition": 100,
+      "price": 3920,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/tyres.webp"
+    },
+    {
+      "id": "tyres-endurance-75",
+      "type": "tyres",
+      "grade": "endurance",
+      "condition": 75,
+      "price": 3234,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/tyres.webp"
+    },
+    {
+      "id": "tyres-endurance-50",
+      "type": "tyres",
+      "grade": "endurance",
+      "condition": 50,
+      "price": 2548,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/tyres.webp"
+    },
+    {
+      "id": "tyres-standard-100",
+      "type": "tyres",
+      "grade": "standard",
+      "condition": 100,
+      "price": 3500,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/tyres.webp"
+    },
+    {
+      "id": "tyres-standard-75",
+      "type": "tyres",
+      "grade": "standard",
+      "condition": 75,
+      "price": 2888,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/tyres.webp"
+    },
+    {
+      "id": "tyres-standard-50",
+      "type": "tyres",
+      "grade": "standard",
+      "condition": 50,
+      "price": 2275,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/tyres.webp"
+    },
+    {
+      "id": "tyres-racing-100",
+      "type": "tyres",
+      "grade": "racing",
+      "condition": 100,
+      "price": 6125,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/tyres.webp"
+    },
+    {
+      "id": "tyres-racing-75",
+      "type": "tyres",
+      "grade": "racing",
+      "condition": 75,
+      "price": 5053,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/tyres.webp"
+    },
+    {
+      "id": "tyres-racing-50",
+      "type": "tyres",
+      "grade": "racing",
+      "condition": 50,
+      "price": 3981,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/tyres.webp"
+    },
+    {
+      "id": "cooling-endurance-100",
+      "type": "cooling",
+      "grade": "endurance",
+      "condition": 100,
+      "price": 6720,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/cooling.webp"
+    },
+    {
+      "id": "cooling-endurance-75",
+      "type": "cooling",
+      "grade": "endurance",
+      "condition": 75,
+      "price": 5544,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/cooling.webp"
+    },
+    {
+      "id": "cooling-endurance-50",
+      "type": "cooling",
+      "grade": "endurance",
+      "condition": 50,
+      "price": 4368,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/cooling.webp"
+    },
+    {
+      "id": "cooling-standard-100",
+      "type": "cooling",
+      "grade": "standard",
+      "condition": 100,
+      "price": 6000,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/cooling.webp"
+    },
+    {
+      "id": "cooling-standard-75",
+      "type": "cooling",
+      "grade": "standard",
+      "condition": 75,
+      "price": 4950,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/cooling.webp"
+    },
+    {
+      "id": "cooling-standard-50",
+      "type": "cooling",
+      "grade": "standard",
+      "condition": 50,
+      "price": 3900,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/cooling.webp"
+    },
+    {
+      "id": "cooling-racing-100",
+      "type": "cooling",
+      "grade": "racing",
+      "condition": 100,
+      "price": 10500,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/cooling.webp"
+    },
+    {
+      "id": "cooling-racing-75",
+      "type": "cooling",
+      "grade": "racing",
+      "condition": 75,
+      "price": 8663,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/cooling.webp"
+    },
+    {
+      "id": "cooling-racing-50",
+      "type": "cooling",
+      "grade": "racing",
+      "condition": 50,
+      "price": 6825,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/cooling.webp"
+    },
+    {
+      "id": "brakes-endurance-100",
+      "type": "brakes",
+      "grade": "endurance",
+      "condition": 100,
+      "price": 5040,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/brakes.webp"
+    },
+    {
+      "id": "brakes-endurance-75",
+      "type": "brakes",
+      "grade": "endurance",
+      "condition": 75,
+      "price": 4158,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/brakes.webp"
+    },
+    {
+      "id": "brakes-endurance-50",
+      "type": "brakes",
+      "grade": "endurance",
+      "condition": 50,
+      "price": 3276,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/brakes.webp"
+    },
+    {
+      "id": "brakes-standard-100",
+      "type": "brakes",
+      "grade": "standard",
+      "condition": 100,
+      "price": 4500,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/brakes.webp"
+    },
+    {
+      "id": "brakes-standard-75",
+      "type": "brakes",
+      "grade": "standard",
+      "condition": 75,
+      "price": 3713,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/brakes.webp"
+    },
+    {
+      "id": "brakes-standard-50",
+      "type": "brakes",
+      "grade": "standard",
+      "condition": 50,
+      "price": 2925,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/brakes.webp"
+    },
+    {
+      "id": "brakes-racing-100",
+      "type": "brakes",
+      "grade": "racing",
+      "condition": 100,
+      "price": 7875,
+      "stock": 20,
+      "available": true,
+      "image": "assets/art/brakes.webp"
+    },
+    {
+      "id": "brakes-racing-75",
+      "type": "brakes",
+      "grade": "racing",
+      "condition": 75,
+      "price": 6497,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/brakes.webp"
+    },
+    {
+      "id": "brakes-racing-50",
+      "type": "brakes",
+      "grade": "racing",
+      "condition": 50,
+      "price": 5119,
+      "stock": 8,
+      "available": true,
+      "image": "assets/art/brakes.webp"
+    }
+  ],
+  "drivers": [
+    {
+      "id": "lucia",
+      "name": "Lucía Ferrer",
+      "profile": "technical",
+      "salary": 4200,
+      "available": true,
+      "image": "assets/art/lucia.webp",
+      "age": 24,
+      "form": 85,
+      "morale": 80,
+      "traits": "terrain:gravel|car:hilux"
+    },
+    {
+      "id": "bruno",
+      "name": "Bruno Acosta",
+      "profile": "fast",
+      "salary": 5800,
+      "available": true,
+      "image": "assets/art/bruno.webp",
+      "age": 25,
+      "form": 84,
+      "morale": 79,
+      "traits": "terrain:asphalt"
+    },
+    {
+      "id": "mateo",
+      "name": "Mateo Cruz",
+      "profile": "navigator",
+      "salary": 4700,
+      "available": true,
+      "image": "assets/art/mateo.webp",
+      "age": 26,
+      "form": 83,
+      "morale": 78,
+      "traits": "terrain:mountain"
+    },
+    {
+      "id": "ines",
+      "name": "Inés Vidal",
+      "profile": "technical",
+      "salary": 5300,
+      "available": true,
+      "image": "assets/art/ines.webp",
+      "age": 27,
+      "form": 82,
+      "morale": 77,
+      "traits": "terrain:sand|car:mini"
+    },
+    {
+      "id": "alex",
+      "name": "Alex Duarte",
+      "profile": "fast",
+      "salary": 6200,
+      "available": true,
+      "image": "assets/art/alex.webp",
+      "age": 28,
+      "form": 81,
+      "morale": 76,
+      "traits": "terrain:rock"
+    },
+    {
+      "id": "sara",
+      "name": "Sara Benítez",
+      "profile": "navigator",
+      "salary": 5600,
+      "available": true,
+      "image": "assets/art/sara.webp",
+      "age": 29,
+      "form": 80,
+      "morale": 75,
+      "traits": "terrain:gravel"
+    },
+    {
+      "id": "agustina",
+      "name": "Agustina Paredes",
+      "profile": "technical",
+      "salary": 4200,
+      "available": true,
+      "image": "assets/art/agustina.webp",
+      "age": 30,
+      "form": 79,
+      "morale": 74,
+      "traits": "terrain:asphalt|car:audi"
+    },
+    {
+      "id": "rafael",
+      "name": "Rafael Suárez",
+      "profile": "fast",
+      "salary": 5000,
+      "available": true,
+      "image": "assets/art/rafael.webp",
+      "age": 31,
+      "form": 78,
+      "morale": 73,
+      "traits": "terrain:mountain"
+    },
+    {
+      "id": "catalina",
+      "name": "Catalina Torres",
+      "profile": "navigator",
+      "salary": 3800,
+      "available": true,
+      "image": "assets/art/catalina.webp",
+      "age": 32,
+      "form": 77,
+      "morale": 72,
+      "traits": "terrain:sand"
+    },
+    {
+      "id": "youssef",
+      "name": "Youssef Karim",
+      "profile": "navigator",
+      "salary": 4500,
+      "available": true,
+      "image": "assets/art/youssef.webp",
+      "age": 33,
+      "form": 76,
+      "morale": 71,
+      "traits": "terrain:rock|car:sandrider"
+    },
+    {
+      "id": "naomi",
+      "name": "Naomi Sato",
+      "profile": "technical",
+      "salary": 5400,
+      "available": true,
+      "image": "assets/art/naomi.webp",
+      "age": 34,
+      "form": 75,
+      "morale": 70,
+      "traits": "terrain:gravel"
+    },
+    {
+      "id": "miguel",
+      "name": "Miguel Leal",
+      "profile": "fast",
+      "salary": 3900,
+      "available": true,
+      "image": "assets/art/miguel.webp",
+      "age": 35,
+      "form": 74,
+      "morale": 80,
+      "traits": "terrain:asphalt"
+    },
+    {
+      "id": "zoe",
+      "name": "Zoé Lambert",
+      "profile": "technical",
+      "salary": 4800,
+      "available": true,
+      "image": "assets/art/zoe.webp",
+      "age": 36,
+      "form": 73,
+      "morale": 79,
+      "traits": "terrain:mountain|car:hunter"
+    },
+    {
+      "id": "andre",
+      "name": "André Moreira",
+      "profile": "navigator",
+      "salary": 4100,
+      "available": true,
+      "image": "assets/art/andre.webp",
+      "age": 37,
+      "form": 85,
+      "morale": 78,
+      "traits": "terrain:sand"
+    },
+    {
+      "id": "amina",
+      "name": "Amina Diallo",
+      "profile": "fast",
+      "salary": 5200,
+      "available": true,
+      "image": "assets/art/amina.webp",
+      "age": 38,
+      "form": 84,
+      "morale": 77,
+      "traits": "terrain:rock"
+    },
+    {
+      "id": "matias",
+      "name": "Matías Lagos",
+      "profile": "fast",
+      "salary": 3600,
+      "available": true,
+      "image": "assets/art/matias.webp",
+      "age": 39,
+      "form": 83,
+      "morale": 76,
+      "traits": "terrain:gravel|car:raptor"
+    }
+  ],
+  "mechanics": [
+    {
+      "id": "elena",
+      "name": "Elena Ríos",
+      "salary": 3200,
+      "efficiency": 1.16,
+      "available": true,
+      "image": "assets/art/elena.webp",
+      "age": 29,
+      "form": 85,
+      "morale": 80,
+      "traits": "part:engine"
+    },
+    {
+      "id": "tomas",
+      "name": "Tomás Leiva",
+      "salary": 2800,
+      "efficiency": 1.1,
+      "available": true,
+      "image": "assets/art/tomas.webp",
+      "age": 30,
+      "form": 84,
+      "morale": 79,
+      "traits": "part:transmission"
+    },
+    {
+      "id": "nora",
+      "name": "Nora Salvatierra",
+      "salary": 3900,
+      "efficiency": 1.28,
+      "available": true,
+      "image": "assets/art/nora.webp",
+      "age": 31,
+      "form": 83,
+      "morale": 78,
+      "traits": "part:suspension"
+    },
+    {
+      "id": "omar",
+      "name": "Omar Medina",
+      "salary": 4100,
+      "efficiency": 1.32,
+      "available": true,
+      "image": "assets/art/omar.webp",
+      "age": 32,
+      "form": 82,
+      "morale": 77,
+      "traits": "part:tyres"
+    },
+    {
+      "id": "eva",
+      "name": "Eva Costa",
+      "salary": 3600,
+      "efficiency": 1.22,
+      "available": true,
+      "image": "assets/art/eva.webp",
+      "age": 33,
+      "form": 81,
+      "morale": 76,
+      "traits": "part:cooling"
+    },
+    {
+      "id": "leo",
+      "name": "Leo Torres",
+      "salary": 2900,
+      "efficiency": 1.12,
+      "available": true,
+      "image": "assets/art/leo.webp",
+      "age": 34,
+      "form": 80,
+      "morale": 75,
+      "traits": "part:brakes"
+    },
+    {
+      "id": "emma",
+      "name": "Emma Paz",
+      "salary": 3400,
+      "efficiency": 1.2,
+      "available": true,
+      "image": "assets/art/emma.webp",
+      "age": 35,
+      "form": 79,
+      "morale": 74,
+      "traits": "part:engine"
+    },
+    {
+      "id": "ivan",
+      "name": "Iván Soler",
+      "salary": 4400,
+      "efficiency": 1.38,
+      "available": true,
+      "image": "assets/art/ivan.webp",
+      "age": 36,
+      "form": 78,
+      "morale": 73,
+      "traits": "part:transmission"
+    },
+    {
+      "id": "ramon",
+      "name": "Ramón Acosta",
+      "salary": 3200,
+      "efficiency": 1.12,
+      "available": true,
+      "image": "assets/art/ramon.webp",
+      "age": 37,
+      "form": 77,
+      "morale": 72,
+      "traits": "part:suspension"
+    },
+    {
+      "id": "valeria",
+      "name": "Valeria Ortiz",
+      "salary": 4600,
+      "efficiency": 1.3,
+      "available": true,
+      "image": "assets/art/valeria.webp",
+      "age": 38,
+      "form": 76,
+      "morale": 71,
+      "traits": "part:tyres"
+    },
+    {
+      "id": "gabriel",
+      "name": "Gabriel Ruiz",
+      "salary": 3900,
+      "efficiency": 1.2,
+      "available": true,
+      "image": "assets/art/gabriel.webp",
+      "age": 39,
+      "form": 75,
+      "morale": 70,
+      "traits": "part:cooling"
+    },
+    {
+      "id": "pilar",
+      "name": "Pilar Serrano",
+      "salary": 5100,
+      "efficiency": 1.36,
+      "available": true,
+      "image": "assets/art/pilar.webp",
+      "age": 40,
+      "form": 74,
+      "morale": 80,
+      "traits": "part:brakes"
+    },
+    {
+      "id": "oscar",
+      "name": "Óscar Méndez",
+      "salary": 2900,
+      "efficiency": 1.06,
+      "available": true,
+      "image": "assets/art/oscar.webp",
+      "age": 41,
+      "form": 73,
+      "morale": 79,
+      "traits": "part:engine"
+    },
+    {
+      "id": "renata",
+      "name": "Renata Costa",
+      "salary": 4200,
+      "efficiency": 1.24,
+      "available": true,
+      "image": "assets/art/renata.webp",
+      "age": 42,
+      "form": 85,
+      "morale": 78,
+      "traits": "part:transmission"
+    },
+    {
+      "id": "hugo",
+      "name": "Hugo Benítez",
+      "salary": 5600,
+      "efficiency": 1.42,
+      "available": true,
+      "image": "assets/art/hugo.webp",
+      "age": 43,
+      "form": 84,
+      "morale": 77,
+      "traits": "part:suspension"
+    },
+    {
+      "id": "amira",
+      "name": "Amira Haddad",
+      "salary": 4800,
+      "efficiency": 1.33,
+      "available": true,
+      "image": "assets/art/amira.webp",
+      "age": 44,
+      "form": 83,
+      "morale": 76,
+      "traits": "part:tyres"
+    },
+    {
+      "id": "esteban",
+      "name": "Esteban Rojas",
+      "salary": 3700,
+      "efficiency": 1.17,
+      "available": true,
+      "image": "assets/art/esteban.webp",
+      "age": 45,
+      "form": 82,
+      "morale": 75,
+      "traits": "part:cooling"
+    },
+    {
+      "id": "jun",
+      "name": "Jun Tanaka",
+      "salary": 6100,
+      "efficiency": 1.5,
+      "available": true,
+      "image": "assets/art/jun.webp",
+      "age": 46,
+      "form": 81,
+      "morale": 74,
+      "traits": "part:brakes"
+    },
+    {
+      "id": "fatima",
+      "name": "Fátima Mansour",
+      "salary": 4400,
+      "efficiency": 1.27,
+      "available": true,
+      "image": "assets/art/fatima.webp",
+      "age": 47,
+      "form": 80,
+      "morale": 73,
+      "traits": "part:engine"
+    },
+    {
+      "id": "diego",
+      "name": "Diego Molina",
+      "salary": 3500,
+      "efficiency": 1.15,
+      "available": true,
+      "image": "assets/art/diego.webp",
+      "age": 29,
+      "form": 79,
+      "morale": 72,
+      "traits": "part:transmission"
+    },
+    {
+      "id": "leila",
+      "name": "Leila Farah",
+      "salary": 5300,
+      "efficiency": 1.39,
+      "available": true,
+      "image": "assets/art/leila.webp",
+      "age": 30,
+      "form": 78,
+      "morale": 71,
+      "traits": "part:suspension"
+    },
+    {
+      "id": "carlos",
+      "name": "Carlos Duarte",
+      "salary": 3100,
+      "efficiency": 1.1,
+      "available": true,
+      "image": "assets/art/carlos.webp",
+      "age": 31,
+      "form": 77,
+      "morale": 70,
+      "traits": "part:tyres"
+    },
+    {
+      "id": "mara",
+      "name": "Mara Novák",
+      "salary": 4900,
+      "efficiency": 1.34,
+      "available": true,
+      "image": "assets/art/mara.webp",
+      "age": 32,
+      "form": 76,
+      "morale": 80,
+      "traits": "part:cooling"
+    },
+    {
+      "id": "samuel",
+      "name": "Samuel Okoro",
+      "salary": 5800,
+      "efficiency": 1.46,
+      "available": true,
+      "image": "assets/art/samuel.webp",
+      "age": 33,
+      "form": 75,
+      "morale": 79,
+      "traits": "part:brakes"
+    },
+    {
+      "id": "beatriz",
+      "name": "Beatriz Salas",
+      "salary": 4100,
+      "efficiency": 1.22,
+      "available": true,
+      "image": "assets/art/beatriz.webp",
+      "age": 34,
+      "form": 74,
+      "morale": 78,
+      "traits": "part:engine"
+    },
+    {
+      "id": "pavel",
+      "name": "Pavel Sokol",
+      "salary": 4700,
+      "efficiency": 1.31,
+      "available": true,
+      "image": "assets/art/pavel.webp",
+      "age": 35,
+      "form": 73,
+      "morale": 77,
+      "traits": "part:transmission"
+    },
+    {
+      "id": "anika",
+      "name": "Anika Meier",
+      "salary": 6300,
+      "efficiency": 1.55,
+      "available": true,
+      "image": "assets/art/anika.webp",
+      "age": 36,
+      "form": 85,
+      "morale": 76,
+      "traits": "part:suspension"
+    },
+    {
+      "id": "marcos",
+      "name": "Marcos Vidal",
+      "salary": 3400,
+      "efficiency": 1.14,
+      "available": true,
+      "image": "assets/art/marcos.webp",
+      "age": 37,
+      "form": 84,
+      "morale": 75,
+      "traits": "part:tyres"
+    }
+  ],
+  "races": [
+    {
+      "id": "andes",
+      "name": "Travesía de los Andes",
+      "region": "Sudamérica",
+      "round": 1,
+      "startDay": 0,
+      "prizeFactor": 1,
+      "kind": "raid",
+      "maxHours": 576
+    },
+    {
+      "id": "sahara",
+      "name": "Desafío del Sahara",
+      "region": "África occidental",
+      "round": 2,
+      "startDay": 28,
+      "prizeFactor": 1.08,
+      "kind": "raid",
+      "maxHours": 576
+    },
+    {
+      "id": "arabia",
+      "name": "Mar Rojo y dunas",
+      "region": "Arabia",
+      "round": 3,
+      "startDay": 56,
+      "prizeFactor": 1.16,
+      "kind": "raid",
+      "maxHours": 600
+    },
+    {
+      "id": "australia",
+      "name": "Gran travesía austral",
+      "region": "Australia",
+      "round": 4,
+      "startDay": 84,
+      "prizeFactor": 1.24,
+      "kind": "raid",
+      "maxHours": 672
+    },
+    {
+      "id": "africa",
+      "name": "Ruta de los baobabs",
+      "region": "África austral",
+      "round": 5,
+      "startDay": 112,
+      "prizeFactor": 1.32,
+      "kind": "raid",
+      "maxHours": 576
+    },
+    {
+      "id": "america",
+      "name": "Desiertos del Pacífico",
+      "region": "Norteamérica",
+      "round": 6,
+      "startDay": 140,
+      "prizeFactor": 1.4,
+      "kind": "raid",
+      "maxHours": 624
+    },
+    {
+      "id": "iberia",
+      "name": "Sierras y Atlántico",
+      "region": "Península ibérica",
+      "round": 7,
+      "startDay": 168,
+      "prizeFactor": 1.48,
+      "kind": "raid",
+      "maxHours": 552
+    },
+    {
+      "id": "asia",
+      "name": "La ruta de la estepa",
+      "region": "Asia central",
+      "round": 8,
+      "startDay": 196,
+      "prizeFactor": 1.56,
+      "kind": "raid",
+      "maxHours": 624
+    },
+    {
+      "id": "sprint-salta",
+      "name": "Sprint · Salta → Cafayate",
+      "region": "Argentina",
+      "round": 9,
+      "startDay": 2,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-mendoza",
+      "name": "Sprint · Mendoza → Uspallata",
+      "region": "Argentina",
+      "round": 10,
+      "startDay": 4,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-atacama",
+      "name": "Sprint · Copiapó → Caldera",
+      "region": "Chile",
+      "round": 11,
+      "startDay": 6,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-cordoba",
+      "name": "Sprint · Villa Carlos Paz → Mina Clavero",
+      "region": "Argentina",
+      "round": 12,
+      "startDay": 8,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-uyuni",
+      "name": "Sprint · Uyuni → Colchani",
+      "region": "Bolivia",
+      "round": 13,
+      "startDay": 10,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-nazca",
+      "name": "Sprint · Nazca → Ica",
+      "region": "Perú",
+      "round": 14,
+      "startDay": 12,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-merzouga",
+      "name": "Sprint · Erfoud → Merzouga",
+      "region": "Marruecos",
+      "round": 15,
+      "startDay": 14,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-agadir",
+      "name": "Sprint · Agadir → Taroudant",
+      "region": "Marruecos",
+      "round": 16,
+      "startDay": 16,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-tozeur",
+      "name": "Sprint · Tozeur → Douz",
+      "region": "Túnez",
+      "round": 17,
+      "startDay": 18,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-tabuk",
+      "name": "Sprint · Tabuk → Duba",
+      "region": "Arabia Saudita",
+      "round": 18,
+      "startDay": 20,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-alula",
+      "name": "Sprint · AlUla → Khaybar",
+      "region": "Arabia Saudita",
+      "round": 19,
+      "startDay": 22,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-oman",
+      "name": "Sprint · Nizwa → Bahla",
+      "region": "Omán",
+      "round": 20,
+      "startDay": 24,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-namib",
+      "name": "Sprint · Walvis Bay → Swakopmund",
+      "region": "Namibia",
+      "round": 21,
+      "startDay": 26,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-cape",
+      "name": "Sprint · Ceres → Worcester",
+      "region": "Sudáfrica",
+      "round": 22,
+      "startDay": 28,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-naivasha",
+      "name": "Sprint · Naivasha → Nakuru",
+      "region": "Kenia",
+      "round": 23,
+      "startDay": 30,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-bardenas",
+      "name": "Sprint · Tudela → Ejea de los Caballeros",
+      "region": "España",
+      "round": 24,
+      "startDay": 32,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-almeria",
+      "name": "Sprint · Almería → Tabernas",
+      "region": "España",
+      "round": 25,
+      "startDay": 34,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-algarve",
+      "name": "Sprint · Loulé → Tavira",
+      "region": "Portugal",
+      "round": 26,
+      "startDay": 36,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-sardinia",
+      "name": "Sprint · Olbia → Alà dei Sardi",
+      "region": "Italia",
+      "round": 27,
+      "startDay": 38,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-finland",
+      "name": "Sprint · Jyväskylä → Jämsä",
+      "region": "Finlandia",
+      "round": 28,
+      "startDay": 40,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-baja",
+      "name": "Sprint · Ensenada → San Felipe",
+      "region": "México",
+      "round": 29,
+      "startDay": 42,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-moab",
+      "name": "Sprint · Moab → Green River",
+      "region": "Estados Unidos",
+      "round": 30,
+      "startDay": 44,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-outback",
+      "name": "Sprint · Alice Springs → Hermannsburg",
+      "region": "Australia",
+      "round": 31,
+      "startDay": 46,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    },
+    {
+      "id": "sprint-wanaka",
+      "name": "Sprint · Wanaka → Cromwell",
+      "region": "Nueva Zelanda",
+      "round": 32,
+      "startDay": 48,
+      "prizeFactor": 1,
+      "kind": "short",
+      "maxHours": 4
+    }
+  ],
+  "prizes": [
+    {
+      "position": 1,
+      "race": 420000,
+      "short": 6000
+    },
+    {
+      "position": 2,
+      "race": 270000,
+      "short": 5500
+    },
+    {
+      "position": 3,
+      "race": 240000,
+      "short": 5100
+    },
+    {
+      "position": 4,
+      "race": 220000,
+      "short": 4800
+    },
+    {
+      "position": 5,
+      "race": 205000,
+      "short": 4600
+    },
+    {
+      "position": 6,
+      "race": 185000,
+      "short": 4400
+    },
+    {
+      "position": 7,
+      "race": 168000,
+      "short": 4200
+    },
+    {
+      "position": 8,
+      "race": 162000,
+      "short": 4000
+    },
+    {
+      "position": 9,
+      "race": 147000,
+      "short": 3800
+    },
+    {
+      "position": 10,
+      "race": 142000,
+      "short": 3600
+    },
+    {
+      "position": 11,
+      "race": 128000,
+      "short": 3400
+    },
+    {
+      "position": 12,
+      "race": 125000,
+      "short": 3200
+    }
+  ],
+  "settings": [
+    {
+      "key": "auctionHours",
+      "value": 6
+    },
+    {
+      "key": "startingBudget",
+      "value": 8500000
+    },
+    {
+      "key": "driverLimit",
+      "value": 3
+    },
+    {
+      "key": "mechanicLimit",
+      "value": 5
+    },
+    {
+      "key": "monthlyBaseCost",
+      "value": 1500
+    }
+  ]
+}
