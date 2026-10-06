@@ -1,6 +1,6 @@
 # Apex1000 · Guía estética de mapas de carreras
 
-Versión 1 · referencia implementada: tutorial 1.6.3.
+Versión 2 · tutorial 1.6.4 y catálogo completo 1.6.5.
 
 ## Dirección visual
 
@@ -146,4 +146,25 @@ de generar. El prompt exacto aplicado a este tutorial está en
 `PROMPT-TUTORIAL-TERRENO.txt`; la ficha implementada en `FICHA-TUTORIAL.json`.
 Generación realizada con la herramienta integrada imagegen, usando las imágenes
 como referencias visuales. El raster final es original y los overlays se crean en
-el código del juego. La guía no implica que ya se hayan generado los demás circuitos.
+el código del juego. El catálogo completo cuenta con 32 fondos propios: ocho travesías y 24 sprints.
+
+## Catálogo completo · versión 1.6.5
+
+El visor principal emplea un mundo de 1000 × 950 unidades, con norte arriba.
+Los fondos tienen esa misma proporción, con diferencia inferior al 1%. Los
+corredores y localidades están documentados en `circuitos.json`; los prompts
+exactos, en `prompts/`, y las salidas reales y hashes, en `activos.json`.
+
+Cada carrera dispone de una imagen independiente. La travesía larga de Australia
+representa una escala continental; los sprints muestran regiones locales. No
+intercambiar esos fondos ni convertir una imagen en un collage de biomas.
+
+Las costas, masas de agua y relieve son interpretación artística comprimida y
+pueden apartarse de su posición real para respetar la geometría jugable existente.
+Las ciudades, kilómetros y posiciones continúan procediendo del juego. Las
+correcciones de costa se guardan en nuevos assets y prompts separados.
+
+El juego usa WebP locales; se conservan los PNG maestros sin retoques. Sólo se
+carga el fondo de la carrera activa. Ruta, rótulos y escudos siguen siendo SVG;
+el zoom máximo de 2000× no implica detalle raster a esa ampliación. En una carrera
+nueva hay que generar y revisar su fondo antes de agregarlo al registro.

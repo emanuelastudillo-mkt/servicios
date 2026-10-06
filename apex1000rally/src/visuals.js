@@ -1,4 +1,5 @@
-import { CITIES, STAGES, TOTAL_KM, locationAt } from "./route.js";
+import { CITIES, STAGES, TOTAL_KM, locationAt, routeFor } from "./route.js";
+import { RACE_MAPS } from "../data/race-maps.js";
 import { vehicle } from "./catalog.js";
 import { shieldSVG } from "./shields.js";
 import { vehicleHealth } from "./reliability.js";
@@ -151,7 +152,18 @@ function cityLabels() {
           py > box.top - 8 &&
           py < box.bottom + 8,
       ).length;
-      return { dx, dy, anchor, box, score: overlap * 100 + nearCity * 10 };
+      const overflow =
+        Math.max(0, -box.left) +
+        Math.max(0, box.right - 1000) +
+        Math.max(0, -box.top) +
+        Math.max(0, box.bottom - 950);
+      return {
+        dx,
+        dy,
+        anchor,
+        box,
+        score: overflow * 1000 + overlap * 100 + nearCity * 10,
+      };
     });
     candidates.sort((a, b) => a.score - b.score);
     const label = candidates[0];
@@ -163,7 +175,7 @@ export function mapSVG(state, geo) {
   if (cachedRoute !== state.routeId || !cachedMap) {
     cachedRoute = state.routeId;
     cachedMap =
-      '<rect x="-20000" y="-20000" width="40000" height="40000" fill="#12252e"/>' +
+      '<rect x="-20000" y="-20000" width="40000" height="40000" fill="#12252e"/><defs><clipPath id="map-terrain-bounds"><rect width="1000" height="950"/></clipPath></defs><g clip-path="url(#map-terrain-bounds)">' +
       geo.features
         .map((f) => {
           const polys =
@@ -176,7 +188,10 @@ export function mapSVG(state, geo) {
             '" fill="#344840" stroke="#78927c" stroke-opacity=".4" stroke-width=".8" vector-effect="non-scaling-stroke"/>'
           );
         })
-        .join("");
+        .join("") + "</g>";
+    const terrain = RACE_MAPS[routeFor(state.routeId).id];
+    if (terrain)
+      cachedMap += `<image class="race-terrain-image" href="${esc(terrain.src)}" x="0" y="0" width="${terrain.width}" height="${terrain.height}" preserveAspectRatio="none" pointer-events="none"><title>Relieve satelital ilustrado</title></image>`;
     cachedRoad = STAGES.map((s) => {
       const full = stagePath(s);
       const sections = s.segments
