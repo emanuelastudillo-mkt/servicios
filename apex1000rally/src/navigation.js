@@ -8,6 +8,7 @@ export const NAV_GROUPS = [
       ["championship", "flag", "Inscripción y calendario"],
       ["roadbook", "route", "Roadbook"],
       ["journal", "route", "Bitácora"],
+      ["rankings", "flag", "Rankings y directores"],
     ],
   },
   {
@@ -34,7 +35,7 @@ export const NAV_GROUPS = [
 export function navigationHTML(icon, tab, enabled) {
   const item = ([id, symbol, label]) =>
     `<button type="button" class="nav-item ${tab === id ? "active" : ""}" data-action="tab" data-tab="${id}" ${tab === id ? 'aria-current="page"' : ""} ${enabled ? "" : "disabled"}>${icon(symbol)}<span>${label}</span></button>`;
-  return `<nav class="section-nav" aria-label="Secciones">${item(["home", "flag", "Inicio"])}${NAV_GROUPS.map((group) => `<details class="nav-group ${group.items.some(([id]) => id === tab) ? "active" : ""}" id="nav-${group.id}" data-preserve-open><summary class="nav-trigger" ${enabled ? "" : 'aria-disabled="true" tabindex="-1"'}>${icon(group.icon)}<span>${group.label}</span><svg class="nav-chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="m2 4 4 4 4-4"/></svg></summary><div class="nav-dropdown">${group.items.map(item).join("")}</div></details>`).join("")}</nav>`;
+  return `<nav class="section-nav" aria-label="Secciones">${item(["home", "flag", "Inicio"])}${NAV_GROUPS.map((group) => `<details class="nav-group ${group.items.some(([id]) => id === tab) ? "active" : ""}" id="nav-${group.id}" data-preserve-open><summary class="nav-trigger" ${enabled ? "" : 'aria-disabled="true" tabindex="-1"'}>${icon(group.icon)}<span>${group.label}</span><svg class="nav-chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="m2 4 4 4 4-4"/></svg></summary><div class="nav-dropdown">${group.items.map(item).join("")}</div></details>`).join("")}<a class="nav-item" href="./tutorial/">${icon("info")}<span>Tutorial offline</span></a></nav>`;
 }
 
 export function bindNavigation(document) {

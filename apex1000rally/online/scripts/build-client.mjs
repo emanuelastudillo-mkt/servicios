@@ -13,7 +13,7 @@ const online = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."),
   root = path.dirname(online);
 const out = path.join(online, "public");
 await mkdir(out, { recursive: true });
-for (const name of ["src", "data", "assets"])
+for (const name of ["src", "data", "assets", "tutorial"])
   await cp(path.join(root, name), path.join(out, name), { recursive: true });
 for (const name of [
   "index.html",
@@ -219,7 +219,10 @@ const styleVersion = createHash("sha256")
   .update(await readFile(path.join(out, "style.css")))
   .digest("hex")
   .slice(0, 12);
-html = html.replace('href="./style.css"', `href="./style.css?v=${styleVersion}"`);
+html = html.replace(
+  'href="./style.css"',
+  `href="./style.css?v=${styleVersion}"`,
+);
 await writeFile(path.join(out, "index.html"), html);
 await build({
   entryPoints: [path.join(online, "client/passkey-client.js")],

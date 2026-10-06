@@ -1,4 +1,14 @@
-# Apex1000 Rally Online 1.5.1
+# Tutorial offline 1.6.0
+
+La interfaz incorpora `tutorial/`, un simulador virtual independiente que se abre
+desde «Tutorial offline», incluso sin iniciar sesión. Cinco etapas, hasta 40 min
+simulados, ×1/×2/×10, pausas, guardado local y apertura sin conexión tras la primera
+carga en navegadores compatibles. Una única solución, pistas y errores explicados.
+No consulta el Worker ni modifica dinero, inventario, estadísticas o inscripciones.
+El Worker conserva 1.5.0: esta entrega sólo publica archivos estáticos, sin SQL ni
+migraciones. Ver `tutorial/README.md` y `tests/tutorial.test.mjs`.
+
+# Apex1000 Rally Online 1.6.0
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/
 API: https://apex1000-online.emanuelmkt.workers.dev

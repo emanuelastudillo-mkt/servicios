@@ -1,3 +1,10 @@
+# Incremental online 1.6.0 · Tutorial virtual
+
+Entrenamiento offline rejugable en `tutorial/`: cinco etapas intensivas, hasta
+40 minutos simulados, velocidad ×1/×2/×10, pistas y evaluación de errores.
+Se accede desde el menú «Tutorial offline» sin necesidad de login y conserva un
+guardado separado. No afecta al equipo online. Ver `tutorial/README.md`.
+
 Actualización visual online 1.5.1: 32 logos de carreras con bandera de largada y terreno predominante. Ver `assets/races/README.md`.
 
 Actualización online 1.5.0: seis reglajes y preparación inicial de cinco horas. Ver `online/REGLAJES-1.5.md`. La beta offline sigue independiente.
