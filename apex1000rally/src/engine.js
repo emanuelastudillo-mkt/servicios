@@ -771,6 +771,9 @@ export function performance(
           attributes.speed *
           v.terrain[terrainId] *
           effect *
+          (team.raceTuningEffects
+            ? terrainPartFactors(team.raceTuningEffects, terrainId).speed
+            : 1) *
           ride *
           pressure *
           gearing *
@@ -968,6 +971,15 @@ export function advanceTeam(state, t, dt) {
   if (state.clock < 0) {
     fatigue(t, dt);
     return;
+  }
+  if (t.phase === "preparing") {
+    t.speed = 0;
+    if (state.clock < t.preparation.until) {
+      fatigue(t, dt);
+      t.statistics.waiting += dt;
+      return;
+    }
+    t.phase = "waiting";
   }
   if (t.phase === "waiting") t.phase = "camp";
   if (t.phase === "camp") {

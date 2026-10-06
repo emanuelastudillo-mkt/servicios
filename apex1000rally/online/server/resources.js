@@ -27,6 +27,8 @@ export const RUNTIME_KEYS = [
   "prizePaid",
   "prize",
   "service",
+  "preparation",
+  "raceTuningEffects",
 ];
 const clone = (x) => structuredClone(x);
 export const pieces = (t) => [...Object.values(t.parts), ...t.inventory];
@@ -43,6 +45,7 @@ export function reservations(w, id) {
       ...r.event,
       status: r.status,
       ...r.entries[id],
+      start: r.entries[id].preparationStart ?? r.event.start,
       runtime: undefined,
       plans: undefined,
     }));
@@ -168,7 +171,13 @@ export function allocation(w, t, r, c) {
     reservedPartIds,
   };
   for (const other of reservations(w, t.id)) {
-    if (other.eventId === r.event.eventId || !overlaps(r.event, other))
+    if (
+      other.eventId === r.event.eventId ||
+      !overlaps(
+        { ...r.event, start: c.preparationStart ?? r.event.start },
+        other,
+      )
+    )
       continue;
     const conflict =
       other.carId === out.carId
@@ -282,7 +291,12 @@ export function refreshAssignments(w) {
         r.entries[t.id]?.runtime &&
         !r.entries[t.id].dns,
     );
-    t.onlineActiveStaffIds = active.flatMap((r) => [
+    const preparing = Object.values(w.races).filter(
+      (r) =>
+        r.status === "scheduled" && r.entries[t.id]?.preparationStart <= w.at,
+    );
+    const assigned = [...active, ...preparing];
+    t.onlineActiveStaffIds = assigned.flatMap((r) => [
       ...r.entries[t.id].driverIds,
       ...r.entries[t.id].mechanicIds,
     ]);
@@ -291,7 +305,7 @@ export function refreshAssignments(w) {
       .map((r) => r.entries[t.id].runtime.activeDriver);
     t.onlineRaces = active.map((r) => r.event.eventId);
     for (const m of t.mechanics) {
-      const busy = active.some((r) =>
+      const busy = assigned.some((r) =>
         r.entries[t.id].mechanicIds.includes(m.id),
       );
       if (busy) {
@@ -348,7 +362,8 @@ export function protectResources(w, t, c) {
         (c.type === "release" &&
           [...e.driverIds, ...e.mechanicIds].includes(c.id)) ||
         (c.type === "assign-mechanic" &&
-          e.status === "running" &&
+          (e.status === "running" ||
+            (e.status === "scheduled" && e.preparationStart <= w.at)) &&
           e.mechanicIds.includes(c.id)),
     )
   )

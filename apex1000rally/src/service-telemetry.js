@@ -49,6 +49,38 @@ export function serviceTimeline(entries, { rate, restHours, first, seconds }) {
 }
 
 export function stopStatus(state, team) {
+  if (
+    team.preparation &&
+    state.clock < team.preparation.until &&
+    ["waiting", "preparing"].includes(team.phase)
+  ) {
+    const p = team.preparation,
+      duration = p.until - p.start,
+      elapsed = clamp(state.clock - p.start, 0, duration);
+    return {
+      title:
+        state.clock < p.start
+          ? "Puesta a punto programada"
+          : "Puesta a punto inicial",
+      remaining: p.until - state.clock,
+      progress: elapsed / duration,
+      tasks: [
+        {
+          id: "preparation",
+          kind: "preparation",
+          label: "Verificar y ajustar las seis piezas",
+          status: state.clock < p.start ? "queued" : "active",
+          duration,
+          progress: elapsed / duration,
+          remaining: p.until - state.clock,
+        },
+      ],
+      reason:
+        "Cinco horas de preparación, una sola vez antes de la primera etapa.",
+      advice:
+        "La salida es automática cuando termina la preparación y llega la largada oficial. Los reglajes quedan fijos durante toda la carrera.",
+    };
+  }
   if (team.phase === "service" && team.service) {
     const s = team.service,
       total = Math.max(0, s.until - s.start),

@@ -1,3 +1,5 @@
+Actualización online 1.5.0: seis reglajes y preparación inicial de cinco horas. Ver `online/REGLAJES-1.5.md`. La beta offline sigue independiente.
+
 # Apex1000 Rally Online 1.4.0
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/

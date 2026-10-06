@@ -1,4 +1,11 @@
 import {
+  defaultTunings,
+  validateTunings,
+  tuningEffects,
+  preparationWindow,
+} from "../../src/race-tuning.js";
+import { optimalTunings } from "./race-tuning.js";
+import {
   normalizeEntries,
   allocation,
   participant,
@@ -396,6 +403,9 @@ function startRace(w, r) {
   r.catalog = copy(w.engine.management.catalog);
   r.status = "running";
   r.bots = makeBots(w, r);
+  r.optimalTunings ||= optimalTunings(w, r.event);
+  for (const bot of r.bots)
+    bot.raceTuningEffects = tuningEffects(defaultTunings(), r.optimalTunings);
   for (const [id, entry] of Object.entries(r.entries)) {
     const base = w.engine.teams.find((t) => t.id === id);
     const t = participant(w, r, id);
@@ -415,6 +425,16 @@ function startRace(w, r) {
       ? entry.driverId
       : t.drivers[0].id;
     resetEntry(t, r.event, entry.plans);
+    if (entry.tunings)
+      t.raceTuningEffects = tuningEffects(entry.tunings, r.optimalTunings);
+    else delete t.raceTuningEffects; // Already enrolled legacy teams retain their original neutral setup.
+    t.preparation = entry.readyAt
+      ? {
+          start: (entry.preparationStart - r.event.start) / 1000,
+          until: (entry.readyAt - r.event.start) / 1000,
+        }
+      : null;
+    if (entry.readyAt > w.at) t.phase = "preparing";
     t.plans = t.plans.map(
       (p) =>
         p && {
@@ -526,6 +546,7 @@ export function advanceWorld(w, now, maxSeconds = 600, options = {}) {
   const target = Math.min(minute30(now), w.at + maxSeconds * 1000);
   const boundary = options.boundary?.(w);
   while (w.at < target) {
+    refreshAssignments(w);
     if (
       options.idleJump &&
       !Object.values(w.races).some((r) => r.status === "running") &&
@@ -544,7 +565,10 @@ export function advanceWorld(w, now, maxSeconds = 600, options = {}) {
         w.engine.employment?.nextPayrollAt,
         ...Object.values(w.races)
           .filter((r) => r.status === "scheduled")
-          .map((r) => r.event.start),
+          .flatMap((r) => [
+            r.event.start,
+            ...Object.values(r.entries).map((e) => e.preparationStart),
+          ]),
         ...w.engine.teams.flatMap((t) =>
           [...t.drivers, ...t.mechanics].map((p) => p.contract.expiresAt),
         ),
@@ -570,6 +594,7 @@ export function advanceWorld(w, now, maxSeconds = 600, options = {}) {
             seconds,
           );
         w.at = stop;
+        refreshAssignments(w);
         w.engine.clock = (w.at - Date.parse(w.epoch)) / 1000;
         advanceEmployment(w.engine);
         advanceProgression(w.engine);
@@ -666,6 +691,7 @@ export function advanceWorld(w, now, maxSeconds = 600, options = {}) {
     settleAuctions(w.engine);
     if (options.boundary && options.boundary(w) !== boundary) break;
   }
+  refreshAssignments(w);
   return { caughtUp: w.at >= minute30(now), at: w.at };
 }
 export function syncCatalog(w, catalog = CATALOG) {
@@ -803,7 +829,18 @@ export function command(w, id, c) {
         existing = race.entries[id];
       if (w.at >= e.start || (c.type === "enroll" ? !!existing : !existing))
         throw Error("Inscripción cerrada o duplicada.");
-      const assigned = allocation(w, t, race, c);
+      if (existing?.preparationStart <= w.at)
+        throw Error(
+          "La puesta a punto ya comenzó: la asignación y los reglajes quedan fijos para toda la carrera.",
+        );
+      const preparation = existing?.readyAt
+        ? {
+            preparationStart: existing.preparationStart,
+            readyAt: existing.readyAt,
+          }
+        : preparationWindow(w.at, e);
+      const tunings = validateTunings(c.tunings ?? existing?.tunings);
+      const assigned = allocation(w, t, race, { ...c, ...preparation });
       const plans = routeFor(e.id).stages.map((s, i) => ({
         ...(existing?.plans[i] || {
           ...defaultPlan(i),
@@ -827,7 +864,14 @@ export function command(w, id, c) {
         throw Error(
           "El nuevo lote debe conservar los repuestos usados en los planes, o quitarlos antes.",
         );
-      race.entries[id] = { ...assigned, plans, dns: false };
+      race.entries[id] = {
+        ...assigned,
+        ...preparation,
+        tunings,
+        plans,
+        dns: false,
+      };
+      refreshAssignments(w);
       return { eventId: e.eventId };
     }
     case "cancel-enrollment": {
@@ -835,6 +879,7 @@ export function command(w, id, c) {
       if (!race?.entries[id] || w.at >= race.event.start)
         throw Error("No se puede cancelar la inscripción.");
       delete race.entries[id];
+      refreshAssignments(w);
       return { cancelled: true };
     }
     case "save-plans": {
@@ -892,6 +937,7 @@ export function command(w, id, c) {
             race.entries[id]?.carId === c.tradeId
           )
             delete race.entries[id];
+      refreshAssignments(w);
       return out;
     }
     case "select-car":
@@ -919,6 +965,7 @@ export function command(w, id, c) {
       for (const race of Object.values(w.races))
         if (race.status === "scheduled" && race.entries[id]?.carId === c.id)
           delete race.entries[id];
+      refreshAssignments(w);
       return out;
     }
     case "enqueue-work":
@@ -1008,6 +1055,7 @@ export function privateWorld(w, id) {
       plans: copy(w.races[t.onlineRace].entries[id].plans),
     });
   delete own.rng;
+  delete own.raceTuningEffects;
   delete own.ledgerSaved;
   delete own.ledgerOffset;
   return {

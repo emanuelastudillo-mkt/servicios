@@ -265,6 +265,9 @@ async function api(request, env, ctx, now) {
   if (request.method === "GET" && path === "/api/health")
     return json({
       ok: true,
+      release: "1.5.0",
+      preparationHours: 5,
+      raceTuningSliders: 6,
       version: RULES_VERSION,
       ...(env.ROOM_RUNTIME
         ? { scheduler: "events", nextEventAt: env.ROOM_RUNTIME.forecast?.at }

@@ -13,8 +13,8 @@ import { routeFor } from "../../src/route.js";
 import { commit, readWorld } from "../server/store.js";
 import { database } from "./d1.mjs";
 const now = Date.parse("2026-10-06T12:00:00Z");
-function fixture(at = now) {
-  const w = createWorld(at, new Date(at + 60000).toISOString()),
+function fixture(at = now, lead = 60000) {
+  const w = createWorld(at, new Date(at + lead).toISOString()),
     t = addDirector(w, "a", "director_a", "A", 1);
   t.budget = 1000000;
   command(w, t.id, { type: "purchase-car", modelId: "niva" });
@@ -130,7 +130,7 @@ test("kit completo, propiedad, tipo, piezas repetidas y trabajos pendientes se v
   );
 });
 test("configurar inscripción conserva planes y solo permite usar pilotos y repuestos enviados", () => {
-  const { w, t, a, b } = fixture();
+  const { w, t, a, b } = fixture(now, 6 * 3600000);
   command(w, t.id, a);
   const entry = w.races[a.eventId].entries[t.id],
     plan = entry.plans[0];
@@ -166,10 +166,12 @@ test("configurar inscripción conserva planes y solo permite usar pilotos y repu
   );
 });
 test("dos runtimes avanzan sin duplicar dinero ni activos; sprint puede cerrar mientras sigue el raid", async () => {
-  let { w, t, a, b, short } = fixture();
+  let { w, t, a, b, short } = fixture(now, 6 * 3600000);
   command(w, t.id, a);
   command(w, t.id, b);
-  advanceWorld(w, now + 180000);
+  advanceWorld(w, Date.parse(w.epoch) + 180000, 6 * 3600 + 180, {
+    idleJump: true,
+  });
   const relief = t.drivers[1],
     idle = t.drivers[2];
   relief.energy = 50;
@@ -236,10 +238,12 @@ test("migración conserva recursos y avance de inscripciones anteriores sin crea
   assert.equal(new Set(pieces(t).map((p) => p.id)).size, pieces(t).length);
 });
 test("gestionar recursos libres tras leer D1 conserva los planes del raid y mueve sólo el taller disponible", async () => {
-  let { w, t, a, b } = fixture();
+  let { w, t, a, b } = fixture(now, 6 * 3600000);
   command(w, t.id, a);
   command(w, t.id, b);
-  advanceWorld(w, now + 120000);
+  advanceWorld(w, Date.parse(w.epoch) + 120000, 6 * 3600 + 120, {
+    idleJump: true,
+  });
   const db = database();
   await commit(db, { revision: -1 }, w, "management-fixture");
   w = (await readWorld(db, w.at, w.epoch)).world;

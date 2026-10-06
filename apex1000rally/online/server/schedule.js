@@ -11,6 +11,7 @@ export function transitionKey(w) {
       Object.entries(r.entries).map(([id, e]) => [
         id,
         e.dns,
+        e.preparationStart <= w.at,
         e.runtime?.phase,
         e.runtime?.stageIndex,
       ]),

@@ -103,6 +103,7 @@ export function viewWorld(w, id, selected) {
     own = clone(registration ? participant(w, race, id) || source : source);
   own.id = "player";
   delete own.rng;
+  delete own.raceTuningEffects;
   delete own.ledgerSaved;
   delete own.ledgerOffset;
   if (!registration?.runtime) {
@@ -128,6 +129,13 @@ export function viewWorld(w, id, selected) {
       ),
     });
     if (registration && race.status === "scheduled") {
+      own.preparation = registration.readyAt
+        ? {
+            start: (registration.preparationStart - event.start) / 1000,
+            until: (registration.readyAt - event.start) / 1000,
+          }
+        : null;
+      if (registration.preparationStart <= w.at) own.phase = "preparing";
       own.activeCarId = registration.carId;
       own.vehicleId =
         own.garage.find((c) => c.id === registration.carId)?.modelId ||
@@ -154,6 +162,7 @@ export function viewWorld(w, id, selected) {
   baseTeam.statistics = clone(primary?.statistics || source.statistics || {});
   baseTeam.id = "player";
   delete baseTeam.rng;
+  delete baseTeam.raceTuningEffects;
   delete baseTeam.ledgerSaved;
   delete baseTeam.ledgerOffset;
   baseTeam.onlineBusyCarIds = allocated.map((e) => e.carId);
@@ -163,7 +172,11 @@ export function viewWorld(w, id, selected) {
     ...e.mechanicIds,
   ]);
   baseTeam.onlineActiveMechanicIds = allocated
-    .filter((e) => e.status === "running")
+    .filter(
+      (e) =>
+        e.status === "running" ||
+        (e.status === "scheduled" && e.preparationStart <= w.at),
+    )
     .flatMap((e) => e.mechanicIds);
   baseTeam.phase = "unregistered";
   baseTeam.participating = false;

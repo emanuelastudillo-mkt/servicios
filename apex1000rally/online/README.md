@@ -1,9 +1,21 @@
-# Apex1000 Rally Online 1.4.0
+# Apex1000 Rally Online 1.5.0
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/
 API: https://apex1000-online.emanuelmkt.workers.dev
 
 La interfaz completa (mapa, tablero, campamento, taller, mercado, personal, finanzas, inscripciones y rankings) utiliza el servidor autoritativo Worker + D1. La beta offline permanece independiente. No se admiten importación de partidas, dinero admin, reset ni aceleración online.
+
+## Reglajes y puesta a punto (1.5.0)
+
+Inscripciones muestra seis barras de 0 a 100 para motor, transmisión, suspensión, neumáticos, refrigeración y frenos. Se guardan con la inscripción. El óptimo es privado, específico de cada edición y depende de superficies y clima. El efecto conjunto ponderado sobre velocidad queda entre −30% y +30%; no se multiplican seis bonos completos. Se conservan los límites de sector y los 30 km/h por avería. El centro no garantiza neutralidad.
+
+La puesta a punto dura cinco horas, una sola vez antes de la primera etapa, también en sprints. Inscribirse con antelación programa las cinco horas anteriores a la largada; inscribirse más tarde inicia cinco horas desde ese momento y retrasa únicamente la salida del equipo. La inscripción cierra en la largada oficial; se rechaza una inscripción cuya preparación terminaría en o después del cierre.
+
+Desde el comienzo de la preparación, la asignación y los reglajes quedan bloqueados. Los recursos se reservan desde ese comienzo hasta el límite máximo; el mecánico asignado deja de trabajar en la base. Se puede cancelar antes de la largada; reinscribirse vuelve a exigir las cinco horas. Los planes tácticos se siguen eligiendo en campamento; no cambian estos reglajes.
+
+El contador y el tablero muestran la preparación. No agrega consultas por segundo: el coordinador despierta en los cambios de estado. Inscripciones y carreras heredadas conservan su preparación anterior y rendimiento neutro, sin imponer retrasos retroactivos. No hay migración SQL ni reset.
+
+Ver [REGLAJES-1.5.md](REGLAJES-1.5.md).
 
 ## Arquitectura y mantenimiento
 

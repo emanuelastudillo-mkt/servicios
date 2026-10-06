@@ -305,12 +305,24 @@ document.addEventListener(
   true,
 );
 document.addEventListener(
+  "input",
+  (e) => {
+    if (state && e.target.dataset.allocationField === "tunings") {
+      e.stopImmediatePropagation();
+      updateAllocation(state, e.target);
+      e.target.closest("label").querySelector("output").textContent =
+        e.target.value;
+    }
+  },
+  true,
+);
+document.addEventListener(
   "change",
   (e) => {
     if (state && e.target.dataset.allocationEvent) {
       e.stopImmediatePropagation();
       updateAllocation(state, e.target);
-      render();
+      if (e.target.dataset.allocationField !== "tunings") render();
       return;
     }
     if (e.target.id === "online-race") {

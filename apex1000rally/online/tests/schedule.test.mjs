@@ -178,14 +178,15 @@ test("largadas y llegadas previstas conservan averías y no dependen de nuevas e
   );
 });
 test("una etapa en marcha bloquea incluso planes futuros; el campamento permite guardarlos", () => {
-  const { w, t } = fixture(60000),
+  const { w, t } = fixture(6 * 3600000),
     e = events(w).find((e) => e.id === "andes");
   command(w, t.id, {
     type: "enroll",
     eventId: e.eventId,
     driverId: t.activeDriver,
   });
-  projectTime(w, NOW + 120000);
+  projectTime(w, Date.parse(w.epoch));
+  projectTime(w, Date.parse(w.epoch) + 120000);
   const r = w.races[e.eventId],
     p = participant(w, r, t.id),
     plan = r.entries[t.id].plans[1];

@@ -199,6 +199,11 @@ await writeFile(
   (await readFile(path.join(out, "online.css"), "utf8")) +
     `.enrollment-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.enrollment-card{padding:24px}.race-allocation .allocation-choice{flex-direction:row;justify-content:flex-start;text-align:left}.assignment-summary{background:#101a1e;padding:14px;border-radius:8px;line-height:1.7;color:#b7c9cb}.assignment-summary strong{color:#e8c386}.race-allocation fieldset label{text-align:left}@media(max-width:850px){.enrollment-grid{grid-template-columns:1fr}}`,
 );
+await writeFile(
+  path.join(out, "online.css"),
+  (await readFile(path.join(out, "online.css"), "utf8")) +
+    `.race-allocation .race-tuning{display:block;margin:16px 0}.race-tuning>span{display:flex;gap:6px;align-items:baseline}.race-tuning strong{margin-right:auto}.race-tuning output{color:#f5bc63;font-variant-numeric:tabular-nums}.race-tuning input[type=range]{width:100%;accent-color:#f5bc63;min-height:32px}.race-tuning small{display:flex;justify-content:space-between;gap:12px}.preparation-notice strong{color:#f5bc63}`,
+);
 let html = await readFile(
   path.join(online, "client/index.template.html"),
   "utf8",

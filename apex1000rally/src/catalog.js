@@ -411,6 +411,7 @@ export const TERRAINS = {
 };
 export const PHASES = {
   waiting: "Esperando largada",
+  preparing: "Puesta a punto inicial",
   camp: "En campamento",
   service: "Asistencia y descanso",
   racing: "En carrera",
