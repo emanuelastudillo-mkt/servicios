@@ -1,13 +1,13 @@
 // Scope is tutorial/ only. Never intercept API calls or the online game.
-const CACHE = "apex1000-training-1.6.1";
+const CACHE = "apex1000-training-1.6.2";
 const FILES = [
   "./",
   "./index.html",
-  "./style.css?v=1.6.1",
-  "./app.js?v=1.6.1",
-  "./engine.js?v=1.6.1",
-  "./viewer.js?v=1.6.1",
-  "./viewer-model.js?v=1.6.1",
+  "./style.css?v=1.6.2",
+  "./app.js?v=1.6.2",
+  "./engine.js?v=1.6.2",
+  "./viewer.js?v=1.6.2",
+  "./viewer-model.js?v=1.6.2",
   "../favicon.svg",
 ];
 self.addEventListener("install", (event) => {

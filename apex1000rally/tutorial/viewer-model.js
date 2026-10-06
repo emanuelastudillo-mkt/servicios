@@ -1,4 +1,10 @@
-import { STAGES, stageDistance, telemetry, DRIVERS } from "./engine.js?v=1.6.1";
+import {
+  STAGES,
+  stageDistance,
+  telemetry,
+  DRIVERS,
+  rivalReference,
+} from "./engine.js?v=1.6.2";
 export const WORLD = { width: 1200, height: 460, km: 40 };
 export const TEAMS = [
   {
@@ -177,20 +183,18 @@ export function cameraBounds(cx, cy, zoom = 1) {
   };
 }
 export function trainingField(s) {
-  const reference =
-    s.history.reduce((n, h) => n + STAGES[h.stage].km, 0) +
-    (s.phase === "driving" ? (STAGES[s.stage].km * s.phaseTime) / 300 : 0);
   const partial = s.phase === "driving" ? stageDistance(s) : 0;
   const field = TEAMS.map((t) => {
+    const reference = rivalReference(s.elapsed, t.ratio);
     const you = t.id === "player",
-      km = you ? s.km + partial : reference * t.ratio;
+      km = you ? s.km + partial : reference.km;
     const location = routePoint(km),
       speed =
-        s.phase === "driving"
-          ? you
+        s.paused || s.phase === "result"
+          ? 0
+          : you
             ? telemetry(s).speed
-            : STAGES[s.stage].km * 12 * t.ratio
-          : 0;
+            : reference.speed;
     const phase =
       s.phase === "result"
         ? "Resultado final"
@@ -211,7 +215,8 @@ export function trainingField(s) {
       km,
       speed,
       location,
-      phase,
+      phase:
+        !you && !s.paused && s.phase !== "result" ? reference.phase : phase,
       driver:
         you && s.decision ? DRIVERS[s.decision.driver].name : "Piloto virtual",
     };

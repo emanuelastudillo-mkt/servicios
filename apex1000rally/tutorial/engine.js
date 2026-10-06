@@ -1,5 +1,5 @@
 // Deterministic teaching scenario. Isolated from the online race engine and API.
-export const VERSION = 1;
+export const VERSION = 2;
 export const SAVE_KEY = "apex1000-virtual-training-v1";
 export const MAX_SECONDS = 2400;
 export const PARTS = [
@@ -289,26 +289,88 @@ export function commitStage(s, decision) {
   }
 }
 export function phaseDuration(s) {
-  return s.phase === "preparation" || s.phase === "driving"
-    ? 300
-    : s.phase === "service"
-      ? Math.max(
-          45,
-          s.decision.repairs !== "none" ? 120 : 0,
-          s.decision.rest === "full"
-            ? 150
-            : s.decision.rest === "half"
-              ? 75
-              : 0,
-        )
-      : 0;
+  return s.phase === "driving"
+    ? Math.min(
+        arrivalSeconds(s),
+        (300 * s.drive.startFuel) / STAGES[s.stage].fuel,
+      )
+    : s.phase === "preparation"
+      ? 300
+      : s.phase === "service"
+        ? Math.max(
+            45,
+            s.decision.repairs !== "none" ? 120 : 0,
+            s.decision.rest === "full"
+              ? 150
+              : s.decision.rest === "half"
+                ? 75
+                : 0,
+          )
+        : 0;
+}
+// The five-minute pace is a reference, never a trigger to teleport to camp.
+function arrivalSeconds(s) {
+  const r = STAGES[s.stage],
+    d = s.drive;
+  return d.breakdown
+    ? 165 + (r.km - r.km * d.ratio * 0.55) * 120
+    : 300 / d.ratio;
 }
 export function stageDistance(s, fraction = s.phaseTime / 300) {
   const r = STAGES[s.stage],
-    p = Math.min(1, Math.max(0, fraction), s.drive.startFuel / r.fuel);
-  return s.drive.breakdown && p > 0.55
-    ? r.km * s.drive.ratio * 0.55 + 2.5 * (p - 0.55)
-    : r.km * s.drive.ratio * p;
+    p = Math.min(Math.max(0, fraction), s.drive.startFuel / r.fuel);
+  const km =
+    s.drive.breakdown && p > 0.55
+      ? r.km * s.drive.ratio * 0.55 + 2.5 * (p - 0.55)
+      : r.km * s.drive.ratio * p;
+  return Math.min(r.km, km);
+}
+export function rivalReference(seconds, ratio = 1) {
+  if (seconds < 300) return { km: 0, speed: 0, phase: "Puesta a punto" };
+  let time = Math.max(0, seconds - 300),
+    km = 0;
+  for (const r of STAGES) {
+    const duration = 300 / ratio;
+    if (time < duration)
+      return {
+        km: km + (r.km * time) / duration,
+        speed: r.km * 12 * ratio,
+        phase: "En carrera",
+      };
+    km += r.km;
+    time -= duration;
+    if (r !== STAGES.at(-1)) {
+      if (time < 150)
+        return { km, speed: 0, phase: "Asistencia en campamento" };
+      time -= 150;
+    }
+  }
+  return { km: 40, speed: 0, phase: "Recorrido de referencia finalizado" };
+}
+function recordStage(s, km, completed) {
+  s.km += km;
+  s.history.push({
+    stage: s.stage,
+    km,
+    completed,
+    faults: s.faults.filter((f) => f.stage === s.stage),
+    driver: s.decision.driver,
+    breakdown: s.drive.breakdown,
+  });
+}
+function finishTraining(s, reason) {
+  s.phase = "result";
+  s.paused = true;
+  s.result = {
+    won: reason === "finished" && s.faults.length === 0,
+    reason,
+    km: s.km,
+    position:
+      1 +
+      [0.9999, 0.94, 0.88, 0.82, 0.75].filter(
+        (ratio) => rivalReference(s.elapsed, ratio).km > s.km,
+      ).length,
+  };
 }
 export function telemetry(s) {
   if (s.phase !== "driving") return { speed: 0, rpm: 850, heat: 25, risk: 0 };
@@ -334,7 +396,10 @@ export function advanceTraining(s, seconds) {
   let remaining = Math.max(0, Math.min(2400, Number(seconds) || 0));
   while (remaining > 0 && !s.paused && phaseDuration(s)) {
     const duration = phaseDuration(s),
-      delta = Math.min(remaining, duration - s.phaseTime);
+      delta = Math.max(
+        0,
+        Math.min(remaining, duration - s.phaseTime, MAX_SECONDS - s.elapsed),
+      );
     s.phaseTime += delta;
     s.elapsed += delta;
     remaining -= delta;
@@ -385,36 +450,44 @@ export function advanceTraining(s, seconds) {
       );
       s.fuel = Math.max(0, s.drive.startFuel - r.fuel * p);
     }
-    if (s.phaseTime < duration) break;
+    const reached =
+      s.phase === "driving" && stageDistance(s) >= STAGES[s.stage].km - 1e-9;
+    if (
+      s.elapsed >= MAX_SECONDS - 1e-9 &&
+      !(reached && s.stage === STAGES.length - 1)
+    ) {
+      problem(
+        s,
+        s.stage,
+        "deadline",
+        "Se agotaron los 40 minutos del intento. No alcanzaste la meta; no se puede cambiar el plan fuera de un campamento.",
+      );
+      if (s.phase === "driving") recordStage(s, stageDistance(s), false);
+      finishTraining(s, "deadline");
+      break;
+    }
+    if (s.phaseTime < duration - 1e-9) break;
     s.elapsed = Math.round(s.elapsed * 1000000) / 1000000;
     if (s.phase === "preparation") {
       s.phase = "ready";
       s.paused = true;
     } else if (s.phase === "service") beginDrive(s);
     else {
-      const r = STAGES[s.stage];
-      // Speed integrates exactly to the displayed distance, including limp mode.
-      const km = stageDistance(s, 1);
-      s.km += km;
-      s.history.push({
-        stage: s.stage,
-        km,
-        faults: s.faults.filter((f) => f.stage === s.stage),
-        driver: s.decision.driver,
-        breakdown: s.drive.breakdown,
-      });
+      if (!reached) {
+        problem(
+          s,
+          s.stage,
+          "stranded",
+          "Te quedaste sin combustible antes del campamento. La baja velocidad y las averías alargan el trayecto; revisá el plan y la preparación. No hay asistencia ni relevo en ruta.",
+        );
+        recordStage(s, stageDistance(s), false);
+        finishTraining(s, "fuel");
+        break;
+      }
+      recordStage(s, STAGES[s.stage].km, true);
       s.stage++;
       if (s.stage === 5) {
-        s.phase = "result";
-        s.result = {
-          won: s.faults.length === 0,
-          km: s.km,
-          position:
-            1 +
-            [0.9999, 0.94, 0.88, 0.82, 0.75].filter(
-              (ratio) => 40 * ratio > s.km,
-            ).length,
-        };
+        finishTraining(s, "finished");
       } else s.phase = "camp";
       s.paused = true;
     }
@@ -424,6 +497,19 @@ export function advanceTraining(s, seconds) {
 export function resumeTraining(raw) {
   try {
     const s = JSON.parse(raw);
+    if (s?.version === 1) {
+      // Old attempts could already have skipped a camp. Keep their setup, but
+      // restart only those inconsistent attempts; the UI backs up their save.
+      if (s.history?.some((h) => Math.abs(h.km - STAGES[h.stage]?.km) > 1e-9)) {
+        const fresh = newTraining((s.attempt || 1) + 1);
+        fresh.config = s.config;
+        fresh.legacyRestart = true;
+        return resumeTraining(JSON.stringify(fresh));
+      }
+      s.version = VERSION;
+      s.history?.forEach((h) => (h.completed = true));
+      if (s.result) s.result.reason = "finished";
+    }
     if (
       s.version !== VERSION ||
       ![
@@ -438,13 +524,13 @@ export function resumeTraining(raw) {
       !Number.isInteger(s.stage) ||
       s.stage < 0 ||
       s.stage > 5 ||
-      (s.phase === "result") !== (s.stage === 5) ||
+      (s.stage === 5 && s.phase !== "result") ||
       !Number.isFinite(s.elapsed) ||
       s.elapsed < 0 ||
       s.elapsed > MAX_SECONDS + 0.001 ||
       !Number.isFinite(s.phaseTime) ||
       s.phaseTime < 0 ||
-      s.phaseTime > 300 ||
+      s.phaseTime > MAX_SECONDS ||
       !Array.isArray(s.energy) ||
       s.energy.length !== 3 ||
       s.energy.some((n) => !Number.isFinite(n) || n < 0 || n > 100) ||
@@ -507,6 +593,7 @@ export function resumeTraining(raw) {
     )
       return null;
     if (
+      s.history.length > STAGES.length ||
       s.history.some(
         (h) => !Number.isInteger(h.stage) || !Array.isArray(h.faults),
       ) ||
@@ -520,7 +607,27 @@ export function resumeTraining(raw) {
       return null;
     if (
       s.phase === "result" &&
-      (!s.result || typeof s.result.won !== "boolean")
+      (!s.result ||
+        typeof s.result.won !== "boolean" ||
+        !["finished", "fuel", "deadline"].includes(s.result.reason) ||
+        (s.result.reason === "finished") !== (s.stage === 5))
+    )
+      return null;
+    if (
+      s.history.some(
+        (h, i) =>
+          h.stage !== i ||
+          !Number.isFinite(h.km) ||
+          h.km < 0 ||
+          h.km > STAGES[i]?.km ||
+          (i < s.stage &&
+            (!h.completed || Math.abs(h.km - STAGES[i].km) > 1e-9)),
+      )
+    )
+      return null;
+    if (
+      Math.abs(s.km - s.history.reduce((n, h) => n + h.km, 0)) > 1e-9 ||
+      (s.phase !== "result" && s.history.length !== s.stage)
     )
       return null;
     s.paused = true;

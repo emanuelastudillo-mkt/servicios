@@ -6,15 +6,16 @@ import {
   STAGES,
   newTraining,
   startPreparation,
+  stageDistance,
   defaultDecision,
   commitStage,
   phaseDuration,
   telemetry,
   advanceTraining,
   resumeTraining,
-} from "./engine.js?v=1.6.1";
-import { createRaceViewer } from "./viewer.js?v=1.6.1";
-import { trainingField } from "./viewer-model.js?v=1.6.1";
+} from "./engine.js?v=1.6.2";
+import { createRaceViewer } from "./viewer.js?v=1.6.2";
+import { trainingField } from "./viewer-model.js?v=1.6.2";
 const $ = (q) => document.querySelector(q);
 const raceViewer = createRaceViewer($("#race-viewer"), {
   onPause() {
@@ -47,10 +48,16 @@ let state = newTraining(),
 try {
   savedAttempt = localStorage.getItem(SAVE_KEY);
   state = resumeTraining(savedAttempt) || state;
+  if (state.legacyRestart && JSON.parse(savedAttempt)?.version === 1)
+    localStorage.setItem(SAVE_KEY + "-legacy-v1", savedAttempt);
 } catch {
   storageOK = false;
 }
-const note = (text) => ($("#storage-note").textContent = text);
+const note = (text) =>
+  ($("#storage-note").textContent =
+    (state.legacyRestart
+      ? "La actualización corrigió los saltos de campamento. Tu intento anterior se conservó como respaldo; repetí desde la largada con tus reglajes y piezas. "
+      : "") + text);
 function save() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
@@ -76,7 +83,7 @@ function timeline() {
   return `<ol class="timeline">${STAGES.map((r, i) => `<li class="${state.stage === i ? "current" : state.stage > i ? "done" : ""}"><span>${state.stage > i ? "✓ " : ""}ETAPA ${i + 1} · ${r.terrain}</span><strong>${r.name}</strong><small>${r.km} km · ${r.heat} °C</small></li>`).join("")}</ol>`;
 }
 function briefing() {
-  return `<section class="panel hero"><span class="eyebrow">INTENTO ${state.attempt} · ENTRENAMIENTO REJUGABLE</span><h1>Cada ajuste cuenta.</h1><p>Dirigí la escudería ficticia <strong>Horizonte Virtual</strong> en cinco etapas intensivas. Desgaste que supera 60 puntos por etapa, consumo de hasta 92 puntos de energía y situaciones de avería provocadas por decisiones equivocadas.</p><p><strong>Hasta 40 minutos de reloj simulado: 40 min a ×1, 20 a ×2 o 4 a ×10</strong>, más el tiempo que dediques a decidir. Podés pausar y cerrar: al volver se abre pausado.</p><div class="tip"><strong>Un desafío para aprender, con una solución única.</strong><p>Los mismos rivales y condiciones se repiten. Necesitás acertar el auto, las seis piezas y reglajes, y el plan de cada etapa. Un error impide ganar este examen; podés terminar para estudiar sus consecuencias. Esa regla estricta pertenece sólo al tutorial.</p></div><p class="small">Todo es ficticio y local. No hay conexión al Worker, inscripciones, dinero, premios ni cambios en tu equipo online. Si el navegador permite caché offline, después de la primera carga también podés abrirlo sin conexión.</p></section><form id="setup"><div class="grid"><section class="panel"><span class="eyebrow">01 · BASE PARA LAS CINCO SUPERFICIES</span><h2>Elegí vehículo y repuestos.</h2><label>Vehículo<select name="car">${[
+  return `<section class="panel hero"><span class="eyebrow">INTENTO ${state.attempt} · ENTRENAMIENTO REJUGABLE</span><h1>Cada ajuste cuenta.</h1><p>Dirigí la escudería ficticia <strong>Horizonte Virtual</strong> en cinco etapas intensivas. Desgaste que supera 60 puntos por etapa, consumo de hasta 92 puntos de energía y situaciones de avería provocadas por decisiones equivocadas.</p><p><strong>Hasta 40 minutos de reloj simulado: 40 min a ×1, 20 a ×2 o 4 a ×10</strong>, más el tiempo que dediques a decidir. Podés pausar y cerrar: al volver se abre pausado.</p><div class="tip"><strong>Un desafío para aprender, con una solución única.</strong><p>Los mismos rivales y condiciones se repiten. Necesitás acertar el auto, las seis piezas y reglajes, y el plan de cada etapa. Un error impide ganar este examen; el auto debe alcanzar cada campamento para continuar. Sin combustible o al agotar los 40 minutos, el intento termina en su posición real. Esa regla estricta pertenece sólo al tutorial.</p></div><p class="small">Todo es ficticio y local. No hay conexión al Worker, inscripciones, dinero, premios ni cambios en tu equipo online. Si el navegador permite caché offline, después de la primera carga también podés abrirlo sin conexión.</p></section><form id="setup"><div class="grid"><section class="panel"><span class="eyebrow">01 · BASE PARA LAS CINCO SUPERFICIES</span><h2>Elegí vehículo y repuestos.</h2><label>Vehículo<select name="car">${[
     ["scout", "Scout · control 90 · comodidad 85 · velocidad 70"],
     ["dune", "Dune · control 65 · comodidad 40 · velocidad 90"],
     ["rocket", "Rocket · control 20 · comodidad 15 · velocidad 99"],
@@ -87,7 +94,7 @@ function briefing() {
     )
     .join(
       "",
-    )}</select></label><div class="tip"><p>Una velocidad máxima alta no compensa la fatiga ni el control en roca. Buscá una base versátil. Motor, caja, suspensión y refrigeración deben sobrevivir al raid; en gomas y frenos el chasis y la asistencia permiten priorizar rendimiento.</p></div>${PARTS.map(([id, name]) => `<label>${name}<select name="kit-${id}">${KITS.map((k) => `<option value="${k.id}" ${state.config.kits[id] === k.id ? "selected" : ""}>${k.name} · ${k.description}</option>`).join("")}</select></label>`).join("")}<p class="small">Atlas y Vector son marcas ficticias exclusivas del entrenamiento. La reserva nunca se rompe, pero su baja performance pierde distancia.</p></section><section class="panel"><span class="eyebrow">02 · SE FIJAN PARA TODA LA CARRERA</span><h2>Calibrá los seis reglajes.</h2><div class="tip"><p>Motor en torno al tercio inferior, sin llevarlo al mínimo. Caja larga, cerca de siete décimos. Suspensión algo por debajo de dos tercios. Presión de gomas en torno a dos quintos. Refrigeración alta, a cuatro quintos. Frenos apenas por encima de la mitad.</p><p class="small">Mové las barras en pasos de cinco. Las pistas orientan; el informe de cada intento indica hacia dónde corregir. Después de la puesta a punto no se pueden cambiar.</p></div>${PARTS.map(([id, name, left, right]) => `<label>${name}<output id="out-${id}">${state.config.tuning[id]}</output><input type="range" name="tune-${id}" aria-label="Reglaje ${name}" min="0" max="100" step="5" value="${state.config.tuning[id]}"><span class="range-ends"><span>${left}</span><span>${right}</span></span></label>`).join("")}<button class="primary" type="submit">Guardar reglajes y preparar el auto</button><p class="small">Puesta a punto: 5 minutos simulados. La preparación real del juego online dura 5 horas; aquí está comprimida.</p></section></div></form>`;
+    )}</select></label><div class="tip"><p>Una velocidad máxima alta no compensa la fatiga ni el control en roca. Buscá una base versátil. Motor, caja, suspensión y refrigeración deben sobrevivir al raid; en gomas y frenos el chasis y la asistencia permiten priorizar rendimiento.</p></div>${PARTS.map(([id, name]) => `<label>${name}<select name="kit-${id}">${KITS.map((k) => `<option value="${k.id}" ${state.config.kits[id] === k.id ? "selected" : ""}>${k.name} · ${k.description}</option>`).join("")}</select></label>`).join("")}<p class="small">Atlas y Vector son marcas ficticias exclusivas del entrenamiento. La reserva nunca se rompe, pero su baja performance alarga el trayecto.</p></section><section class="panel"><span class="eyebrow">02 · SE FIJAN PARA TODA LA CARRERA</span><h2>Calibrá los seis reglajes.</h2><div class="tip"><p>Motor en torno al tercio inferior, sin llevarlo al mínimo. Caja larga, cerca de siete décimos. Suspensión algo por debajo de dos tercios. Presión de gomas en torno a dos quintos. Refrigeración alta, a cuatro quintos. Frenos apenas por encima de la mitad.</p><p class="small">Mové las barras en pasos de cinco. Las pistas orientan; el informe de cada intento indica hacia dónde corregir. Después de la puesta a punto no se pueden cambiar.</p></div>${PARTS.map(([id, name, left, right]) => `<label>${name}<output id="out-${id}">${state.config.tuning[id]}</output><input type="range" name="tune-${id}" aria-label="Reglaje ${name}" min="0" max="100" step="5" value="${state.config.tuning[id]}"><span class="range-ends"><span>${left}</span><span>${right}</span></span></label>`).join("")}<button class="primary" type="submit">Guardar reglajes y preparar el auto</button><p class="small">Puesta a punto: 5 minutos simulados. La preparación real del juego online dura 5 horas; aquí está comprimida.</p></section></div></form>`;
 }
 function drivers() {
   return `<div class="cards">${DRIVERS.map((d, i) => `<article class="card"><strong>${d.name}</strong><small>${d.specialty}</small><div class="bar-row"><span>Energía</span><progress id="energy-${i}" max="100" value="${state.energy[i]}"></progress><span id="energy-label-${i}">${Math.round(state.energy[i])}%</span></div></article>`).join("")}</div>`;
@@ -142,7 +149,7 @@ function parts() {
 }
 function journal() {
   const last = state.history.at(-1);
-  return `<article class="paper"><h3>Bitácora virtual</h3><p>${last ? (last.faults.length ? "“Perdimos distancia: el auto pidió más cuidado del que le dimos. El informe conserva los ajustes para revisar al terminar.”" : "“El auto llegó exigido pero bajo control. La elección del piloto y el mantenimiento hicieron la diferencia.”") : "“La carrera se gana antes de salir: leé el terreno y no confundas potencia con una buena preparación.”"}</p><small>${last ? `Etapa ${last.stage + 1} · ${last.km.toFixed(2)} / ${STAGES[last.stage].km} km registrados` : "Primera página del instructor"}</small></article>`;
+  return `<article class="paper"><h3>Bitácora virtual</h3><p>${last ? (last.faults.length ? "“Perdimos tiempo: el auto pidió más cuidado del que le dimos. El informe conserva los ajustes para revisar al terminar.”" : "“El auto llegó exigido pero bajo control. La elección del piloto y el mantenimiento hicieron la diferencia.”") : "“La carrera se gana antes de salir: leé el terreno y no confundas potencia con una buena preparación.”"}</p><small>${last ? `Etapa ${last.stage + 1} · ${last.km.toFixed(2)} / ${STAGES[last.stage].km} km registrados` : "Primera página del instructor"}</small></article>`;
 }
 function dial(id, label, max) {
   return `<svg class="dial" viewBox="0 0 120 110" role="img" aria-label="${label}"><circle cx="60" cy="60" r="48" fill="#10171c" stroke="#74858c" stroke-width="3"/><path d="M24 85 A44 44 0 1 1 96 85" fill="none" stroke="#b3bdbc" stroke-width="1"/>${[
@@ -160,7 +167,7 @@ function running() {
   const r = STAGES[state.stage],
     prep = state.phase === "preparation",
     service = state.phase === "service";
-  return `<section class="panel hero"><span class="eyebrow">${prep ? "PUESTA A PUNTO" : service ? "ASISTENCIA EN CAMPAMENTO" : "ETAPA " + (state.stage + 1) + " · EN RUTA"}</span><h1>${prep ? "El laboratorio está preparando tu auto." : r.name}</h1><p>${prep ? "Se instalan las seis piezas y se fija la calibración para toda la prueba." : service ? "Reparación, combustible y descanso avanzan en paralelo. El vehículo volverá a carrera automáticamente." : `${DRIVERS[state.decision.driver].name} al volante · ${r.terrain} · los reglajes y el plan ya están bloqueados.`}</p><progress id="phase-progress" max="100" value="0"></progress><p class="small"><span id="phase-left"></span> · <span id="run-note"></span></p></section><div class="grid"><section class="panel">${prep || service ? `<h2>Tareas en curso</h2><ul class="checklist" id="checklist"></ul>` : `<div class="dashboard"><div class="dials">${dial("speed", "km/h", 180)}${dial("rpm", "RPM", 7000)}</div><div class="lights"><span id="fault-light" class="light">AVERÍA</span><span id="heat-light" class="light">TEMPERATURA</span><span id="fuel-light" class="light">COMBUSTIBLE</span><span id="energy-light" class="light">FATIGA</span></div><div class="metrics"><div><strong id="speed-value">0</strong><small>KM/H · VELOCIDAD SIMULADA</small></div><div><strong id="fuel-value">0</strong><small>LITROS</small></div><div><strong id="heat-value">0</strong><small>°C</small></div><div><strong id="risk-value">0</strong><small>% RIESGO DIDÁCTICO</small></div></div></div><div class="tip"><strong id="incident-title">Consejo en ruta</strong><p id="incident"></p></div>`}<h3>Estado de las seis piezas</h3>${parts()}</section><section class="panel"><h2>Rivales virtuales</h2><table class="ranking"><thead><tr><th>Pos.</th><th>Escudería</th><th>Avance</th></tr></thead><tbody id="ranking"></tbody></table><p class="small">Los bloques de ruta duran 5 min. Si no completás sus kilómetros, un remolque virtual te lleva al siguiente campamento y deja ese tramo incompleto. Podés seguir practicando, pero ya no ganar ese intento.</p>${journal()}</section></div>${prep ? "" : drivers()}`;
+  return `<section class="panel hero"><span class="eyebrow">${prep ? "PUESTA A PUNTO" : service ? "ASISTENCIA EN CAMPAMENTO" : "ETAPA " + (state.stage + 1) + " · EN RUTA"}</span><h1>${prep ? "El laboratorio está preparando tu auto." : r.name}</h1><p>${prep ? "Se instalan las seis piezas y se fija la calibración para toda la prueba." : service ? "Reparación, combustible y descanso avanzan en paralelo. El vehículo volverá a carrera automáticamente." : `${DRIVERS[state.decision.driver].name} al volante · ${r.terrain} · los reglajes y el plan ya están bloqueados.`}</p><progress id="phase-progress" max="100" value="0"></progress><p class="small"><span id="phase-left"></span> · <span id="run-note"></span></p></section><div class="grid"><section class="panel">${prep || service ? `<h2>Tareas en curso</h2><ul class="checklist" id="checklist"></ul>` : `<div class="dashboard"><div class="dials">${dial("speed", "km/h", 180)}${dial("rpm", "RPM", 7000)}</div><div class="lights"><span id="fault-light" class="light">AVERÍA</span><span id="heat-light" class="light">TEMPERATURA</span><span id="fuel-light" class="light">COMBUSTIBLE</span><span id="energy-light" class="light">FATIGA</span></div><div class="metrics"><div><strong id="speed-value">0</strong><small>KM/H · VELOCIDAD SIMULADA</small></div><div><strong id="fuel-value">0</strong><small>LITROS</small></div><div><strong id="heat-value">0</strong><small>°C</small></div><div><strong id="risk-value">0</strong><small>% RIESGO DIDÁCTICO</small></div></div></div><div class="tip"><strong id="incident-title">Consejo en ruta</strong><p id="incident"></p></div>`}<h3>Estado de las seis piezas</h3>${parts()}</section><section class="panel"><h2>Rivales virtuales</h2><table class="ranking"><thead><tr><th>Pos.</th><th>Escudería</th><th>Avance</th></tr></thead><tbody id="ranking"></tbody></table><p class="small">Cada etapa termina al alcanzar su campamento, nunca sólo por tiempo. Cinco minutos es el ritmo de referencia; si vas más lento, tardás más y consumís más combustible. Sin combustible o al cumplir 40 minutos, termina el intento sin trasladar el auto.</p>${journal()}</section></div>${prep ? "" : drivers()}`;
 }
 function result() {
   const won = state.result.won;
@@ -170,7 +177,7 @@ function result() {
         `<details ${h.faults.length ? "open" : ""}><summary>Etapa ${h.stage + 1} · ${STAGES[h.stage].name} · ${h.km.toFixed(2)} / ${STAGES[h.stage].km} km</summary>${h.faults.length ? `<ul class="errors">${h.faults.map((f) => `<li>${esc(f.text)}</li>`).join("")}</ul>` : `<p>✓ Auto, reglajes, piezas, piloto, ritmo, combustible y asistencia correctos.</p>`}</details>`,
     )
     .join("");
-  return `<section class="panel hero ${won ? "result-good" : "result-bad"}"><span class="eyebrow">INTENTO ${state.attempt} · INFORME FINAL</span><h1>${won ? "Calibración completa. Ganaste el desafío." : "Este intento no ganó. Ahora sabés qué corregir."}</h1><p>Posición ${state.result.position} de 6 · ${state.km.toFixed(2)} / 40 km completados · ${clock(state.elapsed)} de simulación.</p><p>${won ? "Las cinco etapas se completaron con la única secuencia correcta. Ya aplicaste la lectura del terreno, los reglajes fijos, las especialidades, el combustible y la asistencia." : "La distancia no completada queda registrada. Revisá las diferencias y probá de nuevo: el escenario es idéntico, sin una tirada de azar que cambie el resultado."}</p><div class="controls"><button id="replay" class="primary">Reintentar desde cero</button><button id="retry-config">Reintentar conservando reglajes y piezas</button><a href="../" class="button">Volver al juego</a></div><p class="small">Este resultado es local y no da créditos, nivel ni premios online.</p></section><section class="panel"><h2>Lo que pasó en cada etapa</h2>${grouped}</section><section class="tip"><strong>Para pasar del tutorial al rally real</strong><p>En la competición hay estrategias alternativas: este examen exige una sola para enseñar. No copies sus valores como receta para otras carreras. Leé cada recorrido y administrá los recursos del equipo.</p></section>`;
+  return `<section class="panel hero ${won ? "result-good" : "result-bad"}"><span class="eyebrow">INTENTO ${state.attempt} · INFORME FINAL</span><h1>${won ? "Calibración completa. Ganaste el desafío." : "Este intento no ganó. Ahora sabés qué corregir."}</h1><p>Posición ${state.result.position} de 6 · ${state.km.toFixed(2)} / 40 km completados · ${clock(state.elapsed)} de simulación.</p><p>${state.result.reason === "fuel" ? "El auto quedó sin combustible antes de alcanzar el campamento. No se habilitó asistencia ni cambio de piloto en ruta." : state.result.reason === "deadline" ? "Se agotaron los 40 minutos sin llegar a la meta. El auto queda en su posición real." : ""}</p><p>${won ? "Las cinco etapas se completaron con la única secuencia correcta. Ya aplicaste la lectura del terreno, los reglajes fijos, las especialidades, el combustible y la asistencia." : "La distancia no completada queda registrada. Revisá las diferencias y probá de nuevo: el escenario es idéntico, sin una tirada de azar que cambie el resultado."}</p><div class="controls"><button id="replay" class="primary">Reintentar desde cero</button><button id="retry-config">Reintentar conservando reglajes y piezas</button><a href="../" class="button">Volver al juego</a></div><p class="small">Este resultado es local y no da créditos, nivel ni premios online.</p></section><section class="panel"><h2>Lo que pasó en cada etapa</h2>${grouped}</section><section class="tip"><strong>Para pasar del tutorial al rally real</strong><p>En la competición hay estrategias alternativas: este examen exige una sola para enseñar. No copies sus valores como receta para otras carreras. Leé cada recorrido y administrá los recursos del equipo.</p></section>`;
 }
 function render() {
   $("#simulator-head").innerHTML =
@@ -232,8 +239,19 @@ function tickDOM() {
   if (pause) pause.textContent = state.paused ? "▶ Continuar" : "Ⅱ Pausar";
   const duration = phaseDuration(state),
     progress = $("#phase-progress");
-  if (progress) progress.value = (state.phaseTime / duration) * 100;
-  text("phase-left", clock(duration - state.phaseTime) + " restantes");
+  if (progress)
+    progress.value =
+      state.phase === "driving"
+        ? (stageDistance(state) / STAGES[state.stage].km) * 100
+        : (state.phaseTime / duration) * 100;
+  text(
+    "phase-left",
+    state.phase === "driving"
+      ? (STAGES[state.stage].km - stageDistance(state)).toFixed(2) +
+          " km hasta el campamento · límite del intento: " +
+          clock(2400 - state.elapsed)
+      : clock(duration - state.phaseTime) + " restantes",
+  );
   text(
     "run-note",
     state.paused ? "En pausa" : "×" + state.speed + " · guardado automático",
@@ -339,9 +357,10 @@ document.addEventListener("change", (event) => {
 document.addEventListener("submit", (event) => {
   event.preventDefault();
   try {
-    if (event.target.id === "setup")
+    if (event.target.id === "setup") {
       startPreparation(state, captureSetup(event.target));
-    else if (event.target.id === "stage-plan") {
+      delete state.legacyRestart;
+    } else if (event.target.id === "stage-plan") {
       commitStage(state, capturePlan(event.target));
       delete state.draft;
     }

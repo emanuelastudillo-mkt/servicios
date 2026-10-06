@@ -1,4 +1,9 @@
-# Incremental online 1.6.1 · Tutorial y visor virtual
+# Incremental online 1.6.2 · Tutorial y visor virtual
+
+Las etapas sólo cambian cuando el auto llega al campamento. Una demora sigue
+en ruta; sin combustible o al agotar 40 minutos, el intento termina en su posición
+real. Los rivales también alcanzan sus campamentos por distancia. Los guardados
+anteriores que ya saltaron etapas se respaldan y reinician conservando el setup.
 
 Mapa virtual de cinco superficies con los seis equipos, zoom hasta ×16,
 seguimiento, intervalos, desplazamiento y pantalla completa. Funciona offline y

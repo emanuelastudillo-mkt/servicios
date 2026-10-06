@@ -160,8 +160,67 @@ test("offline cache includes both map modules; map is mounted outside rerendered
       new URL("../tutorial/viewer.js", import.meta.url),
       "utf8",
     );
-  assert.match(sw, /viewer\.js\?v=1\.6\.1/);
-  assert.match(sw, /viewer-model\.js\?v=1\.6\.1/);
+  assert.match(sw, /viewer\.js\?v=1\.6\.2/);
+  assert.match(sw, /viewer-model\.js\?v=1\.6\.2/);
   assert.ok(html.indexOf('id="race-viewer"') < html.indexOf('id="app"'));
   assert.doesNotMatch(viewer, /fetch\(|workers\.dev|ApexAPI|sessionStorage/);
+});
+test("every completed stage ends exactly at its mapped camp, with no distance lost or skipped", () => {
+  const s = driving();
+  for (let i = 0; i < 5; i++) {
+    if (i) {
+      const r = STAGES[i];
+      commitStage(s, {
+        driver: r.driver,
+        pace: r.pace,
+        fuel: r.fuel,
+        repairs: "all",
+        rest: "full",
+      });
+    }
+    advanceTraining(s, 2400);
+    const you = trainingField(s).find((t) => t.you);
+    assert.equal(you.km, ROUTE[i].endKm);
+    assert.equal(you.location.x, ROUTE[i].points.at(-1)[0]);
+    assert.equal(you.location.y, ROUTE[i].points.at(-1)[1]);
+  }
+});
+test("rivals follow the simulation clock independently of delayed player stages", () => {
+  const s = driving();
+  s.decision.fuel = 60;
+  s.drive.startFuel = 60;
+  s.drive.ratio = 0.8;
+  advanceTraining(s, 330);
+  assert.equal(s.phase, "driving");
+  assert.equal(s.stage, 0);
+  const field = trainingField(s);
+  const you = field.find((t) => t.you),
+    rival = field.find((t) => t.id === "cobalto");
+  assert.ok(you.km < 8);
+  assert.equal(rival.km, 8);
+  assert.equal(rival.speed, 0);
+  assert.equal(rival.phase, "Asistencia en campamento");
+});
+test("DNF result, ranking and map agree and remain before the unreached camp", () => {
+  const s = driving(1);
+  advanceTraining(s, 2400);
+  const field = trainingField(s),
+    you = field.find((t) => t.you);
+  assert.equal(s.result.reason, "fuel");
+  assert.equal(you.position, s.result.position);
+  assert.equal(you.km, s.km);
+  assert.ok(you.km < ROUTE[0].endKm);
+  assert.deepEqual(you.location, routePoint(s.km));
+  assert.ok(field.every((t) => t.speed === 0));
+});
+test("rivals stop only at their own exact camp coordinates", () => {
+  const s = driving();
+  for (const team of TEAMS.filter((t) => t.id !== "player")) {
+    s.elapsed = 300 + 300 / team.ratio + 1;
+    const rival = trainingField(s).find((t) => t.id === team.id);
+    assert.equal(rival.km, 8);
+    assert.deepEqual(rival.location, routePoint(8));
+    assert.equal(rival.speed, 0);
+    assert.equal(rival.phase, "Asistencia en campamento");
+  }
 });

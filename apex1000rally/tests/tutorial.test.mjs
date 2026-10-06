@@ -21,6 +21,7 @@ function run(config = clone(SOLUTION), edit = () => {}, chunk = 2400) {
   startPreparation(s, config);
   while (s.phase === "preparation") advanceTraining(s, chunk);
   for (let i = 0; i < 5; i++) {
+    if (s.phase === "result") break;
     const r = STAGES[i],
       d = {
         driver: r.driver,
@@ -259,4 +260,101 @@ test("offline tutorial contains no API/auth/online state imports; worker scope i
   );
   assert.match(sw, /url\.pathname\.startsWith/);
   assert.match(sw, /apex1000-training/);
+});
+function firstStage(edit = () => {}) {
+  const s = newTraining();
+  startPreparation(s, clone(SOLUTION));
+  advanceTraining(s, 300);
+  const d = {
+    driver: 0,
+    pace: "steady",
+    fuel: 40,
+    repairs: "all",
+    rest: "full",
+  };
+  edit(d);
+  commitStage(s, d);
+  return s;
+}
+test("slow car remains on its stage beyond five minutes, then reaches the actual camp", () => {
+  const s = firstStage((d) => (d.fuel = 60));
+  advanceTraining(s, 300);
+  assert.equal(s.phase, "driving");
+  assert.equal(s.stage, 0);
+  assert.equal(s.history.length, 0);
+  assert.ok(stageDistance(s) < 8);
+  assert.throws(() => commitStage(s, { driver: 1 }), /campamento/);
+  const restore = resumeTraining(JSON.stringify(s));
+  assert.ok(restore);
+  restore.paused = false;
+  advanceTraining(restore, 2400);
+  assert.equal(restore.phase, "camp");
+  assert.equal(restore.stage, 1);
+  assert.equal(restore.km, 8);
+  assert.ok(restore.elapsed > 600);
+  assert.equal(restore.history[0].completed, true);
+});
+test("limp mode cannot jump to camp when the five-minute reference expires", () => {
+  const s = firstStage((d) => {
+    d.driver = 1;
+    d.fuel = 60;
+  });
+  advanceTraining(s, 330);
+  assert.equal(s.phase, "driving");
+  assert.equal(s.stage, 0);
+  assert.ok(stageDistance(s) < 8);
+  assert.equal(telemetry(s).speed, 30);
+  const restored = resumeTraining(JSON.stringify(s));
+  assert.ok(restored);
+  restored.paused = false;
+  advanceTraining(restored, 2400);
+  assert.equal(restored.result.reason, "fuel");
+  assert.equal(restored.stage, 0);
+  assert.ok(restored.km < 8);
+  assert.equal(restored.history[0].completed, false);
+  assert.ok(resumeTraining(JSON.stringify(restored)));
+});
+test("empty tank ends at the actual position without enabling a pilot change", () => {
+  const s = firstStage((d) => (d.fuel = 20));
+  advanceTraining(s, 2400);
+  assert.equal(s.phase, "result");
+  assert.equal(s.result.reason, "fuel");
+  assert.equal(s.result.won, false);
+  assert.equal(s.stage, 0);
+  assert.equal(s.elapsed, 450);
+  assert.ok(s.km < 8);
+  assert.equal(s.fuel, 0);
+  assert.throws(() => commitStage(s, { driver: 1 }));
+  const snapshot = JSON.stringify(s);
+  advanceTraining(s, 2400);
+  assert.equal(JSON.stringify(s), snapshot);
+});
+test("40-minute limit ends a delayed last stage at its actual distance", () => {
+  const s = run(clone(SOLUTION), (d, i) => {
+    if (i === 4) d.fuel = 60;
+  });
+  assert.equal(s.result.reason, "deadline");
+  assert.equal(s.elapsed, 2400);
+  assert.equal(s.stage, 4);
+  assert.ok(s.km > 28 && s.km < 40);
+  assert.equal(s.history.at(-1).completed, false);
+  assert.ok(s.faults.some((f) => f.code === "deadline"));
+  assert.ok(resumeTraining(JSON.stringify(s)));
+});
+test("old skipped-camp attempts restart with their setup; consistent attempts migrate paused", () => {
+  const old = firstStage();
+  advanceTraining(old, 300);
+  old.version = 1;
+  old.history.forEach((h) => delete h.completed);
+  const migrated = resumeTraining(JSON.stringify(old));
+  assert.equal(migrated.phase, "camp");
+  assert.equal(migrated.km, 8);
+  assert.equal(migrated.paused, true);
+  old.km = old.history[0].km = 7;
+  const restarted = resumeTraining(JSON.stringify(old));
+  assert.equal(restarted.phase, "briefing");
+  assert.equal(restarted.km, 0);
+  assert.equal(restarted.legacyRestart, true);
+  assert.equal(restarted.attempt, old.attempt + 1);
+  assert.deepEqual(restarted.config, old.config);
 });
