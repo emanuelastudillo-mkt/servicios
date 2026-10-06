@@ -5,8 +5,9 @@ import {
   trainingField,
   routePoint,
   cameraBounds,
-} from "./viewer-model.js?v=1.6.3";
-import { STAGES } from "./engine.js?v=1.6.3";
+  markerLayout,
+} from "./viewer-model.js?v=1.6.4";
+import { STAGES } from "./engine.js?v=1.6.4";
 const fmt = (n) =>
   n.toLocaleString("es-AR", {
     minimumFractionDigits: 2,
@@ -36,7 +37,7 @@ function mapSVG() {
     })
     .join(
       "",
-    )}${TEAMS.map((t) => `<g id="marker-${t.id}" class="map-marker" data-team="${t.id}" tabindex="0" role="button" aria-label="Seguir ${t.name}"><title>${t.name}</title><circle class="marker-ring" r="17" fill="#10212b" stroke="${t.color}" stroke-width="2"/><g class="marker-car"><path d="m-10-5 4-4h11l6 9-6 9H-6l-4-4Z" fill="${t.color}"/><path d="M-3-5h6v10h-6Z" fill="#13202b"/><path d="M-7-10v4M-7 10V6M6-10v4M6 10V6" stroke="#070f14" stroke-width="3"/></g><g transform="translate(13 -13)"><circle r="8" fill="${t.color}"/><text class="marker-rank" y="3.5" text-anchor="middle" fill="#10212b">1</text></g></g>`).join("")}</svg>`;
+    )}${TEAMS.map((t) => `<line id="tether-${t.id}" stroke="${t.color}" stroke-width="2" stroke-opacity="1" vector-effect="non-scaling-stroke" pointer-events="none"/><circle id="anchor-${t.id}" fill="${t.color}" stroke="#071310" stroke-width="1" vector-effect="non-scaling-stroke" pointer-events="none"/>`).join("")}${TEAMS.map((t) => `<g id="marker-${t.id}" class="map-marker" data-team="${t.id}" tabindex="0" role="button" aria-label="Seguir ${t.name}"><title>${t.name}</title><circle class="marker-ring" r="17" fill="#10212b" stroke="${t.color}" stroke-width="2"/><g class="marker-car"><path d="m-10-5 4-4h11l6 9-6 9H-6l-4-4Z" fill="${t.color}"/><path d="M-3-5h6v10h-6Z" fill="#13202b"/><path d="M-7-10v4M-7 10V6M6-10v4M6 10V6" stroke="#070f14" stroke-width="3"/></g><g transform="translate(13 -13)"><circle r="8" fill="${t.color}"/><text class="marker-rank" y="3.5" text-anchor="middle" fill="#10212b">1</text></g></g>`).join("")}</svg>`;
 }
 export function createRaceViewer(root, actions = {}) {
   let selected = "player",
@@ -44,7 +45,7 @@ export function createRaceViewer(root, actions = {}) {
     camera = cameraBounds(600, 230),
     field = [],
     dragging = null;
-  root.innerHTML = `<div class="viewer-heading"><div><span class="eyebrow">RECORRIDO VIRTUAL · 40 KM</span><h2>La carrera, en movimiento.</h2></div><span class="viewer-live" id="viewer-status">Antes de largar</span></div><div class="viewer-controls"><label>Seguir escudería<select id="viewer-team">${TEAMS.map((t) => `<option value="${t.id}">${t.name}${t.id === "player" ? " · vos" : ""}</option>`).join("")}</select></label><div class="viewer-buttons"><button type="button" data-viewer="own">Mi equipo</button><button type="button" data-viewer="follow" aria-pressed="true">Seguir: sí</button><button type="button" data-viewer="out" aria-label="Alejar mapa">−</button><output id="viewer-zoom">×1</output><button type="button" data-viewer="in" aria-label="Acercar mapa">+</button><button type="button" data-viewer="fit">Ver recorrido</button><button type="button" data-viewer="fullscreen">Pantalla completa</button></div></div><div class="viewer-map-box">${mapSVG()}</div><div class="viewer-info"><div><span id="viewer-team-name">Horizonte Virtual</span><strong id="viewer-position">P1 / 6</strong><small id="viewer-driver"></small></div><div><span>Avance válido</span><strong id="viewer-distance">0,00 km</strong><small id="viewer-terrain"></small></div><div><span>Velocidad</span><strong id="viewer-speed">0 km/h</strong><small id="viewer-phase"></small></div><div><span>Intervalos</span><strong id="viewer-gaps">—</strong><small>Distancia con anterior / siguiente</small></div></div><div class="viewer-legend">${TEAMS.map((t) => `<button type="button" data-team="${t.id}"><i style="background:${t.color}"></i>${t.short}${t.id === "player" ? " · vos" : ""}</button>`).join("")}<span>Rueda: zoom · arrastrar: mover · avance real hasta cada campamento.</span></div>`;
+  root.innerHTML = `<div class="viewer-heading"><div><span class="eyebrow">RECORRIDO VIRTUAL · 40 KM</span><h2>La carrera, en movimiento.</h2></div><span class="viewer-live" id="viewer-status">Antes de largar</span></div><div class="viewer-controls"><label>Seguir escudería<select id="viewer-team">${TEAMS.map((t) => `<option value="${t.id}">${t.name}${t.id === "player" ? " · vos" : ""}</option>`).join("")}</select></label><div class="viewer-buttons"><button type="button" data-viewer="own">Mi equipo</button><button type="button" data-viewer="follow" aria-pressed="true">Seguir: sí</button><button type="button" data-viewer="out" aria-label="Alejar mapa">−</button><output id="viewer-zoom">×1</output><button type="button" data-viewer="in" aria-label="Acercar mapa">+</button><button type="button" data-viewer="fit">Ver recorrido</button><button type="button" data-viewer="fullscreen">Pantalla completa</button></div></div><div class="viewer-map-box">${mapSVG()}</div><div class="viewer-info"><div><span id="viewer-team-name">Horizonte Virtual</span><strong id="viewer-position">P1 / 6</strong><small id="viewer-driver"></small></div><div><span>Avance válido</span><strong id="viewer-distance">0,00 km</strong><small id="viewer-terrain"></small></div><div><span>Velocidad</span><strong id="viewer-speed">0 km/h</strong><small id="viewer-phase"></small></div><div><span>Intervalos</span><strong id="viewer-gaps">—</strong><small>Distancia con anterior / siguiente</small></div></div><div class="viewer-legend">${TEAMS.map((t) => `<button type="button" data-team="${t.id}"><i style="background:${t.color}"></i>${t.short}${t.id === "player" ? " · vos" : ""}</button>`).join("")}<span>Rueda: zoom · arrastrar: mover · los iconos agrupados se unen a su posición exacta en el camino.</span></div>`;
   root
     .querySelector(".viewer-buttons")
     .insertAdjacentHTML(
@@ -82,14 +83,25 @@ export function createRaceViewer(root, actions = {}) {
     root.querySelector('[data-viewer="in"]').disabled = camera.zoom >= 16;
   }
   function drawField() {
+    const positions = markerLayout(field, camera.zoom);
     field.forEach((t) => {
       const point = t.location,
-        index = TEAMS.findIndex((other) => other.id === t.id),
-        offset = [18, -18, 48, -48, 78, -78][index] / camera.zoom;
-      const angle = (point.angle * Math.PI) / 180,
-        x = point.x - Math.sin(angle) * offset,
-        y = point.y + Math.cos(angle) * offset;
+        { x, y, displaced } = positions.find((p) => p.id === t.id);
       const marker = root.querySelector("#marker-" + t.id);
+      const tether = root.querySelector("#tether-" + t.id);
+      for (const [key, value] of Object.entries({
+        x1: point.x,
+        y1: point.y,
+        x2: x,
+        y2: y,
+      }))
+        tether.setAttribute(key, value);
+      tether.style.display = displaced ? "" : "none";
+      const anchor = root.querySelector("#anchor-" + t.id);
+      anchor.setAttribute("cx", point.x);
+      anchor.setAttribute("cy", point.y);
+      anchor.setAttribute("r", 3 / camera.zoom);
+      anchor.style.display = displaced ? "" : "none";
       marker.setAttribute(
         "transform",
         `translate(${x} ${y}) scale(${1 / camera.zoom})`,
@@ -209,6 +221,8 @@ export function createRaceViewer(root, actions = {}) {
             if (document.fullscreenElement === root)
               await document.exitFullscreen();
             root.classList.remove("viewer-expanded");
+          } else if (window.matchMedia("(max-width: 800px)").matches) {
+            root.classList.add("viewer-expanded");
           } else await root.requestFullscreen();
         } catch {
           root.classList.add("viewer-expanded");
@@ -289,7 +303,9 @@ export function createRaceViewer(root, actions = {}) {
         ? "Configurar etapa"
         : ["preparation", "service"].includes(s.phase)
           ? "Ver tareas"
-          : "Ver tablero";
+          : s.phase === "result"
+            ? "Ver informe"
+            : "Ver tablero";
       field = trainingField(s);
       updateSelected();
     },

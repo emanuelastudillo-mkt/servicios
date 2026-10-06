@@ -4,7 +4,7 @@ import {
   telemetry,
   DRIVERS,
   rivalReference,
-} from "./engine.js?v=1.6.3";
+} from "./engine.js?v=1.6.4";
 export const WORLD = { width: 1200, height: 460, km: 40 };
 export const TEAMS = [
   {
@@ -227,4 +227,43 @@ export function trainingField(s) {
     previousGap: i ? field[i - 1].km - t.km : null,
     nextGap: i < field.length - 1 ? t.km - field[i + 1].km : null,
   }));
+}
+// Only displace overlapping icons. Their tether always points to the real road position.
+export function markerLayout(field, zoom = 1) {
+  const z = cameraBounds(600, 230, zoom).zoom;
+  const placed = [];
+  return TEAMS.filter((team) => field.some((t) => t.id === team.id)).map(
+    (team) => {
+      const t = field.find((t) => t.id === team.id),
+        p = t.location;
+      const angle = (p.angle * Math.PI) / 180;
+      let result;
+      for (const offset of [0, -42, 42, -84, 84, -126, 126, -168, 168]) {
+        const x = Math.max(
+          22 / z,
+          Math.min(WORLD.width - 22 / z, p.x - (Math.sin(angle) * offset) / z),
+        );
+        const y = Math.max(
+          22 / z,
+          Math.min(WORLD.height - 22 / z, p.y + (Math.cos(angle) * offset) / z),
+        );
+        result = {
+          id: t.id,
+          x,
+          y,
+          anchorX: p.x,
+          anchorY: p.y,
+          displaced: Math.hypot(x - p.x, y - p.y) > 0.01,
+        };
+        if (
+          placed.every(
+            (other) => Math.hypot(x - other.x, y - other.y) * z >= 39,
+          )
+        )
+          break;
+      }
+      placed.push(result);
+      return result;
+    },
+  );
 }

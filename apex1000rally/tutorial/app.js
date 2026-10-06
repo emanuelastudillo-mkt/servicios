@@ -10,12 +10,13 @@ import {
   defaultDecision,
   commitStage,
   phaseDuration,
+  serviceTasks,
   telemetry,
   advanceTraining,
   resumeTraining,
-} from "./engine.js?v=1.6.3";
-import { createRaceViewer } from "./viewer.js?v=1.6.3";
-import { trainingField } from "./viewer-model.js?v=1.6.3";
+} from "./engine.js?v=1.6.4";
+import { createRaceViewer } from "./viewer.js?v=1.6.4";
+import { trainingField } from "./viewer-model.js?v=1.6.4";
 const $ = (q) => document.querySelector(q);
 const raceViewer = createRaceViewer($("#race-viewer"), {
   onPause() {
@@ -44,10 +45,17 @@ const clock = (s) =>
   `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 let state = newTraining(),
   storageOK = true,
-  savedAttempt = null;
+  savedAttempt = null,
+  recoveryNote = "";
 try {
   savedAttempt = localStorage.getItem(SAVE_KEY);
-  state = resumeTraining(savedAttempt) || state;
+  const restored = resumeTraining(savedAttempt);
+  if (restored) state = restored;
+  else if (savedAttempt) {
+    localStorage.setItem(SAVE_KEY + "-recovery-" + Date.now(), savedAttempt);
+    recoveryNote =
+      "El intento guardado estaba incompleto. Conservamos un respaldo local y abrimos uno nuevo. ";
+  }
   if (state.legacyRestart && JSON.parse(savedAttempt)?.version === 1)
     localStorage.setItem(SAVE_KEY + "-legacy-v1", savedAttempt);
 } catch {
@@ -55,14 +63,18 @@ try {
 }
 const note = (text) =>
   ($("#storage-note").textContent =
+    recoveryNote +
     (state.legacyRestart
       ? "La actualización corrigió los saltos de campamento. Tu intento anterior se conservó como respaldo; repetí desde la largada con tus reglajes y piezas. "
-      : "") + text);
+      : "") +
+    text);
 function save() {
+  if (!storageOK) return;
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
   } catch {
     storageOK = false;
+    text("save-status", "Guardado no disponible");
     note(
       "El navegador no permite guardar. Podés jugar, pero este intento no se conservará al cerrar.",
     );
@@ -72,10 +84,7 @@ if (!storageOK)
   note(
     "Guardado local no disponible: mantené esta pestaña abierta para conservar el intento.",
   );
-else if (savedAttempt && !resumeTraining(savedAttempt))
-  note(
-    "No se pudo recuperar el intento guardado. Se inició uno nuevo; la partida online no fue consultada.",
-  );
+else if (recoveryNote) note("La partida online no fue consultada.");
 function controls() {
   return `<div class="controls"><button id="pause" ${phaseDuration(state) ? "" : "disabled"}>${state.paused ? "▶ Continuar" : "Ⅱ Pausar"}</button><label>Velocidad <select id="speed" aria-label="Velocidad del simulador">${[1, 2, 10].map((n) => `<option value="${n}" ${state.speed === n ? "selected" : ""}>×${n}</option>`).join("")}</select></label><span class="small">Simulación: <b id="elapsed">${clock(state.elapsed)}</b> / 40:00 · las decisiones pausan el reloj</span><button id="retry">Reiniciar intento</button></div>`;
 }
@@ -181,7 +190,7 @@ function result() {
 }
 function render() {
   $("#simulator-head").innerHTML =
-    `<div class="summary"><span class="eyebrow">HORIZONTE VIRTUAL · DIRECTOR INVITADO</span><span class="status">Guardado ${storageOK ? "local e independiente" : "no disponible"}</span></div>${controls()}${state.phase === "briefing" ? "" : timeline()}`;
+    `<div class="summary"><span class="eyebrow">HORIZONTE VIRTUAL · DIRECTOR INVITADO</span><span class="status" id="save-status">Guardado ${storageOK ? "local e independiente" : "no disponible"}</span></div>${controls()}${state.phase === "briefing" ? "" : timeline()}`;
   $("#app").innerHTML =
     state.phase === "briefing"
       ? briefing()
@@ -205,27 +214,11 @@ const text = (id, value) => {
   if (node) node.textContent = value;
 };
 function checklist() {
-  const prep = state.phase === "preparation",
-    p = state.phaseTime;
-  const tasks = prep
-    ? [
-        ["Instalar las seis piezas", 90],
-        ["Calibrar los seis reglajes", 240],
-        ["Verificar puesta a punto", 300],
-      ]
-    : [
-        ["Cargar combustible", 45],
-        ["Reparar las seis piezas", 120, state.decision.repairs !== "all"],
-        [
-          "Descansar y recuperar energía",
-          state.decision.rest === "half" ? 75 : 150,
-          state.decision.rest !== "full",
-        ],
-      ];
-  return tasks
+  const p = state.phaseTime;
+  return serviceTasks(state)
     .map(
-      ([label, seconds, skipped]) =>
-        `<li class="${skipped ? "skipped" : p >= seconds ? "complete" : ""}">${skipped ? "⚠" : p >= seconds ? "✓" : "◷"} ${label} · ${skipped ? "plan parcial / omitido" : p >= seconds ? "completado" : clock(seconds - p) + " restantes"}</li>`,
+      ({ label, seconds, skipped }) =>
+        `<li class="${skipped ? "skipped" : p >= seconds ? "complete" : ""}">${skipped ? "⚠" : p >= seconds ? "✓" : "◷"} ${label} · ${skipped ? "no solicitado" : p >= seconds ? "completado" : clock(seconds - p) + " restantes"}</li>`,
     )
     .join("");
 }
@@ -254,7 +247,11 @@ function tickDOM() {
   );
   text(
     "run-note",
-    state.paused ? "En pausa" : "×" + state.speed + " · guardado automático",
+    state.paused
+      ? "En pausa"
+      : "×" +
+          state.speed +
+          (storageOK ? " · guardado automático" : " · sin guardado"),
   );
   const checks = $("#checklist");
   if (checks) checks.innerHTML = checklist();
@@ -426,6 +423,10 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pagehide", save);
 render();
 if ("serviceWorker" in navigator) {
+  const checkOffline = () =>
+    navigator.serviceWorker.controller?.postMessage({ type: "CHECK_OFFLINE" });
+  navigator.serviceWorker.addEventListener("controllerchange", checkOffline);
+  window.addEventListener("load", checkOffline, { once: true });
   navigator.serviceWorker
     .register("./sw.js")
     .then(async (registration) => {
@@ -439,7 +440,11 @@ if ("serviceWorker" in navigator) {
       ),
     );
   navigator.serviceWorker.addEventListener("message", (event) => {
-    if (event.data?.type === "OFFLINE_READY" && storageOK)
+    if (
+      event.data?.type === "OFFLINE_READY" &&
+      event.data.version === "1.6.4" &&
+      storageOK
+    )
       note(
         "Tutorial listo para reabrirse sin conexión en este navegador. Guardado separado de tu escudería.",
       );

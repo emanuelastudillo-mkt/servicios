@@ -1,4 +1,4 @@
-# Entrenamiento virtual 1.6.3
+# Entrenamiento virtual 1.6.4
 
 Página independiente, sin importar código de autenticación, API, partidas o catálogo.
 Acceso: `tutorial/` (también disponible sin iniciar sesión).
@@ -42,3 +42,9 @@ anteriores coherentes se conservan pausados. No se toca la escudería online.
 Dirección visual implementada: `../docs/mapas/GUIA-ESTETICA-MAPAS.md`, con plantilla
 reutilizable, ficha de coordenadas y prompt exacto. El raster sólo dibuja terreno;
 las rutas siguen en SVG con grosor constante en pantalla y la geometría no cambia.
+
+## Revisión funcional 1.6.4
+
+Ver [informe de correcciones y pruebas](../docs/REVISION-TUTORIAL-1.6.4.md).
+Guardados validados con respaldo, pausa coherente, asistencia parcial precisa,
+mapa móvil sin recortes y caché offline comprobada por versión.

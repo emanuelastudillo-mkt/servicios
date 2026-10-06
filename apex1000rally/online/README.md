@@ -1,4 +1,4 @@
-# Tutorial offline 1.6.3
+# Tutorial offline 1.6.4
 
 Corrección de llegada: el cambio de etapa requiere recorrer sus kilómetros. No
 hay traslado automático a los cinco minutos. Combustible agotado o límite de 40
@@ -17,7 +17,7 @@ No consulta el Worker ni modifica dinero, inventario, estadísticas o inscripcio
 El Worker conserva 1.5.0: esta entrega sólo publica archivos estáticos, sin SQL ni
 migraciones. Ver `tutorial/README.md` y `tests/tutorial.test.mjs`.
 
-# Apex1000 Rally Online 1.6.3
+# Apex1000 Rally Online 1.6.4
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/
 API: https://apex1000-online.emanuelmkt.workers.dev

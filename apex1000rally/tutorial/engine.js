@@ -170,6 +170,24 @@ export function startPreparation(s, config) {
 export function defaultDecision(s) {
   return { driver: 0, pace: "steady", fuel: 40, repairs: "all", rest: "full" };
 }
+const numberIn = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
+const validEnergy = (v) =>
+  Array.isArray(v) && v.length === 3 && v.every((n) => numberIn(n, 0, 100));
+const validCondition = (v) =>
+  v && PARTS.every(([id]) => numberIn(v[id], 0, 100));
+export function validDecision(d) {
+  return (
+    !!d &&
+    [0, 1, 2].includes(d.driver) &&
+    ["steady", "careful", "attack"].includes(d.pace) &&
+    ["all", "broken", "none"].includes(d.repairs) &&
+    ["full", "half", "none"].includes(d.rest) &&
+    Number.isInteger(d.fuel) &&
+    d.fuel >= 20 &&
+    d.fuel <= 60 &&
+    d.fuel % 5 === 0
+  );
+}
 function problem(s, stage, code, text) {
   if (!s.faults.some((f) => f.stage === stage && f.code === code))
     s.faults.push({ stage, code, text });
@@ -255,7 +273,11 @@ function evaluate(s) {
     startEnergy: [...s.energy],
     startFuel: d.fuel,
     breakdown: d.driver !== r.driver && s.config.kits[r.weak] !== "reserve",
-    highRisk: wrongKit || d.pace !== r.pace || s.config.tuning.cooling < 75,
+    highRisk:
+      d.driver !== r.driver ||
+      wrongKit ||
+      d.pace !== r.pace ||
+      s.config.tuning.cooling < 75,
   };
 }
 function beginDrive(s) {
@@ -268,25 +290,64 @@ function beginDrive(s) {
 export function commitStage(s, decision) {
   if (!["ready", "camp"].includes(s.phase))
     throw Error("Esperá al campamento.");
-  if (
-    ![0, 1, 2].includes(decision.driver) ||
-    !["steady", "careful", "attack"].includes(decision.pace) ||
-    !["all", "broken", "none"].includes(decision.repairs) ||
-    !["full", "half", "none"].includes(decision.rest) ||
-    !Number.isInteger(decision.fuel) ||
-    decision.fuel < 20 ||
-    decision.fuel > 60 ||
-    decision.fuel % 5
-  )
-    throw Error("Plan inválido.");
+  if (!validDecision(decision)) throw Error("Plan inválido.");
   s.decision = clone(decision);
   if (!s.stage) beginDrive(s);
   else {
-    s.serviceStart = { condition: clone(s.condition), energy: [...s.energy] };
+    s.serviceStart = {
+      condition: clone(s.condition),
+      energy: [...s.energy],
+      fuel: s.fuel,
+    };
     s.phase = "service";
     s.phaseTime = 0;
     s.paused = false;
   }
+}
+// Shared by the clock and the checklist: partial work must report real progress.
+export function serviceTasks(s) {
+  if (s.phase === "preparation")
+    return [
+      { label: "Instalar las seis piezas", seconds: 90 },
+      { label: "Calibrar los seis reglajes", seconds: 240 },
+      { label: "Verificar puesta a punto", seconds: 300 },
+    ];
+  if (s.phase !== "service") return [];
+  const repairs = s.decision.repairs;
+  const count = PARTS.filter(([id]) =>
+    repairs === "all"
+      ? s.serviceStart.condition[id] < 100
+      : repairs === "broken" && s.serviceStart.condition[id] === 0,
+  ).length;
+  return [
+    { label: `Preparar combustible · ${s.decision.fuel} L`, seconds: 45 },
+    {
+      label:
+        repairs === "none"
+          ? "Reparación omitida"
+          : count
+            ? `Reparar ${count} ${count === 1 ? "pieza" : "piezas"}${repairs === "broken" ? " averiadas" : ""}`
+            : repairs === "broken" && s.serviceStart.fuel === undefined
+              ? "Revisión mecánica del plan anterior"
+              : "Sin piezas que reparar según el plan",
+      seconds:
+        count || (repairs === "broken" && s.serviceStart.fuel === undefined)
+          ? 120
+          : 0,
+      skipped: repairs === "none",
+    },
+    {
+      label:
+        s.decision.rest === "half"
+          ? "Descanso parcial · hasta +50 de energía"
+          : s.decision.rest === "none"
+            ? "Descanso omitido"
+            : "Descansar y recuperar energía",
+      seconds:
+        s.decision.rest === "full" ? 150 : s.decision.rest === "half" ? 75 : 0,
+      skipped: s.decision.rest === "none",
+    },
+  ];
 }
 export function phaseDuration(s) {
   return s.phase === "driving"
@@ -297,15 +358,7 @@ export function phaseDuration(s) {
     : s.phase === "preparation"
       ? 300
       : s.phase === "service"
-        ? Math.max(
-            45,
-            s.decision.repairs !== "none" ? 120 : 0,
-            s.decision.rest === "full"
-              ? 150
-              : s.decision.rest === "half"
-                ? 75
-                : 0,
-          )
+        ? Math.max(...serviceTasks(s).map((t) => t.seconds))
         : 0;
 }
 // The five-minute pace is a reference, never a trigger to teleport to camp.
@@ -377,7 +430,8 @@ export function telemetry(s) {
   const r = STAGES[s.stage],
     p = s.phaseTime / 300,
     broken = s.drive.breakdown && p >= 0.55;
-  const speed = s.fuel <= 0 ? 0 : broken ? 30 : r.km * 12 * s.drive.ratio;
+  const speed =
+    s.paused || s.fuel <= 0 ? 0 : broken ? 30 : r.km * 12 * s.drive.ratio;
   return {
     speed,
     rpm:
@@ -425,7 +479,9 @@ export function advanceTraining(s, seconds) {
                   : 0),
         ),
       );
-      s.fuel = s.decision.fuel * Math.min(1, s.phaseTime / 45);
+      const fromFuel = s.serviceStart.fuel ?? 0;
+      s.fuel =
+        fromFuel + (s.decision.fuel - fromFuel) * Math.min(1, s.phaseTime / 45);
     }
     if (s.phase === "driving") {
       const r = STAGES[s.stage],
@@ -543,6 +599,7 @@ export function resumeTraining(raw) {
       !Number.isFinite(s.km) ||
       s.km < 0 ||
       s.km > 40 ||
+      !numberIn(s.fuel, 0, 60) ||
       !Number.isInteger(s.attempt) ||
       s.attempt < 1 ||
       !["scout", "dune", "rocket"].includes(s.config.car)
@@ -566,45 +623,96 @@ export function resumeTraining(raw) {
       (s.phase === "service" && !s.serviceStart)
     )
       return null;
-    if (
-      s.decision &&
-      (![0, 1, 2].includes(s.decision.driver) ||
-        !["steady", "careful", "attack"].includes(s.decision.pace) ||
-        !["all", "broken", "none"].includes(s.decision.repairs) ||
-        !["full", "half", "none"].includes(s.decision.rest) ||
-        !Number.isInteger(s.decision.fuel) ||
-        s.decision.fuel < 20 ||
-        s.decision.fuel > 60)
-    )
-      return null;
+    if (s.decision && !validDecision(s.decision)) return null;
+    if (s.draft && !validDecision(s.draft)) delete s.draft;
     if (
       s.drive &&
       (!Number.isFinite(s.drive.ratio) ||
         s.drive.ratio < 0.32 ||
         s.drive.ratio > 1 ||
-        !Number.isFinite(s.drive.startFuel) ||
-        !Array.isArray(s.drive.startEnergy) ||
-        !s.drive.startCondition)
+        !numberIn(s.drive.startFuel, 20, 60) ||
+        !validEnergy(s.drive.startEnergy) ||
+        !validCondition(s.drive.startCondition) ||
+        typeof s.drive.breakdown !== "boolean" ||
+        typeof s.drive.highRisk !== "boolean")
     )
       return null;
     if (
       s.serviceStart &&
-      (!Array.isArray(s.serviceStart.energy) || !s.serviceStart.condition)
+      (!validEnergy(s.serviceStart.energy) ||
+        !validCondition(s.serviceStart.condition) ||
+        (s.serviceStart.fuel !== undefined &&
+          !numberIn(s.serviceStart.fuel, 0, 60)))
     )
       return null;
+    const validFault = (f) =>
+      f &&
+      typeof f.text === "string" &&
+      typeof f.code === "string" &&
+      Number.isInteger(f.stage) &&
+      f.stage >= 0 &&
+      f.stage < STAGES.length;
     if (
       s.history.length > STAGES.length ||
       s.history.some(
-        (h) => !Number.isInteger(h.stage) || !Array.isArray(h.faults),
+        (h) =>
+          !h ||
+          !Number.isInteger(h.stage) ||
+          !Array.isArray(h.faults) ||
+          h.faults.some((f) => !validFault(f) || f.stage !== h.stage) ||
+          ![0, 1, 2].includes(h.driver) ||
+          typeof h.breakdown !== "boolean" ||
+          typeof h.completed !== "boolean",
       ) ||
-      s.faults.some(
-        (f) =>
-          typeof f.text !== "string" ||
-          typeof f.code !== "string" ||
-          !Number.isInteger(f.stage),
-      )
+      s.faults.some((f) => !validFault(f))
     )
       return null;
+    // Validate phase invariants before a saved value reaches the UI or clock.
+    if (
+      ["briefing", "preparation", "ready"].includes(s.phase) &&
+      (s.stage !== 0 || s.decision || s.drive || s.km !== 0)
+    )
+      return null;
+    if (s.phase === "briefing" && (s.elapsed !== 0 || s.phaseTime !== 0))
+      return null;
+    if (
+      s.phase === "preparation" &&
+      (s.phaseTime > 300 || Math.abs(s.elapsed - s.phaseTime) > 1e-6)
+    )
+      return null;
+    if (
+      s.phase === "ready" &&
+      (Math.abs(s.elapsed - 300) > 1e-6 || Math.abs(s.phaseTime - 300) > 1e-6)
+    )
+      return null;
+    if (
+      ["camp", "service"].includes(s.phase) &&
+      (s.stage < 1 || s.stage >= STAGES.length || !s.decision || !s.drive)
+    )
+      return null;
+    if (
+      ["driving", "service"].includes(s.phase) &&
+      (!Number.isFinite(phaseDuration(s)) ||
+        s.phaseTime > phaseDuration(s) + 1e-6)
+    )
+      return null;
+    if (s.phase !== "result" && s.elapsed >= MAX_SECONDS) return null;
+    if (s.phase === "result") {
+      const expectedLength =
+        s.result.reason === "finished"
+          ? STAGES.length
+          : s.stage + (s.history.at(-1)?.completed === false ? 1 : 0);
+      if (
+        s.history.length !== expectedLength ||
+        !numberIn(s.result.km, 0, 40) ||
+        Math.abs(s.result.km - s.km) > 1e-6 ||
+        !Number.isInteger(s.result.position) ||
+        !numberIn(s.result.position, 1, 6) ||
+        s.result.won !==
+          (s.result.reason === "finished" && s.faults.length === 0)
+      )
+        return null;
+    }
     if (
       s.phase === "result" &&
       (!s.result ||

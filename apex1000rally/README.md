@@ -1,4 +1,4 @@
-# Incremental online 1.6.3 · Tutorial y visor virtual
+# Incremental online 1.6.4 · Tutorial y visor virtual
 
 Las etapas sólo cambian cuando el auto llega al campamento. Una demora sigue
 en ruta; sin combustible o al agotar 40 minutos, el intento termina en su posición
