@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#101b21" />
     <title>Apex1000 · Simulador de entrenamiento</title>
     <link rel="icon" href="../favicon.svg" />
-    <link rel="stylesheet" href="./style.css?v=1.6.0" />
+    <link rel="stylesheet" href="./style.css?v=1.6.1" />
   </head>
   <body>
     <header>
@@ -15,12 +15,16 @@
       ><span class="offline">● OFFLINE · EQUIPO FICTICIO</span
       ><a href="../">Volver al juego</a>
     </header>
-    <main id="app"></main>
+    <main>
+      <div id="simulator-head"></div>
+      <section id="race-viewer" class="panel race-viewer" hidden></section>
+      <div id="app"></div>
+    </main>
     <p id="storage-note" role="status"></p>
     <footer>
       Entrenamiento guionado · sin premios reales ni cambios en tu escudería ·
       los riesgos y tiempos están intensificados para aprender.
     </footer>
-    <script type="module" src="./app.js?v=1.6.0"></script>
+    <script type="module" src="./app.js?v=1.6.1"></script>
   </body>
 </html>

@@ -433,3 +433,258 @@ footer,
     transition: none;
   }
 }
+.race-viewer {
+  margin: 0 0 24px;
+  padding: 20px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #253b43, #101d27);
+}
+.race-viewer[hidden] {
+  display: none;
+}
+.viewer-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.viewer-heading h2 {
+  margin-bottom: 8px;
+}
+.viewer-live {
+  font-size: 12px;
+  color: var(--green);
+}
+.viewer-controls {
+  display: flex;
+  gap: 20px;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin: 10px 0 16px;
+}
+.viewer-controls label {
+  margin: 0;
+  min-width: 220px;
+  font-size: 12px;
+}
+.viewer-controls select {
+  min-height: 42px;
+}
+.viewer-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.viewer-buttons button {
+  padding: 10px 12px;
+  font-size: 12px;
+}
+.viewer-buttons output {
+  min-width: 36px;
+  text-align: center;
+  float: none;
+  font-size: 12px;
+}
+.viewer-buttons select {
+  width: 78px;
+  margin: 0;
+  padding: 9px;
+  font-size: 12px;
+  min-height: 38px;
+}
+.viewer-buttons button[aria-pressed="true"] {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.viewer-map-box {
+  aspect-ratio: 1200/460;
+  background: #101f28;
+  border: 1px solid #4d626b;
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 220px;
+}
+#training-map {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+#training-map:active {
+  cursor: grabbing;
+}
+.map-terrain-label {
+  fill: #c0d4d3;
+  opacity: 0.55;
+  font-size: 13px;
+  letter-spacing: 3px;
+  font-weight: 700;
+}
+.map-coordinate {
+  fill: #9bb7bd;
+  font: 10px system-ui;
+  letter-spacing: 1.6px;
+}
+.map-stop text {
+  fill: #e5ede6;
+  font: 700 9px system-ui;
+}
+.map-stop .map-stop-name {
+  font-size: 9px;
+  letter-spacing: 1px;
+  paint-order: stroke;
+  stroke: #182932;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.map-compass text {
+  fill: #c7d7d7;
+  font: 10px system-ui;
+}
+.map-marker {
+  cursor: pointer;
+  transition: transform 0.18s linear;
+}
+.map-marker.selected .marker-ring {
+  stroke-width: 4;
+  fill: #3b4241;
+}
+.map-marker:focus-visible {
+  outline: none;
+}
+.map-marker:focus-visible .marker-ring {
+  stroke: #fff;
+  stroke-width: 5;
+}
+.marker-rank {
+  font: 700 9px system-ui;
+}
+.viewer-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.2fr;
+  gap: 14px;
+  padding: 18px 0 10px;
+}
+.viewer-info > div {
+  border-right: 1px solid #3b515b;
+  padding-right: 14px;
+  min-width: 0;
+}
+.viewer-info > div:last-child {
+  border: 0;
+}
+.viewer-info span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.viewer-info strong {
+  display: block;
+  font-size: 22px;
+  margin: 4px 0;
+  color: #f0e7d5;
+  font-variant-numeric: tabular-nums;
+}
+.viewer-info small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.viewer-legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #3b515b;
+}
+.viewer-legend button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  padding: 6px 9px;
+}
+.viewer-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: block;
+}
+.viewer-legend button[aria-pressed="true"] {
+  border-color: var(--gold);
+}
+.viewer-legend > span {
+  font-size: 10px;
+  color: var(--muted);
+  margin-left: auto;
+}
+.race-viewer:fullscreen,
+.race-viewer.viewer-expanded {
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+  padding: 24px 4%;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+.race-viewer:fullscreen .viewer-map-box,
+.race-viewer.viewer-expanded .viewer-map-box {
+  flex: 1;
+  min-height: 160px;
+  aspect-ratio: auto;
+}
+.race-viewer::backdrop {
+  background: #0b141b;
+}
+@media (max-width: 800px) {
+  .viewer-controls {
+    align-items: start;
+  }
+  .viewer-controls label {
+    width: 100%;
+    min-width: 0;
+  }
+  .viewer-info {
+    grid-template-columns: 1fr 1fr;
+  }
+  .viewer-info > div:nth-child(2) {
+    border: 0;
+  }
+  .viewer-map-box {
+    min-height: 230px;
+    aspect-ratio: 1.65;
+  }
+  .viewer-info strong {
+    font-size: 18px;
+  }
+  .viewer-legend > span {
+    margin: 0;
+    width: 100%;
+  }
+  .race-viewer:fullscreen,
+  .race-viewer.viewer-expanded {
+    padding: 14px;
+  }
+  .race-viewer {
+    padding: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-marker {
+    transition: none;
+  }
+}
+
+.race-viewer.viewer-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  margin: 0;
+}

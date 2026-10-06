@@ -1,4 +1,8 @@
-# Incremental online 1.6.0 · Tutorial virtual
+# Incremental online 1.6.1 · Tutorial y visor virtual
+
+Mapa virtual de cinco superficies con los seis equipos, zoom hasta ×16,
+seguimiento, intervalos, desplazamiento y pantalla completa. Funciona offline y
+mantiene el visor y su selección al cambiar de etapa.
 
 Entrenamiento offline rejugable en `tutorial/`: cinco etapas intensivas, hasta
 40 minutos simulados, velocidad ×1/×2/×10, pistas y evaluación de errores.

@@ -10,11 +10,27 @@ import {
   commitStage,
   phaseDuration,
   telemetry,
-  stageDistance,
   advanceTraining,
   resumeTraining,
-} from "./engine.js?v=1.6.0";
+} from "./engine.js?v=1.6.1";
+import { createRaceViewer } from "./viewer.js?v=1.6.1";
+import { trainingField } from "./viewer-model.js?v=1.6.1";
 const $ = (q) => document.querySelector(q);
+const raceViewer = createRaceViewer($("#race-viewer"), {
+  onPause() {
+    state.paused = !state.paused;
+    lastWall = performance.now();
+    save();
+    tickDOM();
+  },
+  onSpeed(speed) {
+    if (![1, 2, 10].includes(speed)) return;
+    state.speed = speed;
+    lastWall = performance.now();
+    save();
+    tickDOM();
+  },
+});
 const esc = (s) =>
   String(s).replace(
     /[&<>"']/g,
@@ -157,34 +173,23 @@ function result() {
   return `<section class="panel hero ${won ? "result-good" : "result-bad"}"><span class="eyebrow">INTENTO ${state.attempt} · INFORME FINAL</span><h1>${won ? "Calibración completa. Ganaste el desafío." : "Este intento no ganó. Ahora sabés qué corregir."}</h1><p>Posición ${state.result.position} de 6 · ${state.km.toFixed(2)} / 40 km completados · ${clock(state.elapsed)} de simulación.</p><p>${won ? "Las cinco etapas se completaron con la única secuencia correcta. Ya aplicaste la lectura del terreno, los reglajes fijos, las especialidades, el combustible y la asistencia." : "La distancia no completada queda registrada. Revisá las diferencias y probá de nuevo: el escenario es idéntico, sin una tirada de azar que cambie el resultado."}</p><div class="controls"><button id="replay" class="primary">Reintentar desde cero</button><button id="retry-config">Reintentar conservando reglajes y piezas</button><a href="../" class="button">Volver al juego</a></div><p class="small">Este resultado es local y no da créditos, nivel ni premios online.</p></section><section class="panel"><h2>Lo que pasó en cada etapa</h2>${grouped}</section><section class="tip"><strong>Para pasar del tutorial al rally real</strong><p>En la competición hay estrategias alternativas: este examen exige una sola para enseñar. No copies sus valores como receta para otras carreras. Leé cada recorrido y administrá los recursos del equipo.</p></section>`;
 }
 function render() {
+  $("#simulator-head").innerHTML =
+    `<div class="summary"><span class="eyebrow">HORIZONTE VIRTUAL · DIRECTOR INVITADO</span><span class="status">Guardado ${storageOK ? "local e independiente" : "no disponible"}</span></div>${controls()}${state.phase === "briefing" ? "" : timeline()}`;
   $("#app").innerHTML =
-    `<div class="summary"><span class="eyebrow">HORIZONTE VIRTUAL · DIRECTOR INVITADO</span><span class="status">Guardado ${storageOK ? "local e independiente" : "no disponible"}</span></div>${controls()}${state.phase === "briefing" ? briefing() : timeline() + (state.phase === "result" ? result() : ["ready", "camp"].includes(state.phase) ? plan() : running())}`;
+    state.phase === "briefing"
+      ? briefing()
+      : state.phase === "result"
+        ? result()
+        : ["ready", "camp"].includes(state.phase)
+          ? plan()
+          : running();
   tickDOM();
 }
 function ranking() {
-  const partial = state.phase === "driving" ? stageDistance(state) : 0;
-  const reference =
-    state.history.reduce((n, h) => n + STAGES[h.stage].km, 0) +
-    (state.phase === "driving"
-      ? (STAGES[state.stage].km * state.phaseTime) / 300
-      : 0);
-  const rivals = [
-    ["Cobalto Virtual", 0.9999],
-    ["Faro Virtual", 0.94],
-    ["Órbita Virtual", 0.88],
-    ["Nómada Virtual", 0.82],
-    ["Sur Virtual", 0.75],
-  ].map(([name, ratio]) => ({ name, km: reference * ratio }));
-  rivals.push({
-    name: "Horizonte Virtual · vos",
-    km: state.km + partial,
-    you: true,
-  });
-  return rivals
-    .sort((a, b) => b.km - a.km || Number(!!b.you) - Number(!!a.you))
+  return trainingField(state)
     .map(
       (t, i) =>
-        `<tr class="${t.you ? "you" : ""}"><td>${i + 1}</td><td>${t.name}</td><td>${t.km.toFixed(2)} km</td></tr>`,
+        `<tr class="${t.you ? "you" : ""}"><td>${t.position}</td><td>${t.name}${t.you ? " · vos" : ""}</td><td>${t.km.toFixed(2)} km</td></tr>`,
     )
     .join("");
 }
@@ -218,6 +223,10 @@ function checklist() {
     .join("");
 }
 function tickDOM() {
+  raceViewer.update(state);
+  const mainSpeed = $("#speed");
+  if (mainSpeed && mainSpeed.value !== String(state.speed))
+    mainSpeed.value = String(state.speed);
   text("elapsed", clock(state.elapsed));
   const pause = $("#pause");
   if (pause) pause.textContent = state.paused ? "▶ Continuar" : "Ⅱ Pausar";
@@ -339,6 +348,8 @@ document.addEventListener("submit", (event) => {
     lastWall = performance.now();
     save();
     render();
+    if (!document.fullscreenElement)
+      $("#race-viewer").scrollIntoView({ block: "start", behavior: "auto" });
   } catch (e) {
     note(e.message);
   }
