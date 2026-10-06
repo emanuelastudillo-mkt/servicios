@@ -1,4 +1,4 @@
-# Apex1000 Rally Online 1.3.0
+# Apex1000 Rally Online 1.4.0
 
 Juego: https://emanuelmkt.com.ar/apex1000rally/
 API: https://apex1000-online.emanuelmkt.workers.dev
@@ -100,3 +100,7 @@ El servidor consume `data/catalog.js` al desplegar. La sincronización diaria de
 La beta offline es la versión para partidas de prueba aceleradas. Para pruebas del servidor: `npm run db:local`, configurar RP_ID=localhost y AUTH_ORIGINS/ALLOWED_ORIGINS=http://localhost:8787 mediante vars locales, compilar con APEX_API_URL=http://localhost:8787 y ejecutar Wrangler dev en ese origen. No publicar esa compilación. La base de Wrangler es local y separada de D1 remota.
 
 Nunca publicar node_modules, .wrangler, .dev.vars, .env, claves o archivos de qa. Las credenciales de usuarios reales tampoco deben copiarse a fixtures.
+
+## Catálogo online 1.4
+
+Ocho vehículos con pesos operativos de juego diferenciados, 18 modelos de repuestos de marca y especialistas activos por pieza. Ver [CATALOGO-1.4.md](online/CATALOGO-1.4.md). La fuente editable sigue siendo Google Sheets y el presupuesto de equipos nuevos es 30.000 cr.

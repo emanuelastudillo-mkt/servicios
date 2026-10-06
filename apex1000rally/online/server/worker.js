@@ -66,7 +66,7 @@ async function mutate(env, now, key, work, extras = []) {
   for (let attempt = 0; attempt < 4; attempt++) {
     const previous = await currentWorld(env, now),
       w = previous.world;
-    syncCatalog(w);
+    if (!env.ROOM_RUNTIME) syncCatalog(w);
     const sync = advanceWorld(w, now, Number(env.MAX_TICK_SECONDS || 60));
     if (!sync.caughtUp) {
       if (await saveWorld(env, previous, w, crypto.randomUUID()))

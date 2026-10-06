@@ -23,7 +23,8 @@ import {
   recordCash,
   renewContract,
 } from "./employment.js";
-import { staffFactors, partProtected } from "./staff.js";
+import { partSpec, partName, specFromOffer } from "./part-brands.js";
+import { staffFactors, partProtected, raceRepairBonus } from "./staff.js";
 import { CATALOG } from "../data/catalog.js";
 import {
   statFactors,
@@ -418,19 +419,22 @@ export function buyPart(state, type, grade, condition = 100) {
     grade,
     condition,
   );
-  if (offer) state.management.stocks[offer.id]--;
+  if (offer) {
+    next.spec = specFromOffer(offer);
+    state.management.stocks[offer.id]--;
+  }
   t.inventory.push(next);
   transact(
     state,
     t,
     -price,
-    `Compra: ${partType(type).name} ${GRADES[grade].name} ${condition}%`,
+    `Compra: ${partType(type).name} ${partName(next)} ${condition}%`,
   );
   log(
     state,
     t,
     "purchase",
-    `Compraste ${partType(type).name.toLowerCase()} ${GRADES[grade].name}, estado ${condition}%.`,
+    `Compraste ${partType(type).name.toLowerCase()} ${partName(next)}, estado ${condition}%.`,
   );
   return next;
 }
@@ -444,10 +448,17 @@ export function estimateService(team, raw, stageIndex = team.stageIndex) {
     const current = team.parts[type.id],
       action = plan.actions[type.id];
     if (action === "repair") {
-      const q = repairQuote(current);
+      const q = repairQuote(current),
+        bonus = raceRepairBonus(team, type.id);
       cost += q.cost;
-      workHours += q.hours;
-      lines.push({ type: type.id, action, ...q });
+      workHours += q.hours / bonus;
+      lines.push({
+        type: type.id,
+        action,
+        ...q,
+        hours: q.hours / bonus,
+        repairBonus: bonus,
+      });
     } else if (action === "replace") {
       const replacement = team.inventory.find(
         (i) =>
@@ -532,7 +543,9 @@ function beginService(state, t) {
         label: `${line.action === "repair" ? "Reparar" : "Cambiar"} ${partType(line.type).name.toLowerCase()}`,
         hours: line.hours,
         detail: line.hours
-          ? "Trabajo programado de los mecánicos de carrera."
+          ? line.action === "repair" && line.repairBonus > 1
+            ? `Especialista asignado: trabajo de reparación ×${line.repairBonus.toFixed(2)}.`
+            : "Trabajo programado de los mecánicos de carrera."
           : "La pieza no necesita reparación.",
       });
     } else {
@@ -791,7 +804,7 @@ export function performance(
   const thermalLoad = PART_TYPES.reduce(
     (sum, type) =>
       sum +
-      GRADES[team.parts[type.id].grade].heat *
+      partSpec(team.parts[type.id]).heat *
         {
           engine: 0.5,
           transmission: 0.15,
@@ -809,7 +822,7 @@ export function performance(
     plan.boost * 13 +
     (plan.pace === "attack" ? 7 : 0) +
     (plan.cooling === "closed" ? 12 : plan.cooling === "open" ? -14 : 0) +
-    (1 - p.cooling / GRADES[team.parts.cooling.grade].heat) * 38 +
+    (1 - p.cooling / partSpec(team.parts.cooling).heat) * 38 +
     (thermalLoad - 1) * 35 -
     staff.cooling;
   const risk =
@@ -1065,7 +1078,7 @@ export function advanceTeam(state, t, dt) {
   });
   for (const type of PART_TYPES) {
     const piece = t.parts[type.id],
-      grade = GRADES[piece.grade];
+      grade = partSpec(piece);
     const extra =
       type.id === "suspension" && ["rock", "mountain"].includes(p.terrainId)
         ? 1.35

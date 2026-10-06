@@ -4147,6 +4147,22 @@ body:has(.admin-menu) {
   object-fit: cover;
   display: block;
 }
+/* Uniform catalog framing without stretching or cutting off a vehicle. */
+.catalog-art,
+.truck-art,
+.hud-vehicle,
+.workshop-car-image img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  background: #0a1119;
+}
+.offer-card .part-art {
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  background: #0a1119;
+}
 .workshop-car-image > .badge {
   position: absolute;
   left: 16px;

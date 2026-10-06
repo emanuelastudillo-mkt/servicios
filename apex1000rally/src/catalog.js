@@ -1,5 +1,6 @@
 import { CATALOG } from "../data/catalog.js";
-export const VERSION = "0.4.7";
+export const VERSION = "0.4.8";
+import { partSpec } from "./part-brands.js";
 export const ENGINE_VERSION = "rally-3";
 export const STARTING_BUDGET = CATALOG.settings.find(
   (s) => s.key === "startingBudget",
@@ -175,6 +176,30 @@ VEHICLES.push(
       "Prototipo real de tracción eléctrica. El juego simplifica su convertidor con combustible y seis piezas comunes; no simula su batería.",
   },
 );
+VEHICLES.push({
+  id: "manx",
+  name: "Meyers Manx · Sprint",
+  short: "Manx Sprint",
+  engine: "Bóxer · preparación ficticia de sprint",
+  mass: 960,
+  tank: 360,
+  fee: 36000,
+  color: "#4ed2c6",
+  speed: 1.08,
+  efficiency: 1.04,
+  reliability: 0.82,
+  terrain: {
+    asphalt: 1.18,
+    gravel: 0.91,
+    sand: 1.08,
+    rock: 0.7,
+    mountain: 0.76,
+  },
+  tag: "Velocidad accesible · exige control y descanso",
+  source: "https://meyersmanx.com/pages/the-classic-resorter",
+  description:
+    "Buggy de base real con preparación ficticia: velocidad 93 y aceleración, comodidad y control inferiores a 20. Precio, tanque y peso operativo son balance del juego.",
+});
 // Las características comparativas y económicas son balance del juego; no datos homologados.
 export const PART_TYPES = [
   {
@@ -401,14 +426,12 @@ export const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export const vehicle = (id) => VEHICLES.find((v) => v.id === id) || VEHICLES[0];
 export const partType = (id) => PART_TYPES.find((p) => p.id === id);
 export function partEffect(item) {
-  const g = GRADES[item.grade];
+  const g = partSpec(item);
   return g.performance * (0.55 + (0.45 * clamp(item.condition, 0, 100)) / 100);
 }
 export function priceFor(type, grade, condition = 100) {
   return Math.round(
-    partType(type).price *
-      GRADES[grade].price *
-      (0.3 + (0.7 * condition) / 100),
+    partSpec({ type, grade }).price * (0.3 + (0.7 * condition) / 100),
   );
 }
 export function defaultPlan(stageIndex = 0) {
@@ -429,4 +452,4 @@ export function defaultPlan(stageIndex = 0) {
 }
 
 for (const v of VEHICLES)
-  v.fee = CATALOG.vehicles.find((row) => row.id === v.id).price;
+  v.fee = CATALOG.vehicles.find((row) => row.id === v.id)?.price ?? v.fee;

@@ -1,3 +1,4 @@
+import { validPartSpec } from "./part-brands.js";
 import { migrateVehicleBalance } from "./vehicle-stats.js";
 import { migrateIdentity } from "./identity.js";
 import { validateEmployment } from "./employment.js";
@@ -167,6 +168,7 @@ export function validateSave(raw) {
         !p ||
         !PART_TYPES.some((x) => x.id === p.type) ||
         !Object.hasOwn(GRADES, p.grade) ||
+        (p.spec !== undefined && !validPartSpec(p.spec)) ||
         !validNumber(p.condition, 0, 100) ||
         !validNumber(p.original, 0, 100) ||
         typeof p.broken !== "boolean" ||

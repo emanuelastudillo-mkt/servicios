@@ -7,6 +7,7 @@ import {
   protectResources,
   RUNTIME_KEYS,
 } from "./resources.js";
+import { migrateVehicleBalance } from "../../src/vehicle-stats.js";
 import { CATALOG } from "../../data/catalog.js";
 import { starterStaffName } from "./staff.js";
 import {
@@ -667,13 +668,16 @@ export function advanceWorld(w, now, maxSeconds = 600, options = {}) {
   }
   return { caughtUp: w.at >= minute30(now), at: w.at };
 }
-export function syncCatalog(w) {
+export function syncCatalog(w, catalog = CATALOG) {
+  migrateVehicleBalance(w.engine);
+  for (const r of Object.values(w.races))
+    migrateVehicleBalance({ teams: r.bots });
   const m = w.engine.management;
-  if (m.catalog.revision === CATALOG.revision) return false;
+  if (m.catalog.revision === catalog.revision) return false;
   // New defaults are added once. Existing stock, ownership, salaries and car attributes remain authoritative.
-  for (const p of [...CATALOG.vehicles, ...CATALOG.parts])
+  for (const p of [...catalog.vehicles, ...catalog.parts])
     if (!(p.id in m.stocks)) m.stocks[p.id] = p.stock;
-  m.catalog = copy(CATALOG);
+  m.catalog = copy(catalog);
   return true;
 }
 function withPlayer(w, t, fn, r = null) {

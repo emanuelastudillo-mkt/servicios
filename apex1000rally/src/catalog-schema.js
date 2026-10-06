@@ -1,3 +1,4 @@
+import { validPartSpec } from "./part-brands.js";
 import { validTraits } from "./staff.js";
 import { STAT_KEYS, validVehicleStats } from "./vehicle-stats.js";
 const need = (ok, message) => {
@@ -23,8 +24,9 @@ export function validateCatalog(c) {
   for (const [key, count] of Object.entries(sizes))
     need(
       Array.isArray(c[key]) &&
-        (modern && ["drivers", "mechanics"].includes(key)
-          ? c[key].length >= count && c[key].length <= 200
+        (modern && ["vehicles", "drivers", "mechanics"].includes(key)
+          ? c[key].length >= count &&
+            c[key].length <= (key === "vehicles" ? 8 : 200)
           : c[key].length === count),
       key,
     );
@@ -59,7 +61,10 @@ export function validateCatalog(c) {
     for (const row of c[key]) {
       need(typeof row.available === "boolean", "disponibilidad");
       need(
-        row.image === `assets/art/${key === "parts" ? row.type : row.id}.webp`,
+        row.image ===
+          `assets/art/${key === "parts" ? row.type : row.id}.webp` ||
+          (key === "parts" &&
+            row.image === `assets/art/${row.type}-${row.grade}.webp`),
         "imagen",
       );
       if (key === "vehicles" || key === "parts")
@@ -85,6 +90,21 @@ export function validateCatalog(c) {
     "modelos",
   );
   c.vehicles.forEach((v) => need(text(v.name, 100), "nombre de vehículo"));
+  need(
+    c.vehicles.every((v) =>
+      [
+        "hilux",
+        "raptor",
+        "sandrider",
+        "mini",
+        "niva",
+        "hunter",
+        "audi",
+        "manx",
+      ].includes(v.id),
+    ),
+    "modelo sin soporte en el motor",
+  );
   c.vehicles.forEach((v) => {
     if (STAT_KEYS.some((k) => Object.hasOwn(v, k)))
       need(
@@ -100,6 +120,13 @@ export function validateCatalog(c) {
         p.id === `${p.type}-${p.grade}-${p.condition}`,
       "referencia de repuesto",
     );
+  for (const p of c.parts)
+    if (
+      ["brand", "model", "performance", "durability", "failure", "heat"].some(
+        (k) => Object.hasOwn(p, k),
+      )
+    )
+      need(validPartSpec(p), "marca o estadísticas de repuesto");
   c.drivers.forEach((d) =>
     need(
       ["technical", "fast", "navigator"].includes(d.profile),
@@ -208,7 +235,9 @@ export function validateCatalog(c) {
             v.available && v.stock > 0 && v.price < settings.startingBudget,
         )
       : c.vehicles.every((v) => v.price <= settings.startingBudget),
-    modern ? "el presupuesto inicial debe cubrir al menos un vehículo disponible" : "el presupuesto inicial debe cubrir cualquier vehículo",
+    modern
+      ? "el presupuesto inicial debe cubrir al menos un vehículo disponible"
+      : "el presupuesto inicial debe cubrir cualquier vehículo",
   );
   need(text(c.revision, 100), "revisión");
   return c;

@@ -204,18 +204,17 @@ test("especialistas de superficie sólo bonifican su terreno y expertos de model
   t.vehicleId = "niva";
   assert.equal(staffFactors(t, d, "gravel").speed, staffCondition(d));
 });
-test("expertos por pieza protegen sólo en carrera o conduciendo; refrigeración baja calor", () => {
+test("sólo el piloto al volante protege su pieza; un mecánico experto no evita averías", () => {
   const s = fresh(),
     t = getPlayer(s),
     d = t.drivers[0],
     m = t.mechanics[0];
   d.traits = "";
   m.traits = "part:engine";
-  assert.equal(partProtected(t, "engine"), true);
+  assert.equal(partProtected(t, "engine"), false);
   assert.equal(partProtected(t, "tyres"), false);
-  assert.equal(
-    vehicleHealth(t).parts.find((p) => p.id === "engine").probability,
-    0,
+  assert.ok(
+    vehicleHealth(t).parts.find((p) => p.id === "engine").probability > 0,
   );
   assignMechanic(s, m.id, "workshop");
   assert.equal(partProtected(t, "engine"), false);

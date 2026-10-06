@@ -22,6 +22,16 @@ export const WEIGHT_REFERENCES = {
   hunter: { kg: 2010, kind: "Referencia: mínimo FIA T1+ gasolina 2024" },
   audi: { kg: 2100, kind: "Referencia: mínimo reglamentario Dakar 2024" },
 };
+export const OPERATING_WEIGHTS = {
+  niva: 1510,
+  manx: 960,
+  hilux: 2360,
+  raptor: 2740,
+  sandrider: 2180,
+  mini: 2520,
+  hunter: 2990,
+  audi: 3260,
+};
 export const VEHICLE_BALANCE = {
   hilux: [72, 64, 85, 76],
   raptor: [84, 78, 58, 63],
@@ -30,6 +40,7 @@ export const VEHICLE_BALANCE = {
   niva: [34, 38, 42, 66],
   hunter: [93, 94, 52, 79],
   audi: [96, 100, 82, 86],
+  manx: [93, 18, 12, 16],
 };
 export function validVehicleStats(stats) {
   return (
@@ -49,7 +60,7 @@ export function modelStats(id, catalog) {
       k,
       row?.[k] ??
         (k === "weightKg"
-          ? (WEIGHT_REFERENCES[id] || WEIGHT_REFERENCES.hilux).kg
+          ? (OPERATING_WEIGHTS[id] ?? OPERATING_WEIGHTS.hilux)
           : (VEHICLE_BALANCE[id] || VEHICLE_BALANCE.hilux)[i]),
     ]),
   );
@@ -111,7 +122,7 @@ const PREVIOUS_BALANCE = {
   audi: [90, 96, 86, 90],
 };
 export function migrateVehicleBalance(state) {
-  if (state.vehicleBalance === 2) return;
+  if (state.vehicleBalance === 3) return;
   const keys = STAT_KEYS.slice(0, 4);
   const adopt = (stats, id) => {
     if (
@@ -127,5 +138,13 @@ export function migrateVehicleBalance(state) {
     adopt(row, row.id);
   for (const team of state.teams || [])
     for (const car of team.garage || []) adopt(car.stats, car.modelId);
-  state.vehicleBalance = 2;
+  const mass = (stats, id) => {
+    if (stats && stats.weightKg === WEIGHT_REFERENCES[id]?.kg)
+      stats.weightKg = OPERATING_WEIGHTS[id];
+  };
+  for (const row of state.management?.catalog?.vehicles || [])
+    mass(row, row.id);
+  for (const team of state.teams || [])
+    for (const car of team.garage || []) mass(car.stats, car.modelId);
+  state.vehicleBalance = 3;
 }

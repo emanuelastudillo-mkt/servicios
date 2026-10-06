@@ -4,7 +4,7 @@ export function vehicleStatsHTML(stats, modelId) {
   const origin =
     reference && stats.weightKg === reference.kg
       ? reference.kind
-      : "Peso base configurado en el catálogo";
+      : "Peso operativo de juego: preparación, tripulación y combustible simulados; no es peso homologado";
   return `<div class="vehicle-attributes" role="group" aria-label="Estadísticas fijas del modelo">${STAT_KEYS.slice(
     0,
     4,

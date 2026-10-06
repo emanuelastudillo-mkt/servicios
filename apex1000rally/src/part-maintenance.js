@@ -1,4 +1,5 @@
-import { GRADES, partType, clamp } from "./catalog.js";
+import { partSpec } from "./part-brands.js";
+import { partType, clamp } from "./catalog.js";
 
 // Original measures remaining rebuild potential, separately from wear/condition.
 export const REPAIR_TIME_MULTIPLIER = 10;
@@ -12,7 +13,7 @@ export function repairQuote(piece, { timeMultiplier = 1 } = {}) {
   return {
     cost: needed
       ? Math.ceil(
-          (((type.price * GRADES[piece.grade].price * recovered) / 100) * 0.52 +
+          (((partSpec(piece).price * recovered) / 100) * 0.52 +
             (piece.broken ? type.price * 0.12 : 0)) *
             (1 + ((100 - original) / 100) * 0.6),
         )

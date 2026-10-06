@@ -1,0 +1,172 @@
+{
+  "tool": "image_gen.imagegen",
+  "mode": "built-in",
+  "notes": "Assets generados y editados con la herramienta nativa; conversion WebP sin recorte ni estirado. Los modelos de repuestos son ilustraciones ficticias.",
+  "style": "Fotografía de producto hiperrealista, composición horizontal 3:2, objeto completo centrado con margen, estudio oscuro metálico brillante, luz espectacular, misma familia visual que los originales. Sin texto inventado, sin personas.",
+  "parts": [
+    {
+      "type": "engine",
+      "grade": "endurance",
+      "brand": "Cummins",
+      "model": "Trail D",
+      "file": "assets/art/engine-endurance.webp",
+      "intent": "Construcción reforzada, pesada, acabados sobrios y robustos; diferenciar geometría y material del original."
+    },
+    {
+      "type": "engine",
+      "grade": "racing",
+      "brand": "Cosworth",
+      "model": "Sprint X",
+      "file": "assets/art/engine-racing.webp",
+      "intent": "Construcción de competición ligera y agresiva, materiales pulidos y acentos de color; diferenciar geometría del original."
+    },
+    {
+      "type": "transmission",
+      "grade": "endurance",
+      "brand": "Allison",
+      "model": "Trail AT",
+      "file": "assets/art/transmission-endurance.webp",
+      "intent": "Construcción reforzada, pesada, acabados sobrios y robustos; diferenciar geometría y material del original."
+    },
+    {
+      "type": "transmission",
+      "grade": "racing",
+      "brand": "SADEV",
+      "model": "Sprint SQ",
+      "file": "assets/art/transmission-racing.webp",
+      "intent": "Construcción de competición ligera y agresiva, materiales pulidos y acentos de color; diferenciar geometría del original."
+    },
+    {
+      "type": "suspension",
+      "grade": "endurance",
+      "brand": "Old Man Emu",
+      "model": "Trail HD",
+      "file": "assets/art/suspension-endurance.webp",
+      "intent": "Construcción reforzada, pesada, acabados sobrios y robustos; diferenciar geometría y material del original."
+    },
+    {
+      "type": "suspension",
+      "grade": "racing",
+      "brand": "FOX",
+      "model": "Sprint R",
+      "file": "assets/art/suspension-racing.webp",
+      "intent": "Construcción de competición ligera y agresiva, materiales pulidos y acentos de color; diferenciar geometría del original."
+    },
+    {
+      "type": "tyres",
+      "grade": "endurance",
+      "brand": "BFGoodrich",
+      "model": "Trail AT",
+      "file": "assets/art/tyres-endurance.webp",
+      "intent": "Construcción reforzada, pesada, acabados sobrios y robustos; diferenciar geometría y material del original."
+    },
+    {
+      "type": "tyres",
+      "grade": "racing",
+      "brand": "Michelin",
+      "model": "Sprint RX",
+      "file": "assets/art/tyres-racing.webp",
+      "intent": "Construcción de competición ligera y agresiva, materiales pulidos y acentos de color; diferenciar geometría del original."
+    },
+    {
+      "type": "cooling",
+      "grade": "endurance",
+      "brand": "DENSO",
+      "model": "Trail Core",
+      "file": "assets/art/cooling-endurance.webp",
+      "intent": "Construcción reforzada, pesada, acabados sobrios y robustos; diferenciar geometría y material del original."
+    },
+    {
+      "type": "cooling",
+      "grade": "racing",
+      "brand": "Mishimoto",
+      "model": "Sprint Flow",
+      "file": "assets/art/cooling-racing.webp",
+      "intent": "Construcción de competición ligera y agresiva, materiales pulidos y acentos de color; diferenciar geometría del original."
+    },
+    {
+      "type": "brakes",
+      "grade": "endurance",
+      "brand": "Brembo",
+      "model": "Trail Iron",
+      "file": "assets/art/brakes-endurance.webp",
+      "intent": "Construcción reforzada, pesada, acabados sobrios y robustos; diferenciar geometría y material del original."
+    },
+    {
+      "type": "brakes",
+      "grade": "racing",
+      "brand": "AP Racing",
+      "model": "Sprint Carbon",
+      "file": "assets/art/brakes-racing.webp",
+      "intent": "Construcción de competición ligera y agresiva, materiales pulidos y acentos de color; diferenciar geometría del original."
+    }
+  ],
+  "vehicles": [
+    {
+      "file": "assets/art/manx.webp",
+      "intent": "Buggy Meyers Manx preparado para rally ficticio, turquesa, ruedas todoterreno, arco de seguridad, vista tres cuartos frontal en estudio metálico oscuro."
+    },
+    {
+      "file": "assets/art/niva.webp",
+      "intent": "Editar imagen original para composición 3:2; conservar identidad, carrocería, colores y vehículo completo. Ampliar encuadre y fondo."
+    },
+    {
+      "file": "assets/art/hunter.webp",
+      "intent": "Editar imagen original para composición 3:2; conservar identidad, carrocería, colores y vehículo completo. Ampliar encuadre y fondo."
+    },
+    {
+      "file": "assets/art/audi.webp",
+      "intent": "Editar imagen original para composición 3:2; conservar identidad, carrocería, colores y vehículo completo. Ampliar encuadre y fondo."
+    }
+  ],
+  "outputs": [
+    {
+      "file": "assets/art/manx.webp"
+    },
+    {
+      "file": "assets/art/engine-endurance.webp"
+    },
+    {
+      "file": "assets/art/engine-racing.webp"
+    },
+    {
+      "file": "assets/art/transmission-endurance.webp"
+    },
+    {
+      "file": "assets/art/transmission-racing.webp"
+    },
+    {
+      "file": "assets/art/suspension-endurance.webp"
+    },
+    {
+      "file": "assets/art/suspension-racing.webp"
+    },
+    {
+      "file": "assets/art/tyres-endurance.webp"
+    },
+    {
+      "file": "assets/art/tyres-racing.webp"
+    },
+    {
+      "file": "assets/art/cooling-endurance.webp"
+    },
+    {
+      "file": "assets/art/cooling-racing.webp"
+    },
+    {
+      "file": "assets/art/brakes-endurance.webp"
+    },
+    {
+      "file": "assets/art/brakes-racing.webp"
+    },
+    {
+      "file": "assets/art/niva.webp"
+    },
+    {
+      "file": "assets/art/hunter.webp"
+    },
+    {
+      "file": "assets/art/audi.webp"
+    }
+  ]
+}

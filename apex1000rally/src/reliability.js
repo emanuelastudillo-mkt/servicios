@@ -1,3 +1,4 @@
+import { partSpec } from "./part-brands.js";
 import { partProtected } from "./staff.js";
 import { GRADES, PART_TYPES, STEP } from "./catalog.js";
 import { vehicleFactors, activeCar } from "./workshop.js";
@@ -6,7 +7,7 @@ import { vehicleFactors, activeCar } from "./workshop.js";
 export function failureRate(piece, heat, boost = 0) {
   if (piece.grade === "reserve" || piece.broken) return 0;
   return (
-    GRADES[piece.grade].failure *
+    partSpec(piece).failure *
     (1 + ((100 - piece.condition) / 35) ** 2) *
     (boost + 1) *
     (1 + Math.max(0, heat - 110) * 0.07)

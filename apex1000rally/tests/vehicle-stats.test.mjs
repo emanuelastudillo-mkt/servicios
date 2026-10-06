@@ -159,7 +159,7 @@ test("migra v0.4.0 sin tocar saldo/daños/trabajos; conserva atributos personali
   assert.equal(activeCar(getPlayer(validateSave(loaded))).stats.weightKg, 2490);
   assert.match(
     vehicleStatsHTML(activeCar(p).stats, p.vehicleId),
-    /Peso base configurado/,
+    /Peso operativo de juego/,
   );
   activeCar(p).stats.weightKg = 101;
   assert.throws(() => validateSave(loaded), /Vehículo de taller/);
@@ -173,7 +173,7 @@ test("snapshot online y ficha muestran los mismos atributos base guardados", () 
   assert.deepEqual(snap.vehicleStats, teamVehicleStats(t));
   const html = vehicleStatsHTML(teamVehicleStats(t));
   assert.match(html, /97<small>\/100/);
-  assert.match(html, /2\.010 <small>kg/);
+  assert.match(html, /2\.360 <small>kg/);
   assert.equal((html.match(/<small>\/100/g) || []).length, 4);
 });
 test("migra columnas nuevas importadas como texto por v0.4.0, pero un guardado moderno sigue siendo estricto", () => {

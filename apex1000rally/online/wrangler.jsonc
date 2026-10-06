@@ -37,6 +37,7 @@
     "RP_ID": "emanuelmkt.com.ar",
     "AUTH_ORIGINS": "https://emanuelmkt.com.ar",
     "MAX_TICK_SECONDS": "60",
+    "CATALOG_URL": "https://emanuelmkt.com.ar/apex1000rally/data/catalog.json",
     "ALLOWED_ORIGINS": "https://emanuelmkt.com.ar",
   },
   "observability": { "enabled": true, "head_sampling_rate": 0.1 },

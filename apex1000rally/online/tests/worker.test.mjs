@@ -293,7 +293,7 @@ test("sala nueva publica cinco BOT y modelos sin crear partidas ni escribir D1",
   assert.equal(r.status, 200);
   const d = await r.json();
   assert.equal(d.bots.length, 5);
-  assert.equal(d.vehicles.length, 7);
+  assert.equal(d.vehicles.length, 8);
   assert.equal(e.DB.sql.prepare("SELECT COUNT(*) n FROM world").get().n, 0);
   assert.equal(e.DB.metrics().writes, 0);
 });

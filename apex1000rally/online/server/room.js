@@ -2,6 +2,7 @@ import { handleRoomRequest } from "./worker.js";
 import { readWorld, commit } from "./store.js";
 import { syncCatalog } from "./world.js";
 import { forecastNext, projectTime, roundTime } from "./schedule.js";
+import { DailyCatalog } from "./daily-catalog.js";
 
 // D1 is authoritative. SQLite stores only the alarm; progress between milestones is reproducible.
 export class RaceRoom {
@@ -12,6 +13,7 @@ export class RaceRoom {
     this.cached = null;
     this.forecast = null;
     this.conflicts = 0;
+    this.catalog = new DailyCatalog(ctx.storage, env.CATALOG_URL);
   }
   exclusive(work) {
     const task = this.tail.then(work);
@@ -49,7 +51,10 @@ export class RaceRoom {
   }
   async current(now) {
     let data = await this.load(now);
-    const catalogChanged = syncCatalog(data.world);
+    const catalogChanged = syncCatalog(
+      data.world,
+      await this.catalog.current(now),
+    );
     if (catalogChanged) this.forecast = null;
     if (!this.forecast) this.forecast = forecastNext(data.world);
     if (

@@ -22,6 +22,7 @@ export const CAR_SPECIALTIES = [
   "niva",
   "hunter",
   "audi",
+  "manx",
 ];
 const labels = {
   engine: "motor",
@@ -42,6 +43,7 @@ const labels = {
   niva: "Niva",
   hunter: "Hunter",
   audi: "Audi RS Q e-tron",
+  manx: "Meyers Manx",
 };
 export const validTraits = (value) =>
   typeof value === "string" &&
@@ -65,7 +67,9 @@ export const hasTrait = (p, id) => traitList(p).includes(id);
 export function traitDescription(id, kind = "driver") {
   const [type, key] = id.split(":");
   if (type === "part")
-    return `Experto en ${labels[key]}: evita averías aleatorias ${kind === "mechanic" ? "si está asignado a carrera" : "mientras conduce"}. Conserva desgaste, calor y daños por accidentes.${key === "cooling" ? " Reduce además la temperatura objetivo 8 °C." : ""}`;
+    return kind === "mechanic"
+      ? `Experto en ${labels[key]}: acelera la reparación de esa pieza en campamento si está asignado a esta carrera. Su aporte de trabajo aumenta un 50%; no evita averías ni acelera cambios, combustible o taller.`
+      : `Experto en ${labels[key]}: evita averías aleatorias de esa pieza sólo mientras conduce. Si descansa no protege el auto. Conserva desgaste, calor, daños por accidentes y averías previas.${key === "cooling" ? " Reduce además la temperatura objetivo 8 °C mientras conduce." : ""}`;
   if (type === "terrain")
     return `Especialista en ${labels[key]}: +6% de ritmo y −15% de riesgo sólo en esa superficie ${kind === "mechanic" ? "si está asignado a carrera" : "mientras conduce"}.`;
   return `Experto con ${labels[key]}: +4% de ritmo y −10% de riesgo sólo con ese modelo ${kind === "mechanic" ? "si está asignado a carrera" : "mientras conduce"}.`;
@@ -90,10 +94,18 @@ export const staffCondition = (p) =>
   (0.9 + (0.1 * (p.form ?? 100)) / 100) *
   (0.94 + (0.06 * (p.morale ?? 100)) / 100);
 export const specialists = (t) =>
-  [
-    t.drivers?.find((d) => d.id === t.activeDriver),
-    ...(t.mechanics || []).filter((m) => (m.assignment || "race") === "race"),
-  ].filter(Boolean);
+  [t.drivers?.find((d) => d.id === t.activeDriver)].filter(Boolean);
+export function raceRepairBonus(t, type) {
+  const crew = (t.mechanics || []).filter(
+    (m) => (m.assignment || "race") === "race",
+  );
+  const contribution = (m) => m.efficiency * staffCondition(m);
+  const total = crew.reduce((n, m) => n + contribution(m), 0);
+  const expert = crew
+    .filter((m) => hasTrait(m, `part:${type}`))
+    .reduce((n, m) => n + contribution(m), 0);
+  return total > 0 ? 1 + (0.5 * expert) / total : 1;
+}
 export const partProtected = (t, type) =>
   specialists(t).some((p) => hasTrait(p, `part:${type}`));
 export function staffFactors(t, d, terrain) {
@@ -109,6 +121,6 @@ export function staffFactors(t, d, terrain) {
       (1 + (100 - (d.morale ?? 100)) / 200) *
       (surface ? 0.85 : 1) *
       (car ? 0.9 : 1),
-    cooling: active.some((p) => hasTrait(p, "part:cooling")) ? 8 : 0,
+    cooling: hasTrait(d, "part:cooling") ? 8 : 0,
   };
 }

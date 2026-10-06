@@ -196,6 +196,9 @@ test("las reparaciones nuevas duran diez veces más; las mejoras y trabajos ante
     getPlayer(validateSave(s)).workshop.jobs[0].workHours,
     old.workHours,
   );
+  t.mechanics.forEach((m) => {
+    m.traits = "";
+  });
   const q = estimateService(t, defaultPlan(), 2);
   assert.ok(
     q.lines

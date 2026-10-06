@@ -192,7 +192,12 @@ test("compra y montaje conservan todas las piezas y el presupuesto contable", ()
     old = t.parts.engine.id,
     before = t.budget,
     item = buyPart(s, "engine", "endurance", 75);
-  assert.equal(t.budget, before - priceFor("engine", "endurance", 75));
+  assert.equal(
+    t.budget,
+    before -
+      s.management.catalog.parts.find((p) => p.id === "engine-endurance-75")
+        .price,
+  );
   const p = plan();
   p.actions.engine = "replace";
   p.replacements.engine = item.id;

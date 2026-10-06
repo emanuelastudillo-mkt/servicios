@@ -1,55 +1,55 @@
-id,type,grade,condition,price,stock,available,image
-engine-endurance-100,engine,endurance,100,15680,20,true,assets/art/engine.webp
-engine-endurance-75,engine,endurance,75,12936,8,true,assets/art/engine.webp
-engine-endurance-50,engine,endurance,50,10192,8,true,assets/art/engine.webp
-engine-standard-100,engine,standard,100,14000,20,true,assets/art/engine.webp
-engine-standard-75,engine,standard,75,11550,8,true,assets/art/engine.webp
-engine-standard-50,engine,standard,50,9100,8,true,assets/art/engine.webp
-engine-racing-100,engine,racing,100,24500,20,true,assets/art/engine.webp
-engine-racing-75,engine,racing,75,20213,8,true,assets/art/engine.webp
-engine-racing-50,engine,racing,50,15925,8,true,assets/art/engine.webp
-transmission-endurance-100,transmission,endurance,100,11200,20,true,assets/art/transmission.webp
-transmission-endurance-75,transmission,endurance,75,9240,8,true,assets/art/transmission.webp
-transmission-endurance-50,transmission,endurance,50,7280,8,true,assets/art/transmission.webp
-transmission-standard-100,transmission,standard,100,10000,20,true,assets/art/transmission.webp
-transmission-standard-75,transmission,standard,75,8250,8,true,assets/art/transmission.webp
-transmission-standard-50,transmission,standard,50,6500,8,true,assets/art/transmission.webp
-transmission-racing-100,transmission,racing,100,17500,20,true,assets/art/transmission.webp
-transmission-racing-75,transmission,racing,75,14438,8,true,assets/art/transmission.webp
-transmission-racing-50,transmission,racing,50,11375,8,true,assets/art/transmission.webp
-suspension-endurance-100,suspension,endurance,100,8960,20,true,assets/art/suspension.webp
-suspension-endurance-75,suspension,endurance,75,7392,8,true,assets/art/suspension.webp
-suspension-endurance-50,suspension,endurance,50,5824,8,true,assets/art/suspension.webp
-suspension-standard-100,suspension,standard,100,8000,20,true,assets/art/suspension.webp
-suspension-standard-75,suspension,standard,75,6600,8,true,assets/art/suspension.webp
-suspension-standard-50,suspension,standard,50,5200,8,true,assets/art/suspension.webp
-suspension-racing-100,suspension,racing,100,14000,20,true,assets/art/suspension.webp
-suspension-racing-75,suspension,racing,75,11550,8,true,assets/art/suspension.webp
-suspension-racing-50,suspension,racing,50,9100,8,true,assets/art/suspension.webp
-tyres-endurance-100,tyres,endurance,100,3920,20,true,assets/art/tyres.webp
-tyres-endurance-75,tyres,endurance,75,3234,8,true,assets/art/tyres.webp
-tyres-endurance-50,tyres,endurance,50,2548,8,true,assets/art/tyres.webp
-tyres-standard-100,tyres,standard,100,3500,20,true,assets/art/tyres.webp
-tyres-standard-75,tyres,standard,75,2888,8,true,assets/art/tyres.webp
-tyres-standard-50,tyres,standard,50,2275,8,true,assets/art/tyres.webp
-tyres-racing-100,tyres,racing,100,6125,20,true,assets/art/tyres.webp
-tyres-racing-75,tyres,racing,75,5053,8,true,assets/art/tyres.webp
-tyres-racing-50,tyres,racing,50,3981,8,true,assets/art/tyres.webp
-cooling-endurance-100,cooling,endurance,100,6720,20,true,assets/art/cooling.webp
-cooling-endurance-75,cooling,endurance,75,5544,8,true,assets/art/cooling.webp
-cooling-endurance-50,cooling,endurance,50,4368,8,true,assets/art/cooling.webp
-cooling-standard-100,cooling,standard,100,6000,20,true,assets/art/cooling.webp
-cooling-standard-75,cooling,standard,75,4950,8,true,assets/art/cooling.webp
-cooling-standard-50,cooling,standard,50,3900,8,true,assets/art/cooling.webp
-cooling-racing-100,cooling,racing,100,10500,20,true,assets/art/cooling.webp
-cooling-racing-75,cooling,racing,75,8663,8,true,assets/art/cooling.webp
-cooling-racing-50,cooling,racing,50,6825,8,true,assets/art/cooling.webp
-brakes-endurance-100,brakes,endurance,100,5040,20,true,assets/art/brakes.webp
-brakes-endurance-75,brakes,endurance,75,4158,8,true,assets/art/brakes.webp
-brakes-endurance-50,brakes,endurance,50,3276,8,true,assets/art/brakes.webp
-brakes-standard-100,brakes,standard,100,4500,20,true,assets/art/brakes.webp
-brakes-standard-75,brakes,standard,75,3713,8,true,assets/art/brakes.webp
-brakes-standard-50,brakes,standard,50,2925,8,true,assets/art/brakes.webp
-brakes-racing-100,brakes,racing,100,7875,20,true,assets/art/brakes.webp
-brakes-racing-75,brakes,racing,75,6497,8,true,assets/art/brakes.webp
-brakes-racing-50,brakes,racing,50,5119,8,true,assets/art/brakes.webp
+id,type,grade,condition,price,stock,available,image,brand,model,performance,durability,failure,heat
+engine-endurance-100,engine,endurance,100,17900,20,true,assets/art/engine-endurance.webp,Cummins,Trail D,0.91,1.86,0.0018,0.8
+engine-endurance-75,engine,endurance,75,14768,8,true,assets/art/engine-endurance.webp,Cummins,Trail D,0.91,1.86,0.0018,0.8
+engine-endurance-50,engine,endurance,50,11635,8,true,assets/art/engine-endurance.webp,Cummins,Trail D,0.91,1.86,0.0018,0.8
+engine-standard-100,engine,standard,100,14200,20,true,assets/art/engine.webp,Toyota,Raid V6,1.05,1.12,0.0052,0.97
+engine-standard-75,engine,standard,75,11715,8,true,assets/art/engine.webp,Toyota,Raid V6,1.05,1.12,0.0052,0.97
+engine-standard-50,engine,standard,50,9230,8,true,assets/art/engine.webp,Toyota,Raid V6,1.05,1.12,0.0052,0.97
+engine-racing-100,engine,racing,100,28900,20,true,assets/art/engine-racing.webp,Cosworth,Sprint X,1.25,0.67,0.018,1.26
+engine-racing-75,engine,racing,75,23843,8,true,assets/art/engine-racing.webp,Cosworth,Sprint X,1.25,0.67,0.018,1.26
+engine-racing-50,engine,racing,50,18785,8,true,assets/art/engine-racing.webp,Cosworth,Sprint X,1.25,0.67,0.018,1.26
+transmission-endurance-100,transmission,endurance,100,13900,20,true,assets/art/transmission-endurance.webp,Allison,Trail AT,0.94,1.92,0.0021,0.83
+transmission-endurance-75,transmission,endurance,75,11468,8,true,assets/art/transmission-endurance.webp,Allison,Trail AT,0.94,1.92,0.0021,0.83
+transmission-endurance-50,transmission,endurance,50,9035,8,true,assets/art/transmission-endurance.webp,Allison,Trail AT,0.94,1.92,0.0021,0.83
+transmission-standard-100,transmission,standard,100,10800,20,true,assets/art/transmission.webp,ZF,Raid 6,1.03,1.19,0.0048,0.96
+transmission-standard-75,transmission,standard,75,8910,8,true,assets/art/transmission.webp,ZF,Raid 6,1.03,1.19,0.0048,0.96
+transmission-standard-50,transmission,standard,50,7020,8,true,assets/art/transmission.webp,ZF,Raid 6,1.03,1.19,0.0048,0.96
+transmission-racing-100,transmission,racing,100,21500,20,true,assets/art/transmission-racing.webp,SADEV,Sprint SQ,1.2,0.81,0.014,1.16
+transmission-racing-75,transmission,racing,75,17738,8,true,assets/art/transmission-racing.webp,SADEV,Sprint SQ,1.2,0.81,0.014,1.16
+transmission-racing-50,transmission,racing,50,13975,8,true,assets/art/transmission-racing.webp,SADEV,Sprint SQ,1.2,0.81,0.014,1.16
+suspension-endurance-100,suspension,endurance,100,10200,20,true,assets/art/suspension-endurance.webp,Old Man Emu,Trail HD,0.95,1.98,0.0017,0.82
+suspension-endurance-75,suspension,endurance,75,8415,8,true,assets/art/suspension-endurance.webp,Old Man Emu,Trail HD,0.95,1.98,0.0017,0.82
+suspension-endurance-50,suspension,endurance,50,6630,8,true,assets/art/suspension-endurance.webp,Old Man Emu,Trail HD,0.95,1.98,0.0017,0.82
+suspension-standard-100,suspension,standard,100,8700,20,true,assets/art/suspension.webp,Bilstein,Raid B,1.06,1.22,0.0044,0.94
+suspension-standard-75,suspension,standard,75,7178,8,true,assets/art/suspension.webp,Bilstein,Raid B,1.06,1.22,0.0044,0.94
+suspension-standard-50,suspension,standard,50,5655,8,true,assets/art/suspension.webp,Bilstein,Raid B,1.06,1.22,0.0044,0.94
+suspension-racing-100,suspension,racing,100,16800,20,true,assets/art/suspension-racing.webp,FOX,Sprint R,1.22,0.78,0.0128,1.12
+suspension-racing-75,suspension,racing,75,13860,8,true,assets/art/suspension-racing.webp,FOX,Sprint R,1.22,0.78,0.0128,1.12
+suspension-racing-50,suspension,racing,50,10920,8,true,assets/art/suspension-racing.webp,FOX,Sprint R,1.22,0.78,0.0128,1.12
+tyres-endurance-100,tyres,endurance,100,4900,20,true,assets/art/tyres-endurance.webp,BFGoodrich,Trail AT,0.92,2.06,0.0022,0.79
+tyres-endurance-75,tyres,endurance,75,4043,8,true,assets/art/tyres-endurance.webp,BFGoodrich,Trail AT,0.92,2.06,0.0022,0.79
+tyres-endurance-50,tyres,endurance,50,3185,8,true,assets/art/tyres-endurance.webp,BFGoodrich,Trail AT,0.92,2.06,0.0022,0.79
+tyres-standard-100,tyres,standard,100,3600,20,true,assets/art/tyres.webp,Cooper,Raid ST,1.04,1.16,0.0064,1.02
+tyres-standard-75,tyres,standard,75,2970,8,true,assets/art/tyres.webp,Cooper,Raid ST,1.04,1.16,0.0064,1.02
+tyres-standard-50,tyres,standard,50,2340,8,true,assets/art/tyres.webp,Cooper,Raid ST,1.04,1.16,0.0064,1.02
+tyres-racing-100,tyres,racing,100,7300,20,true,assets/art/tyres-racing.webp,Michelin,Sprint RX,1.24,0.65,0.0175,1.24
+tyres-racing-75,tyres,racing,75,6023,8,true,assets/art/tyres-racing.webp,Michelin,Sprint RX,1.24,0.65,0.0175,1.24
+tyres-racing-50,tyres,racing,50,4745,8,true,assets/art/tyres-racing.webp,Michelin,Sprint RX,1.24,0.65,0.0175,1.24
+cooling-endurance-100,cooling,endurance,100,7900,20,true,assets/art/cooling-endurance.webp,DENSO,Trail Core,0.97,1.82,0.0016,0.75
+cooling-endurance-75,cooling,endurance,75,6518,8,true,assets/art/cooling-endurance.webp,DENSO,Trail Core,0.97,1.82,0.0016,0.75
+cooling-endurance-50,cooling,endurance,50,5135,8,true,assets/art/cooling-endurance.webp,DENSO,Trail Core,0.97,1.82,0.0016,0.75
+cooling-standard-100,cooling,standard,100,6300,20,true,assets/art/cooling.webp,Nissens,Raid Alloy,1.07,1.14,0.0055,0.92
+cooling-standard-75,cooling,standard,75,5198,8,true,assets/art/cooling.webp,Nissens,Raid Alloy,1.07,1.14,0.0055,0.92
+cooling-standard-50,cooling,standard,50,4095,8,true,assets/art/cooling.webp,Nissens,Raid Alloy,1.07,1.14,0.0055,0.92
+cooling-racing-100,cooling,racing,100,12900,20,true,assets/art/cooling-racing.webp,Mishimoto,Sprint Flow,1.26,0.76,0.015,1.13
+cooling-racing-75,cooling,racing,75,10643,8,true,assets/art/cooling-racing.webp,Mishimoto,Sprint Flow,1.26,0.76,0.015,1.13
+cooling-racing-50,cooling,racing,50,8385,8,true,assets/art/cooling-racing.webp,Mishimoto,Sprint Flow,1.26,0.76,0.015,1.13
+brakes-endurance-100,brakes,endurance,100,6100,20,true,assets/art/brakes-endurance.webp,Brembo,Trail Iron,0.96,1.88,0.0019,0.81
+brakes-endurance-75,brakes,endurance,75,5033,8,true,assets/art/brakes-endurance.webp,Brembo,Trail Iron,0.96,1.88,0.0019,0.81
+brakes-endurance-50,brakes,endurance,50,3965,8,true,assets/art/brakes-endurance.webp,Brembo,Trail Iron,0.96,1.88,0.0019,0.81
+brakes-standard-100,brakes,standard,100,4600,20,true,assets/art/brakes.webp,ATE,Raid Disc,1.02,1.2,0.0049,0.95
+brakes-standard-75,brakes,standard,75,3795,8,true,assets/art/brakes.webp,ATE,Raid Disc,1.02,1.2,0.0049,0.95
+brakes-standard-50,brakes,standard,50,2990,8,true,assets/art/brakes.webp,ATE,Raid Disc,1.02,1.2,0.0049,0.95
+brakes-racing-100,brakes,racing,100,9800,20,true,assets/art/brakes-racing.webp,AP Racing,Sprint Carbon,1.23,0.71,0.0162,1.21
+brakes-racing-75,brakes,racing,75,8085,8,true,assets/art/brakes-racing.webp,AP Racing,Sprint Carbon,1.23,0.71,0.0162,1.21
+brakes-racing-50,brakes,racing,50,6370,8,true,assets/art/brakes-racing.webp,AP Racing,Sprint Carbon,1.23,0.71,0.0162,1.21

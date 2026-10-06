@@ -1,3 +1,4 @@
+import { partName } from "./part-brands.js";
 import { recordCash } from "./employment.js";
 import { staffCondition } from "./staff.js";
 import { vehicle, clamp, priceFor, partType, GRADES } from "./catalog.js";
@@ -188,7 +189,7 @@ export function sellPart(state, id) {
     state,
     t,
     quote.value,
-    `Venta de pieza: ${partType(quote.piece.type).short} ${GRADES[quote.piece.grade].name}`,
+    `Venta de pieza: ${partType(quote.piece.type).short} ${partName(quote.piece)}`,
   );
   return quote.value;
 }
