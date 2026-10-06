@@ -30,11 +30,11 @@ const create = () =>
     startAt: "2026-10-05T12:00:00Z",
     now: Date.parse("2026-10-05T11:00:00Z"),
   });
-test("catálogo válido, ocho recorridos distintos y 100 escudos distintos", () => {
+test("catálogo válido, ocho recorridos distintos y 48 escudos distintos", () => {
   validateCatalog(CATALOG);
   assert.equal(
-    new Set(Array.from({ length: 100 }, (_, i) => shieldSVG(i + 1))).size,
-    100,
+    new Set(Array.from({ length: 48 }, (_, i) => shieldSVG(i + 1))).size,
+    48,
   );
   const paths = new Set();
   for (const race of CATALOG.races) {

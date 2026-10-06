@@ -1,3 +1,4 @@
+import { migrateIdentity } from "./identity.js";
 import { recordCash, startContract } from "./employment.js";
 import { CATALOG } from "../data/catalog.js";
 import { DRIVER_PROFILES, vehicle } from "./catalog.js";
@@ -45,6 +46,7 @@ export function initializeManagement(
   state.teams.forEach((t, i) => {
     t.routeId = "andes";
     t.shieldId = i + 1;
+    migrateIdentity(t);
     t.garage = [t.vehicleId];
     t.mechanics = [];
     t.initialBudget = Math.round(

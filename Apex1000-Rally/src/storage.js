@@ -1,3 +1,4 @@
+import { migrateIdentity } from "./identity.js";
 import { validateEmployment } from "./employment.js";
 import { initializeManagement } from "./management.js";
 import { validateCatalog } from "./catalog-schema.js";
@@ -102,6 +103,7 @@ export function validateSave(raw) {
   const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(raw);
   if (raw.competition || raw.employment) validateEmployment(raw);
   validateManagement(raw);
+  raw.teams.forEach(migrateIdentity);
   const ids = new Set();
   for (const t of raw.teams) {
     if (

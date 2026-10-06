@@ -1,6 +1,6 @@
-# Apex1000 Rally · World Raid v0.4.2
+# Apex1000 Rally · World Raid v0.4.3
 
-Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. Este incremental v0.4.2 se aplica sobre v0.4.1.
+Juego estático para navegador: una escudería y once rivales simulados. Funciona en GitHub Pages o con Node.js, sin instalar dependencias para jugar. Este incremental v0.4.3 se aplica sobre v0.4.2. Incluye 48 escudos originales seleccionables y un usuario del director independiente del nombre de la escudería.
 
 ## Atributos fijos de vehículos
 
@@ -58,7 +58,7 @@ Con Node.js 22 o superior: `node server.mjs`; abrir http://127.0.0.1:4182. Tambi
 4. Admin permite inyectar de 1 a 10.000.000 cr para pruebas, con registro en finanzas y saldo máximo de 100.000.000 cr. No es una función de economía online.
 5. Exportá la partida para respaldarla. Al migrar, se conserva un respaldo local de la versión anterior. Una sesión acelerada se reabre pausada.
 
-Para aplicar el ZIP sobre v0.4.1, descomprimí en la raíz de `servicios`, conservando `Apex1000-Rally/`, y reemplazá sólo los archivos incluidos. No borres el resto. Commit y push a GitHub; después recargá con Ctrl+F5. No se publicó el juego automáticamente como parte de esta entrega. Ver [notas completas](INCREMENTAL-v0.4.2.md). `qa/` contiene verificaciones y respaldos locales y no debe subirse.
+Para aplicar el ZIP sobre v0.4.2, descomprimí en la raíz de `servicios`, conservando `Apex1000-Rally/`, y reemplazá sólo los archivos incluidos. No borres el resto. Commit y push a GitHub; después recargá con Ctrl+F5. No se publicó el juego automáticamente como parte de esta entrega. Ver [notas completas](INCREMENTAL-v0.4.3.md). `qa/` contiene verificaciones y respaldos locales y no debe subirse.
 
 ## Validación y alcance
 

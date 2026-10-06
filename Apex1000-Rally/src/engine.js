@@ -1,3 +1,4 @@
+import { directorName, chooseShield, renameIdentity } from "./identity.js";
 import {
   teamLevel,
   advanceProgression,
@@ -174,9 +175,21 @@ export function createRace({
   startAt = new Date(Date.now() + 3600000).toISOString(),
   now = Date.now(),
   name = "Tu equipo",
+  director = "Director",
+  shieldId = 1,
   catalog = CATALOG,
   continuation = false,
 } = {}) {
+  const username = directorName(director);
+  if (
+    typeof name !== "string" ||
+    !name.trim() ||
+    name.trim().length > 40 ||
+    /[\x00-\x1f\x7f]/.test(name)
+  )
+    throw Error("Ingresá un nombre de escudería de 1 a 40 caracteres.");
+  if (!Number.isInteger(shieldId) || shieldId < 1 || shieldId > 48)
+    throw Error("Elegí uno de los 48 escudos disponibles.");
   if (!VEHICLES.some((v) => v.id === vehicleId))
     throw new Error("Vehículo desconocido.");
   const entry = catalog.vehicles.find((v) => v.id === vehicleId);
@@ -269,6 +282,9 @@ export function createRace({
     "Inscripción completa. Guardá el plan de la primera etapa antes de la largada.",
   );
   initializeManagement(state, { catalog });
+  getPlayer(state).directorName = username;
+  getPlayer(state).name = name.trim();
+  chooseShield(state, shieldId);
   initializeWorkshop(state);
   for (const t of state.teams)
     for (const entry of t.ledger)
@@ -1324,6 +1340,9 @@ export function publicSnapshot(state) {
     entries: standings(state).map((t, i) => ({
       entryId: t.id,
       name: t.name,
+      directorName: t.directorName,
+      shieldId: t.shieldId,
+      shieldCollection: t.shieldCollection,
       vehicleId: t.vehicleId,
       vehicleStats: { ...teamVehicleStats(t) },
       level: teamLevel(t).level,
@@ -1345,6 +1364,10 @@ export function dispatch(state, command) {
   if (!command || typeof command.type !== "string")
     throw new Error("Comando inválido.");
   switch (command.type) {
+    case "rename-identity":
+      return renameIdentity(state, command.name, command.director);
+    case "choose-shield":
+      return chooseShield(state, command.shieldId);
     case "next-payroll": {
       if (!state.employment)
         throw Error("La partida todavía usa sueldos por carrera.");
@@ -1434,6 +1457,9 @@ export function nextChampionshipRace(state) {
       "workshop",
       "activeCarId",
       "shieldId",
+      "shieldCollection",
+      "directorName",
+      "legacyShieldId",
       "vehicleId",
       "name",
     ])

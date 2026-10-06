@@ -27,4 +27,4 @@
 | emma.webp | Mecánica de 35 años, pelo negro corto, overol grafito/plata/violeta, guantes |
 | ivan.webp | Mecánico de 52 años, pelo gris corto, barba, overol negro/dorado, tableta de diagnóstico |
 
-Los 100 escudos son vectores originales generados por `src/shields.js`: diez siluetas y paletas combinadas con diez emblemas. No dependen de una API ni de fuentes externas.
+Los 48 escudos de v0.4.3 son ilustraciones vectoriales originales de cromo y esmalte con un símbolo diferente para cada diseño. Fuente: `scripts/build-shields.mjs`; archivos: `assets/shields/01.svg` a `48.svg`; catálogo: `src/shields.js`. La galería está en `assets/shields/galeria.html`. Se inspiran en los materiales y formas de emblemas automotrices de la referencia, sin reproducir las marcas. Cada asset tiene fondo transparente y escala sin pixelarse, incluso dentro del visor de la carrera.

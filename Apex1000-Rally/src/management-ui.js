@@ -1,7 +1,6 @@
 import { traitsHTML } from "./economy-ui.js";
 import { staffDefaults } from "./staff.js";
 import { esc, conditionBar } from "./visuals.js";
-import { shieldSVG } from "./shields.js";
 import {
   championshipStandings,
   seasonTime,
@@ -12,10 +11,7 @@ import { vehicle } from "./catalog.js";
 const money = (n) => Math.round(n).toLocaleString("es-AR");
 const button = (action, label, attrs = "") =>
   `<button class="button ghost small" data-action="${action}" ${attrs}>${label}</button>`;
-export function identityPanel(s) {
-  const p = s.teams.find((t) => t.id === "player");
-  return `<section class="panel identity-panel"><div class="identity-preview">${shieldSVG(p.shieldId)}<div><span class="eyebrow">IDENTIDAD DEL EQUIPO</span><h2>${esc(p.name)}</h2><p>Hasta 3 pilotos y 5 mecánicos. Los contratos se conservan entre carreras.</p></div></div><label>Nombre del equipo<input id="team-name" maxlength="40" value="${esc(p.name)}"></label>${button("rename-team", "Guardar nombre")}<details><summary>Elegir escudo · ${p.shieldId} / 100</summary><div class="shield-grid">${Array.from({ length: 100 }, (_, i) => `<button class="shield-option ${p.shieldId === i + 1 ? "selected" : ""}" data-action="choose-shield" data-id="${i + 1}" aria-label="Elegir escudo ${i + 1}" aria-pressed="${p.shieldId === i + 1}">${shieldSVG(i + 1)}<small>${String(i + 1).padStart(3, "0")}</small></button>`).join("")}</div></details></section>`;
-}
+export { identityPanel } from "./identity-ui.js";
 export { enrollmentPage as championshipPage } from "./enrollment-ui.js";
 export { vehicleShop as garagePanel } from "./workshop-ui.js";
 

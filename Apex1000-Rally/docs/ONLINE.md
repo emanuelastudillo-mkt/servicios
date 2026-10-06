@@ -55,14 +55,18 @@ Los presupuestos se guardan en centavos enteros en SQL. Las distancias y velocid
 ```json
 {
   "raceId": "andes-…",
-  "engineVersion": "rally-1",
+  "engineVersion": "rally-3",
   "startAt": "2026-10-10T12:00:00.000Z",
+  "gameAt": "2026-10-10T13:00:00.000Z",
   "elapsedSeconds": 3600,
   "routeKm": 10240,
   "entries": [
     {
       "entryId": "player",
       "name": "Equipo",
+      "directorName": "Director_X",
+      "shieldId": 41,
+      "shieldCollection": "apex48",
       "vehicleId": "hilux",
       "rank": 1,
       "phase": "racing",
@@ -79,6 +83,8 @@ Los presupuestos se guardan en centavos enteros en SQL. Las distancias y velocid
 ```
 
 Ejemplo ilustrativo; consultar la función para los valores exactos y campos auxiliares de `position`. `stageIndex` empieza en cero; al finalizar vale 15. Los participantes activos se ordenan por kilómetros; quienes llegaron se ordenan por tiempo final. `speedKmh` vale cero durante las paradas.
+
+En v0.4.3 el director tiene un usuario independiente del nombre de la escudería y del plantel de pilotos. `rename-identity` y `choose-shield` validan comandos dentro del motor local. El servidor futuro deberá vincular el director al usuario autenticado y exigir unicidad de la versión normalizada del nombre; nunca aceptar que cambiar un nombre visible cambie la propiedad del equipo. Los IDs de los 48 escudos pertenecen al catálogo fijo `apex48`; el servidor valida la selección y publica sólo sus identificadores.
 
 El visor puede interpolar entre dos snapshots para suavizar movimiento, limitando la extrapolación a un intervalo corto y deteniéndola en el final de etapa. No debe generar incidentes ni convertir esa interpolación en posición autoritativa. Mostrar fecha de última actualización y reconectar conservando la selección y el zoom.
 
