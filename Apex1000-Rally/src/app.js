@@ -1,3 +1,4 @@
+import { navigationHTML, bindNavigation } from "./navigation.js";
 import { financePage, staffPanel, dateBadge } from "./economy-ui.js";
 import {
   gameNow,
@@ -250,25 +251,7 @@ function draft(index = ui.selectedStage) {
 const stat = (label, value, sub = "", cls = "") =>
   `<div class="stat ${cls}"><span>${label}</span><strong>${value}</strong>${sub ? `<small>${sub}</small>` : ""}</div>`;
 function header() {
-  return `<header class="topbar"><a href="#" class="brand" data-action="tab" data-tab="home"><svg viewBox="0 0 50 35" aria-hidden="true"><path d="m2 30 13-22 10 13 10-20 13 29H37l-7-10-5 10-10-10-6 10Z" fill="currentColor"/></svg><span>APEX<span class="brand-number">1000</span><small>ENDURANCE RALLY</small></span></a><nav aria-label="Secciones">${[
-    ["home", "flag", "Home"],
-    ["race", "map", "Carrera"],
-    ["workshop", "tools", "Taller"],
-    ["roadbook", "route", "Roadbook"],
-    ["journal", "route", "Bitácora"],
-    ["camp", "tools", "Campamento"],
-    ["market", "shop", "Mercado"],
-    ["crew", "crew", "Equipo"],
-    ["finance", "shop", "Finanzas"],
-    ["championship", "flag", "Inscripción"],
-  ]
-    .map(
-      ([id, ic, name]) =>
-        `<button class="nav-item ${ui.tab === id ? "active" : ""}" data-action="tab" data-tab="${id}" ${!state ? "disabled" : ""}>${icon(ic)}${name}</button>`,
-    )
-    .join(
-      "",
-    )}</nav><div class="top-meta">${state ? dateBadge(state) : ""}<span class="prototype"><i></i> SINGLE PLAYER</span><button class="icon-button" data-action="help" aria-label="Guía del juego">${icon("info")}</button></div></header>`;
+  return `<header class="topbar"><a href="#" class="brand" data-action="tab" data-tab="home"><svg viewBox="0 0 50 35" aria-hidden="true"><path d="m2 30 13-22 10 13 10-20 13 29H37l-7-10-5 10-10-10-6 10Z" fill="currentColor"/></svg><span>APEX<span class="brand-number">1000</span><small>ENDURANCE RALLY</small></span></a>${navigationHTML(icon, ui.tab, !!state)}<div class="top-meta">${state ? dateBadge(state) : ""}<span class="prototype"><i></i> SINGLE PLAYER</span><button class="icon-button" data-action="help" aria-label="Guía del juego">${icon("info")}</button></div></header>`;
 }
 function clockBar() {
   if (!state) return "";
@@ -544,7 +527,18 @@ function render() {
   const content = !state
     ? onboarding()
     : `<main>${{ home: () => homePage(state), finance: () => financePage(state), workshop: () => workshopPage(state), race: racePage, roadbook, camp, market, crew, journal: () => journalPage(state), championship: () => championshipPage(state) }[ui.tab]()}</main>`;
-  $("#app").innerHTML = header() + clockBar() + content + footer();
+  // Keep the navigation nodes mounted so live updates preserve open menus and focus.
+  const app = $("#app"),
+    topbar = app.querySelector(":scope > .topbar");
+  if (topbar) {
+    const template = document.createElement("template");
+    template.innerHTML = header();
+    patchLivePanel(topbar, template.content.firstElementChild.innerHTML, {
+      preserveFocusedAttributes: false,
+    });
+    while (topbar.nextSibling) topbar.nextSibling.remove();
+    topbar.insertAdjacentHTML("afterend", clockBar() + content + footer());
+  } else app.innerHTML = header() + clockBar() + content + footer();
   for (const [id, open] of openPanels) {
     const panel = document.getElementById(id);
     if (panel) panel.open = open;
@@ -906,6 +900,8 @@ function updateShieldPicker(id) {
   if (preview.classList.contains("create-identity-preview"))
     preview.querySelector("span").textContent = info.name;
 }
+
+bindNavigation(document);
 
 document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-action]");

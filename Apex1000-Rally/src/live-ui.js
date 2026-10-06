@@ -1,5 +1,9 @@
 // Preserve native form controls while telemetry changes around them.
-export function patchLivePanel(root, html) {
+export function patchLivePanel(
+  root,
+  html,
+  { preserveFocusedAttributes = true } = {},
+) {
   if (!root) return;
   const template = root.ownerDocument.createElement("template");
   template.innerHTML = html;
@@ -31,7 +35,9 @@ export function patchLivePanel(root, html) {
         match.nodeType === 1 &&
         !match.hasAttribute("data-live-owned")
       ) {
-        const focused = match === root.ownerDocument.activeElement;
+        const focused =
+          preserveFocusedAttributes &&
+          match === root.ownerDocument.activeElement;
         if (!focused) {
           for (const attr of [...match.attributes])
             if (
