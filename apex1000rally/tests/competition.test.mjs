@@ -140,6 +140,7 @@ test("raid real: jugador detenido no impide cierre por ganador o por máximo de 
   const s = fresh();
   enroll(s, currentEvent(s).eventId);
   savePlan(s, 0, { ...defaultPlan(0), fuelTarget: 540 });
+  savePlan(s, 1, { ...defaultPlan(1), auto: false });
   for (let i = 0; i < 70 && !s.competition.closed; i++)
     advance(s, 10 * 3600, { stopAtAllFinished: true });
   assert.equal(s.competition.closed, true);

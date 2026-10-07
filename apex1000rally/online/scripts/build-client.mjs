@@ -23,7 +23,8 @@ for (const name of [
   "favicon.svg",
 ])
   await cp(path.join(root, name), path.join(out, name));
-const read = (name) => readFile(path.join(root, name), "utf8");
+const read = async (name) =>
+  (await readFile(path.join(root, name), "utf8")).replace(/\r\n/g, "\n");
 let s = await read("src/app.js");
 const cut = (start, end, replacement = "") => {
   const a = s.indexOf(start),
@@ -76,10 +77,6 @@ cut(
   "  bindOnlineForms();",
 );
 s = s.replaceAll("SINGLE PLAYER", "ONLINE");
-s = s.replace(
-  "Este plan ya está cerrado. Podés consultarlo y configurar una etapa futura.",
-  "El plan está cerrado. Durante la etapa y la asistencia sólo podés consultarlo; cambiá la preparación al llegar al campamento.",
-);
 s = s.replace(
   /<h3>Tiempo del prototipo<\/h3><p>.*?<\/p>/,
   "<h3>Tiempo compartido</h3><p>El servidor mantiene el reloj real y procesa todas las escuderías aunque cierres el navegador. El visor consulta el estado cada 60 segundos. Los controles de aceleración están disponibles únicamente en la beta offline.</p>",

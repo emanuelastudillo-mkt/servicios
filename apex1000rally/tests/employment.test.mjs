@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createCurrentRace as createRace } from "./fixture.mjs";
 import {
   getPlayer,
+  savePlan,
   advance,
   performance,
   updateRaceClosure,
@@ -94,6 +95,7 @@ test("la largada no descuenta sueldos y la reserva ganadora se devuelve al firma
     t = getPlayer(s),
     budget = t.budget;
   enroll(s, currentEvent(s).eventId);
+  savePlan(s, 0, { ...defaultPlan(0), driverId: t.activeDriver, auto: false });
   advance(s, 3600);
   assert.equal(t.budget, budget);
   const a = bid(s, "mechanic", "nora", 12000);

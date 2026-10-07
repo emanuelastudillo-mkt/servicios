@@ -177,7 +177,7 @@ test("largadas y llegadas previstas conservan averías y no dependen de nuevas e
     future.world.races[e.eventId].entries[t.id].runtime,
   );
 });
-test("una etapa en marcha bloquea incluso planes futuros; el campamento permite guardarlos", () => {
+test("la etapa actual queda fija y las futuras se editan durante carrera y asistencia", () => {
   const { w, t } = fixture(6 * 3600000),
     e = events(w).find((e) => e.id === "andes");
   command(w, t.id, {
@@ -191,28 +191,35 @@ test("una etapa en marcha bloquea incluso planes futuros; el campamento permite 
     p = participant(w, r, t.id),
     plan = r.entries[t.id].plans[1];
   assert.equal(p.phase, "racing");
-  assert.throws(
-    () =>
-      command(w, t.id, {
+  const active = structuredClone(p.activePlan);
+  command(w, t.id, {
+    type: "save-plan", eventId: e.eventId, stageIndex: 1,
+    plan: { ...plan, rest: 2, pace: "conserve" },
+  });
+  assert.equal(r.entries[t.id].plans[1].rest, 2);
+  assert.deepEqual(participant(w, r, t.id).activePlan, active);
+  assert.throws(() => command(w, t.id, {
         type: "save-plan",
         eventId: e.eventId,
-        stageIndex: 1,
-        plan,
-      }),
-    /campamento/,
-  );
+        stageIndex: 0,
+        plan: r.entries[t.id].plans[0],
+      }), /marcha/);
   const speed = performance(p).speed;
   const driver = p.drivers.find((d) => d.id === p.activeDriver);
   driver.morale = Math.min(100, driver.morale + 3);
   assert.equal(performance(p).speed, speed);
-  r.entries[t.id].runtime.phase = "camp";
-  t.phase = "camp";
+  r.entries[t.id].runtime.phase = "service";
+  t.phase = "service";
+  assert.throws(() => command(w, t.id, {
+    type: "save-plan", eventId: e.eventId, stageIndex: 0, plan,
+  }), /marcha/);
   command(w, t.id, {
     type: "save-plan",
     eventId: e.eventId,
     stageIndex: 1,
     plan,
   });
+  assert.equal(r.entries[t.id].plans[1].rest, plan.rest);
 });
 test("alarmas repetidas no duplican avances ni registros contables", async () => {
   const { room, DB, ctx } = await persisted();
@@ -225,6 +232,24 @@ test("alarmas repetidas no duplican avances ni registros contables", async () =>
     DB.sql.prepare("SELECT revision,state_json FROM world").get(),
     row,
   );
+});
+
+test("sin planes un raid continúa y sus campamentos se predicen sin escrituras por tick", () => {
+  const {w,t}=fixture(6*3600000), e=events(w).find(e=>e.id==='andes');
+  command(w,t.id,{type:'enroll',eventId:e.eventId,driverId:t.activeDriver});
+  const r=w.races[e.eventId];
+  r.entries[t.id].plans.fill(null);
+  projectTime(w,e.start);
+  projectTime(w,e.start+120000);
+  const p=participant(w,r,t.id);
+  assert.equal(p.phase,'racing');
+  assert.ok(r.entries[t.id].plans[0]);
+  const future=forecastNext(w), replay=structuredClone(w);
+  projectTime(replay,future.at);
+  assert.deepEqual(replay.races[e.eventId].entries[t.id].runtime,
+    future.world.races[e.eventId].entries[t.id].runtime);
+  assert.deepEqual(replay.races[e.eventId].entries[t.id].plans,
+    future.world.races[e.eventId].entries[t.id].plans);
 });
 test("sueldos mensuales se liquidan una sola vez aunque no haya navegador abierto", async () => {
   const from = Date.parse("2026-10-31T22:00:00Z"),

@@ -900,10 +900,6 @@ export function command(w, id, c) {
         throw Error("Inscribite antes de configurar.");
       const preview = participant(w, race, id);
       if (!preview) throw Error("No hay equipo disponible en esta carrera.");
-      if (race.status === "running" && preview.phase !== "camp")
-        throw Error(
-          "La configuración está fija durante la etapa y la asistencia. Podés cambiarla en el campamento.",
-        );
       if (!preview.drivers.some((d) => d.id === c.plan?.driverId))
         throw Error("El piloto no está asignado a esta carrera.");
       const allocated = new Set(race.entries[id].spareIds);

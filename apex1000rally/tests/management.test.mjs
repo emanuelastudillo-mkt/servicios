@@ -69,6 +69,7 @@ test("compra descuenta stock y no permite sobreventa ni doble compra de vehícul
 test("oferta de piloto exige cupo, reserva fondos y se adjudica una sola vez al cierre", () => {
   const s = create(),
     p = getPlayer(s);
+  savePlan(s, 0, { ...defaultPlan(), driverId: p.activeDriver, auto: false });
   assert.throws(() => bid(s, "driver", "ines", 10000), /Máximo/);
   releasePerson(s, "driver", "fast");
   const before = p.budget;
@@ -92,6 +93,7 @@ test("oferta perdedora devuelve toda la reserva y no duplica el contrato", () =>
   const s = create(),
     p = getPlayer(s),
     before = p.budget;
+  savePlan(s, 0, { ...defaultPlan(), driverId: p.activeDriver, auto: false });
   const a = bid(s, "mechanic", "nora", 3900);
   advance(s, 6 * 3600);
   assert.equal(a.status, "closed");
@@ -240,6 +242,10 @@ test("campeonato completo: ocho rutas, caja y piezas persistentes, puntos y pago
         parts: p.parts,
         mechanics: p.mechanics,
       });
+      // Exercise transfer before the next start, separately from overdue auto-service.
+      const nextStart = Date.parse(s.championship.startAt) +
+        s.management.catalog.races[round + 1].startDay * 86400000;
+      s.clock = (nextStart - Date.parse(s.startAt)) / 1000 - 3600;
       s = nextChampionshipRace(s);
       assert.equal(getPlayer(s).budget, Math.max(0, budget - dues));
       for (const [field, value] of Object.entries(persistent))

@@ -265,7 +265,9 @@ async function api(request, env, ctx, now) {
   if (request.method === "GET" && path === "/api/health")
     return json({
       ok: true,
-      release: "1.5.0",
+      release: "1.5.1",
+      futureStagePlans: true,
+      missingLongStagePlan: "full-service",
       preparationHours: 5,
       raceTuningSliders: 6,
       version: RULES_VERSION,

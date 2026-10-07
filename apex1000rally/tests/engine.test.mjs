@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   getPlayer,
   savePlan,
+  automaticStagePlan,
+  repairQuote,
   buyPart,
   advance,
   nextPlayerCamp,
@@ -77,13 +79,22 @@ test("largada única: nadie se mueve antes y todos los preparados salen en el mi
   advance(s, 30);
   assert.ok(s.teams.every((t) => t.totalKm > 0 && t.stageStart === 0));
 });
-test("sin plan el jugador espera mientras los rivales avanzan", () => {
+test("sin plan se prepara y corre automáticamente con tanque lleno", () => {
   const s = fresh();
-  advance(s, 20 * 3600);
-  assert.equal(getPlayer(s).totalKm, 0);
-  assert.equal(getPlayer(s).phase, "camp");
-  assert.ok(s.teams.slice(1).some((t) => t.stageIndex >= 2));
-  assert.throws(() => nextPlayerCamp(s), /Guardá/);
+  advance(s, 30);
+  const t = getPlayer(s);
+  assert.equal(t.phase, "racing");
+  assert.ok(t.totalKm > 0);
+  assert.equal(t.plans[0].fuelTarget, vehicle(t.vehicleId).tank);
+  assert.equal(t.plans[0].rest, "full");
+  assert.ok(PART_TYPES.every(p => t.plans[0].actions[p.id] === "repair"));
+  assert.equal(t.plans[1], null);
+  nextPlayerCamp(s);
+  assert.equal(t.stageIndex, 1);
+  assert.equal(t.phase, "camp");
+  advance(s, 30);
+  assert.ok(t.plans[1]);
+  assert.equal(t.phase, "service");
 });
 test("guardar y cerrar etapas: futuras editables, actuales en carrera y pasadas bloqueadas", () => {
   const s = fresh();
@@ -389,14 +400,61 @@ test("modo online impide que el cliente adelante el reloj", () => {
   s.mode = "online";
   assert.throws(() => advance(s, 3600), /servidor/);
 });
-test("una inscripción posterior a la fecha común recupera el avance de los rivales", () => {
+test("crear una prueba local atrasada recupera también el avance automático propio", () => {
   const s = createRace({
     startAt: "2026-10-10T12:00:00Z",
     now: Date.parse("2026-10-11T12:00:00Z"),
   });
   assert.equal(s.clock, 86400);
-  assert.equal(getPlayer(s).totalKm, 0);
+  assert.ok(getPlayer(s).totalKm > 450);
   assert.ok(s.teams.slice(1).every((t) => t.totalKm > 450));
+});
+
+test("el plan ausente repara hasta su límite, paga costos y espera el descanso completo", () => {
+  const s = fresh(), t = getPlayer(s);
+  nextPlayerCamp(s);
+  const index=t.stageIndex;
+  assert.equal(t.plans[index], null);
+  for (const piece of Object.values(t.parts)) {
+    piece.condition=20; piece.original=80; piece.broken=false;
+  }
+  const plan=automaticStagePlan(t);
+  const driver=t.drivers.find(d=>d.id===plan.driverId);
+  driver.energy=10;
+  const q=estimateService(t,plan), budget=t.budget, start=s.clock;
+  const targets=Object.fromEntries(Object.entries(t.parts).map(([id,p])=>[id,repairQuote(p).target]));
+  advance(s,30);
+  assert.equal(t.phase,'service');
+  near(t.budget,budget-q.cost);
+  near(t.fuel,vehicle(t.vehicleId).tank);
+  near(t.service.until-start,q.serviceHours*3600);
+  for (const [id,piece] of Object.entries(t.parts)) near(piece.condition,targets[id]);
+  advance(s,Math.ceil(q.serviceHours*120)*30);
+  assert.equal(t.phase,'racing');
+  assert.ok(driver.energy>99);
+});
+
+test("un plan manual guardado se conserva y no se sustituye por el automático", () => {
+  const s=fresh(), t=getPlayer(s);
+  nextPlayerCamp(s);
+  savePlan(s,t.stageIndex,{...automaticStagePlan(t),auto:false,fuelTarget:200,rest:1});
+  const saved=structuredClone(t.plans[t.stageIndex]);
+  advance(s,3600);
+  assert.equal(t.phase,'camp');
+  assert.deepEqual(t.plans[t.stageIndex],saved);
+});
+
+test("el automático también espera al piloto agotado antes de la primera etapa", () => {
+  const s=fresh(),t=getPlayer(s),driver=t.drivers[0];
+  driver.energy=10;
+  const fullRest=(100-driver.energy)/driver.recovery;
+  advance(s,30);
+  assert.equal(t.phase,'service');
+  assert.equal(t.totalKm,0);
+  near(t.service.until,fullRest*3600);
+  advance(s,Math.ceil(fullRest*120)*30);
+  assert.equal(t.phase,'racing');
+  assert.ok(driver.energy>99);
 });
 test("el combustible impago conserva la penalización de cuatro horas en la largada", () => {
   const s = fresh(),

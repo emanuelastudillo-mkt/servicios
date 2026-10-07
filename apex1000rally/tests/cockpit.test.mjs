@@ -154,9 +154,9 @@ test("paradas antiguas mantienen su salida; guardados rechazan cronogramas corru
     "legacy",
   );
 });
-test("campamento indica plan pendiente o salida automática desactivada", () => {
+test("campamento anuncia el plan automático o la salida manual guardada", () => {
   const [s, t] = camp();
-  assert.match(stopStatus(s, t).reason, /Falta guardar/);
+  assert.match(stopStatus(s, t).reason, /plan automático/);
   savePlan(s, 1, { ...defaultPlan(1), auto: false });
   assert.match(stopStatus(s, t).reason, /desactivada/);
 });

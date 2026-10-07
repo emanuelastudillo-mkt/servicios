@@ -90,8 +90,10 @@ D1; rankings e histórico contable consultan sus tablas. No son cero requests:
 preflight, alarmas de eventos y una recuperación diaria.
 
 Las predicciones usan el mismo motor y RNG por vehículo; no revelan resultados
-futuros al cliente. Las configuraciones se bloquean durante la etapa y asistencia,
-y se editan en el campamento o antes de largar. La beta mantiene su flujo independiente.
+futuros al cliente. La configuración actual se bloquea durante la etapa y asistencia;
+las futuras se pueden editar en cualquier momento. Sin plan se repara al máximo
+recuperable, descansa al 100% y llena el tanque, con los costos habituales. La beta
+mantiene su flujo independiente y adopta esta misma asistencia automática.
 Una interrupción larga se recupera en tramos, con 503 y reintento cuando aún hay atraso.
 
 La integración real con Wrangler local se comprobó con el binding DO y D1. La

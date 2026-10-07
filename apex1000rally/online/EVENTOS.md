@@ -9,8 +9,11 @@ El coordinador anticipa el siguiente cambio mediante el mismo motor, semilla y
 pasos de 30 segundos. No se elimina el desgaste, las averías, el combustible,
 los errores, la energía ni la curva oculta de ritmo. La predicción no modifica
 el mundo real ni se envía al navegador. Nuevos equipos no consumen el RNG de
-otros autos. Las decisiones de cada etapa se bloquean al salir; se pueden
-cambiar en el campamento. Forma y moral para el ritmo se fijan al largar esa
+otros autos. La etapa actual se bloquea durante asistencia y conducción. Las
+etapas futuras se pueden editar mientras el auto corre; guardar recalcula la
+predicción del siguiente evento, sin modificar la conducción actual. Una etapa
+sin plan usa reparación máxima recuperable, descanso completo y tanque lleno.
+Forma y moral para el ritmo se fijan al largar esa
 etapa: una renovación de contrato durante el trayecto beneficia la siguiente.
 
 Se persiste al cambiar de etapa/fase, cerrar una carrera, terminar un trabajo,

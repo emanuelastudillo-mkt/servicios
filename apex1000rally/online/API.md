@@ -100,8 +100,12 @@ La API conserva sus rutas y autenticación; Worker las deriva a RaceRoom. GET
 materializan la hora real sin persistir un tick por minuto. D1 conserva la revisión
 del último evento; una misma revisión puede tener telemetry más reciente.
 
-save-plan y save-plans se rechazan mientras la escudería recorre la etapa o está
-en asistencia, incluso para etapas futuras. Se admiten en campamento y antes de
-la largada. El bloqueo se aplica por inscripción, no a otras carreras simultáneas.
+save-plan y save-plans permiten editar etapas futuras mientras la escudería corre
+o está en asistencia. La etapa actual queda bloqueada durante carrera y asistencia;
+las anteriores también. En campamento se puede editar la siguiente etapa antes
+de que comience su asistencia. Sin plan se usa reparación máxima recuperable,
+descanso del piloto hasta 100% y tanque lleno. Se conservan los límites y costos
+de reparación; un plan manual guardado no se reemplaza. Los sprints mantienen
+su única etapa sin reparaciones ni descanso. El bloqueo se aplica por inscripción.
 El histórico contable combina movimientos confirmados con pendientes en memoria
 para mantener la economía visible actual. Ver EVENTOS.md.

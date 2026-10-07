@@ -157,13 +157,15 @@ export function stopStatus(state, team) {
         : crewRate(team, "race") === 0
           ? "Faltan mecánicos asignados a carrera."
           : !plan
-            ? "Falta guardar el plan de la próxima etapa."
+            ? "Se aplicará el plan automático: reparación máxima, descanso completo y tanque lleno."
             : !plan.auto
               ? "La salida automática está desactivada en el plan."
               : "Plan listo. La asistencia comienza en el próximo paso del reloj.",
       advice: blocked
         ? "Completá el trabajo del auto o cancelalo desde el Taller."
-        : !plan || !plan.auto
+        : !plan
+          ? "Podés personalizar las etapas futuras. La asistencia automática comienza en el próximo paso del reloj."
+          : !plan.auto
           ? "Revisá y guardá el plan en Campamento para continuar."
           : "El reloj debe estar en marcha para continuar.",
     };

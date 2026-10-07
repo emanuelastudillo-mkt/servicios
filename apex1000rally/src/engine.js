@@ -345,6 +345,17 @@ export function normalizePlan(raw = {}, team) {
   }
   return s;
 }
+export function automaticStagePlan(team, stageIndex = team.stageIndex) {
+  const stage = routeFor(team).stages[stageIndex];
+  if (!stage || !team.drivers.length)
+    throw Error("Necesitás un piloto y una etapa válida para preparar el plan.");
+  return {
+    ...defaultPlan(stageIndex),
+    ...recommendedSetup(stage),
+    driverId: team.drivers[stageIndex % team.drivers.length].id,
+    fuelTarget: vehicle(team.vehicleId).tank,
+  };
+}
 export function savePlan(state, stageIndex, raw) {
   const { stages: STAGES, totalKm: TOTAL_KM } = routeFor(state);
   const t = getPlayer(state);
@@ -635,9 +646,7 @@ function beginService(state, t) {
     until:
       state.clock +
       (t.stageIndex === 0
-        ? fuelCost > paid
-          ? 4 * 3600
-          : 0
+        ? Math.max(q.restHours * 3600, fuelCost > paid ? 4 * 3600 : 0)
         : Math.max(60, hours * 3600)),
     start: state.clock,
     workHours: hours,
@@ -952,7 +961,7 @@ function finishStage(state, t, time) {
         state,
         t,
         "attention",
-        `Guardá el plan de E${t.stageIndex + 1} para continuar. El reloj y los rivales siguen avanzando.`,
+        `E${t.stageIndex + 1} usará el plan automático: reparar al máximo recuperable, descanso completo y tanque lleno.`,
       );
   }
 }
@@ -1010,12 +1019,16 @@ export function advanceTeam(state, t, dt) {
       t.debt += cost - paid;
       t.fuel += litres;
       startStage(state, t);
-    } else if (t.plans[t.stageIndex]?.auto) beginService(state, t);
-    else {
-      fatigue(t, dt);
-      t.heat += (STAGES[t.stageIndex].temp - t.heat) * Math.min(1, dt / 3600);
-      t.statistics.waiting += dt;
-      return;
+    } else {
+      if (!t.plans[t.stageIndex] && t.drivers.length)
+        t.plans[t.stageIndex] = automaticStagePlan(t);
+      if (t.plans[t.stageIndex]?.auto) beginService(state, t);
+      else {
+        fatigue(t, dt);
+        t.heat += (STAGES[t.stageIndex].temp - t.heat) * Math.min(1, dt / 3600);
+        t.statistics.waiting += dt;
+        return;
+      }
     }
   }
   if (t.phase === "service") {
@@ -1355,11 +1368,8 @@ export function nextPlayerCamp(state) {
     throw Error(
       "El auto de carrera está en el taller sin mecánicos. Asigná personal o cancelá su trabajo.",
     );
-  if (
-    ["waiting", "camp"].includes(player.phase) &&
-    !player.plans[player.stageIndex]
-  )
-    throw new Error("Guardá el plan de tu próxima etapa.");
+  if (!player.drivers.length)
+    throw Error("Contratá al menos un piloto para iniciar la próxima etapa.");
   return advance(state, 3600 * 100, { stopAtPlayerCamp: true });
 }
 export function standings(state) {
