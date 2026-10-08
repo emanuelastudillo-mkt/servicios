@@ -1,0 +1,19 @@
+{
+  "name": "Apex Trail R4",
+  "version": 1,
+  "triangles": 4906,
+  "meshes": 6,
+  "materials": [
+    "team_paint",
+    "rubber",
+    "glass",
+    "alloy",
+    "ivory",
+    "red"
+  ],
+  "bytes": 358184,
+  "frontAxis": "-Z",
+  "textures": 0,
+  "teamColorMaterial": "team_paint",
+  "originalDesign": true
+}

@@ -160,8 +160,8 @@ test("offline cache includes both map modules; map is mounted outside rerendered
       new URL("../tutorial/viewer.js", import.meta.url),
       "utf8",
     );
-  assert.match(sw, /viewer\.js\?v=1\.6\.4/);
-  assert.match(sw, /viewer-model\.js\?v=1\.6\.4/);
+  assert.match(sw, /viewer\.js\?v=1\.7\.1/);
+  assert.match(sw, /viewer-model\.js\?v=1\.7\.1/);
   assert.ok(html.indexOf('id="race-viewer"') < html.indexOf('id="app"'));
   assert.doesNotMatch(viewer, /fetch\(|workers\.dev|ApexAPI|sessionStorage/);
 });

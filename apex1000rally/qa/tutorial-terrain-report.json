@@ -1,0 +1,27 @@
+{
+  "screens": [
+    {
+      "width": 1440,
+      "triangles": 166348,
+      "drawCalls": 21,
+      "idleFrames": 0
+    },
+    {
+      "width": 390,
+      "triangles": 64476,
+      "drawCalls": 17,
+      "idleFrames": 0
+    },
+    {
+      "width": 320,
+      "triangles": 64476,
+      "drawCalls": 17,
+      "idleFrames": 0
+    }
+  ],
+  "offline": true,
+  "fallback": true,
+  "errors": [],
+  "apiRequests": [],
+  "liveProgress": true
+}

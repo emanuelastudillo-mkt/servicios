@@ -14,9 +14,9 @@ import {
   telemetry,
   advanceTraining,
   resumeTraining,
-} from "./engine.js?v=1.6.4";
-import { createRaceViewer } from "./viewer.js?v=1.6.4";
-import { trainingField } from "./viewer-model.js?v=1.6.4";
+} from "./engine.js?v=1.7.1";
+import { createRaceViewer } from "./viewer.js?v=1.7.1";
+import { trainingField } from "./viewer-model.js?v=1.7.1";
 const $ = (q) => document.querySelector(q);
 const raceViewer = createRaceViewer($("#race-viewer"), {
   onPause() {
@@ -442,7 +442,7 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("message", (event) => {
     if (
       event.data?.type === "OFFLINE_READY" &&
-      event.data.version === "1.6.4" &&
+      event.data.version === "1.7.1" &&
       storageOK
     )
       note(

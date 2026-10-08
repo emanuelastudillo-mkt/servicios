@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
+import { buildTutorialTerrain } from "../../scripts/build-tutorial-terrain.mjs";
 const require = createRequire(import.meta.url);
 const { build } = require(
   require.resolve("esbuild", {
@@ -13,6 +14,7 @@ const online = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."),
   root = path.dirname(online);
 const out = path.join(online, "public");
 await mkdir(out, { recursive: true });
+await buildTutorialTerrain(false);
 for (const name of ["src", "data", "assets", "tutorial"])
   await cp(path.join(root, name), path.join(out, name), { recursive: true });
 for (const name of [

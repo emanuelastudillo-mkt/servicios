@@ -6,8 +6,10 @@ import {
   routePoint,
   cameraBounds,
   markerLayout,
-} from "./viewer-model.js?v=1.6.4";
-import { STAGES } from "./engine.js?v=1.6.4";
+} from "./viewer-model.js?v=1.7.1";
+import { STAGES } from "./engine.js?v=1.7.1";
+import { createTrainingTerrain } from "./terrain.js?v=1.7.1";
+import { createVehicleDialog } from './vehicle-dialog.js?v=1.7.1';
 const fmt = (n) =>
   n.toLocaleString("es-AR", {
     minimumFractionDigits: 2,
@@ -20,7 +22,7 @@ const path = (points) =>
 export const TERRAIN_ASSET = "./assets/tutorial-terrain-v1.png";
 function scenery() {
   // Terrain is a local illustration. Geometry, labels and live cars stay in SVG.
-  return `<defs><linearGradient id="terrain-fallback" x2="1" y2="0"><stop stop-color="#66614a"/><stop offset=".32" stop-color="#b29155"/><stop offset=".52" stop-color="#626859"/><stop offset=".72" stop-color="#965e43"/><stop offset="1" stop-color="#6c7853"/></linearGradient><linearGradient id="map-edge-shade" x2="0" y2="1"><stop stop-color="#071310" stop-opacity=".1"/><stop offset=".5" stop-color="#071310" stop-opacity="0"/><stop offset="1" stop-color="#071310" stop-opacity=".18"/></linearGradient></defs><rect width="1200" height="460" fill="url(#terrain-fallback)"/><image class="map-terrain-image" href="${TERRAIN_ASSET}" x="0" y="0" width="1200" height="460" preserveAspectRatio="none"/><rect width="1200" height="460" fill="url(#map-edge-shade)" pointer-events="none"/><g class="map-terrain-label"><text x="89" y="227">QUEBRADA DE ENTRADA<tspan x="89" dy="16">RIPIO</tspan></text><text x="313" y="193">DUNAS DEL HORNO<tspan x="313" dy="16">ARENA · 46 °C</tspan></text><text x="501" y="96">PASO DEL CÓNDOR<tspan x="501" dy="16">MONTAÑA</tspan></text><text x="767" y="394">CAÑÓN DE LAS AGUJAS<tspan x="767" dy="16">ROCA</tspan></text><text x="989" y="294">RECTA DEL HORIZONTE<tspan x="989" dy="16">ASFALTO</tspan></text></g><text x="28" y="31" class="map-coordinate">HORIZONTE VIRTUAL / TERRENO ILUSTRADO</text><g transform="translate(1154 399)" class="map-compass"><path d="m0-27 8 28-8-5-8 5Z" fill="#f0ead8" stroke="#182219" stroke-width="1"/><text y="-34" text-anchor="middle">N</text></g>`;
+  return `<defs><linearGradient id="terrain-fallback" x2="1" y2="0"><stop stop-color="#66614a"/><stop offset=".32" stop-color="#b29155"/><stop offset=".52" stop-color="#626859"/><stop offset=".72" stop-color="#965e43"/><stop offset="1" stop-color="#6c7853"/></linearGradient><linearGradient id="map-edge-shade" x2="0" y2="1"><stop stop-color="#071310" stop-opacity=".1"/><stop offset=".5" stop-color="#071310" stop-opacity="0"/><stop offset="1" stop-color="#071310" stop-opacity=".18"/></linearGradient></defs><rect width="1200" height="460" fill="url(#terrain-fallback)"/><image class="map-terrain-image" data-src="${TERRAIN_ASSET}" x="0" y="0" width="1200" height="460" preserveAspectRatio="none"/><rect width="1200" height="460" fill="url(#map-edge-shade)" pointer-events="none"/><g class="map-terrain-label"><text x="89" y="227">QUEBRADA DE ENTRADA<tspan x="89" dy="16">RIPIO</tspan></text><text x="313" y="193">DUNAS DEL HORNO<tspan x="313" dy="16">ARENA · 46 °C</tspan></text><text x="501" y="96">PASO DEL CÓNDOR<tspan x="501" dy="16">MONTAÑA</tspan></text><text x="767" y="394">CAÑÓN DE LAS AGUJAS<tspan x="767" dy="16">ROCA</tspan></text><text x="989" y="294">RECTA DEL HORIZONTE<tspan x="989" dy="16">ASFALTO</tspan></text></g><text x="28" y="31" class="map-coordinate">HORIZONTE VIRTUAL / TERRENO ILUSTRADO</text><g transform="translate(1154 399)" class="map-compass"><path d="m0-27 8 28-8-5-8 5Z" fill="#f0ead8" stroke="#182219" stroke-width="1"/><text y="-34" text-anchor="middle">N</text></g>`;
 }
 function mapSVG() {
   const stops = [
@@ -50,9 +52,11 @@ export function createRaceViewer(root, actions = {}) {
     .querySelector(".viewer-buttons")
     .insertAdjacentHTML(
       "afterbegin",
-      `<button type="button" data-viewer="pause">Pausar simulación</button><select id="viewer-speed-control" aria-label="Velocidad del visor"><option value="1">×1</option><option value="2">×2</option><option value="10">×10</option></select><button type="button" data-viewer="plan">Configurar etapa</button>`,
+      `<button type="button" data-viewer="depth" aria-pressed="true">Satélite 3D</button><button type="button" data-viewer="pause">Pausar simulación</button><select id="viewer-speed-control" aria-label="Velocidad del visor"><option value="1">×1</option><option value="2">×2</option><option value="10">×10</option></select><button type="button" data-viewer="plan">Configurar etapa</button>`,
     );
   const terrain = root.querySelector(".map-terrain-image");
+  root.querySelector('.viewer-buttons').insertAdjacentHTML('beforeend','<button type="button" data-viewer="vehicle">Ver vehículo</button>');
+  const vehicleDialog=createVehicleDialog(root);
   terrain.addEventListener("error", () => {
     root.classList.add("terrain-unavailable");
     root.querySelector(".viewer-legend span").textContent =
@@ -64,6 +68,11 @@ export function createRaceViewer(root, actions = {}) {
     const el = root.querySelector("#" + id);
     if (el.textContent !== value) el.textContent = value;
   };
+  const terrain3d=createTrainingTerrain(root,{
+    onZoom:()=>drawCamera(),
+    onFreeCamera:()=>{follow=false;drawCamera();},
+    onSelect:select,
+  });
   const expanded = () =>
     document.fullscreenElement === root ||
     root.classList.contains("viewer-expanded");
@@ -75,12 +84,13 @@ export function createRaceViewer(root, actions = {}) {
       "viewBox",
       `${camera.x} ${camera.y} ${camera.width} ${camera.height}`,
     );
-    write("viewer-zoom", "×" + Number(camera.zoom.toFixed(1)));
+    const zoom=terrain3d.enabled?terrain3d.zoom:camera.zoom;
+    write("viewer-zoom", "×" + Number(zoom.toFixed(1)));
     const button = root.querySelector('[data-viewer="follow"]');
     button.textContent = "Seguir: " + (follow ? "sí" : "no");
     button.setAttribute("aria-pressed", String(follow));
-    root.querySelector('[data-viewer="out"]').disabled = camera.zoom <= 1;
-    root.querySelector('[data-viewer="in"]').disabled = camera.zoom >= 16;
+    root.querySelector('[data-viewer="out"]').disabled = !terrain3d.enabled && camera.zoom <= 1;
+    root.querySelector('[data-viewer="in"]').disabled = !terrain3d.enabled && camera.zoom >= 16;
   }
   function drawField() {
     const positions = markerLayout(field, camera.zoom);
@@ -126,7 +136,7 @@ export function createRaceViewer(root, actions = {}) {
   function updateSelected() {
     const t = field.find((t) => t.id === selected);
     if (!t) return;
-    if (follow) camera = cameraBounds(t.location.x, t.location.y, camera.zoom);
+    if (follow && !terrain3d.enabled) camera = cameraBounds(t.location.x, t.location.y, camera.zoom);
     write("viewer-team-name", t.name + (t.you ? " · vos" : ""));
     write("viewer-position", `P${t.position} / 6`);
     write("viewer-distance", fmt(t.km) + " / 40 km");
@@ -151,7 +161,8 @@ export function createRaceViewer(root, actions = {}) {
         b.setAttribute("aria-pressed", String(b.dataset.team === selected)),
       );
     drawCamera();
-    drawField();
+    if(!terrain3d.enabled)drawField();
+    terrain3d.sync(field,selected,follow,!root.hidden);
   }
   function zoomTo(value, anchor = null) {
     const zoom = Math.max(1, Math.min(16, value));
@@ -185,6 +196,13 @@ export function createRaceViewer(root, actions = {}) {
       return;
     }
     switch (target.dataset.viewer) {
+      case "vehicle":
+        vehicleDialog.open(selected);
+        break;
+      case "depth":
+        terrain3d.setEnabled(!terrain3d.enabled);
+        updateSelected();
+        break;
       case "pause":
         actions.onPause?.();
         break;
@@ -205,15 +223,16 @@ export function createRaceViewer(root, actions = {}) {
         updateSelected();
         break;
       case "in":
-        zoomTo(camera.zoom * 1.5);
+        if(terrain3d.enabled)terrain3d.command('zoom',1/1.5);else zoomTo(camera.zoom * 1.5);
         break;
       case "out":
-        zoomTo(camera.zoom / 1.5);
+        if(terrain3d.enabled)terrain3d.command('zoom',1.5);else zoomTo(camera.zoom / 1.5);
         break;
       case "fit":
         follow = false;
         camera = cameraBounds(600, 230, 1);
         updateSelected();
+        if(terrain3d.enabled)terrain3d.command('fit');
         break;
       case "fullscreen":
         try {

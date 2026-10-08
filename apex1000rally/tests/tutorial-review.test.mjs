@@ -278,7 +278,7 @@ test("offline readiness requires every asset and identifies the active release",
   const w = await workerHarness();
   const messages = await w.ready();
   assert.equal(messages.length, 1);
-  assert.equal(messages[0].version, "1.6.4");
+  assert.equal(messages[0].version, "1.7.1");
   w.entries.delete(
     "https://example.test/apex1000rally/tutorial/assets/tutorial-terrain-v1.png",
   );
@@ -293,4 +293,24 @@ test("offline readiness requires every asset and identifies the active release",
     1,
     "a connected reload heals the missing cached asset",
   );
+});
+
+test('3D resources belong to the tutorial offline cache and never intercept the online renderer',async()=>{
+  const w=await workerHarness();
+  for(const file of ['viewer.js?v=1.7.1','sprint-salta.json','sprint-salta.webp','sprint-salta.i16','ATTRIBUTION.md']){
+    assert.equal((await w.request('./assets/terrain3d/'+file)).status,200);
+  }
+  assert.equal(w.calls,0);
+  assert.equal(await w.request('../assets/terrain3d/viewer.js'),undefined);
+  w.entries.delete('https://example.test/apex1000rally/tutorial/assets/terrain3d/sprint-salta.i16');
+  assert.equal((await w.ready()).length,0,'Sin elevaciones no puede prometer 3D offline');
+});
+
+test('the new vehicle and close-up viewer are required before declaring the tutorial ready offline',async()=>{
+  const w=await workerHarness();
+  assert.equal((await w.request('./assets/vehicles/trail-r4.glb')).status,200);
+  assert.equal((await w.request('./vehicle-dialog.js?v=1.7.1')).status,200);
+  assert.equal(w.calls,0);
+  w.entries.delete('https://example.test/apex1000rally/tutorial/assets/vehicles/trail-r4.glb');
+  assert.equal((await w.ready()).length,0);
 });

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10212a"><title>Apex Trail R4 · Apex Rally</title><link rel="icon" href="../favicon.svg"><link rel="stylesheet" href="./style.css?v=1.7.1"><link rel="stylesheet" href="./terrain.css?v=1.7.1">
+<style>.vehicle-page{max-width:960px;margin:28px auto;padding:0 12px}.vehicle-preview-panel{overflow:hidden;border:1px solid #536568;border-radius:16px;background:#10212a}.vehicle-preview-panel h1{font-size:28px;margin:5px 0 12px}.vehicle-preview-panel .vehicle-stage{height:clamp(350px,58vh,560px)}.vehicle-preview-panel .vehicle-dialog-head{padding-bottom:12px}.vehicle-page>p{font-size:12px;color:#9eb1b8}@media(max-width:650px){.vehicle-page{margin:12px auto}.vehicle-preview-panel h1{font-size:24px}.vehicle-preview-panel .vehicle-stage{height:350px}}</style></head>
+<body><header><a class="brand" href="./">APEX<span>1000</span><small>VEHÍCULO DE ENTRENAMIENTO</small></a><a href="./">Ir al tutorial</a></header><main class="vehicle-page"><section class="vehicle-preview-panel"><div class="vehicle-dialog-head"><div><span class="eyebrow">4×4 DE RALLY</span><h1>Apex Trail R4</h1></div></div><div class="vehicle-stage" role="region" aria-label="Vista del vehículo"><p class="vehicle-loading" role="status">Preparando el 4×4…</p></div><div class="vehicle-dialog-bottom"><label>Color de la escudería<select class="vehicle-color" aria-label="Color de la escudería"></select></label><p>Arrastrá para girar · rueda o pinza para acercar<br><small>Un mismo modelo, los colores de cada equipo.</small></p></div></section><p>Modelo original del tutorial. La vista de colores no modifica tu escudería ni tu entrenamiento.</p></main>
+<script type="module">
+import {TEAMS} from './viewer-model.js?v=1.7.1';
+import {createVehiclePreview} from './assets/terrain3d/viewer.js?v=1.7.1';
+const select=document.querySelector('.vehicle-color'),host=document.querySelector('.vehicle-stage'),controller=new AbortController();let viewer;
+for(const team of TEAMS){const option=document.createElement('option');option.value=team.id;option.textContent=team.name;select.append(option);}
+select.onchange=()=>viewer?.setColor(TEAMS.find(t=>t.id===select.value).color);
+try{viewer=await createVehiclePreview(host,{url:new URL('./assets/vehicles/trail-r4.glb',location.href).href,color:TEAMS[0].color,signal:controller.signal});}
+catch{host.innerHTML='<p class="vehicle-loading">No se pudo abrir el vehículo 3D. Podés continuar en el tutorial.</p>';}
+window.addEventListener('pagehide',()=>{controller.abort();viewer?.dispose();});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script></body></html>

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@simplewebauthn/browser": "14.0.0",
-    "@simplewebauthn/server": "14.0.3"
+    "@simplewebauthn/server": "14.0.3",
+    "three": "0.186.1"
   }
 }

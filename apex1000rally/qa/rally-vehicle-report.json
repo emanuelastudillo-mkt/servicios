@@ -1,0 +1,56 @@
+{
+  "screens": [
+    {
+      "width": 1440,
+      "triangles": 166348,
+      "drawCalls": 21,
+      "idleFrames": 0
+    },
+    {
+      "width": 390,
+      "triangles": 64476,
+      "drawCalls": 17,
+      "idleFrames": 0
+    },
+    {
+      "width": 320,
+      "triangles": 64476,
+      "drawCalls": 17,
+      "idleFrames": 0
+    }
+  ],
+  "colors": [
+    {
+      "id": "player",
+      "color": "#efb86a"
+    },
+    {
+      "id": "cobalto",
+      "color": "#72baff"
+    },
+    {
+      "id": "faro",
+      "color": "#a6df8a"
+    },
+    {
+      "id": "orbita",
+      "color": "#c7a3ff"
+    },
+    {
+      "id": "nomada",
+      "color": "#fa889c"
+    },
+    {
+      "id": "sur",
+      "color": "#66dacb"
+    }
+  ],
+  "errors": [],
+  "apiRequests": [],
+  "offline": true,
+  "standalone": {
+    "desktop": true,
+    "mobile": true,
+    "offline": true
+  }
+}

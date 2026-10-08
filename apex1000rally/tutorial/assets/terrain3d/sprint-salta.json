@@ -1,0 +1,29 @@
+{
+  "id": "sprint-salta",
+  "name": "Sprint · Salta → Cafayate",
+  "bounds": [
+    -66.57888888888888,
+    -26.274444444444445,
+    -64.80111111111111,
+    -24.585555555555555
+  ],
+  "version": 1,
+  "grid": 257,
+  "heightmap": "sprint-salta.i16",
+  "texture": "sprint-salta.webp",
+  "heightUnit": "metres",
+  "heightEncoding": "int16-little-endian-north-first",
+  "minimum": 587,
+  "maximum": 6186,
+  "demZoom": 8,
+  "defaultExaggeration": 2.69,
+  "northSouthKm": 188.00711111111121,
+  "imageryYear": "2016–2017",
+  "retrieved": "2026-10-08",
+  "imagerySource": "https://tiles.maps.eox.at/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=s2cloudless&STYLES=&SRS=EPSG%3A4326&BBOX=-66.57888888888888%2C-26.274444444444445%2C-64.80111111111111%2C-24.585555555555555&WIDTH=1536&HEIGHT=1460&FORMAT=image%2Fjpeg",
+  "elevationSource": "https://registry.opendata.aws/terrain-tiles/",
+  "sha256": {
+    "webp": "9658c6b7dd5658787dfc1700a11d344502d16b54dc3542eb439e64b927a2037a",
+    "i16": "c45a9f746db3e19f8ad66cb26fcb32b6d2b6bb354e70623d4497756ea471eaa5"
+  }
+}

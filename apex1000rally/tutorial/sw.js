@@ -1,14 +1,28 @@
 // Scope is tutorial/ only. Never intercept API calls or the online game.
-const CACHE = "apex1000-training-1.6.4";
-const RELEASE = "1.6.4";
+const CACHE = "apex1000-training-1.7.1";
+const RELEASE = "1.7.1";
 const FILES = [
   "./",
   "./index.html",
-  "./style.css?v=1.6.4",
-  "./app.js?v=1.6.4",
-  "./engine.js?v=1.6.4",
-  "./viewer.js?v=1.6.4",
-  "./viewer-model.js?v=1.6.4",
+  "./vehicle.html",
+  "./style.css?v=1.7.1",
+  "./app.js?v=1.7.1",
+  "./engine.js?v=1.7.1",
+  "./viewer.js?v=1.7.1",
+  "./viewer-model.js?v=1.7.1",
+  "./terrain.js?v=1.7.1",
+  "./terrain-model.js?v=1.7.1",
+  "./vehicle-dialog.js?v=1.7.1",
+  "./assets/vehicles/trail-r4.glb",
+  "./assets/vehicles/trail-r4.json",
+  "./terrain.css?v=1.7.1",
+  "./assets/terrain3d/viewer.js?v=1.7.1",
+  "./assets/terrain3d/sprint-salta.json",
+  "./assets/terrain3d/sprint-salta.i16",
+  "./assets/terrain3d/sprint-salta.webp",
+  "./assets/terrain3d/ATTRIBUTION.md",
+  "./assets/terrain3d/MAPZEN-SOURCES.md",
+  "./assets/terrain3d/THREE-LICENSE.txt",
   "../favicon.svg",
   "./assets/tutorial-terrain-v1.png",
 ];
