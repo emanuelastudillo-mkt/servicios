@@ -1,11 +1,12 @@
-import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.3.0';
+import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.4.0';
 import { sealLoop } from './audio-core.js';
-import { spaceAction } from './controls.js?v=1.3.0';
+import { spaceAction } from './controls.js?v=1.4.0';
 
-import { InputManager, inputConfig } from './inputs.js?v=1.3.0';
-import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.3.0';
-import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.3.0';
-import { calibrate } from './calibration.js?v=1.3.0';
+import { InputManager, inputConfig } from './inputs.js?v=1.4.0';
+import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.4.0';
+import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.4.0';
+import { calibrate } from './calibration.js?v=1.4.0';
+import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.4.0';
 
 const $ = selector => document.querySelector(selector);
 const colors = ['#c7f69b', '#d8b5f8', '#93d8e9', '#efbd8c', '#f0a7ba', '#a6bafa'];
@@ -14,6 +15,10 @@ let waves = Array.from({ length: 6 }, () => []);
 let ctx, node, initPromise, ioBusy = false, monitorId = -1;
 let devices = [], nativeSources = [];
 let latencyId = -1, measurementDraft = null, measurementAbort = null;
+let nativeCapabilities = desktop, diagnosticCancel = null, diagnosticBusy = false;
+let preferenceStorage;
+try { preferenceStorage = window.localStorage; } catch { /* Blocked storage must not prevent recording. */ }
+document.body.dataset.mode = readMode(preferenceStorage);
 let dirty = false, revision = 0, requestId = 0, notificationTimer, drawAt = 0;
 let state = { length: 0, position: 0, rate: 48000, playing: false, recording: null, canUndo: false,
   tracks: Array.from({ length: 6 }, () => ({ hasAudio: false, volume: .8, muted: false, solo: false })) };
@@ -45,6 +50,9 @@ for (let i = 0; i < 6; i++) {
     <div class="input-listen-row"><label class="input-listen"><input type="checkbox" aria-label="Escuchar entrada de pista ${i + 1}"> Escuchar</label><button class="latency-button" aria-label="Sincronizar latencia de pista ${i + 1}">Sincronizar</button><button class="input-apply" aria-label="Aplicar entrada de pista ${i + 1} a todas" title="Copia fuente, nivel, silencio y compensación de entrada. Conserva el audio grabado.">Aplicar a todas</button></div>
   </div>`);
   $('#tracks').append(card);
+  card.querySelector('.input-level').insertAdjacentHTML('beforeend', '<span class="simple-state"></span>');
+  card.querySelector('.input-listen-row').insertAdjacentHTML('afterbegin', `<button class="input-advanced" aria-label="Ajustes avanzados de pista ${i + 1}">Ajustes</button>`);
+  card.querySelector('.input-advanced').addEventListener('click', () => { setMode('advanced'); card.querySelector('.latency-button').focus(); });
   card.querySelector('.wave-area').insertAdjacentHTML('beforeend', '<div class="countdown" role="status" aria-live="polite" aria-atomic="true" hidden><strong></strong><span>PREPARATE</span></div>');
   const q = s => card.querySelector(s);
   cards.push({ card, canvas: q('canvas'), name: q('.track-name'), status: q('.track-status'), placeholder: q('.wave-placeholder'),
@@ -75,6 +83,109 @@ for (let i = 0; i < 6; i++) {
   q('.track-name').addEventListener('input', e => { names[i] = e.target.value; changed(); });
 }
 
+function setMode(mode, persist = true) {
+  const advanced = mode === 'advanced';
+  document.body.dataset.mode = advanced ? 'advanced' : 'simple';
+  $('#mode-simple').setAttribute('aria-pressed', String(!advanced));
+  $('#mode-advanced').setAttribute('aria-pressed', String(advanced));
+  if (persist && !writeMode(preferenceStorage, mode)) notify('Modo cambiado. Este entorno no permite recordar la preferencia al cerrar.');
+  requestAnimationFrame(drawWaves);
+}
+$('#mode-simple').addEventListener('click', () => setMode('simple'));
+$('#mode-advanced').addEventListener('click', () => setMode('advanced'));
+setMode(document.body.dataset.mode, false);
+
+function diagnosticResult(text, ok = true) {
+  $('#audio-result').textContent = text; $('#audio-result').dataset.ok = String(ok);
+}
+function updateDiagnostics() {
+  if (!$('#audio-dialog').open) return;
+  const busy = diagnosticBusy || ioBusy || inputs.pending >= 0 || !!state.recording;
+  const id = Number($('#audio-track').value);
+  $('#audio-test-input').disabled = busy || !inputs.slots[id];
+  $('#audio-test-output').disabled = busy || state.playing || monitorId >= 0;
+  $('#audio-track').disabled = busy;
+  $('#audio-refresh').disabled = busy;
+  $('#audio-advanced').disabled = busy;
+  const suspended = ctx && ctx.state !== 'running' && ctx.state !== 'closed';
+  $('#audio-recovery').hidden = !suspended; $('#audio-resume').hidden = !suspended;
+  $('#audio-resume').disabled = busy;
+  $('#audio-runtime').textContent = `${desktop ? 'SEIS ' + desktop.version + ' · Windows' + (nativeCapabilities?.windowsBuild ? ' · build ' + nativeCapabilities.windowsBuild : '') : 'SEIS · Navegador'} · ${ctx ? Math.round(ctx.sampleRate) + ' Hz · ' + (ctx.state === 'running' ? 'motor activo' : 'motor ' + ctx.state) : 'El motor se activa al conectar o probar.'}`;
+  $('#audio-test-output').title = state.playing ? 'Detené los loops para probar la salida.' : monitorId >= 0 ? 'Desactivá Escuchar en Avanzado antes de emitir el tono.' : 'Emite un tono suave en la salida elegida, respetando el volumen general.';
+}
+function refreshDiagnosticChecks() {
+  const list = $('#audio-checks'); list.replaceChildren();
+  for (const check of capabilities(window, nativeCapabilities)) {
+    const item = document.createElement('li'), title = document.createElement('strong');
+    title.textContent = `${check.ok ? '✓' : '○'} ${check.title}`;
+    item.classList.toggle('limited', !check.ok); item.append(title, document.createTextNode(check.detail)); list.append(item);
+  }
+  const select = $('#audio-track'), previous = select.value;
+  select.replaceChildren(...names.map((name, id) => new Option(`${name || 'Loop ' + (id + 1)} · ${inputs.slots[id] ? 'conectada' : 'sin conectar'}`, String(id))));
+  const connected = inputs.slots.findIndex(Boolean);
+  select.value = inputs.slots[Number(previous)] ? previous : String(Math.max(0, connected));
+  updateDiagnostics();
+}
+$('#audio-review').addEventListener('click', () => {
+  if (state.recording || ioBusy || inputs.pending >= 0) return;
+  diagnosticResult('Probá una entrada ya conectada mientras tocás o reproducís la app. La prueba de salida emite un tono suave: usá auriculares y volumen bajo.');
+  $('#audio-dialog').showModal(); refreshDiagnosticChecks();
+});
+$('#audio-close').addEventListener('click', () => { diagnosticCancel?.(); $('#audio-dialog').close(); });
+$('#audio-dialog').addEventListener('close', () => { if (!$('#audio-dialog').open) diagnosticCancel?.(); });
+$('#audio-dialog').addEventListener('cancel', () => diagnosticCancel?.());
+$('#audio-track').addEventListener('change', () => { updateDiagnostics(); diagnosticResult('Tocá, hablá o reproducí la aplicación y pulsá Comprobar señal.'); });
+$('#audio-advanced').addEventListener('click', () => { $('#audio-dialog').close(); setMode('advanced'); $('#mode-advanced').focus(); });
+$('#audio-refresh').addEventListener('click', async () => {
+  await withBusy(async () => { await listDevices(); refreshDiagnosticChecks(); diagnosticResult('Lista actualizada. Conectá una entrada desde su loop si aún no lo hiciste.'); });
+});
+$('#audio-resume').addEventListener('click', () => withBusy(async () => { await ensureAudio(); diagnosticResult('Motor reactivado. Las tomas y los ajustes se conservaron.'); }));
+// Diagnostic cancellation works even while resume() is awaiting a user gesture.
+async function runDiagnostic(action) {
+  if (diagnosticBusy || ioBusy || state.recording || inputs.pending >= 0) return;
+  diagnosticBusy = true;
+  const controller = new AbortController();
+  diagnosticCancel = () => controller.abort(); render();
+  try { await action(controller.signal); }
+  catch (error) { if (!controller.signal.aborted) diagnosticResult(audioError(error), false); }
+  finally { if (controller.signal.aborted) diagnosticResult('Prueba cancelada. Las grabaciones se conservaron.'); diagnosticCancel = null; diagnosticBusy = false; render(); }
+}
+$('#audio-test-input').addEventListener('click', () => runDiagnostic(async signal => {
+  const id = Number($('#audio-track').value), slot = inputs.slots[id];
+  if (!slot) { diagnosticResult('Conectá la entrada en su loop antes de probar.', false); return; }
+  await ensureAudio(); if (signal.aborted) return;
+  diagnosticResult('Comprobando 3 segundos… Tocá, hablá o reproducí audio en la aplicación.');
+  let peak = 0;
+  await new Promise(resolve => {
+    const start = performance.now();
+    const finish = () => { clearInterval(timer); signal.removeEventListener('abort', finish); resolve(); };
+    const timer = setInterval(() => { peak = Math.max(peak, inputs.peak(id)); if (performance.now() - start >= 3000 || inputs.slots[id] !== slot) finish(); }, 25);
+    signal.addEventListener('abort', finish, { once: true });
+  });
+  if (signal.aborted) return;
+  const result = signalResult({ ...inputs.configs[id], connected: inputs.slots[id] === slot, peak });
+  diagnosticResult(result.text, result.ok);
+}));
+$('#audio-test-output').addEventListener('click', () => runDiagnostic(async signal => {
+  if (state.playing || monitorId >= 0) { diagnosticResult('Detené los loops y desactivá Escuchar antes de probar la salida.', false); return; }
+  const master = Number($('#master').value) / 100;
+  if (!master) { diagnosticResult('El volumen general está en cero. Subilo para probar la salida.', false); return; }
+  await ensureAudio(); if (signal.aborted) return;
+  const oscillator = ctx.createOscillator(), gain = ctx.createGain(), start = ctx.currentTime;
+  oscillator.frequency.value = 440; gain.gain.value = 0;
+  oscillator.connect(gain); gain.connect(ctx.destination);
+  gain.gain.setValueAtTime(0, start); gain.gain.linearRampToValueAtTime(.035 * master, start + .04);
+  gain.gain.setValueAtTime(.035 * master, start + .9); gain.gain.linearRampToValueAtTime(0, start + 1);
+  diagnosticResult('Emitiendo un tono suave durante un segundo…');
+  await new Promise(resolve => {
+    const finish = () => { clearTimeout(timer); signal.removeEventListener('abort', finish); try { oscillator.stop(); } catch {} oscillator.disconnect(); gain.disconnect(); resolve(); };
+    const timer = setTimeout(finish, 1200);
+    signal.addEventListener('abort', finish, { once: true });
+    oscillator.start(start); oscillator.stop(start + 1.05);
+  });
+  if (!signal.aborted) diagnosticResult('Tono enviado a la salida elegida. Si no lo escuchaste, revisá auriculares, salida y volumen del sistema. SEIS no puede confirmar si lo oíste.');
+}));
+
 function notify(text, error = false) {
   clearTimeout(notificationTimer);
   const el = $('#notification');
@@ -96,13 +207,13 @@ async function ensureAudio(rate) {
       if (!window.AudioContext || !window.AudioWorkletNode) throw Error('Abrí SEIS en una versión actual de Chrome o Edge.');
       const nextCtx = new AudioContext({ latencyHint: 'interactive', ...(rate ? { sampleRate: rate } : {}) });
       try {
-        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.3.0', import.meta.url));
+        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.4.0', import.meta.url));
         const nextNode = new AudioWorkletNode(nextCtx, 'seis-looper', { numberOfInputs: 6, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
         nextNode.port.onmessage = onMessage;
         nextNode.onprocessorerror = () => { notify('El motor de audio se interrumpió. Recargá la página y abrí tu última sesión guardada.', true); };
         nextNode.connect(nextCtx.destination);
         ctx = nextCtx; node = nextNode;
-        ctx.onstatechange = () => { if (ctx.state === 'suspended') notify('Audio suspendido. Pulsá Reproducir para reactivarlo.'); };
+        ctx.onstatechange = () => { if (ctx.state === 'suspended' || ctx.state === 'interrupted') notify('Audio suspendido. Abrí Revisar audio → Reactivar audio para continuar.'); render(); };
         // Apply pre-initialization slider choices.
         send({ type: 'settings', master: $('#master').value / 100, inputGain: 1 });
         cards.forEach((c, id) => send({ type: 'track', id, volume: c.volume.value / 100 }));
@@ -252,7 +363,7 @@ function refreshOptions() {
     c.source.value = value;
   });
   const output = $('#output-device'), selected = output.value;
-  output.replaceChildren(new Option('Salida predeterminada de Windows', ''));
+  output.replaceChildren(new Option('Salida predeterminada del sistema', ''));
   devices.filter(d => d.kind === 'audiooutput' && d.deviceId && d.deviceId !== 'default').forEach((d, i) => output.add(new Option(d.label || 'Salida ' + (i + 1), d.deviceId)));
   if (selected && ![...output.options].some(o => o.value === selected)) output.add(new Option('Salida anterior · no disponible', selected));
   output.value = selected;
@@ -261,7 +372,10 @@ async function listDevices() {
   if (!navigator.mediaDevices?.enumerateDevices) return;
   const results = await Promise.allSettled([navigator.mediaDevices.enumerateDevices(), desktop ? desktopRequest('sources.list') : Promise.resolve(null)]);
   if (results[0].status === 'fulfilled') devices = results[0].value;
-  if (results[1].status === 'fulfilled' && results[1].value) nativeSources = results[1].value.sources;
+  if (results[1].status === 'fulfilled' && results[1].value) {
+    nativeSources = results[1].value.sources;
+    nativeCapabilities = { ...desktop, ...results[1].value.capabilities };
+  }
   refreshOptions();
   const failure = results.find(result => result.status === 'rejected'); if (failure) throw failure.reason;
 }
@@ -277,21 +391,18 @@ async function connectInput(id) {
     const kind = inputs.configs[id].kind;
     notify(kind === 'system' || (kind === 'native' && inputs.configs[id].deviceId.startsWith('out:')) ? 'Salida loopback conectada: incluye todo lo que suene por esa salida, también SEIS. Para aislar una app, elegí su entrada de aplicación.' : 'Entrada del Loop ' + (id + 1) + ' lista. Revisá el medidor antes de grabar.');
   } catch (e) {
-    const message = e.name === 'NotAllowedError' ? 'No se autorizó la entrada o se canceló la selección. Podés volver a conectar.' :
-      e.name === 'NotFoundError' || e.name === 'OverconstrainedError' ? 'La entrada elegida no está disponible. Revisá el dispositivo y actualizá la lista.' :
-      e.name === 'NotReadableError' ? 'No se pudo abrir la entrada. Revisá los permisos o si otra aplicación usa el dispositivo en modo exclusivo.' : e.message;
-    notify(message, true);
+    notify(audioError(e), true);
   } finally { render(); }
 }
 
 async function actTrack(id) {
-  if (ioBusy || inputs.pending >= 0) return;
+  if (ioBusy || diagnosticBusy || inputs.pending >= 0) return;
   const r = state.recording;
   if (r?.id === id) { send({ type: !r.armed && !r.countdownFrames ? 'finish' : 'cancel' }); return; }
   if (r) { notify('Terminá o cancelá la grabación actual antes de grabar otra pista.'); return; }
   if (state.tracks[id].hasAudio) { send({ type: 'track', id, muted: !state.tracks[id].muted }); return; }
   if (!inputs.slots[id]) { notify('Elegí una fuente y pulsá Conectar en el Loop ' + (id + 1) + '.'); cards[id].connect.focus(); return; }
-  if (inputs.configs[id].muted || inputs.configs[id].gain === 0) { notify('La entrada de esta pista está en silencio. Activala y subí su nivel antes de grabar.', true); return; }
+  if (inputs.configs[id].muted || inputs.configs[id].gain === 0) { notify('La entrada está en silencio. Abrí Ajustes o Avanzado, activá Entrada y subí su nivel antes de grabar.', true); return; }
   if (monitorId !== id) setMonitor(-1);
   try {
     await ensureAudio(); const latency = trackLatency(id);
@@ -316,9 +427,11 @@ async function handleSpace() {
 
 function render() {
   const r = state.recording;
+  $('#audio-review').disabled = ioBusy || inputs.pending >= 0 || !!r;
+  updateDiagnostics();
   const counting = !!r?.countdownFrames;
   const secondsLeft = counting ? Math.ceil(r.countdownFrames / state.rate) : 0;
-  const busy = ioBusy || inputs.pending >= 0;
+  const busy = ioBusy || diagnosticBusy || inputs.pending >= 0;
   const hasAudio = state.tracks.some(t => t.hasAudio);
   const anySolo = state.tracks.some(t => t.hasAudio && t.solo);
   const connected = inputs.slots.filter(Boolean).length;
@@ -373,6 +486,14 @@ function render() {
     c.listen.disabled = !connected || busy || (!!r && !recording) || config.kind === 'system' || (config.kind === 'native' && config.deviceId.startsWith('out:'));
     c.card.querySelector('.input-apply').disabled = busy || !!r;
     const latency = trackLatency(i), syncButton = c.card.querySelector('.latency-button');
+    const simpleInfo = [!connected ? 'Sin conectar' : config.muted || config.gain === 0 ? 'Entrada silenciada' : 'Entrada conectada'];
+    if (monitorId === i) simpleInfo.push('Escucha activa');
+    if (config.gain !== 1 && config.gain > 0) simpleInfo.push(`Nivel ${Math.round(config.gain * 100)}%`);
+    if (track.solo) simpleInfo.push('Solo activo');
+    if (connected && latency.ready && latency.ms > 0) simpleInfo.push(`${latency.ms.toFixed(1)} ms`);
+    else if (connected && latency.label === 'Revisar ruta') simpleInfo.push('Recalibrar');
+    const simpleState = c.card.querySelector('.simple-state');
+    simpleState.textContent = simpleInfo.join(' · '); simpleState.title = simpleState.textContent;
     syncButton.disabled = busy || !!r;
     syncButton.textContent = connected && latency.ready && latency.ms > 0 ? `${latency.ms.toFixed(1)} ms` : connected && latency.label === 'Revisar ruta' ? 'Recalibrar' : 'Sincronizar';
     syncButton.title = connected ? `${latency.label}: ${latency.detail}` : 'Conectá una entrada para medir o ajustar su latencia.';
@@ -462,7 +583,7 @@ $('#disconnect-inputs').addEventListener('click', () => { setMonitor(-1); inputs
 $('#output-device').addEventListener('change', () => withBusy(async () => {
   const selected = $('#output-device').value;
   try { await ensureAudio(); await ctx.setSinkId(selected); notify('Salida de reproducción actualizada.'); }
-  catch (e) { $('#output-device').value = typeof ctx?.sinkId === 'string' ? ctx.sinkId : ''; throw e; }
+  catch (e) { $('#output-device').value = typeof ctx?.sinkId === 'string' ? ctx.sinkId : ''; throw Error(audioError(e, true)); }
 }));
 $('#play').addEventListener('click', togglePlay);
 $('#stop').addEventListener('click', () => send({ type: 'stop' }));
@@ -528,19 +649,21 @@ $('#demo').addEventListener('click', async () => {
 });
 
 document.addEventListener('keydown', e => {
+  if (document.activeElement?.closest('dialog[open]')) return;
   if (e.ctrlKey || e.altKey || e.metaKey || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
   // Suppress native activation even when a Delete/Cancel button has keyboard focus.
   if (e.code === 'Space') e.preventDefault();
-  if (e.repeat || ioBusy || $('#confirm').open || $('#latency-dialog').open) return;
+  if (e.repeat || ioBusy || $('dialog[open]')) return;
   if (e.code === 'Space') handleSpace();
   if (/^[1-6]$/.test(e.key)) { e.preventDefault(); actTrack(Number(e.key) - 1); }
   if (e.code === 'Escape' && state.recording) { send({ type: 'cancel' }); }
 });
 document.addEventListener('keyup', e => {
+  if ($('dialog[open]')) return;
   if (e.code === 'Space' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) e.preventDefault();
 });
 window.addEventListener('beforeunload', e => { if (dirty || state.recording) { e.preventDefault(); e.returnValue = ''; } });
-window.addEventListener('pagehide', () => { measurementAbort?.abort(); inputs.disconnectAll(); ctx?.close(); });
+window.addEventListener('pagehide', () => { diagnosticCancel?.(); measurementAbort?.abort(); inputs.disconnectAll(); ctx?.close(); });
 navigator.mediaDevices?.addEventListener('devicechange', () => listDevices().catch(() => {}));
 refreshOptions(); if (!desktop) listDevices().catch(() => {});
 window.seisHasUnsavedChanges = () => dirty || !!state.recording;

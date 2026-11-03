@@ -72,7 +72,7 @@ internal sealed class StudioWindow : Form
                     using var message = JsonDocument.Parse(e.WebMessageAsJson); var root = message.RootElement;
                     id = root.GetProperty("id").GetInt32(); string? action = root.GetProperty("action").GetString(); var args = root.GetProperty("args");
                     object? result = action switch {
-                        "sources.list" => new { sources = audio.Sources(), version = Program.Version },
+                        "sources.list" => await ListSourcesAsync(),
                         "capture.start" => await audio.StartAsync(args.GetProperty("captureId").GetString()!, args.GetProperty("sourceId").GetString()!),
                         "capture.stop" => await StopAsync(args.GetProperty("captureId").GetString()!),
                         "about.show" => ShowAbout(),
@@ -90,21 +90,31 @@ internal sealed class StudioWindow : Form
             ready = true; core.Navigate(Origin + "/loop/"); timer.Start();
         } catch (Exception error) {
             if (smokeReport != null) { File.WriteAllText(smokeReport, JsonSerializer.Serialize(new { error = error.ToString() })); closingAllowed = true; Close(); return; }
-            MessageBox.Show(this, "No se pudo abrir SEIS. Necesita Microsoft Edge WebView2 Runtime instalado.\n\nDescarga oficial: https://developer.microsoft.com/microsoft-edge/webview2/\n\n" + error.Message, "SEIS · Inicio", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            bool missingRuntime = error is WebView2RuntimeNotFoundException;
+            var recovery = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, Padding = new Padding(32), AutoScroll = true, ForeColor = Color.White };
+            recovery.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(680, 0), Font = new Font("Segoe UI", 14), Text = missingRuntime ? "Falta Microsoft Edge WebView2 Runtime para abrir SEIS." : "No se pudo iniciar SEIS. Podés usar la versión web mientras revisás el problema." });
+            recovery.Controls.Add(new Label { AutoSize = true, MaximumSize = new Size(680, 0), Text = missingRuntime ? "Abrí la descarga oficial de Microsoft, instalá WebView2 y volvé a abrir SEIS. No hace falta instalar .NET. Tus archivos guardados se conservan." : error.Message });
+            if (missingRuntime) {
+                var runtimeButton = new Button { AutoSize = true, Text = "Abrir descarga oficial de WebView2", Padding = new Padding(8), BackColor = Color.FromArgb(45, 57, 44), ForeColor = Color.White, UseVisualStyleBackColor = false };
+                runtimeButton.Click += (_, _) => OpenWebsite("https://developer.microsoft.com/microsoft-edge/webview2/"); recovery.Controls.Add(runtimeButton);
+            }
+            var webButton = new Button { AutoSize = true, Text = "Usar SEIS en el navegador", Padding = new Padding(8), BackColor = Color.FromArgb(45, 57, 44), ForeColor = Color.White, UseVisualStyleBackColor = false };
+            webButton.Click += (_, _) => OpenWebsite("https://emanuelmkt.com.ar/loop/"); recovery.Controls.Add(webButton);
+            Controls.Add(recovery); recovery.BringToFront();
         }
     }
     async Task SmokeTestAsync()
     {
         try {
             for (int i = 0; i < 60; i++) {
-                string value = await view.CoreWebView2.ExecuteScriptAsync("JSON.stringify({version:window.seisDesktop?.version,tracks:document.querySelectorAll('.track').length,nativeOptions:document.querySelectorAll('#source-0 option[value^=\"native:\"]').length,outputOptions:document.querySelectorAll('#output-device option').length,applyButtons:document.querySelectorAll('.input-apply').length,latencyButtons:document.querySelectorAll('.latency-button').length,deskVisible:[...document.querySelectorAll('.track,.transport')].every(e=>{const r=e.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&e.scrollHeight<=e.clientHeight+1}),offline:location.origin==='https://seis.desktop.invalid',downloadHidden:document.querySelector('#desktop-download')?.hidden})");
+                string value = await view.CoreWebView2.ExecuteScriptAsync("JSON.stringify({modeControls:document.querySelectorAll('.mode-switch button').length,diagnosticReady:!!document.querySelector('#audio-test-input'),mode:document.body.dataset.mode,version:window.seisDesktop?.version,tracks:document.querySelectorAll('.track').length,nativeOptions:document.querySelectorAll('#source-0 option[value^=\"native:\"]').length,outputOptions:document.querySelectorAll('#output-device option').length,applyButtons:document.querySelectorAll('.input-apply').length,latencyButtons:document.querySelectorAll('.latency-button').length,deskVisible:[...document.querySelectorAll('.track,.transport')].every(e=>{const r=e.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&e.scrollHeight<=e.clientHeight+1}),offline:location.origin==='https://seis.desktop.invalid',downloadHidden:document.querySelector('#desktop-download')?.hidden})");
                 string json = JsonSerializer.Deserialize<string>(value) ?? "{}";
                 using var report = JsonDocument.Parse(json);
                 if (report.RootElement.GetProperty("tracks").GetInt32() == 6 && report.RootElement.GetProperty("nativeOptions").GetInt32() > 0) {
-                    if (!report.RootElement.GetProperty("deskVisible").GetBoolean() || report.RootElement.GetProperty("latencyButtons").GetInt32() != 6) throw new Exception("La vista compacta no muestra todos los controles.");
+                    if (!report.RootElement.GetProperty("deskVisible").GetBoolean() || report.RootElement.GetProperty("latencyButtons").GetInt32() != 6 || report.RootElement.GetProperty("modeControls").GetInt32() != 2 || !report.RootElement.GetProperty("diagnosticReady").GetBoolean()) throw new Exception("La vista compacta no muestra todos los controles.");
                     // No recording or playback: only load the embedded audio
                     // modules, which must work without any network connection.
-                    string worklet = await view.CoreWebView2.ExecuteScriptAsync("(async()=>{try{const c=new AudioContext();await c.audioWorklet.addModule('./processor.js?v=1.3.0');await c.audioWorklet.addModule('./native-processor.js?v=1.3.0');await c.audioWorklet.addModule('./latency-processor.js?v=1.3.0');await c.close();document.documentElement.dataset.workletTest='ok'}catch(e){document.documentElement.dataset.workletTest=e.message}})();'started'");
+                    string worklet = await view.CoreWebView2.ExecuteScriptAsync("(async()=>{try{const c=new AudioContext();await c.audioWorklet.addModule('./processor.js?v=1.4.0');await c.audioWorklet.addModule('./native-processor.js?v=1.4.0');await c.audioWorklet.addModule('./latency-processor.js?v=1.4.0');await c.close();document.documentElement.dataset.workletTest='ok'}catch(e){document.documentElement.dataset.workletTest=e.message}})();'started'");
                     for (int attempt = 0; attempt < 40; attempt++) {
                         string state = await view.CoreWebView2.ExecuteScriptAsync("document.documentElement.dataset.workletTest || ''");
                         if (state == "\"ok\"") { File.WriteAllText(smokeReport!, json); return; }
@@ -118,6 +128,11 @@ internal sealed class StudioWindow : Form
             throw new Exception("La interfaz o las fuentes nativas no terminaron de cargar.");
         } catch (Exception error) { File.WriteAllText(smokeReport!, JsonSerializer.Serialize(new { error = error.ToString() })); }
         finally { timer.Stop(); closingAllowed = true; Close(); }
+    }
+    async Task<object> ListSourcesAsync()
+    {
+        await audio.DetectCapabilitiesAsync();
+        return new { sources = audio.Sources(), version = Program.Version, capabilities = new { processCapture = audio.ProcessCaptureSupported, windowsBuild = Environment.OSVersion.Version.Build } };
     }
     async Task<object> StopAsync(string id) { await audio.StopAsync(id); return new { stopped = true }; }
     object ShowAbout()
@@ -133,7 +148,9 @@ internal sealed class StudioWindow : Form
     }
     static void OpenWebsite(string url)
     {
-        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.Host == "emanuelmkt.com.ar" && uri.AbsolutePath.StartsWith("/loop"))
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == "https" &&
+            ((uri.Host == "emanuelmkt.com.ar" && uri.AbsolutePath.StartsWith("/loop")) ||
+             (uri.Host == "developer.microsoft.com" && uri.AbsolutePath == "/microsoft-edge/webview2/")))
             Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
     }
     void Send(object data)

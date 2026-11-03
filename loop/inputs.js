@@ -1,4 +1,4 @@
-import { latencyConfig } from './latency.js?v=1.3.0';
+import { latencyConfig } from './latency.js?v=1.4.0';
 export const INPUT_KINDS = ['device', 'window', 'tab', 'system', 'native'];
 export function inputConfig(value) {
   if (value == null) return { kind: 'device', deviceId: '', label: '', gain: 1, muted: false, latency: latencyConfig() };

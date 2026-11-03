@@ -10,7 +10,13 @@ document.querySelector('#prepare').onclick = async () => {
   document.body.prepend(note);
   document.querySelector('#master').value = 0;
   document.querySelector('#master-value').textContent = '0%';
+  localStorage.setItem('seis.interface-mode', 'simple');
   let testContext, noAudio = false, lastCapture;
+  let appContext;
+  const NativeAudioContext = window.AudioContext;
+  window.AudioContext = class extends NativeAudioContext {
+    constructor(options) { super(options); if (options?.latencyHint === 'interactive') appContext = this; }
+  };
   const createSignal = async (level = .15) => {
     testContext ||= new AudioContext(); await testContext.resume();
     const oscillator = testContext.createConstantSource(); oscillator.offset.value = level;
@@ -34,7 +40,7 @@ document.querySelector('#prepare').onclick = async () => {
     { kind: 'audioinput', deviceId: 'qa-focusrite', label: 'Focusrite · señal de prueba' }
   ] });
   window.addEventListener('pagehide', () => testContext?.close());
-  await import('../app.js?v=1.3.0');
+  await import('../app.js?v=1.4.0');
   const run = document.createElement('button'); run.textContent = 'Verificar fuentes y teclas'; note.append(document.createElement('br'), run);
   const results = document.createElement('pre'); results.id = 'ui-results'; results.style.whiteSpace = 'pre-wrap'; note.append(results);
   run.onclick = async () => {
@@ -51,7 +57,32 @@ document.querySelector('#prepare').onclick = async () => {
     const change = (element, value, event = 'change') => { element.value = value; element.dispatchEvent(new Event(event, { bubbles: true })); };
     const space = () => { document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', key: ' ', bubbles: true, cancelable: true })); document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', key: ' ', bubbles: true, cancelable: true })); };
     try {
+      assert(document.body.dataset.mode === 'simple' && $('#mode-simple').getAttribute('aria-pressed') === 'true', 'Primer inicio en modo Simple');
+      $('#audio-review').click();
+      assert($('#audio-dialog').open && $('#audio-test-input').disabled, 'Diagnóstico no captura entradas sin conectar');
+      $('#audio-close').focus(); space();
+      assert(!track(0).classList.contains('is-recording') && track(0).querySelector('.countdown').hidden, 'Espacio dentro de Revisar audio no graba ni borra');
+      $('#audio-test-output').click(); await wait(() => $('#audio-result').textContent.includes('en cero'));
+      assert($('#audio-result').dataset.ok === 'false', 'La prueba de salida respeta el volumen general en cero');
+      // One percent master keeps the diagnostic tone below -69 dBFS.
+      change($('#master'), '1', 'input'); $('#audio-test-output').click();
+      await wait(() => $('#audio-result').textContent.startsWith('Tono enviado'));
+      assert($('#audio-result').dataset.ok === 'true', 'Prueba de salida completa su tono con el motor real y libera los controles');
+      $('#audio-test-output').click(); $('#audio-close').click();
+      await wait(() => $('#audio-result').textContent.startsWith('Prueba cancelada'));
+      assert(!$('#audio-dialog').open, 'Cerrar interrumpe la prueba de salida');
+      change($('#master'), '0', 'input');
+      $('#audio-close').click();
+      $('#mode-advanced').click();
+      assert(document.body.dataset.mode === 'advanced' && localStorage.getItem('seis.interface-mode') === 'advanced', 'Avanzado queda recordado sin iniciar captura');
+      assert(getComputedStyle(track(0).querySelector('.latency-button')).display !== 'none', 'Avanzado muestra los controles de sincronización');
       track(0).querySelector('.input-connect').click(); await wait(() => track(0).classList.contains('input-connected'));
+      $('#audio-review').click(); $('#audio-test-input').click();
+      await wait(() => $('#audio-result').textContent.startsWith('Señal recibida'));
+      assert($('#audio-result').dataset.ok === 'true', 'Diagnóstico recibe señal real del grafo durante tres segundos');
+      $('#audio-test-input').click(); $('#audio-close').click();
+      await wait(() => $('#audio-result').textContent.startsWith('Prueba cancelada'));
+      assert(track(0).classList.contains('input-connected'), 'Cancelar diagnóstico libera la prueba y conserva la entrada');
       change(track(1).querySelector('.source-select'), 'device:qa-focusrite'); track(1).querySelector('.input-connect').click();
       await wait(() => track(1).classList.contains('input-connected'));
       change(track(2).querySelector('.source-select'), 'window'); track(2).querySelector('.input-connect').click();
@@ -88,7 +119,7 @@ document.querySelector('#prepare').onclick = async () => {
       URL.createObjectURL = blob => { savedBlob = blob; return originalCreate(blob); };
       HTMLAnchorElement.prototype.click = function () {};
       try { $('#save').click(); await wait(() => savedBlob); } finally { URL.createObjectURL = originalCreate; HTMLAnchorElement.prototype.click = originalClick; }
-      const { decodeSession, encodeSession } = await import('../files.js?v=1.3.0');
+      const { decodeSession, encodeSession } = await import('../files.js?v=1.4.0');
       const binary = await savedBlob.arrayBuffer(), saved = decodeSession(binary);
       const expected = [.15, .175, .55];
       assert(saved.tracks.slice(0, 3).every((t, i) => Math.abs(t.samples[Math.floor(t.samples.length / 2)] - expected[i]) < .002), 'La sesión descargada contiene micrófono, placa al 50% y aplicación sin mezclarlos');
@@ -120,6 +151,19 @@ document.querySelector('#prepare').onclick = async () => {
       assert([...document.querySelectorAll('.input-gain')].every(gain => gain.value === '50') && [...document.querySelectorAll('.input-mute')].every(button => button.getAttribute('aria-pressed') === 'true'), 'Aplicar a todas copia ganancia y silencio de entrada');
       assert(document.querySelectorAll('.has-audio').length === 3 && [...document.querySelectorAll('.volume')].every(gain => gain.value === '80'), 'Aplicar a todas conserva tomas y volúmenes de reproducción');
       assert([...document.querySelectorAll('.latency-button')].every(button => button.textContent === '50.0 ms'), 'Aplicar a todas comparte también la compensación de la misma ruta');
+      track(1).querySelector('.solo').click();
+      await wait(() => track(1).querySelector('.solo').getAttribute('aria-pressed') === 'true');
+      $('#mode-simple').click();
+      assert(document.querySelectorAll('.has-audio').length === 3 && [...document.querySelectorAll('.input-gain')].every(gain => gain.value === '50'), 'Volver a Simple conserva tomas y ganancias avanzadas');
+      assert(getComputedStyle(track(1).querySelector('.input-gain')).display === 'none' && getComputedStyle(track(1).querySelector('.source-select')).display !== 'none', 'Simple oculta ajustes técnicos y conserva la selección de fuente');
+      assert(track(1).querySelector('.simple-state').textContent.includes('Entrada silenciada') && track(1).querySelector('.simple-state').textContent.includes('Solo activo'), 'Simple hace visibles los ajustes activos que afectan la señal');
+      track(1).querySelector('.input-advanced').click();
+      assert(document.body.dataset.mode === 'advanced' && track(1).querySelector('.latency-button').textContent === '50.0 ms', 'Ajustes lleva a Avanzado conservando la compensación');
+      await appContext.suspend(); $('#audio-review').click();
+      await wait(() => !$('#audio-resume').hidden); $('#audio-resume').click();
+      await wait(() => appContext.state === 'running' && $('#audio-result').textContent.startsWith('Motor reactivado'));
+      assert(document.querySelectorAll('.has-audio').length === 3 && $('#inputs-status').textContent.startsWith('6 / 6'), 'Reactivar el motor suspendido conserva las tomas y conexiones');
+      $('#audio-close').click();
       $('#disconnect-inputs').click();
       results.textContent += '\nRESULTADO: ' + checks + ' comprobaciones correctas.';
     } catch (e) { results.textContent += 'ERROR: ' + (e.stack || e.message); }

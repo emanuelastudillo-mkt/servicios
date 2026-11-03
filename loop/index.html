@@ -10,15 +10,17 @@
   <base href="/loop/">
   <title>SEIS · Looper de audio</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=1.3.0">
-  <link rel="stylesheet" href="./compact.css?v=1.3.0">
-  <script type="module" src="./app.js?v=1.3.0"></script>
+  <link rel="stylesheet" href="./style.css?v=1.4.0">
+  <link rel="stylesheet" href="./compact.css?v=1.4.0">
+  <link rel="stylesheet" href="./experience.css?v=1.4.0">
+  <script type="module" src="./app.js?v=1.4.0"></script>
 </head>
-<body>
+<body data-mode="simple">
   <div class="shell">
     <header>
       <a class="brand" href="./" aria-label="SEIS, inicio"><span class="brand-icon" aria-hidden="true">ⅢⅢ</span><span>SEIS<span class="brand-sub">LOOP STUDIO</span></span></a>
       <div class="session-name"><label for="session-title">SESIÓN</label><input id="session-title" value="Mi primera sesión" maxlength="80" aria-label="Nombre de la sesión"><span id="dirty" title="Cambios sin guardar" hidden>●</span></div>
+      <div class="mode-switch" role="group" aria-label="Modo de uso"><button id="mode-simple" aria-pressed="true" title="Controles esenciales para grabar y reproducir">Simple</button><button id="mode-advanced" aria-pressed="false" title="Todos los ajustes de entrada y mezcla">Avanzado</button></div>
       <nav aria-label="Archivos de sesión"><button id="new" class="quiet">Nueva</button><button id="open" class="quiet">Abrir</button><button id="save">↓ Guardar sesión</button></nav>
       <input id="file" type="file" accept=".seisloop" hidden>
     </header>
@@ -33,11 +35,11 @@
 
       <section class="audio-strip" aria-label="Entrada y salida de audio">
         <div class="input-summary"><strong>SEIS ENTRADAS · UNA POR LOOP</strong><span id="inputs-status">0 / 6 entradas conectadas</span><div><button id="refresh-devices">Actualizar dispositivos</button><button id="disconnect-inputs" disabled>Desconectar entradas</button></div></div>
-        <div class="output-control"><label for="output-device">SALIDA DE REPRODUCCIÓN</label><select id="output-device"><option value="">Salida predeterminada de Windows</option></select><small id="output-hint">Elegí tus auriculares o tu interfaz de audio.</small></div>
+        <div class="output-control"><label for="output-device">SALIDA DE REPRODUCCIÓN</label><select id="output-device"><option value="">Salida predeterminada del sistema</option></select><small id="output-hint">Elegí tus auriculares o tu interfaz de audio.</small></div>
         <div class="gain-control master"><label for="master">Salida <output id="master-value">75%</output></label><div class="range-meter"><input id="master" type="range" min="0" max="100" value="75" aria-label="Volumen general"><div class="meter" role="meter" aria-label="Nivel de salida" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="output-meter"></i></div></div></div>
       </section>
 
-      <div class="section-label"><h2>TUS LOOPS <span>GRABÁ · REPETÍ · SUMÁ</span></h2><button id="undo" class="text-button" disabled>↶ Deshacer borrado</button></div>
+      <div class="section-label"><h2>TUS LOOPS <span>GRABÁ · REPETÍ · SUMÁ</span></h2><div class="audio-tools"><button id="audio-review">Revisar audio</button><button id="undo" class="text-button" disabled>↶ Deshacer borrado</button></div></div>
       <section id="tracks" class="tracks" aria-label="Seis pistas de loop"></section>
       </div>
 
@@ -47,14 +49,26 @@
       </section>
       <details class="help"><summary>Guía rápida y ajustes <span>?</span></summary>      <p class="source-guide">En cada loop elegí un micrófono, una entrada de tu placa o <b>Aplicación / ventana</b> para abrir el selector del navegador. Activá <b>Compartir audio</b> si aparece. La disponibilidad depende de Chrome/Edge, Windows y el controlador de audio.</p><div class="help-content"><div><h3>De una idea a un loop</h3><ol><li>Usá auriculares. Elegí la fuente de cada pista y pulsá <b>Conectar</b>. Comprobá su medidor.</li><li>Pulsá <b>Grabar</b> en una pista. El <b>Loop 1</b> cuenta 3, 2, 1 antes de empezar. Volvé a pulsar para cerrar el primer loop.</li><li>Grabá otra pista: espera la próxima vuelta y termina sola al completar el ciclo.</li><li>Combiná las pistas con <b>Silenciar</b>, <b>Solo</b> y sus volúmenes.</li></ol></div><div><h3>Todo a mano</h3><p><kbd>1</kbd> a <kbd>6</kbd> graban una pista vacía o silencian una grabada. <kbd>Espacio</kbd> inicia la primera pista vacía o cierra la grabación conservando el audio. Durante la cuenta no cancela. Con seis pistas completas, reproduce o detiene sin borrar. <kbd>Esc</kbd> cancela una grabación.</p><p><b>Guardar sesión</b> conserva las 6 pistas, sus niveles y fuentes asignadas (requieren reconectar al abrir) en un archivo .seisloop. <b>WAV</b> exporta la mezcla audible, incluyendo silencios, solos y volumen de salida. Guardá antes de cerrar.</p></div><div><h3>Pro Tools, Edge y tu placa</h3><p>Para capturar una pestaña de Edge, abrí SEIS también en Edge y compartí esa pestaña con audio. Para Pro Tools, probá <b>Aplicación / ventana</b>. Si el navegador no ofrece audio de esa ventana, usá una entrada <b>Loopback</b> de tu placa o un dispositivo virtual ya configurado. Solo aparecen dispositivos que Windows expone como entradas; una salida Focusrite no es automáticamente una entrada de grabación.</p><p><b>Todo el audio del sistema</b> también captura los loops que estén sonando. No aísla aplicaciones. La escucha de esa entrada está deshabilitada para evitar realimentación.</p><p>El navegador puede pedir compartir imagen para habilitar el sonido: SEIS procesa únicamente audio. No guarda ni transmite la imagen.</p><h3>Alinear nuevas capas</h3><p>En cada pista, <b>Sincronizar</b> permite compensar la latencia de esa entrada y la salida elegida. Usá <b>Medir retorno</b> para calibrar el recorrido real; también podés ingresar el total en milisegundos. Repetí la medición si cambiás el búfer, los efectos o la ruta de Pro Tools. La calibración alinea las tomas nuevas; no elimina el retardo al escucharte.</p><p>La grabación es mono. Máximo: 120 segundos por loop. Sin efectos ni cambios de tempo.</p></div></div></details>
     </main>
-    <footer><span>SEIS / v1.3.0 <span class="footer-divider">·</span> Hecho para darle otra vuelta.</span><button id="demo" class="text-button">♫ Escuchar demo sin micrófono</button></footer>
+    <footer><span>SEIS / v1.4.0 <span class="footer-divider">·</span> Hecho para darle otra vuelta.</span><button id="demo" class="text-button">♫ Escuchar demo sin micrófono</button></footer>
       <section class="desktop-banner" aria-label="Versión de escritorio">
-        <div><strong id="desktop-title">SEIS 1.3.0 para Windows</strong><span id="desktop-description">Versión portátil x64 · Aplicaciones y salidas de audio nativas · Requiere WebView2</span></div>
-        <a id="desktop-download" class="download-button" href="https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.3.0/SEIS-1.3.0-Windows-x64.exe">↓ Descargar última versión de escritorio</a>
+        <div><strong id="desktop-title">SEIS 1.4.0 para Windows</strong><span id="desktop-description">Versión portátil x64 · Aplicaciones y salidas de audio nativas · Requiere WebView2</span></div>
+        <a id="desktop-download" class="download-button" href="https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.4.0/SEIS-1.4.0-Windows-x64.exe">↓ Descargar última versión de escritorio</a>
         <a id="desktop-updates" class="download-button" href="https://emanuelmkt.com.ar/loop/" hidden>Ver actualizaciones</a>
       </section>
   </div>
   <div id="notification" role="status" aria-live="polite" hidden></div>
+  <dialog id="audio-dialog" aria-labelledby="audio-title">
+    <div class="dialog-heading"><h2 id="audio-title">Dejá el audio listo</h2><button id="audio-close" aria-label="Cerrar revisión de audio">×</button></div>
+    <p>1. Elegí la fuente y pulsá <b>Conectar</b> en un loop. 2. Comprobá la señal acá. 3. Probá la salida y empezá a grabar.</p>
+    <p id="audio-runtime"></p><ul id="audio-checks"></ul>
+    <p id="audio-recovery" class="audio-recovery" hidden>El audio está suspendido. Podés reactivarlo sin borrar las tomas.</p>
+    <div class="audio-test"><label for="audio-track">Entrada a comprobar</label> <select id="audio-track" aria-label="Entrada a comprobar"></select>
+      <div class="dialog-actions"><button id="audio-test-input">Comprobar señal · 3 s</button><button id="audio-test-output">Probar salida · 1 s</button><button id="audio-resume" hidden>Reactivar audio</button></div>
+      <p id="audio-result" role="status" aria-live="polite">La prueba de señal usa una entrada ya conectada. No guarda audio. La prueba de salida emite un tono suave: usá auriculares y volumen bajo.</p>
+    </div>
+    <div class="audio-test"><p><b>Simple</b> reúne los controles esenciales. <b>Avanzado</b> agrega Solo, ganancia, silencio y escucha de entrada, y sincronización por pista. Cambiar de modo conserva todos los ajustes y las tomas.</p><div class="dialog-actions"><button id="audio-advanced">Ir a Avanzado</button><button id="audio-refresh">Actualizar dispositivos</button></div></div>
+    <details class="calibration-guide"><summary>Si Pro Tools no entrega audio</summary><p>Reproducí audio en Pro Tools y revisá su salida. Si usa ASIO, la captura por aplicación de Windows puede recibir silencio: necesitás un retorno físico o virtual compatible. La Scarlett 2i2 de 3.ª generación no tiene loopback interno. Una app listada no garantiza que entregue señal.</p><p>Después de resolver la entrada, usá <b>Avanzado → Sincronizar</b> para alinear las capas. Repetí la medición al cambiar el búfer, la salida o los efectos. SEIS no instala controladores ni cambia la configuración de Pro Tools.</p></details>
+  </dialog>
   <dialog id="latency-dialog" aria-labelledby="latency-title">
     <div class="dialog-heading"><h2 id="latency-title">Sincronizar capas</h2><button id="latency-close" aria-label="Cerrar ajuste de latencia">×</button></div>
     <p id="latency-source"></p>

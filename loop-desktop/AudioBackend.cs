@@ -9,6 +9,33 @@ namespace SeisDesktop;
 internal sealed record AudioSource(string id, string label, string group);
 internal sealed class AudioBackend : IAsyncDisposable
 {
+    // Capability, not an OS-version guess: some Windows 10 installations can
+    // activate process loopback below the minimum build in Microsoft's sample.
+    public bool? ProcessCaptureSupported { get; private set; }
+    Task? capabilityProbe;
+    public Task DetectCapabilitiesAsync() => capabilityProbe ??= ProbeProcessCaptureAsync();
+    static async Task<WasapiRecorder> OpenProbeAsync() => await new WasapiRecorderBuilder()
+        .WithProcessLoopback((uint)Environment.ProcessId, ProcessLoopbackMode.IncludeTargetProcessTree)
+        .WithFormat(WaveFormat.CreateIeeeFloatWaveFormat(48000, 2)).BuildAsync();
+    static async Task DisposeLateProbeAsync(Task<WasapiRecorder> pending)
+    {
+        try { await using var recorder = await pending; } catch { /* No capture was started. */ }
+    }
+    async Task ProbeProcessCaptureAsync()
+    {
+        try {
+            var pending = OpenProbeAsync();
+            if (await Task.WhenAny(pending, Task.Delay(3000)) != pending) { _ = DisposeLateProbeAsync(pending); return; }
+            // Activation only, targeting SEIS itself. No recording, microphone,
+            // other application's samples, tone or device settings are used.
+            await using var recorder = await pending;
+            ProcessCaptureSupported = true;
+        } catch (Exception error) {
+            if (error is PlatformNotSupportedException or NotSupportedException ||
+                error.HResult == unchecked((int)0x80004001) || error.HResult == unchecked((int)0x80004002) || error.HResult == unchecked((int)0x80070032)) ProcessCaptureSupported = false;
+            // A temporary device failure is unknown, not proof of incompatibility.
+        }
+    }
     sealed class Capture
     {
         public required WasapiRecorder Recorder; public MMDevice? Device;
@@ -33,6 +60,7 @@ internal sealed class AudioBackend : IAsyncDisposable
                 } catch (COMException) { /* A removed endpoint must not hide other sources. */ }
             }
         }
+        if (ProcessCaptureSupported == false) return result.OrderBy(source => source.label, StringComparer.CurrentCultureIgnoreCase).ToArray();
         foreach (var process in Process.GetProcesses()) using (process) {
             try { if (process.MainWindowHandle != IntPtr.Zero) processIds.Add(process.Id); } catch { /* Protected/exited process. */ }
         }
@@ -51,6 +79,8 @@ internal sealed class AudioBackend : IAsyncDisposable
 
     public async Task<object> StartAsync(string id, string sourceId)
     {
+        if (sourceId.StartsWith("app:", StringComparison.Ordinal) && ProcessCaptureSupported == false)
+            throw new InvalidOperationException("Windows no admite la captura por aplicación en este entorno. Usá una entrada física, virtual o el audio completo de una salida.");
         if (!Guid.TryParse(id, out _) || captures.Count >= 6 || captures.ContainsKey(id)) throw new InvalidOperationException("Límite de entradas o identificador inválido.");
         // Re-enumerate: a saved PID is not permission to capture a different,
         // newly-created process that reused that number.
@@ -129,6 +159,7 @@ internal sealed class AudioBackend : IAsyncDisposable
     {
         using var enumerator = new MMDeviceEnumerator();
         await using var backend = new AudioBackend(_ => {});
+        await backend.DetectCapabilitiesAsync();
         var sources = backend.Sources();
         bool processActivation = false; string? processError = null; int capturedFrames = 0; float peak = 0;
         try {
@@ -147,7 +178,7 @@ internal sealed class AudioBackend : IAsyncDisposable
         var mono = ToMono(bytes, WaveFormat.CreateIeeeFloatWaveFormat(48000, 2));
         bool conversion = Math.Abs(mono[0] - .4f) < .0001 && Math.Abs(mono[1] + .6f) < .0001;
         if (!conversion) throw new Exception("La conversión PCM falló.");
-        return new { version = Program.Version, windows = Environment.OSVersion.Version.ToString(), sources, processActivation, processError, capturedFrames, peak, processSignal = peak > .000001f, conversion };
+        return new { version = Program.Version, windows = Environment.OSVersion.Version.ToString(), processCapability = backend.ProcessCaptureSupported, sources, processActivation, processError, capturedFrames, peak, processSignal = peak > .000001f, conversion };
     }
     sealed class ProbeTone : IWaveProvider
     {
