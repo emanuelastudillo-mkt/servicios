@@ -1,18 +1,20 @@
 import { MAX_SECONDS, TRACKS, targetGains, mixSample } from './audio-core.js';
+import { inputConfig } from './inputs.js?v=1.1.0';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const MAGIC = 'SEISLP01';
 const validName = (s, fallback) => typeof s === 'string' ? s.slice(0, 80) : fallback;
 
-export function encodeSession(data, title, names) {
+export function encodeSession(data, title, names, inputs) {
   const meta = {
     version: 1, rate: data.rate, length: data.length, master: data.master,
     title: validName(title, 'Mi sesión'),
     tracks: data.tracks.map((t, i) => ({ name: validName(names[i], `Loop ${i + 1}`),
-      volume: t.volume, muted: t.muted, solo: t.solo, frames: t.samples?.length || 0 }))
+      volume: t.volume, muted: t.muted, solo: t.solo, frames: t.samples?.length || 0, input: inputConfig(inputs?.[i] ?? t.input) }))
   };
   const json = encoder.encode(JSON.stringify(meta));
+  if (json.length > 16_384) throw Error('Las etiquetas de las entradas son demasiado largas para guardar esta sesión.');
   const audioBytes = meta.tracks.reduce((n, t) => n + t.frames * 4, 0);
   const buffer = new ArrayBuffer(12 + json.length + audioBytes);
   const bytes = new Uint8Array(buffer);
@@ -52,7 +54,7 @@ export function decodeSession(buffer) {
       if (!Number.isFinite(n) || Math.abs(n) > 16) bad();
       samples[j] = n;
     }
-    return { samples, volume: t.volume, muted: t.muted, solo: t.solo, name: validName(t.name, `Loop ${i + 1}`) };
+    return { samples, volume: t.volume, muted: t.muted, solo: t.solo, name: validName(t.name, `Loop ${i + 1}`), input: inputConfig(t.input) };
   });
   return { rate: meta.rate, length: meta.length, master: meta.master, title: validName(meta.title, 'Mi sesión'), tracks };
 }

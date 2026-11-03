@@ -7,11 +7,13 @@ document.querySelector('#run').onclick = async () => {
   let ctx;
   try {
     ctx = new AudioContext({ sampleRate: 48000 }); await ctx.resume();
-    await ctx.audioWorklet.addModule(new URL('../processor.js?v=1.0.1', import.meta.url));
-    const node = new AudioWorkletNode(ctx, 'seis-looper', { outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
+    await ctx.audioWorklet.addModule(new URL('../processor.js?v=1.1.0', import.meta.url));
+    const node = new AudioWorkletNode(ctx, 'seis-looper', { numberOfInputs: 6, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
     const muted = ctx.createGain(); muted.gain.value = 0; node.connect(muted).connect(ctx.destination);
-    const osc = ctx.createOscillator(); osc.frequency.value = 440;
-    const amplitude = ctx.createGain(); amplitude.gain.value = .1; osc.connect(amplitude).connect(node); osc.start();
+    const sources = Array.from({ length: 6 }, (_, id) => {
+      const source = ctx.createConstantSource(); source.offset.value = .06 + id * .03;
+      source.connect(node, 0, id); source.start(); return source;
+    });
     let status, lastError, captured, recorded = [];
     node.port.onmessage = ({ data }) => {
       if (data.type === 'status') status = data.data;
@@ -44,6 +46,7 @@ document.querySelector('#run').onclick = async () => {
     node.port.postMessage({ type: 'snapshot', requestId: 1 }); await waitFor(() => captured);
     assert(captured.tracks.every(t => t.samples?.length === length), 'Las seis grabaciones tienen exactamente la misma cantidad de muestras');
     assert(captured.tracks.every(t => t.samples.some(x => Math.abs(x) > .05)), 'Las seis pistas contienen la señal de entrada');
+    assert(captured.tracks.every((t, id) => Math.abs(t.samples[Math.floor(length / 2)] - (.06 + id * .03)) < .00001), 'Cada loop captura únicamente su entrada asignada, con seis señales diferentes');
     assert(status.playing && status.outputPeak > .01, 'El motor reproduce la mezcla en el navegador');
     const reopened = decodeSession(encodeSession(captured, 'QA navegador', ['A', 'B', 'C', 'D', 'E', 'F']));
     assert(reopened.tracks.every((t, i) => t.samples.every((n, j) => n === captured.tracks[i].samples[j])), 'Guardar y abrir conserva cada muestra de las seis pistas');
@@ -55,8 +58,8 @@ document.querySelector('#run').onclick = async () => {
     node.port.postMessage({ type: 'load', data: reopened });
     node.port.postMessage({ type: 'play' }); await waitFor(() => status.playing);
     assert(status.tracks.filter(t => t.hasAudio).length === 6, 'La sesión reabierta vuelve a reproducir las seis pistas');
-    osc.stop(); node.disconnect();
-    write('\nRESULTADO: 11 comprobaciones correctas.');
+    sources.forEach(source => source.stop()); node.disconnect();
+    write('\nRESULTADO: 12 comprobaciones correctas.');
   } catch (e) { write(`ERROR: ${e.stack || e.message}`); }
   finally { await ctx?.close(); document.querySelector('#run').disabled = false; }
 };

@@ -149,6 +149,14 @@ export class LoopEngine {
       case 'record': this.startRecording(m.id); break;
       case 'finish': this.finishRecording(); break;
       case 'cancel': this.cancelRecording(); break;
+      case 'inputLost': {
+        const r = this.recording;
+        if (r?.id !== m.id) break;
+        if (!r.armed && !r.countdownFrames && r.written >= (r.first ? Math.ceil(this.rate * .25) : 1)) this.finishRecording();
+        else this.cancelRecording();
+        this.emit({ type: 'inputLost', id: m.id, kept: !!this.tracks[m.id].samples });
+        break;
+      }
       case 'stop': this.stop(); break;
       case 'play': this.play(); break;
       case 'clear': this.clear(m.id); break;
