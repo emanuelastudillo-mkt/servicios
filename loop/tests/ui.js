@@ -27,7 +27,7 @@ document.querySelector('#prepare').onclick = async () => {
     { kind: 'audioinput', deviceId: 'qa-focusrite', label: 'Focusrite · señal de prueba' }
   ] });
   window.addEventListener('pagehide', () => testContext?.close());
-  await import('../app.js?v=1.1.0');
+  await import('../app.js?v=1.2.0');
   const run = document.createElement('button'); run.textContent = 'Verificar fuentes y teclas'; note.append(document.createElement('br'), run);
   const results = document.createElement('pre'); results.id = 'ui-results'; results.style.whiteSpace = 'pre-wrap'; note.append(results);
   run.onclick = async () => {
@@ -73,7 +73,7 @@ document.querySelector('#prepare').onclick = async () => {
       URL.createObjectURL = blob => { savedBlob = blob; return originalCreate(blob); };
       HTMLAnchorElement.prototype.click = function () {};
       try { $('#save').click(); await wait(() => savedBlob); } finally { URL.createObjectURL = originalCreate; HTMLAnchorElement.prototype.click = originalClick; }
-      const { decodeSession } = await import('../files.js?v=1.1.0');
+      const { decodeSession } = await import('../files.js?v=1.2.0');
       const binary = await savedBlob.arrayBuffer(), saved = decodeSession(binary);
       const expected = [.15, .175, .55];
       assert(saved.tracks.slice(0, 3).every((t, i) => Math.abs(t.samples[Math.floor(t.samples.length / 2)] - expected[i]) < .002), 'La sesión descargada contiene micrófono, placa al 50% y aplicación sin mezclarlos');
@@ -90,6 +90,13 @@ document.querySelector('#prepare').onclick = async () => {
       await wait(() => $('#notification').textContent.startsWith('Sesión abierta'));
       assert($('#inputs-status').textContent.startsWith('0 / 6') && track(1).querySelector('.source-select').value === 'device:qa-focusrite' && track(1).querySelector('.input-gain').value === '50', 'Abrir restaura asignaciones y ganancia, sin capturar sin permiso');
       assert(document.querySelectorAll('.has-audio').length === 3, 'Abrir conserva las tres tomas');
+      track(1).querySelector('.input-connect').click(); await wait(() => track(1).classList.contains('input-connected'));
+      track(1).querySelector('.input-mute').click(); track(1).querySelector('.input-apply').click();
+      await wait(() => $('#inputs-status').textContent.startsWith('6 / 6'));
+      assert([...document.querySelectorAll('.source-select')].every(select => select.value === 'device:qa-focusrite'), 'Aplicar a todas asigna la misma fuente y comparte una conexión');
+      assert([...document.querySelectorAll('.input-gain')].every(gain => gain.value === '50') && [...document.querySelectorAll('.input-mute')].every(button => button.getAttribute('aria-pressed') === 'true'), 'Aplicar a todas copia ganancia y silencio de entrada');
+      assert(document.querySelectorAll('.has-audio').length === 3 && [...document.querySelectorAll('.volume')].every(gain => gain.value === '80'), 'Aplicar a todas conserva tomas y volúmenes de reproducción');
+      $('#disconnect-inputs').click();
       results.textContent += '\nRESULTADO: ' + checks + ' comprobaciones correctas.';
     } catch (e) { results.textContent += 'ERROR: ' + (e.stack || e.message); }
     finally { run.disabled = false; }

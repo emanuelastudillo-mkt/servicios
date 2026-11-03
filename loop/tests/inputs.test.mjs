@@ -110,6 +110,36 @@ test('capture video ending also releases audio; exact hardware IDs never fall ba
   assert.ok(m.slots[2]); m.disconnectAll();
 });
 
+test('apply to all copies assignments and pre-record levels while sharing one active capture', async () => {
+  const { manager: m, streams, requests } = setup();
+  m.setConfig(0, config('device', 'old-device')); await m.connect(0);
+  m.setConfig(2, { ...config('window'), gain: .65, muted: true }); await m.connect(2);
+  const original = m.slots[2].entry;
+  assert.equal(await m.applyToAll(2), true);
+  assert.equal(requests.length, 2); assert.equal(streams[0].getAudioTracks()[0].stops, 1);
+  assert.ok(m.slots.every(s => s.entry === original && s.gain.gain.value === 0));
+  assert.ok(m.configs.every(c => c.kind === 'window' && c.gain === .65 && c.muted));
+  assert.equal(original.refs.size, 6);
+  m.disconnect(2); assert.equal(original.stream.getAudioTracks()[0].stops, 0);
+  m.disconnectAll(); assert.ok(original.stream.getTracks().every(t => t.stops === 1));
+});
+test('apply disconnected settings closes old sources without requesting capture; native resources release once', async () => {
+  let releases = 0;
+  const native = stream(); native.release = () => releases++;
+  const { manager: m, requests } = setup({ nativeCapture: async () => native });
+  m.setConfig(0, config('native', 'app:123:456')); await m.connect(0); await m.applyToAll(0);
+  assert.equal(requests.length, 0);
+  m.disconnect(5); assert.equal(releases, 0);
+  m.setConfig(5, { ...config('device', 'new-device'), gain: .4 });
+  assert.equal(await m.applyToAll(5), false);
+  assert.equal(releases, 1); assert.ok(m.slots.every(s => s === null));
+  assert.ok(m.configs.every(c => c.deviceId === 'new-device' && c.gain === .4));
+});
+test('browser rejects desktop-only sources instead of recording a different source', async () => {
+  const { manager: m, requests } = setup(); m.setConfig(0, config('native', 'out:device'));
+  await assert.rejects(m.connect(0), /escritorio/); assert.equal(requests.length, 0);
+});
+
 function session() {
   return { rate: 8000, length: 4000, master: .75, tracks: Array.from({ length: 6 }, (_, i) => ({ samples: i ? null : new Float32Array(4000).fill(.2), volume: .8, muted: false, solo: false })) };
 }

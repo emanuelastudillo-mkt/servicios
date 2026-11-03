@@ -1,4 +1,4 @@
-import { LoopEngine } from './audio-core.js?v=1.1.0';
+import { LoopEngine } from './audio-core.js?v=1.2.0';
 
 class SeisProcessor extends AudioWorkletProcessor {
   constructor() {

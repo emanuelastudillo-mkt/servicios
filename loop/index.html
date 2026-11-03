@@ -10,8 +10,8 @@
   <base href="/loop/">
   <title>SEIS · Looper de audio</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=1.1.0">
-  <script type="module" src="./app.js?v=1.1.0"></script>
+  <link rel="stylesheet" href="./style.css?v=1.2.0">
+  <script type="module" src="./app.js?v=1.2.0"></script>
 </head>
 <body>
   <div class="shell">
@@ -29,6 +29,11 @@
         <div class="transport-actions"><button id="play" class="primary" disabled><span aria-hidden="true">▶</span> Reproducir</button><button id="stop" disabled><span aria-hidden="true">■</span> Detener todo</button><span class="shortcut"><kbd>Espacio</kbd> grabar / cerrar loop</span></div>
       </section>
 
+      <section class="desktop-banner" aria-label="Versión de escritorio">
+        <div><strong id="desktop-title">SEIS 1.2.0 para Windows</strong><span id="desktop-description">Versión portátil x64 · Aplicaciones y salidas de audio nativas · Requiere WebView2</span></div>
+        <a id="desktop-download" class="download-button" href="https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.2.0/SEIS-1.2.0-Windows-x64.exe">↓ Descargar última versión de escritorio</a>
+        <a id="desktop-updates" class="download-button" href="https://emanuelmkt.com.ar/loop/" hidden>Ver actualizaciones</a>
+      </section>
       <section class="audio-strip" aria-label="Entrada y salida de audio">
         <div class="input-summary"><strong>SEIS ENTRADAS · UNA POR LOOP</strong><span id="inputs-status">0 / 6 entradas conectadas</span><div><button id="refresh-devices">Actualizar dispositivos</button><button id="disconnect-inputs" disabled>Desconectar entradas</button></div></div>
         <div class="output-control"><label for="output-device">SALIDA DE REPRODUCCIÓN</label><select id="output-device"><option value="">Salida predeterminada de Windows</option></select><small id="output-hint">Elegí tus auriculares o tu interfaz de audio.</small></div>
@@ -45,7 +50,7 @@
       </section>
       <details class="help"><summary>Guía rápida y ajustes <span>?</span></summary><div class="help-content"><div><h3>De una idea a un loop</h3><ol><li>Usá auriculares. Elegí la fuente de cada pista y pulsá <b>Conectar</b>. Comprobá su medidor.</li><li>Pulsá <b>Grabar</b> en una pista. El <b>Loop 1</b> cuenta 3, 2, 1 antes de empezar. Volvé a pulsar para cerrar el primer loop.</li><li>Grabá otra pista: espera la próxima vuelta y termina sola al completar el ciclo.</li><li>Combiná las pistas con <b>Silenciar</b>, <b>Solo</b> y sus volúmenes.</li></ol></div><div><h3>Todo a mano</h3><p><kbd>1</kbd> a <kbd>6</kbd> graban una pista vacía o silencian una grabada. <kbd>Espacio</kbd> inicia la primera pista vacía o cierra la grabación conservando el audio. Durante la cuenta no cancela. Con seis pistas completas, reproduce o detiene sin borrar. <kbd>Esc</kbd> cancela una grabación.</p><p><b>Guardar sesión</b> conserva las 6 pistas, sus niveles y fuentes asignadas (requieren reconectar al abrir) en un archivo .seisloop. <b>WAV</b> exporta la mezcla audible, incluyendo silencios, solos y volumen de salida. Guardá antes de cerrar.</p></div><div><h3>Pro Tools, Edge y tu placa</h3><p>Para capturar una pestaña de Edge, abrí SEIS también en Edge y compartí esa pestaña con audio. Para Pro Tools, probá <b>Aplicación / ventana</b>. Si el navegador no ofrece audio de esa ventana, usá una entrada <b>Loopback</b> de tu placa o un dispositivo virtual ya configurado. Solo aparecen dispositivos que Windows expone como entradas; una salida Focusrite no es automáticamente una entrada de grabación.</p><p><b>Todo el audio del sistema</b> también captura los loops que estén sonando. No aísla aplicaciones. La escucha de esa entrada está deshabilitada para evitar realimentación.</p><p>El navegador puede pedir compartir imagen para habilitar el sonido: SEIS procesa únicamente audio. No guarda ni transmite la imagen.</p><h3>Ajuste de grabación</h3><label for="compensation">Adelantar nuevas capas <input id="compensation" type="number" min="0" max="500" step="1" value="0"> ms</label><p>Si tus capas quedan atrasadas, compensá la latencia acá. Solo afecta grabaciones nuevas. Con Bluetooth la demora puede ser mayor; preferí auriculares con cable.</p><p>La grabación es mono. Máximo: 120 segundos por loop. Sin efectos ni cambios de tempo.</p></div></div></details>
     </main>
-    <footer><span>SEIS / v1.1.0 <span class="footer-divider">·</span> Hecho para darle otra vuelta.</span><button id="demo" class="text-button">♫ Escuchar demo sin micrófono</button></footer>
+    <footer><span>SEIS / v1.2.0 <span class="footer-divider">·</span> Hecho para darle otra vuelta.</span><button id="demo" class="text-button">♫ Escuchar demo sin micrófono</button></footer>
   </div>
   <div id="notification" role="status" aria-live="polite" hidden></div>
   <dialog id="confirm"><form method="dialog"><h2 id="confirm-title">¿Continuar?</h2><p id="confirm-text"></p><div class="dialog-actions"><button value="cancel">Cancelar</button><button class="primary" value="ok">Continuar</button></div></form></dialog>

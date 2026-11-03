@@ -7,7 +7,7 @@ document.querySelector('#run').onclick = async () => {
   let ctx;
   try {
     ctx = new AudioContext({ sampleRate: 48000 }); await ctx.resume();
-    await ctx.audioWorklet.addModule(new URL('../processor.js?v=1.1.0', import.meta.url));
+    await ctx.audioWorklet.addModule(new URL('../processor.js?v=1.2.0', import.meta.url));
     const node = new AudioWorkletNode(ctx, 'seis-looper', { numberOfInputs: 6, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
     const muted = ctx.createGain(); muted.gain.value = 0; node.connect(muted).connect(ctx.destination);
     const sources = Array.from({ length: 6 }, (_, id) => {

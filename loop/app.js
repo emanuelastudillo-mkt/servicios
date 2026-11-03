@@ -1,15 +1,16 @@
-import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.1.0';
+import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.2.0';
 import { sealLoop } from './audio-core.js';
-import { spaceAction } from './controls.js?v=1.1.0';
+import { spaceAction } from './controls.js?v=1.2.0';
 
-import { InputManager, inputConfig } from './inputs.js?v=1.1.0';
+import { InputManager, inputConfig } from './inputs.js?v=1.2.0';
+import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.2.0';
 
 const $ = selector => document.querySelector(selector);
 const colors = ['#c7f69b', '#d8b5f8', '#93d8e9', '#efbd8c', '#f0a7ba', '#a6bafa'];
 const names = Array.from({ length: 6 }, (_, i) => `Loop ${i + 1}`);
 let waves = Array.from({ length: 6 }, () => []);
 let ctx, node, initPromise, ioBusy = false, monitorId = -1;
-let devices = [];
+let devices = [], nativeSources = [];
 let dirty = false, revision = 0, requestId = 0, notificationTimer, drawAt = 0;
 let state = { length: 0, position: 0, rate: 48000, playing: false, recording: null, canUndo: false,
   tracks: Array.from({ length: 6 }, () => ({ hasAudio: false, volume: .8, muted: false, solo: false })) };
@@ -17,6 +18,7 @@ const pending = new Map();
 const cards = [];
 const inputs = new InputManager({
   getGraph: async () => { await ensureAudio(); return { ctx, node }; },
+  nativeCapture: desktop ? config => captureNative(config, async () => { await ensureAudio(); return { ctx, node }; }) : undefined,
   onChange: () => render(),
   onEnded: id => {
     if (monitorId === id) setMonitor(-1);
@@ -36,7 +38,7 @@ for (let i = 0; i < 6; i++) {
     <select class="source-select" id="source-${i}" aria-label="Fuente de pista ${i + 1}"></select>
     <div class="input-connection"><button class="input-connect" aria-label="Conectar entrada de pista ${i + 1}">Conectar</button><button class="input-disconnect" aria-label="Desconectar entrada de pista ${i + 1}" title="Desconectar entrada" disabled>×</button><span class="input-status">Sin conectar</span></div>
     <div class="input-level"><button class="input-mute" aria-label="Silenciar entrada de pista ${i + 1}" aria-pressed="false" title="Silenciar la entrada antes de grabar">Entrada</button><input class="input-gain" type="range" min="0" max="200" value="100" aria-label="Nivel de entrada de pista ${i + 1}"><output class="input-value">100%</output><div class="meter" role="meter" aria-label="Señal de entrada de pista ${i + 1}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i class="input-meter"></i></div></div>
-    <label class="input-listen"><input type="checkbox" aria-label="Escuchar entrada de pista ${i + 1}"> Escuchar entrada <span>Usá auriculares</span></label>
+    <div class="input-listen-row"><label class="input-listen"><input type="checkbox" aria-label="Escuchar entrada de pista ${i + 1}"> Escuchar entrada</label><button class="input-apply" aria-label="Aplicar entrada de pista ${i + 1} a todas" title="Copia la fuente, ganancia y silencio de entrada a las seis pistas. Conserva el audio grabado.">Aplicar a todas</button></div>
   </div>`);
   $('#tracks').append(card);
   card.querySelector('.wave-area').insertAdjacentHTML('beforeend', '<div class="countdown" role="status" aria-live="polite" aria-atomic="true" hidden><strong></strong><span>PREPARATE</span></div>');
@@ -44,11 +46,18 @@ for (let i = 0; i < 6; i++) {
   cards.push({ card, canvas: q('canvas'), name: q('.track-name'), status: q('.track-status'), placeholder: q('.wave-placeholder'),
     head: q('.playhead'), counter: q('.countdown'), counterNumber: q('.countdown strong'), record: q('.record-button'), recordLabel: q('.record-label'), mute: q('.mute'), solo: q('.solo'), clear: q('.clear-button'), volume: q('.volume'), value: q('output'), source: q('.source-select'), connect: q('.input-connect'), disconnect: q('.input-disconnect'), inputStatus: q('.input-status'), inputGain: q('.input-gain'), inputValue: q('.input-value'), inputMute: q('.input-mute'), listen: q('.input-listen input'), inputMeter: q('.input-meter') });
   q('.source-select').addEventListener('change', e => {
-    const value = e.target.value, kind = value.startsWith('device:') ? 'device' : value;
+    const value = e.target.value, kind = value.startsWith('device:') ? 'device' : value.startsWith('native:') ? 'native' : value;
     if (monitorId === i) setMonitor(-1);
-    inputs.setConfig(i, { ...inputs.configs[i], kind, deviceId: kind === 'device' ? value.slice(7) : '', label: e.target.selectedOptions[0].textContent.slice(0, 200) }); changed();
+    inputs.setConfig(i, { ...inputs.configs[i], kind, deviceId: ['device', 'native'].includes(kind) ? value.slice(7) : '', label: e.target.selectedOptions[0].textContent.slice(0, 200) }); changed();
   });
   q('.input-connect').addEventListener('click', () => connectInput(i));
+  q('.input-apply').addEventListener('click', async () => {
+    if (state.recording || ioBusy || inputs.pending >= 0) return;
+    try {
+      setMonitor(-1); const connected = await inputs.applyToAll(i); refreshOptions(); changed(); render();
+      notify(connected ? 'Entrada, nivel y silencio aplicados a las seis pistas. Comparten la conexión; los loops grabados se conservan.' : 'Fuente, nivel y silencio aplicados a las seis pistas. Conectá una y volvé a aplicar para compartir la conexión.');
+    } catch (error) { notify(error.message, true); }
+  });
   q('.input-disconnect').addEventListener('click', () => { if (monitorId === i) setMonitor(-1); inputs.disconnect(i); });
   q('.input-gain').addEventListener('input', e => { inputs.setConfig(i, { ...inputs.configs[i], gain: e.target.value / 100 }); changed(); });
   q('.input-mute').addEventListener('click', () => { inputs.setConfig(i, { ...inputs.configs[i], muted: !inputs.configs[i].muted }); changed(); });
@@ -82,7 +91,7 @@ async function ensureAudio(rate) {
       if (!window.AudioContext || !window.AudioWorkletNode) throw Error('Abrí SEIS en una versión actual de Chrome o Edge.');
       const nextCtx = new AudioContext({ latencyHint: 'interactive', ...(rate ? { sampleRate: rate } : {}) });
       try {
-        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.1.0', import.meta.url));
+        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.2.0', import.meta.url));
         const nextNode = new AudioWorkletNode(nextCtx, 'seis-looper', { numberOfInputs: 6, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
         nextNode.port.onmessage = onMessage;
         nextNode.onprocessorerror = () => { notify('El motor de audio se interrumpió. Recargá la página y abrí tu última sesión guardada.', true); };
@@ -143,16 +152,23 @@ function setMonitor(id) {
 function refreshOptions() {
   cards.forEach((c, id) => {
     const config = inputs.configs[id];
-    const value = config.kind === 'device' ? 'device:' + config.deviceId : config.kind;
+    const value = ['device', 'native'].includes(config.kind) ? config.kind + ':' + config.deviceId : config.kind;
     c.source.replaceChildren(new Option('Micrófono / entrada predeterminada', 'device:'));
     const hardware = document.createElement('optgroup'); hardware.label = 'Dispositivos de entrada';
     devices.filter(d => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default').forEach((d, i) => hardware.append(new Option(d.label || 'Entrada ' + (i + 1), 'device:' + d.deviceId)));
     c.source.append(hardware);
+    if (desktop) {
+      for (const group of [...new Set(nativeSources.map(source => source.group))]) {
+        const options = document.createElement('optgroup'); options.label = group;
+        nativeSources.filter(source => source.group === group).forEach(source => options.append(new Option(source.label, 'native:' + source.id)));
+        c.source.append(options);
+      }
+    }
     const apps = document.createElement('optgroup'); apps.label = 'Audio compartido por el navegador';
     [['window', 'Aplicación / ventana…'], ['tab', 'Pestaña del navegador…'], ['system', 'Todo el audio del sistema…']].forEach(([v, label]) => {
       const option = new Option(label, v); option.disabled = !navigator.mediaDevices?.getDisplayMedia; apps.append(option);
     });
-    c.source.append(apps);
+    if (!desktop) c.source.append(apps);
     if (![...c.source.options].some(o => o.value === value)) c.source.add(new Option((config.label || 'Entrada guardada') + ' · no disponible', value));
     c.source.value = value;
   });
@@ -164,10 +180,15 @@ function refreshOptions() {
 }
 async function listDevices() {
   if (!navigator.mediaDevices?.enumerateDevices) return;
-  devices = await navigator.mediaDevices.enumerateDevices(); refreshOptions();
+  const results = await Promise.allSettled([navigator.mediaDevices.enumerateDevices(), desktop ? desktopRequest('sources.list') : Promise.resolve(null)]);
+  if (results[0].status === 'fulfilled') devices = results[0].value;
+  if (results[1].status === 'fulfilled' && results[1].value) nativeSources = results[1].value.sources;
+  refreshOptions();
+  const failure = results.find(result => result.status === 'rejected'); if (failure) throw failure.reason;
 }
 async function connectInput(id) {
   if (ioBusy || state.recording || inputs.pending >= 0) return;
+  if (desktop && ['window', 'tab', 'system'].includes(inputs.configs[id].kind)) { notify('En escritorio, elegí una aplicación de Windows o una salida loopback de la lista.', true); return; }
   try {
     // Keep the call synchronous up to the browser's capture request.
     const connecting = inputs.connect(id);
@@ -175,7 +196,7 @@ async function connectInput(id) {
     changed();
     await listDevices().catch(() => {});
     const kind = inputs.configs[id].kind;
-    notify(kind === 'system' ? 'Audio del sistema conectado: incluye los loops que estén sonando. Para aislar una app, elegí una ventana o una entrada loopback.' : 'Entrada del Loop ' + (id + 1) + ' lista. Revisá el medidor antes de grabar.');
+    notify(kind === 'system' || (kind === 'native' && inputs.configs[id].deviceId.startsWith('out:')) ? 'Salida loopback conectada: incluye todo lo que suene por esa salida, también SEIS. Para aislar una app, elegí su entrada de aplicación.' : 'Entrada del Loop ' + (id + 1) + ' lista. Revisá el medidor antes de grabar.');
   } catch (e) {
     const message = e.name === 'NotAllowedError' ? 'No se autorizó la entrada o se canceló la selección. Podés volver a conectar.' :
       e.name === 'NotFoundError' || e.name === 'OverconstrainedError' ? 'La entrada elegida no está disponible. Revisá el dispositivo y actualizá la lista.' :
@@ -262,7 +283,8 @@ function render() {
     c.inputMute.setAttribute('aria-pressed', String(config.muted));
     c.inputMute.textContent = config.muted ? 'Sin señal' : 'Entrada';
     c.listen.checked = monitorId === i;
-    c.listen.disabled = !connected || busy || (!!r && !recording) || config.kind === 'system';
+    c.listen.disabled = !connected || busy || (!!r && !recording) || config.kind === 'system' || (config.kind === 'native' && config.deviceId.startsWith('out:'));
+    c.card.querySelector('.input-apply').disabled = busy || !!r;
     const peak = inputs.peak(i), amount = Math.min(100, Math.sqrt(peak) * 100);
     c.inputMeter.style.height = amount + '%'; c.inputMeter.classList.toggle('hot', peak >= .98);
     c.inputMeter.parentElement.setAttribute('aria-valuenow', String(Math.round(amount)));
@@ -430,7 +452,20 @@ document.addEventListener('keyup', e => {
 window.addEventListener('beforeunload', e => { if (dirty || state.recording) { e.preventDefault(); e.returnValue = ''; } });
 window.addEventListener('pagehide', () => { inputs.disconnectAll(); ctx?.close(); });
 navigator.mediaDevices?.addEventListener('devicechange', () => listDevices().catch(() => {}));
-refreshOptions(); listDevices().catch(() => {});
+refreshOptions(); if (!desktop) listDevices().catch(() => {});
+window.seisHasUnsavedChanges = () => dirty || !!state.recording;
+if (desktop) {
+  document.body.classList.add('desktop'); document.title = `SEIS ${desktop.version} · Escritorio`;
+  $('#desktop-title').textContent = `SEIS ${desktop.version} · Escritorio para Windows`;
+  $('#desktop-description').textContent = 'Aplicaciones y salidas nativas · Audio local · Usá auriculares';
+  $('#desktop-download').hidden = true; $('#desktop-updates').hidden = false;
+  const about = document.createElement('button'); about.className = 'text-button'; about.textContent = 'Versión y licencias';
+  about.addEventListener('click', () => desktopRequest('about.show').catch(error => notify(error.message, true))); $('footer').append(about);
+  $('.local-note div>span').textContent = 'Audio en tu PC · Sin cuentas ni subidas';
+  $('#refresh-devices').textContent = 'Actualizar dispositivos y apps';
+  $('.source-guide').textContent = 'Elegí una entrada de tu placa, una aplicación abierta o el audio de una salida de Windows. Para usar la misma fuente en seis pistas: Conectar → Aplicar a todas. Si una app usa ASIO o modo exclusivo, puede requerir loopback de la placa. La captura por proceso depende de la versión de Windows.';
+  listDevices().catch(error => notify('No se pudo actualizar la lista: ' + error.message, true));
+}
 if (!window.AudioContext?.prototype.setSinkId) $('#output-hint').textContent = 'Este navegador usa la salida predeterminada del sistema.';
 render();
 if (!window.isSecureContext) notify('Para habilitar el micrófono, abrí https://emanuelmkt.com.ar/loop/ mediante HTTPS.', true);

@@ -2,6 +2,10 @@
 
 Aplicación estática publicada en **https://emanuelmkt.com.ar/loop/** mediante el GitHub Pages existente del repositorio. La ruta `/loop` redirige a `/loop/`. No requiere compilación, servidor de audio ni dependencias externas.
 
+**Versión 1.2.0:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). La versión de escritorio incluye captura nativa de aplicaciones y salidas de Windows; la versión web mantiene los permisos y opciones del navegador.
+
+**Aplicar a todas**, disponible en cada pista, copia fuente, ganancia y silencio de entrada a las seis. Si la fuente ya está conectada, comparte la conexión. Conserva el audio grabado, los nombres y la mezcla. Si está desconectada, copia la asignación; conectá una pista y volvé a aplicar para compartirla. No funciona durante una toma.
+
 ## Uso
 
 1. Abrí el enlace en Chrome o Edge y conectá auriculares. En **Entrada de grabación**, elegí una fuente para cada loop y pulsá **Conectar**. Permití el acceso cuando el navegador lo solicite y comprobá el medidor.
@@ -39,7 +43,8 @@ Usá auriculares para no volver a grabar la reproducción. La latencia depende d
 - Todos los recursos de producción están en `loop/`. Las rutas de la interfaz resuelven bajo `/loop/`; el procesador se carga con una URL relativa al módulo.
 - Ejecutá `node --test loop/tests/*.test.mjs` desde la raíz del repositorio, o `npm test` dentro de `loop`.
 - Abrí `/loop/tests/browser.html` para doce verificaciones del AudioWorklet real con seis señales sintéticas diferentes, sin pedir el micrófono ni emitir sonido.
-- `/loop/tests/ui.html` permite probar los controles y la cuenta regresiva con señales sintéticas; usa la interfaz de producción y empieza con la salida en cero. **Verificar fuentes y teclas** ejecuta trece comprobaciones, incluyendo el archivo producido por Guardar, reapertura, captura sin audio y finalización de fuentes. La aplicación normal no carga ese entorno de prueba.
+- `/loop/tests/ui.html` permite probar los controles y la cuenta regresiva con señales sintéticas; usa la interfaz de producción y empieza con la salida en cero. **Verificar fuentes y teclas** ejecuta dieciséis comprobaciones, incluyendo Guardar, reapertura, captura sin audio, finalización de fuentes y Aplicar a todas. La aplicación normal no carga ese entorno de prueba.
+- `/loop/tests/native.html` ejecuta cinco comprobaciones del puente PCM de escritorio mediante paquetes sintéticos y el AudioWorklet real.
 - Las pruebas unitarias incluyen enrutamiento por pista, entradas compartidas, permisos rechazados, capturas sin audio, liberación de medios, pérdida de fuentes y compatibilidad de sesiones anteriores.
 - No hace falta modificar el dominio, los workflows de catálogo ni los demás proyectos.
 
