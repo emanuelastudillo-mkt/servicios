@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { LoopEngine, targetGains, mixSample, MAX_SECONDS } from '../audio-core.js';
 import { encodeSession, decodeSession, encodeWav, resampleSession } from '../files.js';
+import { spaceAction } from '../controls.js';
 
 const RATE = 8000;
 function render(engine, frames, input = .2, block = 128) {
@@ -14,7 +15,7 @@ function render(engine, frames, input = .2, block = 128) {
   }
   return result;
 }
-function first(frames = 4001) { const engine = new LoopEngine(RATE); engine.startRecording(0); render(engine, frames); engine.finishFirst(); return engine; }
+function first(frames = 4001) { const engine = new LoopEngine(RATE); engine.startRecording(0); render(engine, RATE * 3); render(engine, frames); engine.finishFirst(); return engine; }
 function six() {
   const engine = first();
   for (let id = 1; id < 6; id++) { engine.startRecording(id); render(engine, engine.length, .1 * (id + 1)); }
@@ -28,6 +29,83 @@ test('first loop captures the exact frame count and begins at zero', () => {
   assert.equal(e.tracks[0].samples[0], 0);
   assert.equal(e.tracks[0].samples.at(-1), 0);
   assert.ok(Math.abs(e.tracks[0].samples[100] - .2) < 1e-7);
+});
+test('Loop 1 waits exactly three seconds at common sample rates without recording the preparation', () => {
+  for (const rate of [8000, 44100, 48000]) {
+    const e = new LoopEngine(rate); e.startRecording(0);
+    assert.equal(e.state().recording.countdownFrames, rate * 3);
+    assert.ok(render(e, rate, .9).every(x => x === 0));
+    assert.equal(e.state().recording.countdownFrames, rate * 2);
+    assert.equal(e.recording.written, 0);
+    assert.throws(() => e.finishFirst(), /cuenta regresiva/);
+    render(e, rate * 2 - 1, .9);
+    assert.equal(e.recording.countdownFrames, 1); assert.equal(e.recording.written, 0);
+    render(e, 1, .9);
+    assert.equal(e.recording.countdownFrames, 0); assert.equal(e.recording.written, 0);
+    const frames = Math.ceil(rate * .3);
+    render(e, frames, .2); e.finishFirst();
+    assert.equal(e.length, frames);
+    assert.ok(e.tracks[0].samples.every(x => x <= .201));
+    assert.ok(Math.abs(e.tracks[0].samples[Math.floor(frames / 2)] - .2) < 1e-7);
+  }
+});
+test('cancel or stop during the count-in leaves no delayed recording and restarting resets to three', () => {
+  for (const action of ['cancelRecording', 'stop']) {
+    const e = new LoopEngine(RATE); e.startRecording(0); render(e, RATE);
+    e[action](); render(e, RATE * 5);
+    assert.equal(e.recording, null); assert.equal(e.tracks[0].samples, null); assert.equal(e.length, 0);
+    e.startRecording(0); assert.equal(e.recording.countdownFrames, RATE * 3);
+  }
+});
+test('other empty first tracks still start immediately', () => {
+  const e = new LoopEngine(RATE); e.startRecording(1); render(e, 128);
+  assert.equal(e.recording.countdownFrames, 0); assert.equal(e.recording.written, 128);
+});
+test('re-recording Loop 1 keeps existing loops playing and waits for a boundary after the countdown', () => {
+  const e = new LoopEngine(RATE); e.startRecording(1); render(e, 4001, .2); e.finishFirst();
+  render(e, 1000); e.startRecording(0);
+  const output = render(e, RATE * 3, .9);
+  assert.ok(output.some(x => x > .1));
+  assert.equal(e.recording.written, 0); assert.equal(e.recording.armed, true);
+  const remaining = (e.length - e.pos) % e.length;
+  render(e, remaining, .9); assert.equal(e.recording.written, 0);
+  render(e, e.length, .3);
+  assert.equal(e.recording, null); assert.equal(e.pos, 0); assert.equal(e.length, 4001);
+  assert.ok(e.tracks[0].samples.every(x => x < .301));
+  assert.ok(Math.abs(e.tracks[0].samples[500] - .3) < 1e-7);
+});
+test('Space starts Loop 1, ignores the countdown and closes without discarding the take', () => {
+  const e = new LoopEngine(RATE);
+  e.command(spaceAction(e.state()));
+  assert.equal(e.recording.id, 0);
+  render(e, RATE); e.command(spaceAction(e.state()));
+  assert.equal(e.recording.countdownFrames, RATE * 2);
+  render(e, RATE * 2); render(e, 4000, .3);
+  e.command(spaceAction(e.state()));
+  assert.equal(e.recording, null); assert.equal(e.length, 4000);
+  assert.ok(Math.abs(e.tracks[0].samples[500] - .3) < 1e-7);
+  const take = e.tracks[0].samples.slice();
+  e.command(spaceAction(e.state()));
+  assert.equal(e.recording.id, 1); assert.deepEqual(e.tracks[0].samples, take);
+});
+test('Space preserves a partial synchronized layer, pads silence and leaves other tracks intact', () => {
+  const e = first(); const original = e.tracks[0].samples.slice();
+  render(e, 500); e.command(spaceAction(e.state()));
+  e.command(spaceAction(e.state()));
+  assert.equal(e.recording.armed, true);
+  render(e, e.length - 500); render(e, 1500, .4);
+  e.command(spaceAction(e.state()));
+  assert.equal(e.recording, null); assert.equal(e.length, 4001);
+  assert.deepEqual(e.tracks[0].samples, original);
+  assert.ok(Math.abs(e.tracks[1].samples[400] - .4) < 1e-7);
+  assert.ok(e.tracks[1].samples.subarray(1500).every(x => x === 0));
+  assert.equal(e.pos, 1500); assert.equal(e.playing, true);
+});
+test('Space transport on six completed loops keeps all samples through stop and restart', () => {
+  const e = six(); const before = e.snapshot();
+  e.command(spaceAction(e.state())); assert.equal(e.playing, false);
+  e.command(spaceAction(e.state())); assert.equal(e.playing, true);
+  e.tracks.forEach((t, id) => assert.deepEqual(t.samples, before.tracks[id].samples));
 });
 test('new layer waits for boundary, records exactly one cycle and starts next cycle', () => {
   const e = first(); render(e, 643);

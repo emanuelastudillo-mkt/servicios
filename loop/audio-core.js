@@ -1,5 +1,6 @@
 export const TRACKS = 6;
 export const MAX_SECONDS = 120;
+export const COUNT_IN_SECONDS = 3;
 export const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 export function sealLoop(samples, rate) {
@@ -59,7 +60,7 @@ export class LoopEngine {
   state() {
     return {
       rate: this.rate, length: this.length, position: this.pos, playing: this.playing,
-      recording: this.recording ? { id: this.recording.id, first: this.recording.first, armed: this.recording.armed, written: this.recording.written } : null,
+      recording: this.recording ? { id: this.recording.id, first: this.recording.first, armed: this.recording.armed, written: this.recording.written, countdownFrames: this.recording.countdownFrames } : null,
       tracks: this.tracks.map(t => ({ hasAudio: !!t.samples, volume: t.volume, muted: t.muted, solo: t.solo })),
       master: this.master, inputGain: this.inputGain, monitor: this.monitor,
       inputPeak: this.inputPeak, outputPeak: this.outputPeak, canUndo: !!this.undo
@@ -71,6 +72,7 @@ export class LoopEngine {
     if (this.tracks[id].samples) throw Error('La pista ya tiene audio. Borrala antes de volver a grabar.');
     const first = !this.length;
     this.recording = { id, first, armed: !first, written: 0,
+      countdownFrames: id === 0 ? Math.round(this.rate * COUNT_IN_SECONDS) : 0,
       shift: Math.round(this.compensation * this.rate / 1000),
       samples: new Float32Array(first ? Math.floor(this.rate * MAX_SECONDS) : this.length) };
     if (!first && !this.playing) { this.pos = 0; this.playing = true; }
@@ -79,10 +81,25 @@ export class LoopEngine {
   finishFirst() {
     const r = this.recording;
     if (!r || !r.first) return;
+    if (r.countdownFrames > 0) throw Error('Esperá a que termine la cuenta regresiva o cancelá la preparación.');
     if (r.written < Math.ceil(this.rate * .25)) throw Error('Grabá al menos un cuarto de segundo.');
     this.length = r.written;
     this.pos = 0;
     this.playing = true;
+    this.completeRecording();
+  }
+  finishRecording() {
+    const r = this.recording;
+    // Preparation is never canceled by a request to finish.
+    if (!r || r.countdownFrames > 0 || r.armed) return;
+    if (r.first) { this.finishFirst(); return; }
+    if (!r.written) return;
+    // Keep the recorded portion and the shared cycle; the remainder stays silent.
+    const fade = Math.min(Math.round(this.rate * .003), r.written);
+    for (let i = 0; i < fade; i++) {
+      const pos = ((r.written - 1 - i - r.shift) % this.length + this.length) % this.length;
+      r.samples[pos] *= i / fade;
+    }
     this.completeRecording();
   }
   completeRecording() {
@@ -130,7 +147,7 @@ export class LoopEngine {
   command(m) {
     switch (m.type) {
       case 'record': this.startRecording(m.id); break;
-      case 'finish': this.finishFirst(); break;
+      case 'finish': this.finishRecording(); break;
       case 'cancel': this.cancelRecording(); break;
       case 'stop': this.stop(); break;
       case 'play': this.play(); break;
@@ -160,11 +177,18 @@ export class LoopEngine {
       let mixed = 0;
       let complete = false;
       const r = this.recording;
+      const counting = r && r.countdownFrames > 0;
+      if (counting) {
+        r.countdownFrames--;
+        if (r.countdownFrames === 0) this.emit({ type: 'state' });
+      }
       if (r?.first) {
-        r.samples[r.written++] = mic;
-        if (r.written === r.samples.length) this.finishFirst();
+        if (!counting) {
+          r.samples[r.written++] = mic;
+          if (r.written === r.samples.length) this.finishFirst();
+        }
       } else if (this.playing && this.length) {
-        if (r?.armed && this.pos === 0) { r.armed = false; this.emit({ type: 'state' }); }
+        if (r?.armed && !counting && this.pos === 0) { r.armed = false; this.emit({ type: 'state' }); }
         if (r && !r.armed) {
           r.samples[((this.pos - r.shift) % this.length + this.length) % this.length] = mic;
           r.written++;

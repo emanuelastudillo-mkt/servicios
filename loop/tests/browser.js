@@ -7,7 +7,7 @@ document.querySelector('#run').onclick = async () => {
   let ctx;
   try {
     ctx = new AudioContext({ sampleRate: 48000 }); await ctx.resume();
-    await ctx.audioWorklet.addModule(new URL('../processor.js', import.meta.url));
+    await ctx.audioWorklet.addModule(new URL('../processor.js?v=1.0.1', import.meta.url));
     const node = new AudioWorkletNode(ctx, 'seis-looper', { outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
     const muted = ctx.createGain(); muted.gain.value = 0; node.connect(muted).connect(ctx.destination);
     const osc = ctx.createOscillator(); osc.frequency.value = 440;
@@ -28,6 +28,10 @@ document.querySelector('#run').onclick = async () => {
       }, 20);
     });
     node.port.postMessage({ type: 'record', id: 0 });
+    await waitFor(() => status?.recording?.countdownFrames > 0);
+    assert(status.recording.written === 0, 'Loop 1 muestra la preparación antes de capturar audio');
+    await waitFor(() => status?.recording?.countdownFrames <= ctx.sampleRate * 2);
+    assert(status.recording.countdownFrames > 0 && status.recording.written === 0, 'La cuenta avanza sin incluir muestras en la grabación');
     await waitFor(() => status?.recording?.written >= 18000);
     node.port.postMessage({ type: 'finish' });
     await waitFor(() => recorded.includes(0));
@@ -52,7 +56,7 @@ document.querySelector('#run').onclick = async () => {
     node.port.postMessage({ type: 'play' }); await waitFor(() => status.playing);
     assert(status.tracks.filter(t => t.hasAudio).length === 6, 'La sesión reabierta vuelve a reproducir las seis pistas');
     osc.stop(); node.disconnect();
-    write('\nRESULTADO: 9 comprobaciones correctas.');
+    write('\nRESULTADO: 11 comprobaciones correctas.');
   } catch (e) { write(`ERROR: ${e.stack || e.message}`); }
   finally { await ctx?.close(); document.querySelector('#run').disabled = false; }
 };

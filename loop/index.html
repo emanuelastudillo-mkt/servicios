@@ -10,8 +10,8 @@
   <base href="/loop/">
   <title>SEIS · Looper de micrófono</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.js"></script>
+  <link rel="stylesheet" href="./style.css?v=1.0.1">
+  <script type="module" src="./app.js?v=1.0.1"></script>
 </head>
 <body>
   <div class="shell">
@@ -26,7 +26,7 @@
       <section class="transport" aria-label="Controles principales">
         <div class="transport-intro"><div class="eyebrow"><span class="led" id="transport-led"></span> <span id="transport-status">LISTO PARA CREAR</span></div><h1>Una idea.<br><span>Seis posibilidades.</span></h1><p id="instruction">Activá el micrófono y grabá tu primer loop.</p></div>
         <div class="cycle-display"><div class="time-label">DURACIÓN DEL LOOP <span id="loop-count">0 / 6 PISTAS</span></div><div class="time"><span id="duration">00:00</span><span id="decimals">.00</span><span class="cycle-tag">SYNC</span></div><div class="cycle-line"><div id="cycle-progress"></div></div><div class="cycle-caption"><span id="cycle-position">El primer loop define el ciclo</span><span id="cycle-length">MÁX. 2 MIN</span></div></div>
-        <div class="transport-actions"><button id="play" class="primary" disabled><span aria-hidden="true">▶</span> Reproducir</button><button id="stop" disabled><span aria-hidden="true">■</span> Detener todo</button><span class="shortcut"><kbd>Espacio</kbd> reproducir / detener</span></div>
+        <div class="transport-actions"><button id="play" class="primary" disabled><span aria-hidden="true">▶</span> Reproducir</button><button id="stop" disabled><span aria-hidden="true">■</span> Detener todo</button><span class="shortcut"><kbd>Espacio</kbd> grabar / cerrar loop</span></div>
       </section>
 
       <section class="audio-strip" aria-label="Entrada y salida de audio">
@@ -43,9 +43,9 @@
         <div class="local-note"><span class="local-dot"></span><div><strong>Tu sonido se queda acá.</strong><span>Audio en tu navegador · Sin cuentas ni subidas</span></div></div>
         <div class="export-controls"><label for="cycles">Exportar</label><select id="cycles"><option value="1">1 vuelta</option><option value="2">2 vueltas</option><option value="4" selected>4 vueltas</option><option value="8">8 vueltas</option></select><button id="export" disabled>↓ Mezcla WAV</button></div>
       </section>
-      <details class="help"><summary>Guía rápida y ajustes <span>?</span></summary><div class="help-content"><div><h3>De una idea a un loop</h3><ol><li>Usá auriculares y activá el micrófono.</li><li>Pulsá <b>Grabar</b> en una pista. Volvé a pulsar para cerrar el primer loop.</li><li>Grabá otra pista: espera la próxima vuelta y termina sola al completar el ciclo.</li><li>Combiná las pistas con <b>Silenciar</b>, <b>Solo</b> y sus volúmenes.</li></ol></div><div><h3>Todo a mano</h3><p><kbd>1</kbd> a <kbd>6</kbd> graban una pista vacía o silencian una grabada. <kbd>Espacio</kbd> reproduce o detiene. <kbd>Esc</kbd> cancela una grabación.</p><p><b>Guardar sesión</b> conserva las 6 pistas y sus niveles en un archivo .seisloop. <b>WAV</b> exporta la mezcla audible, incluyendo silencios, solos y volumen de salida. Guardá antes de cerrar.</p></div><div><h3>Ajuste de grabación</h3><label for="compensation">Adelantar nuevas capas <input id="compensation" type="number" min="0" max="500" step="1" value="0"> ms</label><p>Si tus capas quedan atrasadas, compensá la latencia acá. Solo afecta grabaciones nuevas. Con Bluetooth la demora puede ser mayor; preferí auriculares con cable.</p><p>La grabación es mono. Máximo: 120 segundos por loop. Sin efectos ni cambios de tempo.</p></div></div></details>
+      <details class="help"><summary>Guía rápida y ajustes <span>?</span></summary><div class="help-content"><div><h3>De una idea a un loop</h3><ol><li>Usá auriculares y activá el micrófono.</li><li>Pulsá <b>Grabar</b> en una pista. El <b>Loop 1</b> cuenta 3, 2, 1 antes de empezar. Volvé a pulsar para cerrar el primer loop.</li><li>Grabá otra pista: espera la próxima vuelta y termina sola al completar el ciclo.</li><li>Combiná las pistas con <b>Silenciar</b>, <b>Solo</b> y sus volúmenes.</li></ol></div><div><h3>Todo a mano</h3><p><kbd>1</kbd> a <kbd>6</kbd> graban una pista vacía o silencian una grabada. <kbd>Espacio</kbd> inicia la primera pista vacía o cierra la grabación conservando el audio. Durante la cuenta no cancela. Con seis pistas completas, reproduce o detiene sin borrar. <kbd>Esc</kbd> cancela una grabación.</p><p><b>Guardar sesión</b> conserva las 6 pistas y sus niveles en un archivo .seisloop. <b>WAV</b> exporta la mezcla audible, incluyendo silencios, solos y volumen de salida. Guardá antes de cerrar.</p></div><div><h3>Ajuste de grabación</h3><label for="compensation">Adelantar nuevas capas <input id="compensation" type="number" min="0" max="500" step="1" value="0"> ms</label><p>Si tus capas quedan atrasadas, compensá la latencia acá. Solo afecta grabaciones nuevas. Con Bluetooth la demora puede ser mayor; preferí auriculares con cable.</p><p>La grabación es mono. Máximo: 120 segundos por loop. Sin efectos ni cambios de tempo.</p></div></div></details>
     </main>
-    <footer><span>SEIS / v1.0 <span class="footer-divider">·</span> Hecho para darle otra vuelta.</span><button id="demo" class="text-button">♫ Escuchar demo sin micrófono</button></footer>
+    <footer><span>SEIS / v1.0.1 <span class="footer-divider">·</span> Hecho para darle otra vuelta.</span><button id="demo" class="text-button">♫ Escuchar demo sin micrófono</button></footer>
   </div>
   <div id="notification" role="status" aria-live="polite" hidden></div>
   <dialog id="confirm"><form method="dialog"><h2 id="confirm-title">¿Continuar?</h2><p id="confirm-text"></p><div class="dialog-actions"><button value="cancel">Cancelar</button><button class="primary" value="ok">Continuar</button></div></form></dialog>

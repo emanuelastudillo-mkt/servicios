@@ -1,5 +1,6 @@
 import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js';
 import { sealLoop } from './audio-core.js';
+import { spaceAction } from './controls.js?v=1.0.1';
 
 const $ = selector => document.querySelector(selector);
 const colors = ['#c7f69b', '#d8b5f8', '#93d8e9', '#efbd8c', '#f0a7ba', '#a6bafa'];
@@ -19,9 +20,10 @@ for (let i = 0; i < 6; i++) {
   card.setAttribute('aria-label', `Pista ${i + 1}`);
   card.innerHTML = `<div class="track-head"><span class="track-number">0${i + 1}</span><input class="track-name" value="Loop ${i + 1}" maxlength="80" aria-label="Nombre de pista ${i + 1}"><span class="track-status">VACÍA</span></div><div class="wave-area"><canvas aria-label="Forma de onda de pista ${i + 1}"></canvas><span class="wave-placeholder"><kbd>${i + 1}</kbd> Tu próximo sonido</span><div class="playhead"></div></div><div class="track-actions"><button class="record-button" aria-label="Grabar pista ${i + 1}"><span class="record-dot" aria-hidden="true"></span><span class="record-label">Grabar</span></button><button class="toggle-button mute" aria-label="Silenciar pista ${i + 1}" aria-pressed="false" disabled>Silenciar</button><button class="toggle-button solo" aria-label="Solo pista ${i + 1}" aria-pressed="false" disabled>Solo</button><button class="clear-button" title="Borrar pista ${i + 1}" aria-label="Borrar pista ${i + 1}" disabled>×</button></div><div class="track-bottom"><span>VOL</span><input class="volume" type="range" min="0" max="150" value="80" aria-label="Volumen de pista ${i + 1}"><output>80%</output></div>`;
   $('#tracks').append(card);
+  card.querySelector('.wave-area').insertAdjacentHTML('beforeend', '<div class="countdown" role="status" aria-live="polite" aria-atomic="true" hidden><strong></strong><span>PREPARATE</span></div>');
   const q = s => card.querySelector(s);
   cards.push({ card, canvas: q('canvas'), name: q('.track-name'), status: q('.track-status'), placeholder: q('.wave-placeholder'),
-    head: q('.playhead'), record: q('.record-button'), recordLabel: q('.record-label'), mute: q('.mute'), solo: q('.solo'), clear: q('.clear-button'), volume: q('.volume'), value: q('output') });
+    head: q('.playhead'), counter: q('.countdown'), counterNumber: q('.countdown strong'), record: q('.record-button'), recordLabel: q('.record-label'), mute: q('.mute'), solo: q('.solo'), clear: q('.clear-button'), volume: q('.volume'), value: q('output') });
   q('.record-button').addEventListener('click', () => actTrack(i));
   q('.mute').addEventListener('click', () => send({ type: 'track', id: i, muted: !state.tracks[i].muted }));
   q('.solo').addEventListener('click', () => send({ type: 'track', id: i, solo: !state.tracks[i].solo }));
@@ -51,7 +53,7 @@ async function ensureAudio(rate) {
       if (!window.AudioContext || !window.AudioWorkletNode) throw Error('Abrí SEIS en una versión actual de Chrome o Edge.');
       const nextCtx = new AudioContext({ latencyHint: 'interactive', ...(rate ? { sampleRate: rate } : {}) });
       try {
-        await nextCtx.audioWorklet.addModule(new URL('./processor.js', import.meta.url));
+        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.0.1', import.meta.url));
         const nextNode = new AudioWorkletNode(nextCtx, 'seis-looper', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
         nextNode.port.onmessage = onMessage;
         nextNode.onprocessorerror = () => { notify('El motor de audio se interrumpió. Recargá la página y abrí tu última sesión guardada.', true); };
@@ -152,7 +154,7 @@ function disconnectMic() {
 async function actTrack(id) {
   if (ioBusy || micPending) return;
   const r = state.recording;
-  if (r?.id === id) { send({ type: r.first ? 'finish' : 'cancel' }); return; }
+  if (r?.id === id) { send({ type: !r.armed && !r.countdownFrames ? 'finish' : 'cancel' }); return; }
   if (r) { notify('Terminá o cancelá la grabación actual antes de grabar otra pista.'); return; }
   if (state.tracks[id].hasAudio) { send({ type: 'track', id, muted: !state.tracks[id].muted }); return; }
   if (!stream) { notify('Primero activá el micrófono con el botón de arriba.'); $('#mic').focus(); return; }
@@ -164,9 +166,19 @@ async function togglePlay() {
   if (!state.length) return;
   try { await ensureAudio(); send({ type: 'play' }); } catch (e) { notify(e.message, true); }
 }
+async function handleSpace() {
+  const action = spaceAction(state);
+  if (action.type === 'wait') {
+    notify(state.recording.countdownFrames ? 'Preparación en curso. La grabación empieza al terminar la cuenta.' : 'La pista está preparada: empieza al inicio de la próxima vuelta.');
+  } else if (action.type === 'record') await actTrack(action.id);
+  else if (action.type === 'finish') send(action);
+  else await togglePlay();
+}
 
 function render() {
   const r = state.recording;
+  const counting = !!r?.countdownFrames;
+  const secondsLeft = counting ? Math.ceil(r.countdownFrames / state.rate) : 0;
   const busy = ioBusy;
   const hasAudio = state.tracks.some(t => t.hasAudio);
   const anySolo = state.tracks.some(t => t.hasAudio && t.solo);
@@ -193,10 +205,10 @@ function render() {
   $('#duration').textContent = t.main; $('#decimals').textContent = t.decimal;
   $('#loop-count').textContent = `${state.tracks.filter(t => t.hasAudio).length} / 6 PISTAS`;
   $('#cycle-length').textContent = state.length ? `${(state.rate / 1000).toFixed(1)} kHz · MONO` : 'MÁX. 2 MIN';
-  $('#cycle-position').textContent = r ? r.first ? 'Grabando el primer loop…' : r.armed ? 'Esperando el inicio de la vuelta…' : 'Grabando una vuelta completa…' : state.playing ? 'Todas las pistas comparten el mismo ciclo' : state.length ? 'Detenido · Listo para reproducir' : 'El primer loop define el ciclo';
-  $('#instruction').textContent = r ? r.first ? 'Volvé a pulsar la pista para cerrar el loop.' : r.armed ? 'Entrá a tocar cuando comience la próxima vuelta.' : 'La grabación termina sola al completar la vuelta.' : state.length ? 'Sumá otra capa o jugá con la mezcla.' : 'Activá el micrófono y grabá tu primer loop.';
-  $('#transport-status').textContent = r ? r.armed ? 'PISTA PREPARADA' : 'GRABANDO' : state.playing ? 'EN LOOP' : hasAudio ? 'SESIÓN EN PAUSA' : 'LISTO PARA CREAR';
-  $('#transport-led').className = `led ${r && !r.armed ? 'recording' : state.playing ? 'active' : ''}`;
+  $('#cycle-position').textContent = counting ? 'Preparación · Todavía no se está grabando' : r ? r.first ? 'Grabando el primer loop…' : r.armed ? 'Esperando el inicio de la vuelta…' : 'Grabando una vuelta completa…' : state.playing ? 'Todas las pistas comparten el mismo ciclo' : state.length ? 'Detenido · Listo para reproducir' : 'El primer loop define el ciclo';
+  $('#instruction').textContent = counting ? r.first ? 'Prepará tu instrumento: la grabación empieza al terminar la cuenta.' : 'Después de la cuenta, entrás al inicio de la próxima vuelta.' : r ? r.first ? 'Volvé a pulsar la pista para cerrar el loop.' : r.armed ? 'Entrá a tocar cuando comience la próxima vuelta.' : 'La grabación termina sola al completar la vuelta.' : state.length ? 'Sumá otra capa o jugá con la mezcla.' : 'Activá el micrófono y grabá tu primer loop.';
+  $('#transport-status').textContent = counting ? `EMPEZAMOS EN ${secondsLeft}` : r ? r.armed ? 'PISTA PREPARADA' : 'GRABANDO' : state.playing ? 'EN LOOP' : hasAudio ? 'SESIÓN EN PAUSA' : 'LISTO PARA CREAR';
+  $('#transport-led').className = `led ${r && !r.armed && !counting ? 'recording' : state.playing || counting ? 'active' : ''}`;
   const progress = state.length ? state.position / state.length : r ? r.written / (state.rate * 120) : 0;
   $('#cycle-progress').style.width = `${progress * 100}%`;
   const live = stream ? state.inputPeak || 0 : 0;
@@ -206,11 +218,11 @@ function render() {
     const inaudible = track.muted || (anySolo && !track.solo);
     c.card.classList.toggle('has-audio', track.hasAudio);
     c.card.classList.toggle('is-playing', state.playing);
-    c.card.classList.toggle('is-recording', recording && !r.armed);
-    c.card.classList.toggle('is-armed', recording && r.armed);
+    c.card.classList.toggle('is-recording', recording && !r.armed && !counting);
+    c.card.classList.toggle('is-armed', recording && (r.armed || counting));
     c.card.classList.toggle('is-muted', track.hasAudio && inaudible);
-    c.status.textContent = recording ? r.armed ? 'EN ESPERA' : 'GRABANDO' : track.hasAudio ? inaudible ? 'SILENCIADA' : state.playing ? 'EN LOOP' : 'LISTA' : 'VACÍA';
-    c.recordLabel.textContent = recording ? r.first ? 'Cerrar loop' : 'Cancelar' : track.hasAudio ? track.muted ? 'Activar' : 'Silenciar' : 'Grabar';
+    c.status.textContent = recording ? counting ? 'PREPARATE' : r.armed ? 'EN ESPERA' : 'GRABANDO' : track.hasAudio ? inaudible ? 'SILENCIADA' : state.playing ? 'EN LOOP' : 'LISTA' : 'VACÍA';
+    c.recordLabel.textContent = recording ? !r.armed && !counting ? 'Cerrar loop' : 'Cancelar' : track.hasAudio ? track.muted ? 'Activar' : 'Silenciar' : i === 0 ? 'Grabar · 3 s' : 'Grabar';
     c.record.setAttribute('aria-label', `${c.recordLabel.textContent} pista ${i + 1}`);
     c.record.disabled = busy || micPending || (!!r && !recording);
     c.mute.disabled = !track.hasAudio || busy;
@@ -220,11 +232,13 @@ function render() {
     c.mute.setAttribute('aria-pressed', String(track.muted));
     c.solo.setAttribute('aria-pressed', String(track.solo));
     c.placeholder.hidden = track.hasAudio;
-    if (track.hasAudio) c.placeholder.style.display = 'none';
+    c.counter.hidden = !(recording && counting);
+    if (recording && counting && c.counterNumber.textContent !== String(secondsLeft)) c.counterNumber.textContent = String(secondsLeft);
+    if (track.hasAudio || (recording && counting)) c.placeholder.style.display = 'none';
     else { c.placeholder.style.display = ''; c.placeholder.textContent = recording ? r.armed ? 'Entrás en la próxima vuelta' : '● Grabando tu sonido' : `${i + 1}  ·  Tu próximo sonido`; }
     c.head.style.left = `${(recording && !r.first && !r.armed ? r.written / state.length : progress) * 100}%`;
   }
-  if (performance.now() - drawAt > 100 && r && !r.armed) { drawAt = performance.now(); drawLive(r.id, live); }
+  if (performance.now() - drawAt > 100 && r && !r.armed && !counting) { drawAt = performance.now(); drawLive(r.id, live); }
 }
 function setMeter(kind, peak) {
   const el = $(`#${kind}-meter`);
@@ -345,10 +359,16 @@ $('#demo').addEventListener('click', async () => {
 });
 
 document.addEventListener('keydown', e => {
-  if (e.repeat || e.ctrlKey || e.altKey || e.metaKey || $('#confirm').open || ioBusy || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
-  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  if (e.ctrlKey || e.altKey || e.metaKey || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
+  // Suppress native activation even when a Delete/Cancel button has keyboard focus.
+  if (e.code === 'Space') e.preventDefault();
+  if (e.repeat || ioBusy || $('#confirm').open) return;
+  if (e.code === 'Space') handleSpace();
   if (/^[1-6]$/.test(e.key)) { e.preventDefault(); actTrack(Number(e.key) - 1); }
   if (e.code === 'Escape' && state.recording) { send({ type: 'cancel' }); }
+});
+document.addEventListener('keyup', e => {
+  if (e.code === 'Space' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) e.preventDefault();
 });
 window.addEventListener('beforeunload', e => { if (dirty || state.recording) { e.preventDefault(); e.returnValue = ''; } });
 window.addEventListener('pagehide', () => { stream?.getTracks().forEach(t => t.stop()); ctx?.close(); });
