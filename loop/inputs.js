@@ -1,10 +1,11 @@
+import { latencyConfig } from './latency.js?v=1.3.0';
 export const INPUT_KINDS = ['device', 'window', 'tab', 'system', 'native'];
 export function inputConfig(value) {
-  if (value == null) return { kind: 'device', deviceId: '', label: '', gain: 1, muted: false };
+  if (value == null) return { kind: 'device', deviceId: '', label: '', gain: 1, muted: false, latency: latencyConfig() };
   if (!INPUT_KINDS.includes(value.kind) || typeof value.deviceId !== 'string' || value.deviceId.length > 512 ||
       typeof value.label !== 'string' || value.label.length > 200 || !Number.isFinite(value.gain) ||
       value.gain < 0 || value.gain > 2 || typeof value.muted !== 'boolean') throw Error('Configuración de entrada inválida.');
-  return { kind: value.kind, deviceId: ['device', 'native'].includes(value.kind) ? value.deviceId : '', label: value.label, gain: value.gain, muted: value.muted };
+  return { kind: value.kind, deviceId: ['device', 'native'].includes(value.kind) ? value.deviceId : '', label: value.label, gain: value.gain, muted: value.muted, latency: latencyConfig(value.latency) };
 }
 
 export function captureOptions(kind) {
@@ -51,7 +52,7 @@ export class InputManager {
         // transient user activation, even when the AudioContext is still loading.
         const capture = config.kind === 'native' ? this.nativeCapture(config) : config.kind === 'device' ? this.media.getUserMedia({ video: false, audio: {
           ...(config.deviceId ? { deviceId: { exact: config.deviceId } } : {}), channelCount: 1,
-          echoCancellation: false, noiseSuppression: false, autoGainControl: false } }) : this.media.getDisplayMedia(captureOptions(config.kind));
+          latency: { ideal: .01 }, echoCancellation: false, noiseSuppression: false, autoGainControl: false } }) : this.media.getDisplayMedia(captureOptions(config.kind));
         const [captureResult, graphResult] = await Promise.allSettled([capture, this.getGraph()]);
         if (captureResult.status === 'fulfilled') stream = captureResult.value;
         else throw captureResult.reason;

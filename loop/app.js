@@ -1,9 +1,11 @@
-import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.2.0';
+import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.3.0';
 import { sealLoop } from './audio-core.js';
-import { spaceAction } from './controls.js?v=1.2.0';
+import { spaceAction } from './controls.js?v=1.3.0';
 
-import { InputManager, inputConfig } from './inputs.js?v=1.2.0';
-import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.2.0';
+import { InputManager, inputConfig } from './inputs.js?v=1.3.0';
+import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.3.0';
+import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.3.0';
+import { calibrate } from './calibration.js?v=1.3.0';
 
 const $ = selector => document.querySelector(selector);
 const colors = ['#c7f69b', '#d8b5f8', '#93d8e9', '#efbd8c', '#f0a7ba', '#a6bafa'];
@@ -11,6 +13,7 @@ const names = Array.from({ length: 6 }, (_, i) => `Loop ${i + 1}`);
 let waves = Array.from({ length: 6 }, () => []);
 let ctx, node, initPromise, ioBusy = false, monitorId = -1;
 let devices = [], nativeSources = [];
+let latencyId = -1, measurementDraft = null, measurementAbort = null;
 let dirty = false, revision = 0, requestId = 0, notificationTimer, drawAt = 0;
 let state = { length: 0, position: 0, rate: 48000, playing: false, recording: null, canUndo: false,
   tracks: Array.from({ length: 6 }, () => ({ hasAudio: false, volume: .8, muted: false, solo: false })) };
@@ -21,6 +24,7 @@ const inputs = new InputManager({
   nativeCapture: desktop ? config => captureNative(config, async () => { await ensureAudio(); return { ctx, node }; }) : undefined,
   onChange: () => render(),
   onEnded: id => {
+    if (id === latencyId) measurementAbort?.abort();
     if (monitorId === id) setMonitor(-1);
     send({ type: 'inputLost', id });
     notify('Se desconectó la entrada del Loop ' + (id + 1) + '. Volvé a conectarla para seguir grabando.', true);
@@ -38,7 +42,7 @@ for (let i = 0; i < 6; i++) {
     <select class="source-select" id="source-${i}" aria-label="Fuente de pista ${i + 1}"></select>
     <div class="input-connection"><button class="input-connect" aria-label="Conectar entrada de pista ${i + 1}">Conectar</button><button class="input-disconnect" aria-label="Desconectar entrada de pista ${i + 1}" title="Desconectar entrada" disabled>×</button><span class="input-status">Sin conectar</span></div>
     <div class="input-level"><button class="input-mute" aria-label="Silenciar entrada de pista ${i + 1}" aria-pressed="false" title="Silenciar la entrada antes de grabar">Entrada</button><input class="input-gain" type="range" min="0" max="200" value="100" aria-label="Nivel de entrada de pista ${i + 1}"><output class="input-value">100%</output><div class="meter" role="meter" aria-label="Señal de entrada de pista ${i + 1}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i class="input-meter"></i></div></div>
-    <div class="input-listen-row"><label class="input-listen"><input type="checkbox" aria-label="Escuchar entrada de pista ${i + 1}"> Escuchar entrada</label><button class="input-apply" aria-label="Aplicar entrada de pista ${i + 1} a todas" title="Copia la fuente, ganancia y silencio de entrada a las seis pistas. Conserva el audio grabado.">Aplicar a todas</button></div>
+    <div class="input-listen-row"><label class="input-listen"><input type="checkbox" aria-label="Escuchar entrada de pista ${i + 1}"> Escuchar</label><button class="latency-button" aria-label="Sincronizar latencia de pista ${i + 1}">Sincronizar</button><button class="input-apply" aria-label="Aplicar entrada de pista ${i + 1} a todas" title="Copia fuente, nivel, silencio y compensación de entrada. Conserva el audio grabado.">Aplicar a todas</button></div>
   </div>`);
   $('#tracks').append(card);
   card.querySelector('.wave-area').insertAdjacentHTML('beforeend', '<div class="countdown" role="status" aria-live="polite" aria-atomic="true" hidden><strong></strong><span>PREPARATE</span></div>');
@@ -51,11 +55,12 @@ for (let i = 0; i < 6; i++) {
     inputs.setConfig(i, { ...inputs.configs[i], kind, deviceId: ['device', 'native'].includes(kind) ? value.slice(7) : '', label: e.target.selectedOptions[0].textContent.slice(0, 200) }); changed();
   });
   q('.input-connect').addEventListener('click', () => connectInput(i));
+  q('.latency-button').addEventListener('click', () => openLatency(i));
   q('.input-apply').addEventListener('click', async () => {
     if (state.recording || ioBusy || inputs.pending >= 0) return;
     try {
       setMonitor(-1); const connected = await inputs.applyToAll(i); refreshOptions(); changed(); render();
-      notify(connected ? 'Entrada, nivel y silencio aplicados a las seis pistas. Comparten la conexión; los loops grabados se conservan.' : 'Fuente, nivel y silencio aplicados a las seis pistas. Conectá una y volvé a aplicar para compartir la conexión.');
+      notify(connected ? 'Entrada, nivel, silencio y compensación aplicados a las seis pistas. Los loops grabados se conservan.' : 'Fuente y ajustes aplicados a las seis pistas. Conectá una y volvé a aplicar para compartir la conexión.');
     } catch (error) { notify(error.message, true); }
   });
   q('.input-disconnect').addEventListener('click', () => { if (monitorId === i) setMonitor(-1); inputs.disconnect(i); });
@@ -91,7 +96,7 @@ async function ensureAudio(rate) {
       if (!window.AudioContext || !window.AudioWorkletNode) throw Error('Abrí SEIS en una versión actual de Chrome o Edge.');
       const nextCtx = new AudioContext({ latencyHint: 'interactive', ...(rate ? { sampleRate: rate } : {}) });
       try {
-        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.2.0', import.meta.url));
+        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.3.0', import.meta.url));
         const nextNode = new AudioWorkletNode(nextCtx, 'seis-looper', { numberOfInputs: 6, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
         nextNode.port.onmessage = onMessage;
         nextNode.onprocessorerror = () => { notify('El motor de audio se interrumpió. Recargá la página y abrí tu última sesión guardada.', true); };
@@ -99,7 +104,7 @@ async function ensureAudio(rate) {
         ctx = nextCtx; node = nextNode;
         ctx.onstatechange = () => { if (ctx.state === 'suspended') notify('Audio suspendido. Pulsá Reproducir para reactivarlo.'); };
         // Apply pre-initialization slider choices.
-        send({ type: 'settings', master: $('#master').value / 100, inputGain: 1, compensation: Number($('#compensation').value) });
+        send({ type: 'settings', master: $('#master').value / 100, inputGain: 1 });
         cards.forEach((c, id) => send({ type: 'track', id, volume: c.volume.value / 100 }));
       } catch (e) { await nextCtx.close(); throw e; }
     })();
@@ -149,6 +154,80 @@ function setMonitor(id) {
   send({ type: 'settings', monitor: id >= 0, inputTrack: Math.max(0, id) });
   render();
 }
+
+function trackLatency(id) {
+  const config = inputs.configs[id], slot = inputs.slots[id];
+  if (!config) return { ms: 0, ready: false, route: '', detail: 'Conectá una entrada.' };
+  const settings = slot?.entry.stream.getAudioTracks()[0]?.getSettings?.() || {};
+  const sink = typeof ctx?.sinkId === 'string' ? ctx.sinkId : $('#output-device').value;
+  const output = devices.find(d => d.kind === 'audiooutput' && d.deviceId === (sink || 'default'));
+  const outputKey = JSON.stringify([sink || 'default', output?.groupId || output?.label || '']);
+  const route = slot && ctx ? routeKey(config, settings, outputKey, ctx.sampleRate) : '';
+  return { ...resolveLatency(config, settings, ctx || {}, route), route };
+}
+function openLatency(id) {
+  if (ioBusy || state.recording || inputs.pending >= 0) return;
+  latencyId = id; measurementDraft = null;
+  const config = inputs.configs[id], info = trackLatency(id);
+  $('#latency-title').textContent = `Sincronizar · ${names[id] || 'Loop ' + (id + 1)}`;
+  $('#latency-source').textContent = config.label || cards[id].source.selectedOptions[0]?.textContent || 'Entrada de grabación';
+  $('#latency-mode').value = config.latency.mode;
+  $('#latency-mode option[value="measured"]').disabled = config.latency.mode !== 'measured';
+  $('#compensation').value = (info.ready ? info.ms : config.latency.ms).toFixed(1);
+  $('#calibration-ready').checked = false;
+  $('#latency-status').textContent = !inputs.slots[id] ? 'Conectá esta entrada antes de medir o aplicar el ajuste.' : (state.playing ? 'Detené la reproducción para medir. ' : '') + info.detail;
+  $('#latency-dialog').showModal(); render();
+}
+$('#latency-close').addEventListener('click', () => { measurementAbort?.abort(); $('#latency-dialog').close(); });
+$('#latency-dialog').addEventListener('cancel', () => measurementAbort?.abort());
+$('#latency-cancel').addEventListener('click', () => measurementAbort?.abort());
+$('#calibration-ready').addEventListener('change', render);
+$('#latency-mode').addEventListener('change', () => {
+  const mode = $('#latency-mode').value;
+  if (mode === 'auto') {
+    const info = trackLatency(latencyId), config = { ...inputs.configs[latencyId], latency: latencyConfig() };
+    const settings = inputs.slots[latencyId]?.entry.stream.getAudioTracks()[0]?.getSettings?.() || {};
+    const estimate = resolveLatency(config, settings, ctx || {}, info.route);
+    $('#compensation').value = estimate.ms.toFixed(1); $('#latency-status').textContent = estimate.detail;
+  } else if (mode === 'measured') {
+    const measured = measurementDraft || inputs.configs[latencyId].latency;
+    $('#compensation').value = measured.ms.toFixed(1);
+    $('#latency-status').textContent = `Retorno medido: ${measured.ms.toFixed(1)} ms. Repetí la prueba si cambiaste el búfer o los efectos.`;
+  } else if (mode === 'off') { $('#compensation').value = '0'; $('#latency-status').textContent = 'No se adelantará el audio de las tomas nuevas.'; }
+  else if (mode === 'manual') $('#latency-status').textContent = 'Ingresá el retardo total del recorrido, en milisegundos. No se suma otra compensación encima.';
+  render();
+});
+$('#latency-apply').addEventListener('click', () => {
+  if (ioBusy || state.recording || !inputs.slots[latencyId]) return;
+  const mode = $('#latency-mode').value, current = trackLatency(latencyId);
+  const ms = Number($('#compensation').value);
+  if (!Number.isFinite(ms) || ms < 0 || ms > MAX_LATENCY_MS) { $('#latency-status').textContent = `Ingresá un valor entre 0 y ${MAX_LATENCY_MS} ms.`; return; }
+  const measured = measurementDraft || inputs.configs[latencyId].latency;
+  if (mode === 'measured' && measured.route !== current.route) { $('#latency-status').textContent = 'La ruta cambió después de medir. Repetí la medición.'; return; }
+  const latency = latencyConfig({ mode, ms: mode === 'measured' ? measured.ms : mode === 'manual' ? ms : 0, route: ['manual', 'measured'].includes(mode) ? current.route : '' });
+  inputs.setConfig(latencyId, { ...inputs.configs[latencyId], latency });
+  changed(); render(); $('#latency-dialog').close();
+  notify(`Compensación aplicada al Loop ${latencyId + 1}. Usá Aplicar a todas si comparten la misma ruta. Solo afecta tomas nuevas.`);
+});
+$('#latency-measure').addEventListener('click', async () => {
+  if (ioBusy || state.recording || state.playing || !$('#calibration-ready').checked || !inputs.slots[latencyId]) return;
+  const id = latencyId, slot = inputs.slots[id], originalRoute = trackLatency(id).route;
+  if (inputs.configs[id].muted || inputs.configs[id].gain === 0) { $('#latency-status').textContent = 'Activá la entrada y subí su nivel antes de medir.'; return; }
+  measurementAbort = new AbortController(); const controller = measurementAbort;
+  await withBusy(async () => {
+    setMonitor(-1); $('#latency-cancel').hidden = false;
+    $('#latency-status').textContent = 'Midiendo tres señales… Mantené esta ventana visible y no toques durante la prueba.';
+    try {
+      await ensureAudio(); const result = await calibrate(ctx, slot.analyser, controller.signal);
+      if (controller.signal.aborted || inputs.slots[id] !== slot || trackLatency(id).route !== originalRoute) throw Error('La entrada o salida cambió durante la medición. Repetí la prueba.');
+      measurementDraft = { ...result, route: originalRoute };
+      $('#latency-mode option[value="measured"]').disabled = false;
+      $('#latency-mode').value = 'measured'; $('#compensation').value = result.ms.toFixed(1);
+      $('#latency-status').textContent = `Retorno medido: ${result.ms.toFixed(1)} ms · variación ${result.spreadMs.toFixed(1)} ms. Pulsá Aplicar a esta entrada para usarlo.`;
+    } catch (error) { $('#latency-status').textContent = error.message; }
+    finally { measurementAbort = null; $('#latency-cancel').hidden = true; }
+  });
+});
 function refreshOptions() {
   cards.forEach((c, id) => {
     const config = inputs.configs[id];
@@ -214,7 +293,11 @@ async function actTrack(id) {
   if (!inputs.slots[id]) { notify('Elegí una fuente y pulsá Conectar en el Loop ' + (id + 1) + '.'); cards[id].connect.focus(); return; }
   if (inputs.configs[id].muted || inputs.configs[id].gain === 0) { notify('La entrada de esta pista está en silencio. Activala y subí su nivel antes de grabar.', true); return; }
   if (monitorId !== id) setMonitor(-1);
-  try { await ensureAudio(); send({ type: 'record', id }); } catch (e) { notify(e.message, true); }
+  try {
+    await ensureAudio(); const latency = trackLatency(id);
+    send({ type: 'record', id, compensation: latency.ms });
+    if (state.length && !latency.ready) notify('Loop ' + (id + 1) + ' sin compensar: usá Sincronizar para medir o ajustar esta ruta.');
+  } catch (e) { notify(e.message, true); }
 }
 async function togglePlay() {
   if (ioBusy) return;
@@ -225,7 +308,7 @@ async function togglePlay() {
 async function handleSpace() {
   const action = spaceAction(state);
   if (action.type === 'wait') {
-    notify(state.recording.countdownFrames ? 'Preparación en curso. La grabación empieza al terminar la cuenta.' : 'La pista está preparada: empieza al inicio de la próxima vuelta.');
+    notify(state.recording.ending ? 'Cerrando la toma: esperando su final retrasado para conservarlo.' : state.recording.countdownFrames ? 'Preparación en curso. La grabación empieza al terminar la cuenta.' : 'La pista está preparada: empieza al inicio de la próxima vuelta.');
   } else if (action.type === 'record') await actTrack(action.id);
   else if (action.type === 'finish') send(action);
   else await togglePlay();
@@ -254,7 +337,11 @@ function render() {
   $('#undo').disabled = !state.canUndo || !!r || busy;
   $('#session-title').disabled = busy;
   $('#master').disabled = busy;
-  $('#compensation').disabled = !!r || busy;
+  $('#compensation').disabled = !!r || busy || $('#latency-mode').value !== 'manual';
+  $('#latency-mode').disabled = !!r || busy;
+  $('#latency-apply').disabled = !!r || busy || !inputs.slots[latencyId];
+  $('#latency-measure').disabled = !!r || busy || state.playing || !inputs.slots[latencyId] || !$('#calibration-ready').checked;
+  $('#calibration-ready').disabled = busy;
   $('#cycles').disabled = busy;
   const t = time(r?.first ? r.written : state.length);
   $('#duration').textContent = t.main; $('#decimals').textContent = t.decimal;
@@ -285,6 +372,10 @@ function render() {
     c.listen.checked = monitorId === i;
     c.listen.disabled = !connected || busy || (!!r && !recording) || config.kind === 'system' || (config.kind === 'native' && config.deviceId.startsWith('out:'));
     c.card.querySelector('.input-apply').disabled = busy || !!r;
+    const latency = trackLatency(i), syncButton = c.card.querySelector('.latency-button');
+    syncButton.disabled = busy || !!r;
+    syncButton.textContent = connected && latency.ready && latency.ms > 0 ? `${latency.ms.toFixed(1)} ms` : connected && latency.label === 'Revisar ruta' ? 'Recalibrar' : 'Sincronizar';
+    syncButton.title = connected ? `${latency.label}: ${latency.detail}` : 'Conectá una entrada para medir o ajustar su latencia.';
     const peak = inputs.peak(i), amount = Math.min(100, Math.sqrt(peak) * 100);
     c.inputMeter.style.height = amount + '%'; c.inputMeter.classList.toggle('hot', peak >= .98);
     c.inputMeter.parentElement.setAttribute('aria-valuenow', String(Math.round(amount)));
@@ -295,8 +386,8 @@ function render() {
     c.card.classList.toggle('is-recording', recording && !r.armed && !counting);
     c.card.classList.toggle('is-armed', recording && (r.armed || counting));
     c.card.classList.toggle('is-muted', track.hasAudio && inaudible);
-    c.status.textContent = recording ? counting ? 'PREPARATE' : r.armed ? 'EN ESPERA' : 'GRABANDO' : track.hasAudio ? inaudible ? 'SILENCIADA' : state.playing ? 'EN LOOP' : 'LISTA' : 'VACÍA';
-    c.recordLabel.textContent = recording ? !r.armed && !counting ? 'Cerrar loop' : 'Cancelar' : track.hasAudio ? track.muted ? 'Activar' : 'Silenciar' : i === 0 ? 'Grabar · 3 s' : 'Grabar';
+    c.status.textContent = recording ? r.ending ? 'CERRANDO' : counting ? 'PREPARATE' : r.armed ? 'EN ESPERA' : 'GRABANDO' : track.hasAudio ? inaudible ? 'SILENCIADA' : state.playing ? 'EN LOOP' : 'LISTA' : 'VACÍA';
+    c.recordLabel.textContent = recording ? r.ending ? 'Cerrando…' : !r.armed && !counting ? 'Cerrar loop' : 'Cancelar' : track.hasAudio ? track.muted ? 'Activar' : 'Silenciar' : i === 0 ? 'Grabar · 3 s' : 'Grabar';
     c.record.setAttribute('aria-label', `${c.recordLabel.textContent} pista ${i + 1}`);
     c.record.disabled = busy || (!!r && !recording);
     c.mute.disabled = !track.hasAudio || busy;
@@ -377,7 +468,6 @@ $('#play').addEventListener('click', togglePlay);
 $('#stop').addEventListener('click', () => send({ type: 'stop' }));
 $('#undo').addEventListener('click', () => send({ type: 'undo' }));
 $('#master').addEventListener('input', e => { $('#master-value').textContent = `${e.target.value}%`; send({ type: 'settings', master: e.target.value / 100 }); changed(); });
-$('#compensation').addEventListener('change', e => { e.target.value = Math.max(0, Math.min(500, Number(e.target.value) || 0)); send({ type: 'settings', compensation: Number(e.target.value) }); });
 $('#session-title').addEventListener('input', changed);
 $('#save').addEventListener('click', () => withBusy(async () => {
   await ensureAudio(); const rev = revision; const data = await snapshot();
@@ -441,7 +531,7 @@ document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.altKey || e.metaKey || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
   // Suppress native activation even when a Delete/Cancel button has keyboard focus.
   if (e.code === 'Space') e.preventDefault();
-  if (e.repeat || ioBusy || $('#confirm').open) return;
+  if (e.repeat || ioBusy || $('#confirm').open || $('#latency-dialog').open) return;
   if (e.code === 'Space') handleSpace();
   if (/^[1-6]$/.test(e.key)) { e.preventDefault(); actTrack(Number(e.key) - 1); }
   if (e.code === 'Escape' && state.recording) { send({ type: 'cancel' }); }
@@ -450,7 +540,7 @@ document.addEventListener('keyup', e => {
   if (e.code === 'Space' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) e.preventDefault();
 });
 window.addEventListener('beforeunload', e => { if (dirty || state.recording) { e.preventDefault(); e.returnValue = ''; } });
-window.addEventListener('pagehide', () => { inputs.disconnectAll(); ctx?.close(); });
+window.addEventListener('pagehide', () => { measurementAbort?.abort(); inputs.disconnectAll(); ctx?.close(); });
 navigator.mediaDevices?.addEventListener('devicechange', () => listDevices().catch(() => {}));
 refreshOptions(); if (!desktop) listDevices().catch(() => {});
 window.seisHasUnsavedChanges = () => dirty || !!state.recording;

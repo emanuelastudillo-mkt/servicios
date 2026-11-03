@@ -31,7 +31,7 @@ if (desktop) window.chrome.webview.addEventListener('message', ({ data }) => {
 
 export async function captureNative(config, getGraph) {
   const { ctx } = await getGraph();
-  modulePromise ||= ctx.audioWorklet.addModule(new URL('./native-processor.js?v=1.2.0', import.meta.url)).catch(e => { modulePromise = null; throw e; });
+  modulePromise ||= ctx.audioWorklet.addModule(new URL('./native-processor.js?v=1.3.0', import.meta.url)).catch(e => { modulePromise = null; throw e; });
   await modulePromise;
   const id = crypto.randomUUID(), node = new AudioWorkletNode(ctx, 'seis-native-input', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [1] });
   const destination = ctx.createMediaStreamDestination(); node.connect(destination);

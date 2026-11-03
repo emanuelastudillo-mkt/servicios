@@ -18,7 +18,14 @@ document.querySelector('#prepare').onclick = async () => {
     oscillator.connect(destination); oscillator.start();
     return destination.stream;
   };
-  Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: async options => createSignal(options.audio.deviceId?.exact === 'qa-focusrite' ? .35 : .15) });
+  Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: async options => {
+    const stream = await createSignal(options.audio.deviceId?.exact === 'qa-focusrite' ? .35 : .15);
+    const track = stream.getAudioTracks()[0], settings = track.getSettings();
+    // A real hardware device keeps its ID across connections; the synthetic
+    // MediaStreamDestination would otherwise invent a new WebAudio UUID.
+    track.getSettings = () => ({ ...settings, deviceId: options.audio.deviceId?.exact || 'qa-microphone', latency: .01 });
+    return stream;
+  } });
   Object.defineProperty(navigator.mediaDevices, 'getDisplayMedia', { configurable: true, value: async () => {
     lastCapture = noAudio ? new MediaStream() : await createSignal(.55); return lastCapture;
   }});
@@ -27,7 +34,7 @@ document.querySelector('#prepare').onclick = async () => {
     { kind: 'audioinput', deviceId: 'qa-focusrite', label: 'Focusrite · señal de prueba' }
   ] });
   window.addEventListener('pagehide', () => testContext?.close());
-  await import('../app.js?v=1.2.0');
+  await import('../app.js?v=1.3.0');
   const run = document.createElement('button'); run.textContent = 'Verificar fuentes y teclas'; note.append(document.createElement('br'), run);
   const results = document.createElement('pre'); results.id = 'ui-results'; results.style.whiteSpace = 'pre-wrap'; note.append(results);
   run.onclick = async () => {
@@ -52,6 +59,12 @@ document.querySelector('#prepare').onclick = async () => {
       assert($('#inputs-status').textContent.startsWith('3 / 6'), 'Tres fuentes conectadas en pistas diferentes');
       change(track(1).querySelector('.input-gain'), '50', 'input');
       assert(track(1).querySelector('.input-value').textContent === '50%', 'Ganancia de entrada independiente');
+      track(1).querySelector('.latency-button').click();
+      assert($('#latency-dialog').open && $('#latency-measure').disabled, 'Sincronizar abre el ajuste y no emite señales sin preparar el retorno');
+      $('#latency-close').focus(); space();
+      assert(!track(0).classList.contains('is-recording') && track(0).querySelector('.countdown').hidden, 'Espacio dentro del ajuste no inicia una grabación');
+      change($('#latency-mode'), 'manual'); change($('#compensation'), '50'); $('#latency-apply').click();
+      assert(!$('#latency-dialog').open && track(1).querySelector('.latency-button').textContent === '50.0 ms', 'Aplica 50 ms solo a la entrada elegida');
       track(0).querySelector('.input-listen input').click(); track(1).querySelector('.input-listen input').click();
       assert(!track(0).querySelector('.input-listen input').checked && track(1).querySelector('.input-listen input').checked, 'Solo una fuente en escucha directa');
       track(0).querySelector('.input-connect').focus(); space();
@@ -63,6 +76,8 @@ document.querySelector('#prepare').onclick = async () => {
       space(); await wait(() => track(0).classList.contains('has-audio'));
       assert(!track(1).querySelector('.input-listen input').checked, 'Grabar otra fuente desactiva la escucha anterior');
       track(0).querySelector('.clear-button').focus(); space();
+      await wait(() => track(1).classList.contains('is-recording'));
+      await new Promise(resolve => setTimeout(resolve, 350)); space();
       await wait(() => track(1).classList.contains('has-audio'));
       assert(track(0).classList.contains('has-audio'), 'Espacio con foco en Borrar conserva Loop 1 y graba Loop 2');
       track(2).querySelector('.record-button').click(); await wait(() => track(2).classList.contains('has-audio'));
@@ -73,29 +88,38 @@ document.querySelector('#prepare').onclick = async () => {
       URL.createObjectURL = blob => { savedBlob = blob; return originalCreate(blob); };
       HTMLAnchorElement.prototype.click = function () {};
       try { $('#save').click(); await wait(() => savedBlob); } finally { URL.createObjectURL = originalCreate; HTMLAnchorElement.prototype.click = originalClick; }
-      const { decodeSession } = await import('../files.js?v=1.2.0');
+      const { decodeSession, encodeSession } = await import('../files.js?v=1.3.0');
       const binary = await savedBlob.arrayBuffer(), saved = decodeSession(binary);
       const expected = [.15, .175, .55];
       assert(saved.tracks.slice(0, 3).every((t, i) => Math.abs(t.samples[Math.floor(t.samples.length / 2)] - expected[i]) < .002), 'La sesión descargada contiene micrófono, placa al 50% y aplicación sin mezclarlos');
       assert(saved.tracks[1].input.deviceId === 'qa-focusrite' && saved.tracks[1].input.gain === .5 && saved.tracks[2].input.kind === 'window', 'Guardar conserva fuentes y niveles');
+      assert(saved.tracks[1].input.latency.mode === 'manual' && saved.tracks[1].input.latency.ms === 50 && saved.tracks[1].input.latency.route, 'La sesión conserva la compensación y la ruta de audio');
       lastCapture.getAudioTracks()[0].stop(); lastCapture.getAudioTracks()[0].dispatchEvent(new Event('ended'));
       await wait(() => !track(2).classList.contains('input-connected'));
       assert(track(2).classList.contains('has-audio'), 'Terminar una captura conserva el loop grabado');
       noAudio = true; track(3).querySelector('.source-select').value = 'tab'; track(3).querySelector('.source-select').dispatchEvent(new Event('change'));
       track(3).querySelector('.input-connect').click(); await wait(() => $('#notification').textContent.includes('no comparte audio'));
       assert(!track(3).classList.contains('input-connected'), 'Rechaza una captura sin audio con un mensaje útil');
-      const file = new File([binary], 'prueba.seisloop'), transfer = new DataTransfer(); transfer.items.add(file);
+      // Restore a synthetic measured profile to exercise its edit/review UI.
+      saved.tracks[1].input.latency.mode = 'measured';
+      const restoredBinary = encodeSession(saved, saved.title, saved.tracks.map(t => t.name));
+      const file = new File([restoredBinary], 'prueba.seisloop'), transfer = new DataTransfer(); transfer.items.add(file);
       $('#file').files = transfer.files; $('#file').dispatchEvent(new Event('change'));
       await wait(() => $('#confirm').open); $('#confirm button[value=ok]').click();
       await wait(() => $('#notification').textContent.startsWith('Sesión abierta'));
       assert($('#inputs-status').textContent.startsWith('0 / 6') && track(1).querySelector('.source-select').value === 'device:qa-focusrite' && track(1).querySelector('.input-gain').value === '50', 'Abrir restaura asignaciones y ganancia, sin capturar sin permiso');
       assert(document.querySelectorAll('.has-audio').length === 3, 'Abrir conserva las tres tomas');
       track(1).querySelector('.input-connect').click(); await wait(() => track(1).classList.contains('input-connected'));
+      track(1).querySelector('.latency-button').click();
+      change($('#latency-mode'), 'manual'); change($('#compensation'), '91'); change($('#latency-mode'), 'measured');
+      assert(Number($('#compensation').value) === 50, 'Volver al modo medido muestra el valor que realmente se aplicará');
+      $('#latency-close').click();
       track(1).querySelector('.input-mute').click(); track(1).querySelector('.input-apply').click();
       await wait(() => $('#inputs-status').textContent.startsWith('6 / 6'));
       assert([...document.querySelectorAll('.source-select')].every(select => select.value === 'device:qa-focusrite'), 'Aplicar a todas asigna la misma fuente y comparte una conexión');
       assert([...document.querySelectorAll('.input-gain')].every(gain => gain.value === '50') && [...document.querySelectorAll('.input-mute')].every(button => button.getAttribute('aria-pressed') === 'true'), 'Aplicar a todas copia ganancia y silencio de entrada');
       assert(document.querySelectorAll('.has-audio').length === 3 && [...document.querySelectorAll('.volume')].every(gain => gain.value === '80'), 'Aplicar a todas conserva tomas y volúmenes de reproducción');
+      assert([...document.querySelectorAll('.latency-button')].every(button => button.textContent === '50.0 ms'), 'Aplicar a todas comparte también la compensación de la misma ruta');
       $('#disconnect-inputs').click();
       results.textContent += '\nRESULTADO: ' + checks + ' comprobaciones correctas.';
     } catch (e) { results.textContent += 'ERROR: ' + (e.stack || e.message); }

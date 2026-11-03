@@ -60,20 +60,21 @@ export class LoopEngine {
   state() {
     return {
       rate: this.rate, length: this.length, position: this.pos, playing: this.playing,
-      recording: this.recording ? { id: this.recording.id, first: this.recording.first, armed: this.recording.armed, written: this.recording.written, countdownFrames: this.recording.countdownFrames } : null,
+      recording: this.recording ? { id: this.recording.id, first: this.recording.first, armed: this.recording.armed, written: this.recording.written, countdownFrames: this.recording.countdownFrames, ending: this.recording.endAt != null } : null,
       tracks: this.tracks.map(t => ({ hasAudio: !!t.samples, volume: t.volume, muted: t.muted, solo: t.solo })),
       master: this.master, inputGain: this.inputGain, monitor: this.monitor,
       inputPeak: this.inputPeak, outputPeak: this.outputPeak, canUndo: !!this.undo
     };
   }
-  startRecording(id) {
+  startRecording(id, compensation = this.compensation) {
     if (!Number.isInteger(id) || id < 0 || id >= TRACKS) throw Error('Pista inválida.');
     if (this.recording) throw Error('Terminá o cancelá la grabación actual.');
     if (this.tracks[id].samples) throw Error('La pista ya tiene audio. Borrala antes de volver a grabar.');
     const first = !this.length;
-    this.recording = { id, first, armed: !first, written: 0,
+    const latencyFrames = first ? 0 : Math.round(clamp(Number.isFinite(compensation) ? compensation : 0, 0, 750) * this.rate / 1000);
+    this.recording = { id, first, armed: !first, written: 0, latencyFrames, endAt: null,
       countdownFrames: id === 0 ? Math.round(this.rate * COUNT_IN_SECONDS) : 0,
-      shift: Math.round(this.compensation * this.rate / 1000),
+      delayFrames: latencyFrames,
       samples: new Float32Array(first ? Math.floor(this.rate * MAX_SECONDS) : this.length) };
     if (!first && !this.playing) { this.pos = 0; this.playing = true; }
     this.emit({ type: 'state' });
@@ -88,16 +89,24 @@ export class LoopEngine {
     this.playing = true;
     this.completeRecording();
   }
-  finishRecording() {
+  finishRecording(immediate = false) {
     const r = this.recording;
     // Preparation is never canceled by a request to finish.
     if (!r || r.countdownFrames > 0 || r.armed) return;
     if (r.first) { this.finishFirst(); return; }
+    if (!immediate && r.latencyFrames > 0) {
+      // Space refers to the performed time, whose final input samples are still
+      // in flight. Freeze that endpoint on the first finish request.
+      const target = Math.min(this.length, r.written + r.latencyFrames - r.delayFrames);
+      if (!target) return;
+      r.endAt ??= target;
+      if (r.written < r.endAt) { this.emit({ type: 'state' }); return; }
+    }
     if (!r.written) return;
     // Keep the recorded portion and the shared cycle; the remainder stays silent.
     const fade = Math.min(Math.round(this.rate * .003), r.written);
     for (let i = 0; i < fade; i++) {
-      const pos = ((r.written - 1 - i - r.shift) % this.length + this.length) % this.length;
+      const pos = r.written - 1 - i;
       r.samples[pos] *= i / fade;
     }
     this.completeRecording();
@@ -146,13 +155,13 @@ export class LoopEngine {
   }
   command(m) {
     switch (m.type) {
-      case 'record': this.startRecording(m.id); break;
+      case 'record': this.startRecording(m.id, m.compensation); break;
       case 'finish': this.finishRecording(); break;
       case 'cancel': this.cancelRecording(); break;
       case 'inputLost': {
         const r = this.recording;
         if (r?.id !== m.id) break;
-        if (!r.armed && !r.countdownFrames && r.written >= (r.first ? Math.ceil(this.rate * .25) : 1)) this.finishRecording();
+        if (!r.armed && !r.countdownFrames && r.written >= (r.first ? Math.ceil(this.rate * .25) : 1)) this.finishRecording(true);
         else this.cancelRecording();
         this.emit({ type: 'inputLost', id: m.id, kept: !!this.tracks[m.id].samples });
         break;
@@ -173,7 +182,7 @@ export class LoopEngine {
       case 'settings':
         if (Number.isFinite(m.master)) this.master = clamp(m.master, 0, 1);
         if (Number.isFinite(m.inputGain)) this.inputGain = clamp(m.inputGain, 0, 2);
-        if (Number.isFinite(m.compensation)) this.compensation = clamp(m.compensation, 0, 500);
+        if (Number.isFinite(m.compensation)) this.compensation = clamp(m.compensation, 0, 750);
         if (typeof m.monitor === 'boolean') this.monitor = m.monitor;
         this.emit({ type: 'state' }); break;
     }
@@ -198,16 +207,18 @@ export class LoopEngine {
       } else if (this.playing && this.length) {
         if (r?.armed && !counting && this.pos === 0) { r.armed = false; this.emit({ type: 'state' }); }
         if (r && !r.armed) {
-          r.samples[((this.pos - r.shift) % this.length + this.length) % this.length] = mic;
-          r.written++;
-          complete = r.written === this.length;
+          // Wait for the performed downbeat to reach this input, then capture
+          // a full cycle including its delayed tail. Rotating an earlier
+          // one-cycle window would substitute pre-roll for that final tail.
+          if (r.delayFrames > 0) r.delayFrames--;
+          else { r.samples[r.written++] = mic; complete = r.written === (r.endAt ?? this.length); }
         }
         for (let t = 0; t < TRACKS; t++) {
           this.gains[t] += (this.targets[t] - this.gains[t]) * this.smoothing;
           if (this.tracks[t].samples) mixed += this.tracks[t].samples[this.pos] * this.gains[t];
         }
         this.pos = (this.pos + 1) % this.length;
-        if (complete) this.completeRecording();
+        if (complete) { if (r.endAt != null && r.endAt < this.length) this.finishRecording(true); else this.completeRecording(); }
       }
       if (this.monitor) mixed += mic;
       mixed *= this.master;

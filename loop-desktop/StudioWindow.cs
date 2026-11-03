@@ -19,7 +19,7 @@ internal sealed class StudioWindow : Form
     {
         this.smokeReport = smokeReport;
         Text = $"SEIS {Program.Version} · Loop Studio"; Width = 1440; Height = 1000; MinimumSize = new Size(780, 640);
-        StartPosition = FormStartPosition.CenterScreen; BackColor = Color.FromArgb(17, 21, 20);
+        StartPosition = FormStartPosition.CenterScreen; WindowState = FormWindowState.Maximized; BackColor = Color.FromArgb(17, 21, 20);
         Icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath!);
         Controls.Add(view); audio = new AudioBackend(Send);
         foreach (var name in Assembly.GetExecutingAssembly().GetManifestResourceNames().Where(name => name.StartsWith("web/"))) {
@@ -97,13 +97,14 @@ internal sealed class StudioWindow : Form
     {
         try {
             for (int i = 0; i < 60; i++) {
-                string value = await view.CoreWebView2.ExecuteScriptAsync("JSON.stringify({version:window.seisDesktop?.version,tracks:document.querySelectorAll('.track').length,nativeOptions:document.querySelectorAll('#source-0 option[value^=\"native:\"]').length,outputOptions:document.querySelectorAll('#output-device option').length,applyButtons:document.querySelectorAll('.input-apply').length,offline:location.origin==='https://seis.desktop.invalid',downloadHidden:document.querySelector('#desktop-download')?.hidden})");
+                string value = await view.CoreWebView2.ExecuteScriptAsync("JSON.stringify({version:window.seisDesktop?.version,tracks:document.querySelectorAll('.track').length,nativeOptions:document.querySelectorAll('#source-0 option[value^=\"native:\"]').length,outputOptions:document.querySelectorAll('#output-device option').length,applyButtons:document.querySelectorAll('.input-apply').length,latencyButtons:document.querySelectorAll('.latency-button').length,deskVisible:[...document.querySelectorAll('.track,.transport')].every(e=>{const r=e.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&e.scrollHeight<=e.clientHeight+1}),offline:location.origin==='https://seis.desktop.invalid',downloadHidden:document.querySelector('#desktop-download')?.hidden})");
                 string json = JsonSerializer.Deserialize<string>(value) ?? "{}";
                 using var report = JsonDocument.Parse(json);
                 if (report.RootElement.GetProperty("tracks").GetInt32() == 6 && report.RootElement.GetProperty("nativeOptions").GetInt32() > 0) {
+                    if (!report.RootElement.GetProperty("deskVisible").GetBoolean() || report.RootElement.GetProperty("latencyButtons").GetInt32() != 6) throw new Exception("La vista compacta no muestra todos los controles.");
                     // No recording or playback: only load the embedded audio
                     // modules, which must work without any network connection.
-                    string worklet = await view.CoreWebView2.ExecuteScriptAsync("(async()=>{try{const c=new AudioContext();await c.audioWorklet.addModule('./processor.js?v=1.2.0');await c.audioWorklet.addModule('./native-processor.js?v=1.2.0');await c.close();document.documentElement.dataset.workletTest='ok'}catch(e){document.documentElement.dataset.workletTest=e.message}})();'started'");
+                    string worklet = await view.CoreWebView2.ExecuteScriptAsync("(async()=>{try{const c=new AudioContext();await c.audioWorklet.addModule('./processor.js?v=1.3.0');await c.audioWorklet.addModule('./native-processor.js?v=1.3.0');await c.audioWorklet.addModule('./latency-processor.js?v=1.3.0');await c.close();document.documentElement.dataset.workletTest='ok'}catch(e){document.documentElement.dataset.workletTest=e.message}})();'started'");
                     for (int attempt = 0; attempt < 40; attempt++) {
                         string state = await view.CoreWebView2.ExecuteScriptAsync("document.documentElement.dataset.workletTest || ''");
                         if (state == "\"ok\"") { File.WriteAllText(smokeReport!, json); return; }

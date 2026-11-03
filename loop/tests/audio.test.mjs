@@ -163,9 +163,9 @@ test('rejects double recording, occupied tracks, and snapshots during capture', 
   e.startRecording(1); assert.throws(() => e.startRecording(2), /actual/);
   assert.throws(() => e.snapshot(), /grabación/); assert.throws(() => e.clear(0), /grabación/);
 });
-test('latency correction advances the new layer circularly without changing duration', () => {
+test('latency correction aligns a full delayed layer without changing duration', () => {
   const e = first(8000); e.compensation = 50; e.startRecording(1);
-  render(e, 8000, i => i === 1000 ? 1 : 0);
+  render(e, 8400, i => i === 1000 ? 1 : 0);
   assert.equal(e.tracks[1].samples[600], 1); assert.equal(e.tracks[1].samples[1000], 0); assert.equal(e.length, 8000);
 });
 test('silence and invalid input cannot inject NaN into output', () => {
