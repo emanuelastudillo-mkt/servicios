@@ -1,10 +1,10 @@
-# SEIS 1.7.0 · Escritorio para Windows
+# SEIS 1.7.1 · Escritorio para Windows
 
 Ejecutable portátil de 64 bits. La interfaz y el motor de loops están incluidos en el archivo: funcionan sin cargar el sitio ni iniciar un servidor local. Incluye .NET; requiere **Microsoft Edge WebView2 Runtime**, normalmente presente en Windows 10/11. Descarga oficial del runtime: https://developer.microsoft.com/microsoft-edge/webview2/.
 
 ## Usar
 
-1. Abrí `SEIS-1.7.0-Windows-x64.exe`. La versión aparece en la ventana y en la interfaz.
+1. Abrí `SEIS-1.7.1-Windows-x64.exe`. La versión aparece en la ventana y en la interfaz.
 2. Elegí la **Salida de reproducción**: auriculares, altavoces o interfaz. Esto afecta SEIS, no cambia la salida predeterminada de Windows.
 3. Elegí la **Entrada de grabación** de una pista: micrófono/interfaz, aplicación de Windows o audio de una salida (loopback). Pulsá **Conectar** y comprobá el medidor. Actualizá la lista si abriste otra aplicación.
 4. **Sincronizar** mide el retorno de la entrada o permite ingresar su retardo total. Prepará el retorno según la ayuda antes de medir. **Aplicar a todas** copia fuente, ganancia, silencio y compensación de entrada. Si está conectada, comparte esa captura con las otras cinco pistas. Conserva las tomas, nombres, mezcla y volúmenes de reproducción. Está deshabilitado durante una grabación.
@@ -46,14 +46,14 @@ Requiere Windows x64 y el SDK .NET 10.0.403. Dependencias fijadas en `packages.l
 
 El script genera el ejecutable con versión y actualiza el tamaño/SHA-256 en `loop/desktop-release.json`. No elimina versiones anteriores. El enlace de `loop/index.html`, el manifiesto, el proyecto C# y `loop/package.json` deben compartir versión; las pruebas verifican esta consistencia.
 
-Publicá el ejecutable como activo de GitHub Releases, etiqueta **seis-v1.7.0**, nombre exacto **SEIS-1.7.0-Windows-x64.exe**. El código fuente debe estar en el commit de esa etiqueta. Publicá el activo antes de actualizar `/loop` para que el botón tenga una descarga disponible. En versiones siguientes, actualizá conjuntamente versión, manifiesto y enlace; este repositorio también contiene otros proyectos, por eso no se usa una redirección genérica a cualquier release del repositorio.
+Publicá el ejecutable como activo de GitHub Releases, etiqueta **seis-v1.7.1**, nombre exacto **SEIS-1.7.1-Windows-x64.exe**. El código fuente debe estar en el commit de esa etiqueta. Publicá el activo antes de actualizar `/loop` para que el botón tenga una descarga disponible. En versiones siguientes, actualizá conjuntamente versión, manifiesto y enlace; este repositorio también contiene otros proyectos, por eso no se usa una redirección genérica a cualquier release del repositorio.
 
 ## Verificación
 
 ```powershell
 node --test loop/tests/*.test.mjs
-./SEIS-1.7.0-Windows-x64.exe --self-test 'C:/ruta/reporte-audio.json'
-./SEIS-1.7.0-Windows-x64.exe --smoke-test 'C:/ruta/reporte-inicio.json'
+./SEIS-1.7.1-Windows-x64.exe --self-test 'C:/ruta/reporte-audio.json'
+./SEIS-1.7.1-Windows-x64.exe --smoke-test 'C:/ruta/reporte-inicio.json'
 ```
 
 `--self-test` enumera fuentes y comprueba captura WASAPI del propio proceso con un tono de diagnóstico de -80 dBFS; no graba el micrófono ni guarda muestras de otras aplicaciones. El informe incluye activación, muestras recibidas y conversión PCM. `--smoke-test` abre la interfaz, comprueba versión, seis pistas, entradas nativas, salidas y botones, y carga los tres AudioWorklets incorporados; luego cierra la instancia. Los informes quedan solo en las rutas elegidas.

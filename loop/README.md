@@ -2,7 +2,9 @@
 
 Aplicación estática publicada en **https://emanuelmkt.com.ar/loop/** mediante el GitHub Pages existente del repositorio. La ruta `/loop` redirige a `/loop/`. No requiere compilación, servidor de audio ni dependencias externas.
 
-**Versión 1.7.0:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). La versión de escritorio incluye captura nativa de aplicaciones y salidas de Windows; la versión web mantiene los permisos y opciones del navegador.
+**Versión 1.7.1:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). La versión de escritorio incluye captura nativa de aplicaciones y salidas de Windows; la versión web mantiene los permisos y opciones del navegador.
+
+Los menús desplegables usan texto oscuro sobre fondo claro, incluidos los grupos de entradas y efectos. Respetan los colores de accesibilidad del sistema.
 
 **Aplicar a todas**, disponible en cada pista, copia fuente, ganancia, silencio y compensación de entrada a las seis. Si la fuente ya está conectada, comparte la conexión. Conserva el audio grabado, los nombres y la mezcla. Si está desconectada, copia la asignación; conectá una pista y volvé a aplicar para compartirla. No funciona durante una toma.
 
