@@ -26,16 +26,20 @@ if (desktop) window.chrome.webview.addEventListener('message', ({ data }) => {
     const capture = captures.get(data.captureId); if (!capture) return;
     capture.stream.release();
     for (const track of capture.stream.getTracks()) { track.stop(); track.dispatchEvent(new Event('ended')); }
+  } else if (data.type === 'monitor.status' || data.type === 'monitor.error') {
+    window.dispatchEvent(new CustomEvent('seis-native-monitor', { detail: data }));
   }
 });
 
 export async function captureNative(config, getGraph) {
   const { ctx } = await getGraph();
-  modulePromise ||= ctx.audioWorklet.addModule(new URL('./native-processor.js?v=1.7.0', import.meta.url)).catch(e => { modulePromise = null; throw e; });
+  modulePromise ||= ctx.audioWorklet.addModule(new URL('./native-processor.js?v=1.8.0', import.meta.url)).catch(e => { modulePromise = null; throw e; });
   await modulePromise;
   const id = crypto.randomUUID(), node = new AudioWorkletNode(ctx, 'seis-native-input', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [1] });
   const destination = ctx.createMediaStreamDestination(); node.connect(destination);
   const stream = destination.stream; stream.sourceLabel = config.label;
+  // Connect directly to the graph: no MediaStreamDestination -> Source round trip.
+  stream.nativeSource = node; stream.nativeCaptureId = id;
   let released = false;
   stream.release = () => {
     if (released) return; released = true;
@@ -46,6 +50,7 @@ export async function captureNative(config, getGraph) {
   try {
     const result = await desktopRequest('capture.start', { sourceId: config.deviceId, captureId: id });
     stream.sourceLabel = result.label || config.label;
+    stream.nativeInfo = result;
     if (released) throw Error('La entrada se desconectó durante la conexión.');
     return stream;
   } catch (e) { stream.release(); stream.getTracks().forEach(t => t.stop()); throw e; }

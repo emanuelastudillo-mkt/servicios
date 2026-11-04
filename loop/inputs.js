@@ -1,4 +1,4 @@
-import { latencyConfig } from './latency.js?v=1.7.0';
+import { latencyConfig } from './latency.js?v=1.8.0';
 export const INPUT_KINDS = ['device', 'window', 'tab', 'system', 'native'];
 export function inputConfig(value) {
   if (value == null) return { kind: 'device', deviceId: '', label: '', gain: 1, muted: false, latency: latencyConfig() };
@@ -62,7 +62,7 @@ export class InputManager {
         const surface = stream.getVideoTracks()[0]?.getSettings().displaySurface;
         const expected = { tab: 'browser', window: 'window', system: 'monitor' }[config.kind];
         if (surface && expected && surface !== expected) throw Error('Elegí el tipo de fuente indicado, o cambiá la entrada del loop antes de conectar.');
-        entry = { stream, source: ctx.createMediaStreamSource(this.makeStream(stream.getAudioTracks())), refs: new Set(), key, dead: false };
+        entry = { stream, source: stream.nativeSource || ctx.createMediaStreamSource(this.makeStream(stream.getAudioTracks())), refs: new Set(), key, dead: false };
         acquired = true;
       }
       const { ctx, node } = await this.getGraph();

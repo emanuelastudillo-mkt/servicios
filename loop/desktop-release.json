@@ -1,9 +1,9 @@
 {
-  "version": "1.7.1",
+  "version": "1.8.0",
   "platform": "Windows x64",
-  "filename": "SEIS-1.7.1-Windows-x64.exe",
-  "url": "https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.7.1/SEIS-1.7.1-Windows-x64.exe",
-  "notes": "Corrección de contraste en todos los menús desplegables: texto oscuro sobre fondo claro en entradas, salidas, ajustes y pedalera. Conserva la selección nativa por teclado y respeta los colores de accesibilidad de Windows. La compilación está verificada; la prueba de arranque nativo sigue pendiente por el bloqueo automático de ejecución del entorno.",
-  "sha256": "4b0cc8ec50f3d484fefe97acf4b51761ff68a082d68ac92d1d8179cb09dc3efe",
-  "bytes": 58869084
+  "filename": "SEIS-1.8.0-Windows-x64.exe",
+  "url": "https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.8.0/SEIS-1.8.0-Windows-x64.exe",
+  "notes": "Escucha de instrumentos con los 16 efectos en un recorrido nativo WASAPI, sin pasar por Web Audio para el retorno. Entradas por canal, salida de escucha explícita, solicitud del período mínimo compatible y diagnóstico de búferes. Audio original conservado y calibración de loops independiente. No ofrece ASIO ni garantiza latencia cero. DSP e interfaz comprobados con señales sintéticas; la latencia real y el arranque nativo requieren verificación con la placa, pendiente por el bloqueo automático de ejecución del entorno.",
+  "sha256": "f0a87dcba7a61886e4832872aa107bd15c9512cec25393f81f10b8fd8006ec2d",
+  "bytes": 58884273
 }

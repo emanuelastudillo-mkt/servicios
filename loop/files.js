@@ -1,6 +1,6 @@
-import { MAX_SECONDS, TRACKS, targetGains } from './audio-core.js?v=1.7.0';
-import { inputConfig } from './inputs.js?v=1.7.0';
-import { EffectsChain, effectsConfig } from './effects.js?v=1.7.0';
+import { MAX_SECONDS, TRACKS, targetGains } from './audio-core.js?v=1.8.0';
+import { inputConfig } from './inputs.js?v=1.8.0';
+import { EffectsChain, effectsConfig } from './effects.js?v=1.8.0';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();

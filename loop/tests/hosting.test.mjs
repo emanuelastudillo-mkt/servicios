@@ -27,7 +27,7 @@ test('production imports and audio processor use existing files under the same p
     }
   }
   const app = await readFile(new URL('app.js', root), 'utf8');
-  assert.ok(app.includes("new URL('./processor.js?v=1.7.0', import.meta.url)"));
+  assert.ok(app.includes("new URL('./processor.js?v=1.8.0', import.meta.url)"));
   assert.ok(!app.includes('Abrir SEIS.cmd'));
   assert.ok(!app.includes('127.0.0.1'));
 });

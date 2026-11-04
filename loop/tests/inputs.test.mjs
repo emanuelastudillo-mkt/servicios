@@ -38,6 +38,16 @@ function setup(extra = {}) {
 }
 const config = (kind = 'device', deviceId = '') => ({ ...inputConfig(), kind, deviceId });
 
+test('native inputs use their worklet directly and keep a single shared capture', async () => {
+  const g = graph(), value = stream(), native = g.ctx.createGain(); let captures = 0, releases = 0;
+  value.nativeSource = native; value.release = () => releases++;
+  g.ctx.createMediaStreamSource = () => { throw Error('Native source must not make a MediaStream round trip'); };
+  const { manager: m } = setup({ getGraph: async () => g, nativeCapture: async () => { captures++; return value; } });
+  m.setConfig(0, config('native', 'in:0:scarlett')); await m.connect(0); await m.applyToAll(0);
+  assert.equal(captures, 1); assert.ok(m.slots.every(s => s.entry.source === native));
+  m.disconnect(0); assert.equal(releases, 0); m.disconnectAll(); assert.equal(releases, 1);
+});
+
 test('six assigned sources route to distinct Worklet inputs with independent pre-record gain', async () => {
   const { manager: m, requests, g } = setup();
   for (let i = 0; i < 6; i++) { m.setConfig(i, config('device', 'device-' + i)); await m.connect(i); }

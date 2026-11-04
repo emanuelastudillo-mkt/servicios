@@ -1,15 +1,16 @@
-import { encodeSession, decodeSession, resampleSession } from './files.js?v=1.7.0';
-import { sealLoop } from './audio-core.js?v=1.7.0';
-import { spaceAction } from './controls.js?v=1.7.0';
+import { encodeSession, decodeSession, resampleSession } from './files.js?v=1.8.0';
+import { sealLoop } from './audio-core.js?v=1.8.0';
+import { spaceAction } from './controls.js?v=1.8.0';
 
-import { InputManager, inputConfig } from './inputs.js?v=1.7.0';
-import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.7.0';
-import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.7.0';
-import { calibrate } from './calibration.js?v=1.7.0';
-import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.7.0';
-import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.7.0';
-import { effectsConfig } from './effects.js?v=1.7.0';
-import { createEffectsUI } from './effects-ui.js?v=1.7.0';
+import { InputManager, inputConfig } from './inputs.js?v=1.8.0';
+import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.8.0';
+import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.8.0';
+import { calibrate } from './calibration.js?v=1.8.0';
+import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.8.0';
+import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.8.0';
+import { effectsConfig } from './effects.js?v=1.8.0';
+import { createEffectsUI } from './effects-ui.js?v=1.8.0';
+import { NativeMonitorControl, nativeMonitorDescription, matchingOutput } from './native-monitor.js?v=1.8.0';
 
 const $ = selector => document.querySelector(selector);
 const colors = ['#c7f69b', '#d8b5f8', '#93d8e9', '#efbd8c', '#f0a7ba', '#a6bafa'];
@@ -28,6 +29,7 @@ let state = { length: 0, position: 0, rate: 48000, playing: false, recording: nu
 const pending = new Map();
 const cards = [];
 let fxUI;
+let monitorControl, nativeMonitorState = null, nativeOutputDevices = [], nativeOutputId = '', tuning = false, monitorReset = 0;
 let effectConfigs = Array.from({ length: 6 }, () => effectsConfig());
 let expandedPanels = new Set([0]), keepPanelsOpen = false, completedPanel = -1;
 const inputs = new InputManager({
@@ -263,7 +265,12 @@ function notify(text, error = false) {
 }
 function changed() { dirty = true; revision++; $('#dirty').hidden = false; if (!ctx) render(); }
 function markSaved() { dirty = false; $('#dirty').hidden = true; }
-function send(message) { if (node) node.port.postMessage(message); }
+function send(message) {
+  if (message.type === 'settings' && typeof message.tuning === 'boolean') tuning = message.tuning;
+  if (message.type === 'stop') monitorReset++;
+  if (node) node.port.postMessage(message);
+  if (message.type === 'settings' || message.type === 'stop') syncNativeMonitor();
+}
 function time(frames) {
   const sec = frames / state.rate;
   return { main: `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(Math.floor(sec % 60)).padStart(2, '0')}`, decimal: `.${String(Math.floor(sec * 100) % 100).padStart(2, '0')}` };
@@ -276,7 +283,7 @@ async function ensureAudio(rate) {
       if (!window.AudioContext || !window.AudioWorkletNode) throw Error('Abrí SEIS en una versión actual de Chrome o Edge.');
       const nextCtx = new AudioContext({ latencyHint: 'interactive', ...(rate ? { sampleRate: rate } : {}) });
       try {
-        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.7.0', import.meta.url));
+        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.8.0', import.meta.url));
         const nextNode = new AudioWorkletNode(nextCtx, 'seis-looper', { numberOfInputs: 6, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
         nextNode.port.onmessage = onMessage;
         nextNode.onprocessorerror = () => { notify('El motor de audio se interrumpió. Recargá la página y abrí tu última sesión guardada.', true); };
@@ -343,8 +350,19 @@ function snapshot() {
 
 function setMonitor(id) {
   monitorId = id;
-  send({ type: 'settings', monitor: id >= 0, inputTrack: Math.max(0, id) });
+  send({ type: 'settings', monitor: id >= 0 && !usesNativeMonitor(id), inputTrack: Math.max(0, id) });
+  if (id >= 0 && desktop && !usesNativeMonitor(id)) notify('Para un instrumento con menos retardo, elegí su canal en «Instrumentos · escucha nativa». La captura de aplicaciones conserva la escucha por navegador.');
   render();
+}
+
+function usesNativeMonitor(id) { return !!inputs.slots[id]?.entry.stream.nativeInfo?.physical; }
+function syncNativeMonitor() {
+  if (!monitorControl) return;
+  const stream = inputs.slots[monitorId]?.entry.stream, config = inputs.configs[monitorId];
+  const active = usesNativeMonitor(monitorId) && ctx?.state === 'running';
+  monitorControl.set(active ? { active: true, captureId: stream.nativeCaptureId, outputId: nativeOutputId,
+    effects: effectConfigs[monitorId], gain: config.muted ? 0 : config.gain,
+    master: Number($('#master').value) / 100, muted: tuning, reset: monitorReset } : { active: false });
 }
 
 function trackLatency(id) {
@@ -456,6 +474,8 @@ async function listDevices() {
   if (results[1].status === 'fulfilled' && results[1].value) {
     nativeSources = results[1].value.sources;
     nativeCapabilities = { ...desktop, ...results[1].value.capabilities };
+    nativeOutputDevices = results[1].value.outputs || [];
+    if (nativeOutputId && !nativeOutputDevices.some(d => d.id === nativeOutputId)) { setMonitor(-1); nativeOutputId = ''; notify('La salida de escucha nativa ya no está disponible. Elegí otra desde FX.', true); }
   }
   refreshOptions();
   const failure = results.find(result => result.status === 'rejected'); if (failure) throw failure.reason;
@@ -509,6 +529,7 @@ async function handleSpace() {
 }
 
 function render() {
+  syncNativeMonitor();
   const r = state.recording;
   $('#audio-review').disabled = ioBusy || inputs.pending >= 0 || !!r;
   updateDiagnostics();
@@ -573,7 +594,7 @@ function render() {
     c.card.querySelector('.input-apply').disabled = busy || !!r;
     const latency = trackLatency(i), syncButton = c.card.querySelector('.latency-button');
     const simpleInfo = [!connected ? 'Sin conectar' : config.muted || config.gain === 0 ? 'Entrada silenciada' : 'Entrada conectada'];
-    if (monitorId === i) simpleInfo.push('Escucha activa');
+    if (monitorId === i) simpleInfo.push(usesNativeMonitor(i) ? 'Escucha nativa · FX' : 'Escucha activa');
     if (config.gain !== 1 && config.gain > 0) simpleInfo.push(`Nivel ${Math.round(config.gain * 100)}%`);
     if (track.solo) simpleInfo.push('Solo activo');
     if (connected && latency.ready && latency.ms > 0) simpleInfo.push(`${latency.ms.toFixed(1)} ms`);
@@ -676,7 +697,14 @@ $('#refresh-devices').addEventListener('click', () => listDevices().then(() => n
 $('#disconnect-inputs').addEventListener('click', () => { setMonitor(-1); inputs.disconnectAll(); });
 $('#output-device').addEventListener('change', () => withBusy(async () => {
   const selected = $('#output-device').value;
-  try { await ensureAudio(); await ctx.setSinkId(selected); notify('Salida de reproducción actualizada.'); }
+  try {
+    await ensureAudio(); await ctx.setSinkId(selected);
+    if (nativeCapabilities?.nativeMonitor) {
+      const target = matchingOutput(nativeOutputDevices, devices.find(d => d.kind === 'audiooutput' && d.deviceId === selected)?.label);
+      if (!selected || target) { nativeOutputId = target?.id || ''; syncNativeMonitor(); }
+    }
+    notify('Salida de reproducción actualizada.');
+  }
   catch (e) { $('#output-device').value = typeof ctx?.sinkId === 'string' ? ctx.sinkId : ''; throw Error(audioError(e, true)); }
 }));
 $('#play').addEventListener('click', togglePlay);
@@ -696,7 +724,7 @@ $('#export').addEventListener('click', () => withBusy(async () => {
   const cycles = Number($('#cycles').value);
   notify('Preparando WAV con efectos… La duración incluye las vueltas elegidas; las colas se cortan al final.');
   const wav = await new Promise((resolve, reject) => {
-    const worker = new Worker(new URL('./export-worker.js?v=1.7.0', import.meta.url), { type: 'module' });
+    const worker = new Worker(new URL('./export-worker.js?v=1.8.0', import.meta.url), { type: 'module' });
     $('#export-progress').textContent = '0%'; $('#export-progress').hidden = false; $('#export-cancel').hidden = false;
     const done = () => { worker.terminate(); $('#export-progress').hidden = true; $('#export-cancel').hidden = true; $('#export-cancel').onclick = null; };
     $('#export-cancel').onclick = () => { done(); reject(Error('Exportación cancelada. Tus loops se conservaron.')); };
@@ -793,11 +821,27 @@ fxUI = createEffectsUI({
   record: actTrack, connect: connectInput, listen: setMonitor, play: togglePlay,
   space: id => { if (state.recording) handleSpace(); else if (!state.tracks[id].hasAudio) actTrack(id); else togglePlay(); },
   tuning: value => send({ type: 'settings', tuning: value }),
+  native: () => ({ available: !!nativeCapabilities?.nativeMonitor, outputs: nativeOutputDevices, outputId: nativeOutputId, description: nativeMonitorDescription(nativeMonitorState) }),
+  nativeOutput: id => withBusy(async () => {
+    const target = matchingOutput(devices.filter(d => d.kind === 'audiooutput'), nativeOutputDevices.find(d => d.id === id)?.label);
+    if (ctx?.setSinkId && (!id || target)) { await ctx.setSinkId(target?.deviceId || ''); $('#output-device').value = target?.deviceId || ''; }
+    nativeOutputId = id; syncNativeMonitor();
+  }),
   status: id => ({ recordLabel: cards[id].recordLabel.textContent, recordDisabled: cards[id].record.disabled,
     playLabel: $('#play').textContent, playDisabled: $('#play').disabled,
     connected: !!inputs.slots[id], source: inputs.configs[id].label || cards[id].source.selectedOptions[0]?.textContent || '',
     connectDisabled: cards[id].connect.disabled, listening: monitorId === id, listenDisabled: cards[id].listen.disabled,
     tunerDisabled: !!state.recording || ioBusy || diagnosticBusy || inputs.pending >= 0 })
 });
+if (desktop) {
+  monitorControl = new NativeMonitorControl(desktopRequest,
+    status => { nativeMonitorState = status; fxUI.sync(); },
+    error => { nativeMonitorState = null; setMonitor(-1); notify('No se pudo iniciar la escucha nativa: ' + error.message, true); });
+  window.addEventListener('seis-native-monitor', ({ detail }) => {
+    if (detail.type === 'monitor.error') { if (detail.captureId !== inputs.slots[monitorId]?.entry.stream.nativeCaptureId) return; nativeMonitorState = null; setMonitor(-1); notify(detail.error, true); }
+    else if (detail.status.captureId === inputs.slots[monitorId]?.entry.stream.nativeCaptureId) { nativeMonitorState = detail.status; fxUI.sync(); }
+  });
+  window.addEventListener('pagehide', () => monitorControl.set({ active: false }));
+}
 render();
 if (!window.isSecureContext) notify('Para habilitar el micrófono, abrí https://emanuelmkt.com.ar/loop/ mediante HTTPS.', true);

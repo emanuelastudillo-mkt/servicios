@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 
@@ -39,16 +40,27 @@ internal sealed class AudioBackend : IAsyncDisposable
     sealed class Capture
     {
         public required WasapiRecorder Recorder; public MMDevice? Device;
-        public int ProcessId; public long ProcessStart; public int Sequence; public bool Stopping;
+        public int ProcessId; public long ProcessStart; public int Sequence; public bool Stopping; public int Channel = -1; public bool Physical;
     }
     readonly ConcurrentDictionary<string, Capture> captures = new();
     readonly Action<object> send;
+    readonly SemaphoreSlim monitorGate = new(1, 1);
+    NativeMonitor? monitor;
     public AudioBackend(Action<object> send) { this.send = send; }
 
     public AudioSource[] Sources()
     {
         using var enumerator = new MMDeviceEnumerator();
         var result = new List<AudioSource>(); var processIds = new HashSet<int>();
+        foreach (var input in enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active)) {
+            using (input) {
+                try {
+                    using var client = input.CreateAudioClient();
+                    int channels = Math.Min(client.MixFormat.Channels, 8);
+                    for (int channel = 0; channel < channels; channel++) result.Add(new($"in:{channel}:{input.ID}", $"{input.FriendlyName} · Canal {channel + 1}", "Instrumentos · escucha nativa"));
+                } catch (COMException) { /* Disconnected endpoint. */ }
+            }
+        }
         var processes = ProcessCatalog.Snapshot();
         foreach (var device in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
         {
@@ -89,7 +101,13 @@ internal sealed class AudioBackend : IAsyncDisposable
         try {
             var builder = new WasapiRecorderBuilder().WithBufferLength(20).WithMmcssThreadPriority();
             int processId = 0; long processStart = 0;
-            if (sourceId.StartsWith("out:", StringComparison.Ordinal)) {
+            int channel = -1; bool physical = sourceId.StartsWith("in:", StringComparison.Ordinal);
+            if (physical) {
+                int separator = sourceId.IndexOf(':', 3); channel = int.Parse(sourceId[3..separator]);
+                using var enumerator = new MMDeviceEnumerator(); device = enumerator.GetDevice(sourceId[(separator + 1)..]);
+                builder.WithDevice(device).WithBufferLength(10).WithLowLatency().WithRawMode(); recorder = builder.Build();
+                if (channel < 0 || channel >= recorder.WaveFormat.Channels) throw new InvalidOperationException("El canal de entrada ya no está disponible.");
+            } else if (sourceId.StartsWith("out:", StringComparison.Ordinal)) {
                 using var enumerator = new MMDeviceEnumerator(); device = enumerator.GetDevice(sourceId[4..]);
                 builder.WithDevice(device).WithLoopbackCapture();
                 recorder = builder.Build();
@@ -98,16 +116,17 @@ internal sealed class AudioBackend : IAsyncDisposable
                 builder.WithProcessLoopback((uint)processId, ProcessLoopbackMode.IncludeTargetProcessTree).WithFormat(WaveFormat.CreateIeeeFloatWaveFormat(48000, 2));
                 recorder = await builder.BuildAsync();
             } else throw new InvalidOperationException("Fuente de audio inválida.");
-            var capture = new Capture { Recorder = recorder, Device = device, ProcessId = processId, ProcessStart = processStart };
+            var capture = new Capture { Recorder = recorder, Device = device, ProcessId = processId, ProcessStart = processStart, Channel = channel, Physical = physical };
             if (!captures.TryAdd(id, capture)) throw new InvalidOperationException("La entrada ya está conectada.");
             recorder.DataAvailable += (buffer, flags, position, time) => {
                 if (capture.Stopping) return;
-                var samples = ToMono(buffer, capture.Recorder.WaveFormat);
+                var samples = ToMono(buffer, capture.Recorder.WaveFormat, capture.Channel);
+                var live = Volatile.Read(ref monitor); if (live?.CaptureId == id) live.Push(samples);
                 send(new { type = "pcm", captureId = id, rate = capture.Recorder.WaveFormat.SampleRate, sequence = Interlocked.Increment(ref capture.Sequence), samples = Convert.ToBase64String(MemoryMarshal.AsBytes(samples.AsSpan())) });
             };
             recorder.RecordingStopped += (_, args) => { if (!capture.Stopping) _ = StopAsync(id, args.Exception?.Message ?? "La entrada se detuvo."); };
             recorder.StartRecording();
-            return new { label = source.label, rate = recorder.WaveFormat.SampleRate };
+            return new { label = source.label, rate = recorder.WaveFormat.SampleRate, physical, inputPeriodMs = recorder.LatencyMilliseconds, lowLatency = recorder.LowLatencyActive };
         } catch (Exception error) {
             captures.TryRemove(id, out _);
             if (recorder != null) await recorder.DisposeAsync(); device?.Dispose();
@@ -116,44 +135,68 @@ internal sealed class AudioBackend : IAsyncDisposable
         }
     }
 
-    internal static float[] ToMono(ReadOnlySpan<byte> bytes, WaveFormat format)
+    internal static float[] ToMono(ReadOnlySpan<byte> bytes, WaveFormat format, int selectedChannel = -1)
     {
-        int channels = format.Channels, size = format.BitsPerSample / 8, frames = bytes.Length / format.BlockAlign;
         bool floating = format.Encoding == WaveFormatEncoding.IeeeFloat || format is WaveFormatExtensible extended && extended.SubFormat == new Guid("00000003-0000-0010-8000-00aa00389b71");
-        var output = new float[frames];
-        for (int frame = 0; frame < frames; frame++) {
-            double sum = 0;
-            for (int channel = 0; channel < channels; channel++) {
-                var sample = bytes.Slice(frame * format.BlockAlign + channel * size, size);
-                double value = floating && size == 4 ? BinaryPrimitives.ReadSingleLittleEndian(sample) :
-                    floating && size == 8 ? BinaryPrimitives.ReadDoubleLittleEndian(sample) :
-                    size == 2 ? BinaryPrimitives.ReadInt16LittleEndian(sample) / 32768.0 :
-                    size == 3 ? ((sample[0] | sample[1] << 8 | sample[2] << 16) << 8 >> 8) / 8388608.0 :
-                    size == 4 ? BinaryPrimitives.ReadInt32LittleEndian(sample) / 2147483648.0 :
-                    size == 1 ? (sample[0] - 128) / 128.0 : 0;
-                if (double.IsFinite(value)) sum += value;
-            }
-            output[frame] = (float)Math.Clamp(sum / channels, -16, 16);
-        }
-        return output;
+        return PcmSamples.Mono(bytes, format.Channels, format.BitsPerSample, format.BlockAlign, floating, selectedChannel);
     }
 
     public async Task StopAsync(string id, string? reason = null)
     {
         if (!captures.TryRemove(id, out var capture)) return;
         capture.Stopping = true;
+        await StopMonitorAsync(id);
         try { await capture.Recorder.DisposeAsync(); } catch (Exception error) { reason ??= error.Message; } finally { capture.Device?.Dispose(); }
         send(new { type = "ended", captureId = id, reason });
     }
     public async Task CheckProcessesAsync()
     {
+        var live = Volatile.Read(ref monitor); if (live != null) send(new { type = "monitor.status", status = live.Status() });
         foreach (var pair in captures) if (pair.Value.ProcessId != 0) {
             bool ended;
             try { using var process = Process.GetProcessById(pair.Value.ProcessId); ended = process.HasExited || process.StartTime.ToUniversalTime().Ticks != pair.Value.ProcessStart; } catch { ended = true; }
             if (ended) await StopAsync(pair.Key, "La aplicación se cerró.");
         }
     }
-    public async ValueTask DisposeAsync() { foreach (var id in captures.Keys) await StopAsync(id); }
+    public object[] Outputs()
+    {
+        using var enumerator = new MMDeviceEnumerator(); var result = new List<object>();
+        foreach (var device in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)) using (device) result.Add(new { id = device.ID, label = device.FriendlyName });
+        return result.ToArray();
+    }
+    public async Task<object> ConfigureMonitorAsync(JsonElement args)
+    {
+        await monitorGate.WaitAsync();
+        try {
+            if (!args.GetProperty("active").GetBoolean()) { await DisposeMonitorAsync(); return new { active = false }; }
+            string id = args.GetProperty("captureId").GetString()!, output = args.GetProperty("outputId").GetString()!;
+            if (!captures.TryGetValue(id, out var capture) || !capture.Physical || capture.Stopping) throw new ArgumentException("La escucha rápida necesita una entrada de Instrumentos · escucha nativa conectada.");
+            if (output.Length > 2048) throw new ArgumentException("Salida inválida.");
+            double gain = args.GetProperty("gain").GetDouble(), master = args.GetProperty("master").GetDouble();
+            if (!double.IsFinite(gain) || gain < 0 || gain > 2 || !double.IsFinite(master) || master < 0 || master > 1.5) throw new ArgumentException("Nivel de escucha inválido.");
+            bool muted = args.GetProperty("muted").GetBoolean(); var fx = MonitorFx.Parse(args.GetProperty("effects"));
+            int reset = args.GetProperty("reset").GetInt32();
+            if (monitor?.CaptureId == id && monitor.OutputId == output) monitor.Configure(fx, gain, master, muted, reset);
+            else {
+                await DisposeMonitorAsync();
+                var next = new NativeMonitor(id, output, capture.Recorder.WaveFormat.SampleRate, capture.Recorder.LatencyMilliseconds, capture.Recorder.LowLatencyActive, fx, gain, master, muted,
+                    error => send(new { type = "monitor.error", captureId = id, error }));
+                next.Configure(fx, gain, master, muted, reset);
+                Volatile.Write(ref monitor, next);
+                try { next.Start(); } catch { await DisposeMonitorAsync(); throw; }
+            }
+            return monitor!.Status();
+        } catch { await DisposeMonitorAsync(); throw; }
+        finally { monitorGate.Release(); }
+    }
+    async Task DisposeMonitorAsync() { var old = Interlocked.Exchange(ref monitor, null); if (old != null) await old.DisposeAsync(); }
+    async Task StopMonitorAsync(string id)
+    {
+        await monitorGate.WaitAsync();
+        try { if (monitor?.CaptureId == id) await DisposeMonitorAsync(); }
+        finally { monitorGate.Release(); }
+    }
+    public async ValueTask DisposeAsync() { foreach (var id in captures.Keys) await StopAsync(id); await monitorGate.WaitAsync(); try { await DisposeMonitorAsync(); } finally { monitorGate.Release(); } }
 
     public static async Task<object> SelfTestAsync()
     {

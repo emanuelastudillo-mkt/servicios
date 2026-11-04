@@ -1,6 +1,6 @@
-import { EFFECTS, EFFECT_ORDER, pedal, effectsConfig } from './effects.js?v=1.7.0';
-import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.7.0';
-import { detectPitch } from './tuner.js?v=1.7.0';
+import { EFFECTS, EFFECT_ORDER, pedal, effectsConfig } from './effects.js?v=1.8.0';
+import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.8.0';
+import { detectPitch } from './tuner.js?v=1.8.0';
 
 export function createEffectsUI(hooks) {
   let id = 0, config = effectsConfig(), tunerTimer, tunerNode, tunerSlot;
@@ -9,6 +9,7 @@ export function createEffectsUI(hooks) {
     <p class="fx-description">Efectos editables · El audio original se conserva · Señal de izquierda a derecha</p>
     <div class="fx-live"><button id="fx-record">Grabar</button><button id="fx-play">Reproducir</button><button id="fx-connect">Conectar entrada</button><label><input id="fx-listen" type="checkbox"> Escuchar con efectos</label><button id="fx-tuner">Afinador</button><span id="fx-source"></span></div>
     <p class="fx-listen-note">Usá auriculares. La escucha tiene la latencia de tu entrada y de los efectos; activar Direct Monitor en la placa también deja oír la señal seca.</p>
+    <div id="fx-native" hidden><label for="native-monitor-output">Salida de escucha nativa</label> <select id="native-monitor-output" aria-label="Salida de escucha nativa"></select><p id="native-monitor-status"></p><p>Para oír solo los efectos, apagá Direct Monitor en la placa. Elegí la misma placa en la salida de reproducción superior para escuchar también los loops. Pitch, vibrato y otros efectos pueden agregar su propio retardo.</p></div>
     <div class="fx-toolbar"><label for="fx-add-select">Agregar pedal</label><select id="fx-add-select"></select><button id="fx-add">＋ Agregar</button><button id="fx-bypass" aria-pressed="false">Bypass de la cadena</button></div>
     <div id="fx-pedals" class="fx-pedals"></div><p id="fx-empty">Elegí tu primer pedal. Podés combinarlos, ordenarlos y apagarlos sin cambiar la toma.</p>
     <p class="fx-footnote">Volumen y wah: enfocá su perilla y usá ← →, Home y End. Doble clic restaura el valor inicial. Los ecos siguen entre vueltas; Detener todo corta las colas.</p>`;
@@ -71,6 +72,13 @@ export function createEffectsUI(hooks) {
     $('#fx-source').textContent = state.source;
     $('#fx-listen').checked = state.listening; $('#fx-listen').disabled = state.listenDisabled;
     $('#fx-tuner').disabled = !state.connected || state.tunerDisabled;
+    const native = hooks.native?.(); $('#fx-native').hidden = !native?.available;
+    if (native?.available) {
+      const output = $('#native-monitor-output'), key = JSON.stringify(native.outputs);
+      if (output.dataset.options !== key) { output.replaceChildren(new Option('Salida predeterminada de Windows', '')); for (const device of native.outputs) output.append(new Option(device.label, device.id)); output.dataset.options = key; }
+      output.value = native.outputId; output.disabled = state.tunerDisabled;
+      $('#native-monitor-status').textContent = native.description;
+    }
   }
   $('#fx-close').onclick = () => dialog.close();
   $('#fx-add').onclick = () => { const type = $('#fx-add-select').value; if (!type) return; config.pedals.push(pedal(type)); commit(); draw(); $('#fx-pedals').querySelectorAll('.fx-switch')[config.pedals.length - 1].focus(); };
@@ -79,6 +87,7 @@ export function createEffectsUI(hooks) {
   $('#fx-play').onclick = () => hooks.play();
   $('#fx-connect').onclick = () => hooks.connect(id);
   $('#fx-listen').onchange = e => hooks.listen(e.target.checked ? id : -1);
+  $('#native-monitor-output').onchange = e => hooks.nativeOutput(e.target.value);
   dialog.addEventListener('keydown', e => {
     if (e.code !== 'Space' || e.ctrlKey || e.altKey || e.metaKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || tuner.open) return;
     e.preventDefault(); e.stopPropagation();

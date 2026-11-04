@@ -2,7 +2,19 @@
 
 Aplicación estática publicada en **https://emanuelmkt.com.ar/loop/** mediante el GitHub Pages existente del repositorio. La ruta `/loop` redirige a `/loop/`. No requiere compilación, servidor de audio ni dependencias externas.
 
-**Versión 1.7.1:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). La versión de escritorio incluye captura nativa de aplicaciones y salidas de Windows; la versión web mantiene los permisos y opciones del navegador.
+**Versión 1.8.0:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). Incluye escucha nativa de instrumentos con efectos, además de captura de aplicaciones y salidas de Windows. La versión web mantiene los permisos y opciones del navegador.
+
+## Escuchar instrumentos con efectos · escritorio 1.8.0
+
+En la entrada del loop, elegí **Instrumentos · escucha nativa → Scarlett / Canal 1 o Canal 2**, según dónde conectaste el instrumento. Conectá la entrada, abrí **FX**, elegí la **Salida de escucha nativa** de la Scarlett y activá **Escuchar con efectos**. Apagá Direct Monitor en la placa para evitar sumar la señal seca. La salida de reproducción superior controla los loops; al identificar un único dispositivo con el mismo nombre, SEIS vincula ambas selecciones. Si no hay coincidencia inequívoca, elegí la placa en ambos controles.
+
+El retorno de esa entrada se procesa con los 16 efectos en C# y WASAPI; no recorre el puente de mensajes ni Web Audio para sonar. La captura solicita el período mínimo compatible mediante IAudioClient3 y la salida usa la frecuencia de mezcla del dispositivo. Si Windows no concede el modo de baja latencia se informa **modo compatible**. Los períodos de entrada/salida y la cola son datos del motor, **no una medición del retardo total de la placa**. No se ofrece ASIO ni se promete latencia cero. Vibrato, pitch y efectos de tiempo pueden agregar retardo creativo.
+
+La cola de escucha está limitada para no acumular retraso después de una interrupción; puede descartar audio de escucha atrasado. La toma original usa otra ruta y no se recorta por esa cola. La compensación de **Sincronizar** sigue alineando las grabaciones y no reduce por sí sola el retardo al tocar. Recalibrá después de cambiar la entrada o la salida.
+
+La escucha común del navegador se apaga mientras se usa la nativa. El afinador también silencia la salida nativa; si falla el dispositivo, se desactiva la escucha sin activar automáticamente una segunda ruta. Los efectos, ganancias y bypass se actualizan con las perillas. La captura de Pro Tools y las entradas web conservan su recorrido anterior.
+
+Validación: comparación del DSP nativo con el motor JS y pruebas de cola, canales PCM y controles con señales sintéticas. La latencia efectiva, estabilidad del controlador y arranque del ejecutable deben verificarse en la placa real; la ejecución nativa del estudio sigue bloqueada en el entorno de desarrollo.
 
 Los menús desplegables usan texto oscuro sobre fondo claro, incluidos los grupos de entradas y efectos. Respetan los colores de accesibilidad del sistema.
 

@@ -75,6 +75,7 @@ internal sealed class StudioWindow : Form
                         "sources.list" => await ListSourcesAsync(),
                         "capture.start" => await audio.StartAsync(args.GetProperty("captureId").GetString()!, args.GetProperty("sourceId").GetString()!),
                         "capture.stop" => await StopAsync(args.GetProperty("captureId").GetString()!),
+                        "monitor.configure" => await audio.ConfigureMonitorAsync(args),
                         "about.show" => ShowAbout(),
                         _ => throw new InvalidOperationException("Acción no permitida.")
                     };
@@ -114,7 +115,7 @@ internal sealed class StudioWindow : Form
                     if (report.RootElement.GetProperty("openPanels").GetInt32() != 1 || report.RootElement.GetProperty("knobs").GetInt32() != 13 || !report.RootElement.GetProperty("deskVisible").GetBoolean() || report.RootElement.GetProperty("latencyButtons").GetInt32() != 6 || report.RootElement.GetProperty("modeControls").GetInt32() != 2 || !report.RootElement.GetProperty("diagnosticReady").GetBoolean()) throw new Exception("La vista compacta no muestra todos los controles.");
                     // No recording or playback: only load the embedded audio
                     // modules, which must work without any network connection.
-                    string worklet = await view.CoreWebView2.ExecuteScriptAsync("(async()=>{try{const c=new AudioContext();await c.audioWorklet.addModule('./processor.js?v=1.7.0');await c.audioWorklet.addModule('./native-processor.js?v=1.7.0');await c.audioWorklet.addModule('./latency-processor.js?v=1.7.0');await c.close();document.documentElement.dataset.workletTest='ok'}catch(e){document.documentElement.dataset.workletTest=e.message}})();'started'");
+                    string worklet = await view.CoreWebView2.ExecuteScriptAsync("(async()=>{try{const c=new AudioContext();await c.audioWorklet.addModule('./processor.js?v=1.8.0');await c.audioWorklet.addModule('./native-processor.js?v=1.8.0');await c.audioWorklet.addModule('./latency-processor.js?v=1.8.0');await c.close();document.documentElement.dataset.workletTest='ok'}catch(e){document.documentElement.dataset.workletTest=e.message}})();'started'");
                     for (int attempt = 0; attempt < 40; attempt++) {
                         string state = await view.CoreWebView2.ExecuteScriptAsync("document.documentElement.dataset.workletTest || ''");
                         if (state == "\"ok\"") { File.WriteAllText(smokeReport!, json); return; }
@@ -132,7 +133,7 @@ internal sealed class StudioWindow : Form
     async Task<object> ListSourcesAsync()
     {
         await audio.DetectCapabilitiesAsync();
-        return new { sources = audio.Sources(), version = Program.Version, capabilities = new { processCapture = audio.ProcessCaptureSupported, windowsBuild = Environment.OSVersion.Version.Build } };
+        return new { sources = audio.Sources(), outputs = audio.Outputs(), version = Program.Version, capabilities = new { nativeMonitor = true, processCapture = audio.ProcessCaptureSupported, windowsBuild = Environment.OSVersion.Version.Build } };
     }
     async Task<object> StopAsync(string id) { await audio.StopAsync(id); return new { stopped = true }; }
     object ShowAbout()
