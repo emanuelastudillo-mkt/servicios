@@ -5,12 +5,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.5.0</Version>
+    <Version>1.6.0</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <AssemblyName>SEIS</AssemblyName>
     <RootNamespace>SeisDesktop</RootNamespace>
     <Product>SEIS Loop Studio</Product>
-    <Description>SEIS 1.5.0 · Seis loops y entradas de audio de Windows</Description>
+    <Description>SEIS 1.6.0 · Seis loops y entradas de audio de Windows</Description>
     <Copyright>Emanuel Astudillo</Copyright>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>

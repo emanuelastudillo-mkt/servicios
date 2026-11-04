@@ -1,7 +1,7 @@
-import { measureLatency } from './latency.js?v=1.5.0';
+import { measureLatency } from './latency.js?v=1.6.0';
 const modules = new WeakMap();
 export async function calibrate(ctx, input, signal, output = ctx.destination) {
-  if (!modules.has(ctx)) modules.set(ctx, ctx.audioWorklet.addModule(new URL('./latency-processor.js?v=1.5.0', import.meta.url)).catch(error => { modules.delete(ctx); throw error; }));
+  if (!modules.has(ctx)) modules.set(ctx, ctx.audioWorklet.addModule(new URL('./latency-processor.js?v=1.6.0', import.meta.url)).catch(error => { modules.delete(ctx); throw error; }));
   await modules.get(ctx);
   if (signal.aborted) throw new DOMException('Medición cancelada.', 'AbortError');
   return new Promise((resolve, reject) => {

@@ -1,9 +1,9 @@
 {
-  "version": "1.5.0",
+  "version": "1.6.0",
   "platform": "Windows x64",
-  "filename": "SEIS-1.5.0-Windows-x64.exe",
-  "url": "https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.5.0/SEIS-1.5.0-Windows-x64.exe",
-  "notes": "Interfaz inspirada en aparatos de loop: panel metálico, pantalla retro, botones luminosos según el estado real y perillas de volumen y entrada. Arrastrar, flechas y doble clic para restaurar. Conserva los modos Simple y Avanzado, seis loops, sincronización y sesiones.",
-  "sha256": "4a683263dd77dfe97ed0e294a7cf957b01cd45d4472802b3f250bc356fcc511d",
-  "bytes": 58855374
+  "filename": "SEIS-1.6.0-Windows-x64.exe",
+  "url": "https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.6.0/SEIS-1.6.0-Windows-x64.exe",
+  "notes": "Paneles progresivos: Loop 1 abierto al inicio, tomas terminadas en bloques compactos con detener/reanudar y apertura automática del siguiente panel. Abrir los 6 permite configurarlos juntos; Paso a paso retoma la próxima pista vacía. Grabar conecta la entrada elegida en un solo paso, con permiso del usuario. Conserva la interfaz analógica, modos Simple/Avanzado, sincronización y sesiones.",
+  "sha256": "81c2acd0b1eb90d68603eb0055c10dd6646bcc57377ed730b6ced7958bf448ef",
+  "bytes": 58857989
 }

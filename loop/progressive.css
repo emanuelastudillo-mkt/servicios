@@ -1,0 +1,52 @@
+/* Progressive panels change presentation only; audio stays in the shared clock. */
+.panel-tools{display:flex;gap:4px;padding-right:10px;border-right:1px solid #687154}
+#panels-step[aria-pressed=true]{color:#e6f8bb;border-color:#a0b776;background:linear-gradient(#52663c,#304022)}
+.panel-collapse{width:24px;height:21px;min-height:21px;padding:0;flex:none;font-size:16px;line-height:1}
+.compact-panel{display:none}
+#tracks{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:minmax(0,1fr) 54px;gap:8px;align-content:start}
+#tracks>.track{grid-column:span 2;min-width:0}
+#tracks[data-open-count="1"]>.track:not(.is-collapsed){grid-column:span 6}
+#tracks[data-open-count="2"]>.track:not(.is-collapsed){grid-column:span 3}
+#tracks[data-open-count="4"],#tracks[data-open-count="5"],#tracks[data-open-count="6"]{grid-template-rows:repeat(2,minmax(0,1fr))}
+#tracks[data-open-count="0"]{grid-template-rows:54px}
+.studio-board:has(#tracks[data-open-count="0"]),.studio-board:has(#tracks[data-open-count="1"]),.studio-board:has(#tracks[data-open-count="2"]),.studio-board:has(#tracks[data-open-count="3"]){height:auto;min-height:0}
+#tracks[data-open-count="1"],#tracks[data-open-count="2"],#tracks[data-open-count="3"]{grid-template-rows:clamp(200px,calc(100svh - 280px),340px) 54px}
+#tracks>.track.is-collapsed{grid-column:span 1;order:2;align-self:start;display:block;height:54px;min-height:0;padding:5px 7px;border-radius:5px;overflow:hidden}
+#tracks[data-open-count="4"]>.track.is-collapsed,#tracks[data-open-count="5"]>.track.is-collapsed{grid-column:span 2}
+#tracks>.track.is-collapsed::before,#tracks>.track.is-collapsed::after{display:none}
+#tracks>.track.is-collapsed>:not(.compact-panel){display:none}
+#tracks>.track.is-collapsed>.compact-panel{display:flex;gap:5px;align-items:center;height:100%}
+.panel-expand{display:flex;align-items:center;gap:7px;flex:1;min-width:0;height:100%;min-height:0;padding:2px;border:0;background:transparent;box-shadow:none;text-align:left}
+.panel-expand:hover:not(:disabled){background:#bdde8b0f;border:0}
+.compact-number{color:var(--color);font:12px Consolas,monospace}
+.compact-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.compact-copy strong,.compact-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.compact-copy strong{font-size:10px;color:#eef0d3}.compact-copy small{font-size:7px;letter-spacing:.3px;color:#b6c2a1}
+.compact-stop{width:30px;height:32px;min-height:32px;padding:0;flex:none;color:#d4e6af;border-color:#718654}
+.has-audio.is-playing:not(.is-muted) .compact-stop{color:#efffd3;background:linear-gradient(#6b8546,#3f582a);border-color:var(--color);box-shadow:0 0 8px color-mix(in srgb,var(--color) 25%,transparent),inset 0 1px #efffc344}
+.has-audio.is-playing:not(.is-muted) .compact-number{text-shadow:0 0 6px var(--color)}
+.track.is-collapsed.is-muted{opacity:1}.is-muted .compact-copy small{color:#d7bc8e}
+/* With one or two editors, controls can be larger without hiding the other loops. */
+#tracks[data-open-count="1"]>.track:not(.is-collapsed),#tracks[data-open-count="2"]>.track:not(.is-collapsed){grid-template-columns:minmax(0,1fr) 150px;grid-template-rows:26px minmax(44px,1fr) 42px 70px;padding:12px 16px;gap:6px 16px}
+[data-mode=simple] #tracks[data-open-count="1"]>.track:not(.is-collapsed),[data-mode=simple] #tracks[data-open-count="2"]>.track:not(.is-collapsed){grid-template-columns:minmax(0,1fr) 90px}
+#tracks[data-open-count="1"] .track:not(.is-collapsed) .track-name,#tracks[data-open-count="2"] .track:not(.is-collapsed) .track-name{font-size:15px}
+#tracks[data-open-count="1"] .track:not(.is-collapsed) .record-button,#tracks[data-open-count="2"] .track:not(.is-collapsed) .record-button{height:42px;min-height:42px;font-size:15px}
+#tracks[data-open-count="1"] .track:not(.is-collapsed) .track-actions>button,#tracks[data-open-count="2"] .track:not(.is-collapsed) .track-actions>button{height:42px;min-height:42px}
+#tracks[data-open-count="1"] .track:not(.is-collapsed) .rotary,#tracks[data-open-count="2"] .track:not(.is-collapsed) .rotary{--dial-size:52px}
+#tracks[data-open-count="1"] .track:not(.is-collapsed) .dial-control,#tracks[data-open-count="2"] .track:not(.is-collapsed) .dial-control{width:64px}
+#tracks[data-open-count="1"] .track:not(.is-collapsed) .wave-placeholder,#tracks[data-open-count="2"] .track:not(.is-collapsed) .wave-placeholder{font-size:13px}
+@media(min-width:700px) and (max-width:1000px){
+  .section-label h2 span{display:none}.audio-tools{gap:5px}.panel-tools{padding-right:5px;gap:3px}.audio-tools button{font-size:8px;padding:2px 5px}
+  #tracks>.track.is-collapsed{padding:5px}.compact-number{font-size:10px}.panel-expand{gap:4px}.compact-copy strong{font-size:9px}.compact-stop{width:25px}.panel-expand>span:last-child{font-size:10px}
+  .panel-collapse{width:20px}
+}
+@media(max-width:699px){
+  .section-label{flex-wrap:wrap;gap:6px;margin:8px 0}.audio-tools{gap:5px;flex-wrap:wrap}.audio-tools button{font-size:9px}.panel-tools{padding-right:5px}
+  #tracks,#tracks[data-open-count]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:auto;gap:7px}
+  #tracks>.track:not(.is-collapsed),#tracks[data-open-count]>.track:not(.is-collapsed){grid-column:span 2;min-height:230px;height:clamp(230px,45svh,340px);padding:9px 10px;grid-template-rows:22px minmax(44px,1fr) 36px 62px;grid-template-columns:minmax(0,1fr) 112px;gap:3px 8px}
+  [data-mode=simple] #tracks[data-open-count]>.track:not(.is-collapsed){grid-template-columns:minmax(0,1fr) 64px}
+  #tracks[data-open-count]>.track.is-collapsed{grid-column:span 1;height:54px}
+  #tracks[data-open-count] .track:not(.is-collapsed) .rotary{--dial-size:36px}
+  #tracks[data-open-count] .track:not(.is-collapsed) .dial-control{width:50px}
+  #tracks[data-open-count] .track:not(.is-collapsed) .track-actions>button{height:36px;min-height:36px;font-size:11px}
+}

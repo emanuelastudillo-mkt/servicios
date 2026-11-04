@@ -1,5 +1,5 @@
 import { MAX_SECONDS, TRACKS, targetGains, mixSample } from './audio-core.js';
-import { inputConfig } from './inputs.js?v=1.5.0';
+import { inputConfig } from './inputs.js?v=1.6.0';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();

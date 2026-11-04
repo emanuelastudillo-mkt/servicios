@@ -1,13 +1,13 @@
-import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.5.0';
+import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.6.0';
 import { sealLoop } from './audio-core.js';
-import { spaceAction } from './controls.js?v=1.5.0';
+import { spaceAction } from './controls.js?v=1.6.0';
 
-import { InputManager, inputConfig } from './inputs.js?v=1.5.0';
-import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.5.0';
-import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.5.0';
-import { calibrate } from './calibration.js?v=1.5.0';
-import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.5.0';
-import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.5.0';
+import { InputManager, inputConfig } from './inputs.js?v=1.6.0';
+import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.6.0';
+import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.6.0';
+import { calibrate } from './calibration.js?v=1.6.0';
+import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.6.0';
+import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.6.0';
 
 const $ = selector => document.querySelector(selector);
 const colors = ['#c7f69b', '#d8b5f8', '#93d8e9', '#efbd8c', '#f0a7ba', '#a6bafa'];
@@ -25,6 +25,7 @@ let state = { length: 0, position: 0, rate: 48000, playing: false, recording: nu
   tracks: Array.from({ length: 6 }, () => ({ hasAudio: false, volume: .8, muted: false, solo: false })) };
 const pending = new Map();
 const cards = [];
+let expandedPanels = new Set([0]), keepPanelsOpen = false, completedPanel = -1;
 const inputs = new InputManager({
   getGraph: async () => { await ensureAudio(); return { ctx, node }; },
   nativeCapture: desktop ? config => captureNative(config, async () => { await ensureAudio(); return { ctx, node }; }) : undefined,
@@ -68,6 +69,12 @@ for (let i = 0; i < 6; i++) {
   card.querySelector('.input-advanced').addEventListener('click', () => { setMode('advanced'); card.querySelector('.latency-button').focus(); });
   card.querySelector('.wave-area').insertAdjacentHTML('beforeend', '<div class="countdown" role="status" aria-live="polite" aria-atomic="true" hidden><strong></strong><span>PREPARATE</span></div>');
   const q = s => card.querySelector(s);
+  card.id = `loop-${i + 1}`;
+  q('.track-head').insertAdjacentHTML('beforeend', `<button class="panel-collapse" aria-label="Minimizar Loop ${i + 1}" title="Minimizar sin detener el audio">−</button>`);
+  card.insertAdjacentHTML('beforeend', `<div class="compact-panel"><button class="panel-expand" aria-label="Abrir Loop ${i + 1}" aria-expanded="false" aria-controls="loop-${i + 1}"><span class="compact-number">0${i + 1}</span><span class="compact-copy"><strong>Loop ${i + 1}</strong><small>Vacío · abrir</small></span><span aria-hidden="true">＋</span></button><button class="compact-stop" aria-label="Detener Loop ${i + 1}" hidden>■</button></div>`);
+  q('.panel-collapse').addEventListener('click', () => { if (state.recording?.id !== i) { expandedPanels.delete(i); keepPanelsOpen = false; renderPanels(); q('.panel-expand').focus(); } });
+  q('.panel-expand').addEventListener('click', () => { expandedPanels.add(i); renderPanels(); q('.panel-collapse').focus(); });
+  q('.compact-stop').addEventListener('click', () => toggleCompactTrack(i));
   cards.push({ card, canvas: q('canvas'), name: q('.track-name'), status: q('.track-status'), placeholder: q('.wave-placeholder'),
     head: q('.playhead'), counter: q('.countdown'), counterNumber: q('.countdown strong'), record: q('.record-button'), recordLabel: q('.record-label'), mute: q('.mute'), solo: q('.solo'), clear: q('.clear-button'), volume: q('.volume'), value: q('output'), source: q('.source-select'), connect: q('.input-connect'), disconnect: q('.input-disconnect'), inputStatus: q('.input-status'), inputGain: q('.input-gain'), inputValue: q('.input-value'), inputMute: q('.input-mute'), listen: q('.input-listen input'), inputMeter: q('.input-meter') });
   q('.source-select').addEventListener('change', e => {
@@ -97,6 +104,47 @@ for (let i = 0; i < 6; i++) {
 }
 
 enhanceKnob($('#master'));
+function renderPanels() {
+  const total = expandedPanels.size;
+  const layoutChanged = $('#tracks').dataset.openCount !== String(total) || cards.some((c, i) => c.card.classList.contains('is-collapsed') === expandedPanels.has(i));
+  $('#tracks').dataset.openCount = total;
+  $('#panels-open').disabled = total === 6;
+  $('#panels-step').setAttribute('aria-pressed', String(!keepPanelsOpen && total <= 1));
+  cards.forEach((c, i) => {
+    const open = expandedPanels.has(i), track = state.tracks[i];
+    c.card.classList.toggle('is-collapsed', !open);
+    const expand = c.card.querySelector('.panel-expand');
+    expand.setAttribute('aria-expanded', String(open));
+    expand.setAttribute('aria-label', `Abrir ${names[i] || 'Loop ' + (i + 1)}`);
+    expand.querySelector('strong').textContent = names[i] || `Loop ${i + 1}`;
+    expand.querySelector('small').textContent = track.hasAudio ? c.status.textContent : 'Vacío · abrir';
+    const stop = c.card.querySelector('.compact-stop');
+    const playing = track.hasAudio && state.playing && !track.muted;
+    stop.hidden = !track.hasAudio;
+    stop.textContent = playing ? '■' : '▶';
+    stop.setAttribute('aria-label', `${playing ? 'Detener' : 'Reanudar'} Loop ${i + 1}`);
+    stop.title = playing ? 'Detener este loop sin borrar' : 'Reanudar en el ciclo compartido';
+    stop.disabled = ioBusy || diagnosticBusy || inputs.pending >= 0;
+    c.card.querySelector('.panel-collapse').disabled = state.recording?.id === i || inputs.pending === i;
+  });
+  if (layoutChanged) requestAnimationFrame(drawWaves);
+}
+function stepPanels() {
+  keepPanelsOpen = false;
+  const next = state.recording?.id ?? (inputs.pending >= 0 ? inputs.pending : state.tracks.findIndex(t => !t.hasAudio));
+  expandedPanels = new Set(next < 0 ? [] : [next]);
+  renderPanels();
+}
+$('#panels-open').addEventListener('click', () => { keepPanelsOpen = true; expandedPanels = new Set([0, 1, 2, 3, 4, 5]); renderPanels(); });
+$('#panels-step').addEventListener('click', stepPanels);
+async function toggleCompactTrack(id) {
+  if (ioBusy || diagnosticBusy || inputs.pending >= 0 || !state.tracks[id].hasAudio) return;
+  if (state.playing && !state.tracks[id].muted) send({ type: 'track', id, muted: true });
+  else {
+    try { await ensureAudio(); send({ type: 'track', id, muted: false }); if (!state.playing) send({ type: 'play' }); }
+    catch (e) { notify(audioError(e), true); }
+  }
+}
 function setMode(mode, persist = true) {
   const advanced = mode === 'advanced';
   document.body.dataset.mode = advanced ? 'advanced' : 'simple';
@@ -221,7 +269,7 @@ async function ensureAudio(rate) {
       if (!window.AudioContext || !window.AudioWorkletNode) throw Error('Abrí SEIS en una versión actual de Chrome o Edge.');
       const nextCtx = new AudioContext({ latencyHint: 'interactive', ...(rate ? { sampleRate: rate } : {}) });
       try {
-        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.5.0', import.meta.url));
+        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.6.0', import.meta.url));
         const nextNode = new AudioWorkletNode(nextCtx, 'seis-looper', { numberOfInputs: 6, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
         nextNode.port.onmessage = onMessage;
         nextNode.onprocessorerror = () => { notify('El motor de audio se interrumpió. Recargá la página y abrí tu última sesión guardada.', true); };
@@ -242,8 +290,19 @@ function onMessage({ data: message }) {
   if (message.type === 'status') {
     const previous = state.recording;
     state = message.data;
+    if (completedPanel >= 0) {
+      const id = completedPanel; completedPanel = -1;
+      if (!keepPanelsOpen) {
+        const hadFocus = cards[id].card.contains(document.activeElement);
+        expandedPanels.delete(id);
+        const next = state.tracks.findIndex(t => !t.hasAudio);
+        if (next >= 0) expandedPanels.add(next);
+        renderPanels();
+        if (hadFocus) (next >= 0 ? cards[next].record : cards[id].card.querySelector('.panel-expand')).focus();
+      }
+    }
     if (previous && !state.recording && !state.tracks[previous.id].hasAudio) { waves[previous.id] = []; drawWave(previous.id); }
-    if (!previous && state.recording) { waves[state.recording.id] = []; drawWave(state.recording.id); }
+    if (!previous && state.recording) { expandedPanels.add(state.recording.id); waves[state.recording.id] = []; drawWave(state.recording.id); }
     render(); return;
   }
   if (message.type === 'snapshot') {
@@ -259,7 +318,7 @@ function onMessage({ data: message }) {
   }
   if (message.type === 'recorded' || message.type === 'restored') { waves[message.id] = message.peaks; drawWaves(); changed(); }
   if (message.type === 'inputLost') notify(message.kept ? 'La entrada se desconectó. Se conservó el audio grabado hasta ese momento.' : 'La entrada se desconectó antes de completar una toma válida. Las otras pistas se conservan.', true);
-  if (message.type === 'recorded') notify(`Pista ${message.id + 1} lista. Ya está sonando en loop.`);
+  if (message.type === 'recorded') { completedPanel = message.id; notify(`Pista ${message.id + 1} lista. Ya está sonando en loop.`); }
   if (message.type === 'cleared') { waves[message.id] = []; drawWaves(); changed(); notify('Pista borrada de esta sesión. Podés deshacer el borrado.'); }
   if (message.type === 'loaded') { waves = message.peaks; drawWaves(); }
   if (message.type === 'changed' && !ioBusy) changed();
@@ -393,7 +452,7 @@ async function listDevices() {
   refreshOptions();
   const failure = results.find(result => result.status === 'rejected'); if (failure) throw failure.reason;
 }
-async function connectInput(id) {
+async function connectInput(id, startingRecording = false) {
   if (ioBusy || state.recording || inputs.pending >= 0) return;
   if (desktop && ['window', 'tab', 'system'].includes(inputs.configs[id].kind)) { notify('En escritorio, elegí una aplicación de Windows o una salida loopback de la lista.', true); return; }
   try {
@@ -403,7 +462,8 @@ async function connectInput(id) {
     changed();
     await listDevices().catch(() => {});
     const kind = inputs.configs[id].kind;
-    notify(kind === 'system' || (kind === 'native' && inputs.configs[id].deviceId.startsWith('out:')) ? 'Salida loopback conectada: incluye todo lo que suene por esa salida, también SEIS. Para aislar una app, elegí su entrada de aplicación.' : 'Entrada del Loop ' + (id + 1) + ' lista. Revisá el medidor antes de grabar.');
+    if (!startingRecording || kind === 'system' || (kind === 'native' && inputs.configs[id].deviceId.startsWith('out:'))) notify(kind === 'system' || (kind === 'native' && inputs.configs[id].deviceId.startsWith('out:')) ? 'Salida loopback conectada: incluye todo lo que suene por esa salida, también SEIS. Para aislar una app, elegí su entrada de aplicación.' : 'Entrada del Loop ' + (id + 1) + ' lista. Revisá el medidor antes de grabar.');
+    return true;
   } catch (e) {
     notify(audioError(e), true);
   } finally { render(); }
@@ -415,8 +475,9 @@ async function actTrack(id) {
   if (r?.id === id) { send({ type: !r.armed && !r.countdownFrames ? 'finish' : 'cancel' }); return; }
   if (r) { notify('Terminá o cancelá la grabación actual antes de grabar otra pista.'); return; }
   if (state.tracks[id].hasAudio) { send({ type: 'track', id, muted: !state.tracks[id].muted }); return; }
-  if (!inputs.slots[id]) { notify('Elegí una fuente y pulsá Conectar en el Loop ' + (id + 1) + '.'); cards[id].connect.focus(); return; }
+  if (!expandedPanels.has(id)) { expandedPanels.add(id); renderPanels(); }
   if (inputs.configs[id].muted || inputs.configs[id].gain === 0) { notify('La entrada está en silencio. Abrí Ajustes o Avanzado, activá Entrada y subí su nivel antes de grabar.', true); return; }
+  if (!inputs.slots[id] && !await connectInput(id, true)) { cards[id].connect.focus(); return; }
   if (monitorId !== id) setMonitor(-1);
   try {
     await ensureAudio(); const latency = trackLatency(id);
@@ -476,7 +537,7 @@ function render() {
   $('#loop-count').textContent = `${state.tracks.filter(t => t.hasAudio).length} / 6 PISTAS`;
   $('#cycle-length').textContent = state.length ? `${(state.rate / 1000).toFixed(1)} kHz · MONO` : 'MÁX. 2 MIN';
   $('#cycle-position').textContent = counting ? 'Preparación · Todavía no se está grabando' : r ? r.first ? 'Grabando el primer loop…' : r.armed ? 'Esperando el inicio de la vuelta…' : 'Grabando una vuelta completa…' : state.playing ? 'Todas las pistas comparten el mismo ciclo' : state.length ? 'Detenido · Listo para reproducir' : 'El primer loop define el ciclo';
-  $('#instruction').textContent = counting ? r.first ? 'Prepará tu instrumento: la grabación empieza al terminar la cuenta.' : 'Después de la cuenta, entrás al inicio de la próxima vuelta.' : r ? r.first ? 'Volvé a pulsar la pista para cerrar el loop.' : r.armed ? 'Entrá a tocar cuando comience la próxima vuelta.' : 'La grabación termina sola al completar la vuelta.' : state.length ? 'Sumá otra capa o jugá con la mezcla.' : 'Conectá una entrada en el Loop 1 y empezá a grabar.';
+  $('#instruction').textContent = counting ? r.first ? 'Prepará tu instrumento: la grabación empieza al terminar la cuenta.' : 'Después de la cuenta, entrás al inicio de la próxima vuelta.' : r ? r.first ? 'Volvé a pulsar la pista para cerrar el loop.' : r.armed ? 'Entrá a tocar cuando comience la próxima vuelta.' : 'La grabación termina sola al completar la vuelta.' : state.length ? 'Sumá otra capa. Tocá un bloque para volver a abrirlo.' : 'Pulsá Grabar: conectamos tu entrada y contamos 3, 2, 1.';
   $('#transport-status').textContent = counting ? `EMPEZAMOS EN ${secondsLeft}` : r ? r.armed ? 'PISTA PREPARADA' : 'GRABANDO' : state.playing ? 'EN LOOP' : hasAudio ? 'SESIÓN EN PAUSA' : 'LISTO PARA CREAR';
   $('#transport-led').className = `led ${r && !r.armed && !counting ? 'recording' : state.playing || counting ? 'active' : ''}`;
   const progress = state.length ? state.position / state.length : r ? r.written / (state.rate * 120) : 0;
@@ -541,6 +602,7 @@ function render() {
   }
   if (performance.now() - drawAt > 100 && r && !r.armed && !counting) { drawAt = performance.now(); drawLive(r.id, live); }
   refreshKnobs();
+  renderPanels();
 }
 function setMeter(kind, peak) {
   const el = $(`#${kind}-meter`);
@@ -587,6 +649,9 @@ async function withBusy(fn) {
   finally { ioBusy = false; document.body.classList.remove('busy'); render(); }
 }
 function applyMetadata(data) {
+  completedPanel = -1; keepPanelsOpen = false;
+  const next = data.tracks.findIndex(t => !t.samples);
+  expandedPanels = new Set(next < 0 ? [] : [next]);
   setMonitor(-1); inputs.disconnectAll();
   inputs.configs = data.tracks.map(t => inputConfig(t.input)); refreshOptions(); render();
   $('#session-title').value = data.title || 'Mi sesión';

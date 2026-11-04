@@ -1,10 +1,10 @@
-# SEIS 1.5.0 · Escritorio para Windows
+# SEIS 1.6.0 · Escritorio para Windows
 
 Ejecutable portátil de 64 bits. La interfaz y el motor de loops están incluidos en el archivo: funcionan sin cargar el sitio ni iniciar un servidor local. Incluye .NET; requiere **Microsoft Edge WebView2 Runtime**, normalmente presente en Windows 10/11. Descarga oficial del runtime: https://developer.microsoft.com/microsoft-edge/webview2/.
 
 ## Usar
 
-1. Abrí `SEIS-1.5.0-Windows-x64.exe`. La versión aparece en la ventana y en la interfaz.
+1. Abrí `SEIS-1.6.0-Windows-x64.exe`. La versión aparece en la ventana y en la interfaz.
 2. Elegí la **Salida de reproducción**: auriculares, altavoces o interfaz. Esto afecta SEIS, no cambia la salida predeterminada de Windows.
 3. Elegí la **Entrada de grabación** de una pista: micrófono/interfaz, aplicación de Windows o audio de una salida (loopback). Pulsá **Conectar** y comprobá el medidor. Actualizá la lista si abriste otra aplicación.
 4. **Sincronizar** mide el retorno de la entrada o permite ingresar su retardo total. Prepará el retorno según la ayuda antes de medir. **Aplicar a todas** copia fuente, ganancia, silencio y compensación de entrada. Si está conectada, comparte esa captura con las otras cinco pistas. Conserva las tomas, nombres, mezcla y volúmenes de reproducción. Está deshabilitado durante una grabación.
@@ -28,11 +28,11 @@ Solo se alinean las tomas nuevas; el primer loop y las grabaciones existentes se
 
 ## Privacidad y distribución
 
-No se envía audio a servidores. No se captura video. La captura comienza únicamente al pulsar Conectar y se libera con Desconectar o al cerrar. El perfil local de WebView2 vive en `%LOCALAPPDATA%\SEIS\WebView2`; no contiene un guardado automático de las tomas. Los archivos de sesión los guarda el usuario donde elige.
+No se envía audio a servidores. No se captura video. La captura comienza únicamente al pulsar Conectar o Grabar (si la fuente todavía no estaba conectada), y se libera con Desconectar o al cerrar. El perfil local de WebView2 vive en `%LOCALAPPDATA%\SEIS\WebView2`; no contiene un guardado automático de las tomas. Los archivos de sesión los guarda el usuario donde elige.
 
 El ejecutable no tiene firma Authenticode. Las licencias de NAudio, .NET y WebView2 están incluidas y se pueden consultar con **Versión y licencias**. La aplicación abre solamente los recursos incorporados; no expone un puerto local ni acceso general al sistema de archivos desde la interfaz.
 
-La versión 1.5.0 incorpora la interfaz analógica, luces de estado y perillas accesibles también sin conexión. El motor de audio y los archivos de sesión mantienen su formato.
+La versión 1.6.0 incorpora la interfaz analógica, luces de estado y perillas accesibles también sin conexión. El motor de audio y los archivos de sesión mantienen su formato.
 
 ## Compilar y publicar
 
@@ -46,14 +46,14 @@ Requiere Windows x64 y el SDK .NET 10.0.403. Dependencias fijadas en `packages.l
 
 El script genera el ejecutable con versión y actualiza el tamaño/SHA-256 en `loop/desktop-release.json`. No elimina versiones anteriores. El enlace de `loop/index.html`, el manifiesto, el proyecto C# y `loop/package.json` deben compartir versión; las pruebas verifican esta consistencia.
 
-Publicá el ejecutable como activo de GitHub Releases, etiqueta **seis-v1.5.0**, nombre exacto **SEIS-1.5.0-Windows-x64.exe**. El código fuente debe estar en el commit de esa etiqueta. Publicá el activo antes de actualizar `/loop` para que el botón tenga una descarga disponible. En versiones siguientes, actualizá conjuntamente versión, manifiesto y enlace; este repositorio también contiene otros proyectos, por eso no se usa una redirección genérica a cualquier release del repositorio.
+Publicá el ejecutable como activo de GitHub Releases, etiqueta **seis-v1.6.0**, nombre exacto **SEIS-1.6.0-Windows-x64.exe**. El código fuente debe estar en el commit de esa etiqueta. Publicá el activo antes de actualizar `/loop` para que el botón tenga una descarga disponible. En versiones siguientes, actualizá conjuntamente versión, manifiesto y enlace; este repositorio también contiene otros proyectos, por eso no se usa una redirección genérica a cualquier release del repositorio.
 
 ## Verificación
 
 ```powershell
 node --test loop/tests/*.test.mjs
-./SEIS-1.5.0-Windows-x64.exe --self-test 'C:/ruta/reporte-audio.json'
-./SEIS-1.5.0-Windows-x64.exe --smoke-test 'C:/ruta/reporte-inicio.json'
+./SEIS-1.6.0-Windows-x64.exe --self-test 'C:/ruta/reporte-audio.json'
+./SEIS-1.6.0-Windows-x64.exe --smoke-test 'C:/ruta/reporte-inicio.json'
 ```
 
 `--self-test` enumera fuentes y comprueba captura WASAPI del propio proceso con un tono de diagnóstico de -80 dBFS; no graba el micrófono ni guarda muestras de otras aplicaciones. El informe incluye activación, muestras recibidas y conversión PCM. `--smoke-test` abre la interfaz, comprueba versión, seis pistas, entradas nativas, salidas y botones, y carga los tres AudioWorklets incorporados; luego cierra la instancia. Los informes quedan solo en las rutas elegidas.
@@ -61,3 +61,5 @@ node --test loop/tests/*.test.mjs
 La prueba web `/loop/tests/native.html` verifica el puente PCM, la ganancia por pista y la liberación de una captura compartida. `/loop/tests/ui.html` comprueba Aplicar a todas, Espacio, guardado y reapertura. Las pruebas no certifican todas las placas, versiones de Windows o configuraciones de Pro Tools.
 
 Referencias: [WASAPI por aplicación, Microsoft](https://learn.microsoft.com/en-us/samples/microsoft/windows-classic-samples/applicationloopbackaudio-sample/), [NAudio WasapiRecorder](https://github.com/naudio/NAudio/blob/main/Docs/WasapiRecorder.md).
+
+Desde 1.6.0, la vista comienza en Loop 1 y avanza panel por panel al terminar cada toma. Los loops listos se compactan sin cortar audio; su botón permite detener/reanudar. Abrir los 6 conserva la vista completa, y Paso a paso vuelve a la primera pista vacía. Grabar también conecta la entrada elegida si hace falta. No se inicia ninguna captura al abrir la aplicación.

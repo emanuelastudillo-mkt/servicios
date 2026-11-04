@@ -11,7 +11,7 @@ document.querySelector('#prepare').onclick = async () => {
   document.querySelector('#master').value = 0;
   document.querySelector('#master-value').textContent = '0%';
   localStorage.setItem('seis.interface-mode', 'simple');
-  let testContext, noAudio = false, lastCapture;
+  let testContext, noAudio = false, lastCapture, denyNext = false, captureRequests = 0, captureGate;
   let appContext;
   const NativeAudioContext = window.AudioContext;
   window.AudioContext = class extends NativeAudioContext {
@@ -25,6 +25,9 @@ document.querySelector('#prepare').onclick = async () => {
     return destination.stream;
   };
   Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: async options => {
+    captureRequests++;
+    if (denyNext) { denyNext = false; throw new DOMException('Permiso de prueba denegado', 'NotAllowedError'); }
+    if (captureGate) await captureGate;
     const stream = await createSignal(options.audio.deviceId?.exact === 'qa-focusrite' ? .35 : .15);
     const track = stream.getAudioTracks()[0], settings = track.getSettings();
     // A real hardware device keeps its ID across connections; the synthetic
@@ -40,7 +43,7 @@ document.querySelector('#prepare').onclick = async () => {
     { kind: 'audioinput', deviceId: 'qa-focusrite', label: 'Focusrite · señal de prueba' }
   ] });
   window.addEventListener('pagehide', () => testContext?.close());
-  await import('../app.js?v=1.5.0');
+  await import('../app.js?v=1.6.0');
   const run = document.createElement('button'); run.textContent = 'Verificar fuentes y teclas'; note.append(document.createElement('br'), run);
   const results = document.createElement('pre'); results.id = 'ui-results'; results.style.whiteSpace = 'pre-wrap'; note.append(results);
   run.onclick = async () => {
@@ -58,6 +61,13 @@ document.querySelector('#prepare').onclick = async () => {
     const space = () => { document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', key: ' ', bubbles: true, cancelable: true })); document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', key: ' ', bubbles: true, cancelable: true })); };
     try {
       assert(document.body.dataset.mode === 'simple' && $('#mode-simple').getAttribute('aria-pressed') === 'true', 'Primer inicio en modo Simple');
+      assert($('#tracks').dataset.openCount === '1' && !track(0).classList.contains('is-collapsed') && captureRequests === 0, 'Inicio progresivo: solo Loop 1 abierto, sin pedir micrófono');
+      track(1).querySelector('.panel-expand').click();
+      assert($('#tracks').dataset.openCount === '2', 'Un bloque vacío se puede abrir sin iniciar audio');
+      $('#panels-open').click();
+      assert($('#tracks').dataset.openCount === '6' && captureRequests === 0, 'Abrir los 6 permite configurar sin capturar');
+      $('#panels-step').click();
+      assert($('#tracks').dataset.openCount === '1' && document.querySelectorAll('.compact-stop:not([hidden])').length === 0, 'Paso a paso compacta las pistas vacías sin botones de borrado ni reproducción');
       $('#audio-review').click();
       assert($('#audio-dialog').open && $('#audio-test-input').disabled, 'Diagnóstico no captura entradas sin conectar');
       $('#audio-close').focus(); space();
@@ -76,13 +86,27 @@ document.querySelector('#prepare').onclick = async () => {
       $('#mode-advanced').click();
       assert(document.body.dataset.mode === 'advanced' && localStorage.getItem('seis.interface-mode') === 'advanced', 'Avanzado queda recordado sin iniciar captura');
       assert(getComputedStyle(track(0).querySelector('.latency-button')).display !== 'none', 'Avanzado muestra los controles de sincronización');
-      track(0).querySelector('.input-connect').click(); await wait(() => track(0).classList.contains('input-connected'));
+      denyNext = true; track(0).querySelector('.record-button').click();
+      await wait(() => $('#notification').textContent.includes('permiso'));
+      assert(!track(0).classList.contains('input-connected') && track(0).querySelector('.countdown').hidden && $('#tracks').dataset.openCount === '1', 'Permiso rechazado conserva el panel y no inicia ni avanza la grabación');
+      change(track(2).querySelector('.source-select'), 'device:qa-focusrite');
+      let allowCapture; captureGate = new Promise(resolve => { allowCapture = resolve; });
+      track(2).querySelector('.record-button').click(); $('#panels-step').click();
+      assert(!track(2).classList.contains('is-collapsed') && track(2).querySelector('.panel-collapse').disabled, 'Paso a paso conserva visible la pista que espera permiso');
+      allowCapture(); captureGate = null; await wait(() => track(2).classList.contains('is-recording'));
+      assert(!track(2).classList.contains('is-collapsed'), 'La toma que empieza después del permiso mantiene su panel abierto');
+      $('#stop').click(); await wait(() => !track(2).classList.contains('is-recording')); $('#panels-step').click();
+      track(0).querySelector('.record-button').click(); await wait(() => !track(0).querySelector('.countdown').hidden);
+      assert(track(0).classList.contains('input-connected') && track(0).querySelector('.panel-collapse').disabled, 'Un solo Grabar conecta y empieza la cuenta; la toma activa sigue visible');
+      $('#stop').click(); await wait(() => track(0).querySelector('.countdown').hidden);
+      assert($('#tracks').dataset.openCount === '1' && !track(0).classList.contains('has-audio'), 'Cancelar la cuenta no avanza al siguiente panel');
       $('#audio-review').click(); $('#audio-test-input').click();
       await wait(() => $('#audio-result').textContent.startsWith('Señal recibida'));
       assert($('#audio-result').dataset.ok === 'true', 'Diagnóstico recibe señal real del grafo durante tres segundos');
       $('#audio-test-input').click(); $('#audio-close').click();
       await wait(() => $('#audio-result').textContent.startsWith('Prueba cancelada'));
       assert(track(0).classList.contains('input-connected'), 'Cancelar diagnóstico libera la prueba y conserva la entrada');
+      $('#panels-open').click();
       change(track(1).querySelector('.source-select'), 'device:qa-focusrite'); track(1).querySelector('.input-connect').click();
       await wait(() => track(1).classList.contains('input-connected'));
       change(track(2).querySelector('.source-select'), 'window'); track(2).querySelector('.input-connect').click();
@@ -98,6 +122,7 @@ document.querySelector('#prepare').onclick = async () => {
       assert(!$('#latency-dialog').open && track(1).querySelector('.latency-button').textContent === '50.0 ms', 'Aplica 50 ms solo a la entrada elegida');
       track(0).querySelector('.input-listen input').click(); track(1).querySelector('.input-listen input').click();
       assert(!track(0).querySelector('.input-listen input').checked && track(1).querySelector('.input-listen input').checked, 'Solo una fuente en escucha directa');
+      $('#panels-step').click();
       track(0).querySelector('.input-connect').focus(); space();
       await wait(() => !track(0).querySelector('.countdown').hidden);
       assert(track(0).querySelector('.countdown strong').textContent === '3', 'Espacio inicia Loop 1 con tres segundos');
@@ -105,7 +130,15 @@ document.querySelector('#prepare').onclick = async () => {
       await wait(() => track(0).classList.contains('is-recording'));
       await wait(() => Number($('#decimals').textContent) >= .5);
       space(); await wait(() => track(0).classList.contains('has-audio'));
+      assert(track(0).classList.contains('is-collapsed') && !track(1).classList.contains('is-collapsed') && $('#tracks').dataset.openCount === '1', 'Terminar Loop 1 lo compacta y abre Loop 2 sin iniciar otra toma');
+      track(0).querySelector('.compact-stop').click();
+      await wait(() => track(0).classList.contains('is-muted'));
+      assert(track(0).classList.contains('has-audio') && track(0).querySelector('.compact-stop').textContent === '▶', 'Detener el bloque conserva su audio y ofrece Reanudar');
+      track(0).querySelector('.compact-stop').click();
+      await wait(() => !track(0).classList.contains('is-muted'));
+      assert(track(0).querySelector('.compact-stop').textContent === '■', 'Reanudar devuelve el loop al mismo ciclo');
       assert(!track(1).querySelector('.input-listen input').checked, 'Grabar otra fuente desactiva la escucha anterior');
+      track(0).querySelector('.panel-expand').click();
       track(0).querySelector('.clear-button').focus(); space();
       await wait(() => track(1).classList.contains('is-recording'));
       await new Promise(resolve => setTimeout(resolve, 350));
@@ -114,7 +147,11 @@ document.querySelector('#prepare').onclick = async () => {
       if (track(1).classList.contains('is-recording')) space();
       await wait(() => track(1).classList.contains('has-audio'));
       assert(track(0).classList.contains('has-audio'), 'Espacio con foco en Borrar conserva Loop 1 y graba Loop 2');
+      $('#panels-open').click();
       track(2).querySelector('.record-button').click(); await wait(() => track(2).classList.contains('has-audio'));
+      assert($('#tracks').dataset.openCount === '6', 'Abrir los 6 conserva todos los paneles al finalizar una toma');
+      $('#panels-step').click();
+      assert($('#tracks').dataset.openCount === '1' && !track(3).classList.contains('is-collapsed'), 'Paso a paso retoma la primera pista vacía');
       $('#stop').click();
       // Capture the real app's downloaded session without writing a fixture file.
       const originalCreate = URL.createObjectURL, originalClick = HTMLAnchorElement.prototype.click;
@@ -122,7 +159,7 @@ document.querySelector('#prepare').onclick = async () => {
       URL.createObjectURL = blob => { savedBlob = blob; return originalCreate(blob); };
       HTMLAnchorElement.prototype.click = function () {};
       try { $('#save').click(); await wait(() => savedBlob); } finally { URL.createObjectURL = originalCreate; HTMLAnchorElement.prototype.click = originalClick; }
-      const { decodeSession, encodeSession } = await import('../files.js?v=1.5.0');
+      const { decodeSession, encodeSession } = await import('../files.js?v=1.6.0');
       const binary = await savedBlob.arrayBuffer(), saved = decodeSession(binary);
       const expected = [.15, .175, .55];
       assert(saved.tracks.slice(0, 3).every((t, i) => Math.abs(t.samples[Math.floor(t.samples.length / 2)] - expected[i]) < .002), 'La sesión descargada contiene micrófono, placa al 50% y aplicación sin mezclarlos');
@@ -143,6 +180,8 @@ document.querySelector('#prepare').onclick = async () => {
       await wait(() => $('#notification').textContent.startsWith('Sesión abierta'));
       assert($('#inputs-status').textContent.startsWith('0 / 6') && track(1).querySelector('.source-select').value === 'device:qa-focusrite' && track(1).querySelector('.input-gain').value === '50', 'Abrir restaura asignaciones y ganancia, sin capturar sin permiso');
       assert(document.querySelectorAll('.has-audio').length === 3, 'Abrir conserva las tres tomas');
+      assert($('#tracks').dataset.openCount === '1' && !track(3).classList.contains('is-collapsed'), 'Sesión reabierta compacta las tomas y prepara la próxima vacía');
+      track(1).querySelector('.panel-expand').click();
       track(1).querySelector('.input-connect').click(); await wait(() => track(1).classList.contains('input-connected'));
       track(1).querySelector('.latency-button').click();
       change($('#latency-mode'), 'manual'); change($('#compensation'), '91'); change($('#latency-mode'), 'measured');
@@ -167,6 +206,17 @@ document.querySelector('#prepare').onclick = async () => {
       await wait(() => appContext.state === 'running' && $('#audio-result').textContent.startsWith('Motor reactivado'));
       assert(document.querySelectorAll('.has-audio').length === 3 && $('#inputs-status').textContent.startsWith('6 / 6'), 'Reactivar el motor suspendido conserva las tomas y conexiones');
       $('#audio-close').click();
+      $('#panels-step').click();
+      for (let id = 3; id < 6; id++) {
+        track(id).querySelector('.input-mute').click();
+        track(id).querySelector('.record-button').click();
+        await wait(() => track(id).classList.contains('has-audio'));
+      }
+      assert($('#tracks').dataset.openCount === '0' && document.querySelectorAll('.has-audio').length === 6 && document.querySelectorAll('.compact-stop:not([hidden])').length === 6, 'Completar seis loops deja seis bloques compactos con su control de detener');
+      $('#stop').click(); await wait(() => !track(0).classList.contains('is-playing'));
+      $('#new').click(); await wait(() => $('#confirm').open); $('#confirm button[value=ok]').click();
+      await wait(() => document.querySelectorAll('.has-audio').length === 0);
+      assert($('#tracks').dataset.openCount === '1' && !track(0).classList.contains('is-collapsed'), 'Nueva sesión vuelve al primer panel sin conexiones');
       $('#disconnect-inputs').click();
       results.textContent += '\nRESULTADO: ' + checks + ' comprobaciones correctas.';
     } catch (e) { results.textContent += 'ERROR: ' + (e.stack || e.message); }
