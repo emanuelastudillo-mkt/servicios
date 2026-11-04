@@ -40,7 +40,7 @@ document.querySelector('#prepare').onclick = async () => {
     { kind: 'audioinput', deviceId: 'qa-focusrite', label: 'Focusrite · señal de prueba' }
   ] });
   window.addEventListener('pagehide', () => testContext?.close());
-  await import('../app.js?v=1.4.0');
+  await import('../app.js?v=1.5.0');
   const run = document.createElement('button'); run.textContent = 'Verificar fuentes y teclas'; note.append(document.createElement('br'), run);
   const results = document.createElement('pre'); results.id = 'ui-results'; results.style.whiteSpace = 'pre-wrap'; note.append(results);
   run.onclick = async () => {
@@ -108,7 +108,10 @@ document.querySelector('#prepare').onclick = async () => {
       assert(!track(1).querySelector('.input-listen input').checked, 'Grabar otra fuente desactiva la escucha anterior');
       track(0).querySelector('.clear-button').focus(); space();
       await wait(() => track(1).classList.contains('is-recording'));
-      await new Promise(resolve => setTimeout(resolve, 350)); space();
+      await new Promise(resolve => setTimeout(resolve, 350));
+      // On a busy renderer the short cycle can finish before this timer fires.
+      // Space would then start Loop 3, whose explicit click below cancels it.
+      if (track(1).classList.contains('is-recording')) space();
       await wait(() => track(1).classList.contains('has-audio'));
       assert(track(0).classList.contains('has-audio'), 'Espacio con foco en Borrar conserva Loop 1 y graba Loop 2');
       track(2).querySelector('.record-button').click(); await wait(() => track(2).classList.contains('has-audio'));
@@ -119,7 +122,7 @@ document.querySelector('#prepare').onclick = async () => {
       URL.createObjectURL = blob => { savedBlob = blob; return originalCreate(blob); };
       HTMLAnchorElement.prototype.click = function () {};
       try { $('#save').click(); await wait(() => savedBlob); } finally { URL.createObjectURL = originalCreate; HTMLAnchorElement.prototype.click = originalClick; }
-      const { decodeSession, encodeSession } = await import('../files.js?v=1.4.0');
+      const { decodeSession, encodeSession } = await import('../files.js?v=1.5.0');
       const binary = await savedBlob.arrayBuffer(), saved = decodeSession(binary);
       const expected = [.15, .175, .55];
       assert(saved.tracks.slice(0, 3).every((t, i) => Math.abs(t.samples[Math.floor(t.samples.length / 2)] - expected[i]) < .002), 'La sesión descargada contiene micrófono, placa al 50% y aplicación sin mezclarlos');

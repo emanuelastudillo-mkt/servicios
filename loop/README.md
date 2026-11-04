@@ -2,15 +2,19 @@
 
 Aplicación estática publicada en **https://emanuelmkt.com.ar/loop/** mediante el GitHub Pages existente del repositorio. La ruta `/loop` redirige a `/loop/`. No requiere compilación, servidor de audio ni dependencias externas.
 
-**Versión 1.4.0:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). La versión de escritorio incluye captura nativa de aplicaciones y salidas de Windows; la versión web mantiene los permisos y opciones del navegador.
+**Versión 1.5.0:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). La versión de escritorio incluye captura nativa de aplicaciones y salidas de Windows; la versión web mantiene los permisos y opciones del navegador.
 
 **Aplicar a todas**, disponible en cada pista, copia fuente, ganancia, silencio y compensación de entrada a las seis. Si la fuente ya está conectada, comparte la conexión. Conserva el audio grabado, los nombres y la mezcla. Si está desconectada, copia la asignación; conectá una pista y volvé a aplicar para compartirla. No funciona durante una toma.
 
 La vista de escritorio distribuye los seis loops en dos filas y ajusta las ondas al alto disponible. El transporte, la duración y las seis pistas caben desde una ventana de 780 × 600 píxeles de contenido a escala 100 %. Ayuda, exportación y descarga están después del escritorio; la descarga es el último bloque. En móviles se prioriza la legibilidad y se permite desplazamiento.
 
+## Interfaz analógica · 1.5.0
+
+Paneles de equipo, pantallas retro y botones luminosos según el estado real: grabación, preparación, reproducción y silencio. Las perillas controlan volumen por pista y salida general; Avanzado agrega nivel de entrada. Conservan los rangos nativos y las etiquetas accesibles. Arrastrar verticalmente ajusta el nivel; Shift reduce la sensibilidad; flechas/Home/End permiten usar el teclado; doble clic restaura el valor inicial (VOL 80%, IN 100%, salida 75%). La rueda actúa solo sobre la perilla enfocada. Los cambios de sesión, Aplicar a todas y los dos modos actualizan también la posición visual de las perillas. La cuenta de tres segundos y Espacio mantienen su funcionamiento.
+
 ## Uso
 
-**Simple / Avanzado (1.4.0):** primera visita en Simple. El selector superior recuerda la preferencia en este navegador o perfil de escritorio; no guarda audio. Simple muestra fuente, conexión, grabar/silenciar, volumen, borrado, medidor y Aplicar a todas. Avanzado agrega Solo, ganancia y silencio de entrada, escucha y sincronización. Cambiar de modo no altera tomas, conexiones, niveles ni compensación. Simple indica si siguen activos Solo, Escuchar, entrada silenciada o compensación; Ajustes abre Avanzado en esa pista. Si el almacenamiento de preferencias está bloqueado, la aplicación sigue funcionando.
+**Simple / Avanzado:** primera visita en Simple. El selector superior recuerda la preferencia en este navegador o perfil de escritorio; no guarda audio. Simple muestra fuente, conexión, grabar/silenciar, volumen, borrado, medidor y Aplicar a todas. Avanzado agrega Solo, ganancia y silencio de entrada, escucha y sincronización. Cambiar de modo no altera tomas, conexiones, niveles ni compensación. Simple indica si siguen activos Solo, Escuchar, entrada silenciada o compensación; Ajustes abre Avanzado en esa pista. Si el almacenamiento de preferencias está bloqueado, la aplicación sigue funcionando.
 
 **Revisar audio:** informa las funciones disponibles en el entorno y guía la conexión. Comprobar señal observa durante tres segundos una entrada ya conectada: distingue señal, silencio, saturación, entrada silenciada y desconexión. No crea una captura nueva ni guarda audio. Probar salida emite un tono suave de un segundo, respeta el volumen general y requiere loops detenidos y escucha apagada; enviar el tono no certifica que el usuario lo haya oído. Cerrar cancela la prueba. Reactivar audio permite recuperar un motor suspendido sin reemplazar la sesión. Dentro de los diálogos, Espacio actúa sobre su control y no ejecuta atajos de loops.
 

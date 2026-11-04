@@ -1,12 +1,13 @@
-import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.4.0';
+import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.5.0';
 import { sealLoop } from './audio-core.js';
-import { spaceAction } from './controls.js?v=1.4.0';
+import { spaceAction } from './controls.js?v=1.5.0';
 
-import { InputManager, inputConfig } from './inputs.js?v=1.4.0';
-import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.4.0';
-import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.4.0';
-import { calibrate } from './calibration.js?v=1.4.0';
-import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.4.0';
+import { InputManager, inputConfig } from './inputs.js?v=1.5.0';
+import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.5.0';
+import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.5.0';
+import { calibrate } from './calibration.js?v=1.5.0';
+import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.5.0';
+import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.5.0';
 
 const $ = selector => document.querySelector(selector);
 const colors = ['#c7f69b', '#d8b5f8', '#93d8e9', '#efbd8c', '#f0a7ba', '#a6bafa'];
@@ -50,6 +51,18 @@ for (let i = 0; i < 6; i++) {
     <div class="input-listen-row"><label class="input-listen"><input type="checkbox" aria-label="Escuchar entrada de pista ${i + 1}"> Escuchar</label><button class="latency-button" aria-label="Sincronizar latencia de pista ${i + 1}">Sincronizar</button><button class="input-apply" aria-label="Aplicar entrada de pista ${i + 1} a todas" title="Copia fuente, nivel, silencio y compensación de entrada. Conserva el audio grabado.">Aplicar a todas</button></div>
   </div>`);
   $('#tracks').append(card);
+  const dialBank = card.querySelector('.track-bottom');
+  const volumeDial = document.createElement('div'); volumeDial.className = 'dial-control volume-dial';
+  const volumeCaption = document.createElement('div'); volumeCaption.className = 'dial-caption';
+  const volumeInput = dialBank.querySelector('input');
+  volumeCaption.append(dialBank.querySelector('span'), dialBank.querySelector('output'));
+  volumeDial.append(volumeInput, volumeCaption); dialBank.append(volumeDial);
+  const inputDial = document.createElement('div'); inputDial.className = 'dial-control input-dial';
+  const inputCaption = document.createElement('div'); inputCaption.className = 'dial-caption';
+  const inputLabel = document.createElement('span'); inputLabel.textContent = 'IN';
+  inputCaption.append(inputLabel, card.querySelector('.input-value'));
+  inputDial.append(card.querySelector('.input-gain'), inputCaption); dialBank.append(inputDial);
+  enhanceKnob(volumeInput); enhanceKnob(card.querySelector('.input-gain'));
   card.querySelector('.input-level').insertAdjacentHTML('beforeend', '<span class="simple-state"></span>');
   card.querySelector('.input-listen-row').insertAdjacentHTML('afterbegin', `<button class="input-advanced" aria-label="Ajustes avanzados de pista ${i + 1}">Ajustes</button>`);
   card.querySelector('.input-advanced').addEventListener('click', () => { setMode('advanced'); card.querySelector('.latency-button').focus(); });
@@ -83,6 +96,7 @@ for (let i = 0; i < 6; i++) {
   q('.track-name').addEventListener('input', e => { names[i] = e.target.value; changed(); });
 }
 
+enhanceKnob($('#master'));
 function setMode(mode, persist = true) {
   const advanced = mode === 'advanced';
   document.body.dataset.mode = advanced ? 'advanced' : 'simple';
@@ -207,7 +221,7 @@ async function ensureAudio(rate) {
       if (!window.AudioContext || !window.AudioWorkletNode) throw Error('Abrí SEIS en una versión actual de Chrome o Edge.');
       const nextCtx = new AudioContext({ latencyHint: 'interactive', ...(rate ? { sampleRate: rate } : {}) });
       try {
-        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.4.0', import.meta.url));
+        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.5.0', import.meta.url));
         const nextNode = new AudioWorkletNode(nextCtx, 'seis-looper', { numberOfInputs: 6, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
         nextNode.port.onmessage = onMessage;
         nextNode.onprocessorerror = () => { notify('El motor de audio se interrumpió. Recargá la página y abrí tu última sesión guardada.', true); };
@@ -440,6 +454,7 @@ function render() {
   $('#disconnect-inputs').disabled = !connected || busy || !!r;
   $('#output-device').disabled = busy || !!r || !window.AudioContext?.prototype.setSinkId;
   $('#play').textContent = state.playing ? 'Ⅱ Detener' : '▶ Reproducir';
+  $('#play').classList.toggle('is-on', state.playing);
   $('#play').disabled = !hasAudio || !!r || busy;
   $('#stop').disabled = (!state.playing && !r) || busy;
   $('#save').disabled = (!hasAudio && !dirty) || !!r || busy;
@@ -525,6 +540,7 @@ function render() {
     c.head.style.left = `${(recording && !r.first && !r.armed ? r.written / state.length : progress) * 100}%`;
   }
   if (performance.now() - drawAt > 100 && r && !r.armed && !counting) { drawAt = performance.now(); drawLive(r.id, live); }
+  refreshKnobs();
 }
 function setMeter(kind, peak) {
   const el = $(`#${kind}-meter`);
@@ -576,6 +592,7 @@ function applyMetadata(data) {
   $('#session-title').value = data.title || 'Mi sesión';
   data.tracks.forEach((t, i) => { names[i] = t.name || `Loop ${i + 1}`; cards[i].name.value = names[i]; cards[i].volume.value = Math.round(t.volume * 100); cards[i].value.textContent = `${Math.round(t.volume * 100)}%`; });
   $('#master').value = Math.round(data.master * 100); $('#master-value').textContent = `${Math.round(data.master * 100)}%`;
+  refreshKnobs();
 }
 
 $('#refresh-devices').addEventListener('click', () => listDevices().then(() => notify('Lista actualizada. Si faltan nombres, conectá una entrada para dar permiso al navegador.')).catch(e => notify(e.message, true)));

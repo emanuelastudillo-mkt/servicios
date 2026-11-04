@@ -1,9 +1,9 @@
 {
-  "version": "1.4.0",
+  "version": "1.5.0",
   "platform": "Windows x64",
-  "filename": "SEIS-1.4.0-Windows-x64.exe",
-  "url": "https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.4.0/SEIS-1.4.0-Windows-x64.exe",
-  "notes": "Modos Simple y Avanzado que conservan tomas y ajustes. Revisión guiada de audio con prueba de señal y salida. Detección de captura por aplicación compatible con Windows y ayuda de inicio para WebView2. Seis loops compactos, compensación de latencia y Aplicar a todas.",
-  "sha256": "e7225088e3ab472adeaa248599e2b43a60bdc0d8746f375e9eb1311c3123bf1d",
-  "bytes": 58849437
+  "filename": "SEIS-1.5.0-Windows-x64.exe",
+  "url": "https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.5.0/SEIS-1.5.0-Windows-x64.exe",
+  "notes": "Interfaz inspirada en aparatos de loop: panel metálico, pantalla retro, botones luminosos según el estado real y perillas de volumen y entrada. Arrastrar, flechas y doble clic para restaurar. Conserva los modos Simple y Avanzado, seis loops, sincronización y sesiones.",
+  "sha256": "4a683263dd77dfe97ed0e294a7cf957b01cd45d4472802b3f250bc356fcc511d",
+  "bytes": 58855374
 }
