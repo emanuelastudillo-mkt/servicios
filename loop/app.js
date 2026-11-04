@@ -1,13 +1,15 @@
-import { encodeSession, decodeSession, resampleSession, encodeWav } from './files.js?v=1.6.0';
-import { sealLoop } from './audio-core.js';
-import { spaceAction } from './controls.js?v=1.6.0';
+import { encodeSession, decodeSession, resampleSession } from './files.js?v=1.7.0';
+import { sealLoop } from './audio-core.js?v=1.7.0';
+import { spaceAction } from './controls.js?v=1.7.0';
 
-import { InputManager, inputConfig } from './inputs.js?v=1.6.0';
-import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.6.0';
-import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.6.0';
-import { calibrate } from './calibration.js?v=1.6.0';
-import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.6.0';
-import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.6.0';
+import { InputManager, inputConfig } from './inputs.js?v=1.7.0';
+import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.7.0';
+import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.7.0';
+import { calibrate } from './calibration.js?v=1.7.0';
+import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.7.0';
+import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.7.0';
+import { effectsConfig } from './effects.js?v=1.7.0';
+import { createEffectsUI } from './effects-ui.js?v=1.7.0';
 
 const $ = selector => document.querySelector(selector);
 const colors = ['#c7f69b', '#d8b5f8', '#93d8e9', '#efbd8c', '#f0a7ba', '#a6bafa'];
@@ -25,6 +27,8 @@ let state = { length: 0, position: 0, rate: 48000, playing: false, recording: nu
   tracks: Array.from({ length: 6 }, () => ({ hasAudio: false, volume: .8, muted: false, solo: false })) };
 const pending = new Map();
 const cards = [];
+let fxUI;
+let effectConfigs = Array.from({ length: 6 }, () => effectsConfig());
 let expandedPanels = new Set([0]), keepPanelsOpen = false, completedPanel = -1;
 const inputs = new InputManager({
   getGraph: async () => { await ensureAudio(); return { ctx, node }; },
@@ -71,6 +75,8 @@ for (let i = 0; i < 6; i++) {
   const q = s => card.querySelector(s);
   card.id = `loop-${i + 1}`;
   q('.track-head').insertAdjacentHTML('beforeend', `<button class="panel-collapse" aria-label="Minimizar Loop ${i + 1}" title="Minimizar sin detener el audio">−</button>`);
+  q('.panel-collapse').insertAdjacentHTML('beforebegin', `<button class="fx-open" aria-label="Efectos de Loop ${i + 1}" title="Pedalera editable y afinador">FX</button>`);
+  q('.fx-open').addEventListener('click', () => fxUI.open(i));
   card.insertAdjacentHTML('beforeend', `<div class="compact-panel"><button class="panel-expand" aria-label="Abrir Loop ${i + 1}" aria-expanded="false" aria-controls="loop-${i + 1}"><span class="compact-number">0${i + 1}</span><span class="compact-copy"><strong>Loop ${i + 1}</strong><small>Vacío · abrir</small></span><span aria-hidden="true">＋</span></button><button class="compact-stop" aria-label="Detener Loop ${i + 1}" hidden>■</button></div>`);
   q('.panel-collapse').addEventListener('click', () => { if (state.recording?.id !== i) { expandedPanels.delete(i); keepPanelsOpen = false; renderPanels(); q('.panel-expand').focus(); } });
   q('.panel-expand').addEventListener('click', () => { expandedPanels.add(i); renderPanels(); q('.panel-collapse').focus(); });
@@ -117,7 +123,8 @@ function renderPanels() {
     expand.setAttribute('aria-expanded', String(open));
     expand.setAttribute('aria-label', `Abrir ${names[i] || 'Loop ' + (i + 1)}`);
     expand.querySelector('strong').textContent = names[i] || `Loop ${i + 1}`;
-    expand.querySelector('small').textContent = track.hasAudio ? c.status.textContent : 'Vacío · abrir';
+    const activeEffects = effectConfigs[i].bypass ? 0 : effectConfigs[i].pedals.filter(p => p.enabled).length;
+    expand.querySelector('small').textContent = (track.hasAudio ? c.status.textContent : 'Vacío · abrir') + (activeEffects ? ` · ${activeEffects} FX` : '');
     const stop = c.card.querySelector('.compact-stop');
     const playing = track.hasAudio && state.playing && !track.muted;
     stop.hidden = !track.hasAudio;
@@ -269,7 +276,7 @@ async function ensureAudio(rate) {
       if (!window.AudioContext || !window.AudioWorkletNode) throw Error('Abrí SEIS en una versión actual de Chrome o Edge.');
       const nextCtx = new AudioContext({ latencyHint: 'interactive', ...(rate ? { sampleRate: rate } : {}) });
       try {
-        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.6.0', import.meta.url));
+        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.7.0', import.meta.url));
         const nextNode = new AudioWorkletNode(nextCtx, 'seis-looper', { numberOfInputs: 6, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
         nextNode.port.onmessage = onMessage;
         nextNode.onprocessorerror = () => { notify('El motor de audio se interrumpió. Recargá la página y abrí tu última sesión guardada.', true); };
@@ -278,7 +285,7 @@ async function ensureAudio(rate) {
         ctx.onstatechange = () => { if (ctx.state === 'suspended' || ctx.state === 'interrupted') notify('Audio suspendido. Abrí Revisar audio → Reactivar audio para continuar.'); render(); };
         // Apply pre-initialization slider choices.
         send({ type: 'settings', master: $('#master').value / 100, inputGain: 1 });
-        cards.forEach((c, id) => send({ type: 'track', id, volume: c.volume.value / 100 }));
+        cards.forEach((c, id) => send({ type: 'track', id, volume: c.volume.value / 100, effects: effectConfigs[id] }));
       } catch (e) { await nextCtx.close(); throw e; }
     })();
     try { await initPromise; } finally { initPromise = null; }
@@ -317,6 +324,7 @@ function onMessage({ data: message }) {
     return;
   }
   if (message.type === 'recorded' || message.type === 'restored') { waves[message.id] = message.peaks; drawWaves(); changed(); }
+  if (message.type === 'restored') effectConfigs[message.id] = effectsConfig(message.effects);
   if (message.type === 'inputLost') notify(message.kept ? 'La entrada se desconectó. Se conservó el audio grabado hasta ese momento.' : 'La entrada se desconectó antes de completar una toma válida. Las otras pistas se conservan.', true);
   if (message.type === 'recorded') { completedPanel = message.id; notify(`Pista ${message.id + 1} lista. Ya está sonando en loop.`); }
   if (message.type === 'cleared') { waves[message.id] = []; drawWaves(); changed(); notify('Pista borrada de esta sesión. Podés deshacer el borrado.'); }
@@ -546,6 +554,8 @@ function render() {
   setMeter('output', state.outputPeak || 0);
   for (let i = 0; i < 6; i++) {
     const track = state.tracks[i], c = cards[i], recording = r?.id === i;
+    const fxButton = c.card.querySelector('.fx-open'), activeEffects = effectConfigs[i].bypass ? 0 : effectConfigs[i].pedals.filter(p => p.enabled).length;
+    fxButton.classList.toggle('active', activeEffects > 0); fxButton.textContent = activeEffects ? `FX ${activeEffects}` : 'FX'; fxButton.disabled = busy;
     const config = inputs.configs[i], connected = !!inputs.slots[i];
     c.source.disabled = busy || !!r;
     c.connect.disabled = busy || !!r;
@@ -603,6 +613,7 @@ function render() {
   if (performance.now() - drawAt > 100 && r && !r.armed && !counting) { drawAt = performance.now(); drawLive(r.id, live); }
   refreshKnobs();
   renderPanels();
+  fxUI?.sync();
 }
 function setMeter(kind, peak) {
   const el = $(`#${kind}-meter`);
@@ -649,6 +660,7 @@ async function withBusy(fn) {
   finally { ioBusy = false; document.body.classList.remove('busy'); render(); }
 }
 function applyMetadata(data) {
+  effectConfigs = data.tracks.map(t => effectsConfig(t.effects));
   completedPanel = -1; keepPanelsOpen = false;
   const next = data.tracks.findIndex(t => !t.samples);
   expandedPanels = new Set(next < 0 ? [] : [next]);
@@ -682,7 +694,20 @@ $('#export').addEventListener('click', () => withBusy(async () => {
   await ensureAudio(); const data = await snapshot();
   if (data.master === 0 || !data.tracks.some(t => t.samples && t.volume > 0 && !t.muted && (!data.tracks.some(t => t.samples && t.solo) || t.solo))) throw Error('La mezcla está en silencio. Activá una pista y subí la salida antes de exportar.');
   const cycles = Number($('#cycles').value);
-  download(encodeWav(data, cycles), `${filename()}-${cycles}v.wav`, 'audio/wav');
+  notify('Preparando WAV con efectos… La duración incluye las vueltas elegidas; las colas se cortan al final.');
+  const wav = await new Promise((resolve, reject) => {
+    const worker = new Worker(new URL('./export-worker.js?v=1.7.0', import.meta.url), { type: 'module' });
+    $('#export-progress').textContent = '0%'; $('#export-progress').hidden = false; $('#export-cancel').hidden = false;
+    const done = () => { worker.terminate(); $('#export-progress').hidden = true; $('#export-cancel').hidden = true; $('#export-cancel').onclick = null; };
+    $('#export-cancel').onclick = () => { done(); reject(Error('Exportación cancelada. Tus loops se conservaron.')); };
+    worker.onmessage = ({ data }) => {
+      if (data.progress != null) { $('#export-progress').textContent = `${Math.round(data.progress * 100)}%`; return; }
+      done(); data.error ? reject(Error(data.error)) : resolve(data.buffer);
+    };
+    worker.onerror = () => { done(); reject(Error('No se pudo preparar el WAV. Probá con menos vueltas o efectos.')); };
+    worker.postMessage({ session: data, cycles }, data.tracks.filter(t => t.samples).map(t => t.samples.buffer));
+  });
+  download(wav, `${filename()}-${cycles}v.wav`, 'audio/wav');
   notify(`WAV preparado: ${(data.length * cycles / data.rate).toFixed(1)} segundos · mono · 16 bits.`);
 }));
 $('#open').addEventListener('click', () => { $('#file').value = ''; $('#file').click(); });
@@ -762,5 +787,17 @@ if (desktop) {
   listDevices().catch(error => notify('No se pudo actualizar la lista: ' + error.message, true));
 }
 if (!window.AudioContext?.prototype.setSinkId) $('#output-hint').textContent = 'Este navegador usa la salida predeterminada del sistema.';
+fxUI = createEffectsUI({
+  name: id => names[id] || `Loop ${id + 1}`, config: id => effectConfigs[id], slot: id => inputs.slots[id],
+  change: (id, config) => { effectConfigs[id] = effectsConfig(config); send({ type: 'track', id, effects: config }); changed(); render(); },
+  record: actTrack, connect: connectInput, listen: setMonitor, play: togglePlay,
+  space: id => { if (state.recording) handleSpace(); else if (!state.tracks[id].hasAudio) actTrack(id); else togglePlay(); },
+  tuning: value => send({ type: 'settings', tuning: value }),
+  status: id => ({ recordLabel: cards[id].recordLabel.textContent, recordDisabled: cards[id].record.disabled,
+    playLabel: $('#play').textContent, playDisabled: $('#play').disabled,
+    connected: !!inputs.slots[id], source: inputs.configs[id].label || cards[id].source.selectedOptions[0]?.textContent || '',
+    connectDisabled: cards[id].connect.disabled, listening: monitorId === id, listenDisabled: cards[id].listen.disabled,
+    tunerDisabled: !!state.recording || ioBusy || diagnosticBusy || inputs.pending >= 0 })
+});
 render();
 if (!window.isSecureContext) notify('Para habilitar el micrófono, abrí https://emanuelmkt.com.ar/loop/ mediante HTTPS.', true);

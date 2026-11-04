@@ -13,12 +13,13 @@ export function enhanceKnob(input) {
   const initial = Number(input.defaultValue), min = Number(input.min), max = Number(input.max), step = Number(input.step) || 1;
   let drag = null;
   const update = () => {
+    const unit = input.dataset.unit ?? '%', format = value => `${value}${unit === '%' ? '' : ' '}${unit}`;
     const ratio = Math.max(0, Math.min(1, (Number(input.value) - min) / (max - min)));
     housing.style.setProperty('--rotation', (-135 + 270 * ratio) + 'deg');
     housing.style.setProperty('--sweep', (270 * ratio) + 'deg');
     housing.classList.toggle('disabled', input.disabled);
-    input.setAttribute('aria-valuetext', input.value + '%');
-    housing.title = `${input.getAttribute('aria-label')}: ${input.value}% · Arrastrá arriba/abajo · Flechas para ajustar · Doble clic: ${initial}%`;
+    input.setAttribute('aria-valuetext', format(input.value));
+    housing.title = `${input.getAttribute('aria-label')}: ${format(input.value)} · Arrastrá arriba/abajo · Flechas para ajustar · Doble clic: ${format(initial)}`;
   };
   const set = value => {
     if (input.disabled) return;
@@ -57,4 +58,4 @@ export function enhanceKnob(input) {
   }, { passive: false });
   knobs.set(input, update); update();
 }
-export function refreshKnobs() { for (const update of knobs.values()) update(); }
+export function refreshKnobs() { for (const [input, update] of knobs) { if (input.isConnected) update(); else knobs.delete(input); } }

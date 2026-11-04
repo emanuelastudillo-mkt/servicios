@@ -1,9 +1,9 @@
 {
-  "version": "1.6.0",
+  "version": "1.7.0",
   "platform": "Windows x64",
-  "filename": "SEIS-1.6.0-Windows-x64.exe",
-  "url": "https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.6.0/SEIS-1.6.0-Windows-x64.exe",
-  "notes": "Paneles progresivos: Loop 1 abierto al inicio, tomas terminadas en bloques compactos con detener/reanudar y apertura automática del siguiente panel. Abrir los 6 permite configurarlos juntos; Paso a paso retoma la próxima pista vacía. Grabar conecta la entrada elegida en un solo paso, con permiso del usuario. Conserva la interfaz analógica, modos Simple/Avanzado, sincronización y sesiones.",
-  "sha256": "81c2acd0b1eb90d68603eb0055c10dd6646bcc57377ed730b6ced7958bf448ef",
-  "bytes": 58857989
+  "filename": "SEIS-1.7.0-Windows-x64.exe",
+  "url": "https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.7.0/SEIS-1.7.0-Windows-x64.exe",
+  "notes": "Pedalera editable e independiente por loop: 16 efectos de dinámica, saturación, modulación, espacio y afinación, más afinador cromático. Escucha opcional con efectos antes y durante la toma, conservando el audio original. Perillas, teclado, orden de pedales y bypass. Sesiones con FX y mezcla WAV procesada con progreso y cancelación. Abre sesiones anteriores; las nuevas requieren SEIS 1.7 o posterior. Mezcla mono y pitch granular. La compilación está verificada; la prueba de arranque nativo sigue pendiente por el bloqueo automático de ejecución del entorno.",
+  "sha256": "07635cc4160db9083a8e769d6a52e880f0bfd5891bbdbd30c3eafdaa882b58f8",
+  "bytes": 58868931
 }

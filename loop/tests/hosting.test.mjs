@@ -19,7 +19,7 @@ test('entry resources resolve inside /loop with and without the trailing slash',
   }
 });
 test('production imports and audio processor use existing files under the same prefix', async () => {
-  for (const file of ['app.js', 'files.js', 'inputs.js', 'processor.js', 'desktop.js', 'native-processor.js', 'latency.js', 'latency-processor.js', 'calibration.js']) {
+  for (const file of ['app.js', 'files.js', 'inputs.js', 'processor.js', 'desktop.js', 'native-processor.js', 'latency.js', 'latency-processor.js', 'calibration.js', 'effects-ui.js', 'effects.js', 'tuner.js', 'export-worker.js']) {
     const source = await readFile(new URL(file, root), 'utf8');
     for (const match of source.matchAll(/from\s+'([^']+)'/g)) {
       assert.ok(match[1].startsWith('./'));
@@ -27,7 +27,7 @@ test('production imports and audio processor use existing files under the same p
     }
   }
   const app = await readFile(new URL('app.js', root), 'utf8');
-  assert.ok(app.includes("new URL('./processor.js?v=1.6.0', import.meta.url)"));
+  assert.ok(app.includes("new URL('./processor.js?v=1.7.0', import.meta.url)"));
   assert.ok(!app.includes('Abrir SEIS.cmd'));
   assert.ok(!app.includes('127.0.0.1'));
 });

@@ -1,3 +1,4 @@
+import { EffectsChain, effectsConfig } from './effects.js?v=1.7.0';
 export const TRACKS = 6;
 export const MAX_SECONDS = 120;
 export const COUNT_IN_SECONDS = 3;
@@ -39,7 +40,10 @@ export class LoopEngine {
   constructor(rate, emit = () => {}) {
     this.rate = rate;
     this.emit = emit;
-    this.tracks = Array.from({ length: TRACKS }, () => ({ samples: null, volume: .8, muted: false, solo: false }));
+    this.tracks = Array.from({ length: TRACKS }, () => ({ samples: null, volume: .8, muted: false, solo: false, effects: effectsConfig() }));
+    this.fx = Array.from({ length: TRACKS }, () => new EffectsChain(rate));
+    this.monitorFx = Array.from({ length: TRACKS }, () => new EffectsChain(rate));
+    this.inputTrack = 0; this.tuning = false;
     this.length = 0;
     this.pos = 0;
     this.playing = false;
@@ -121,7 +125,7 @@ export class LoopEngine {
     this.changed('recorded', { id: r.id, peaks: peaks(samples) });
   }
   cancelRecording() { this.recording = null; this.emit({ type: 'state' }); }
-  stop() { this.recording = null; this.playing = false; this.pos = 0; this.gains.fill(0); this.emit({ type: 'state' }); }
+  stop() { this.recording = null; this.playing = false; this.pos = 0; this.gains.fill(0); this.fx.forEach(f => f.reset()); this.emit({ type: 'state' }); }
   play() { if (this.length) { this.playing = true; this.pos = 0; this.emit({ type: 'state' }); } }
   clear(id) {
     if (this.recording) throw Error('Terminá o cancelá la grabación antes de borrar.');
@@ -129,6 +133,7 @@ export class LoopEngine {
     if (!t?.samples) return;
     this.undo = { id, track: { ...t }, length: this.length };
     t.samples = null; t.solo = false; t.muted = false;
+    this.fx[id].reset();
     if (!this.tracks.some(t => t.samples)) { this.length = 0; this.stop(); }
     this.changed('cleared', { id });
   }
@@ -136,13 +141,15 @@ export class LoopEngine {
     if (!this.undo || this.recording) return;
     const { id, track, length } = this.undo;
     this.tracks[id] = track;
+    this.fx[id].set(track.effects); this.fx[id].reset(); this.monitorFx[id].set(track.effects);
     this.length = length;
     this.undo = null;
-    this.changed('restored', { id, peaks: peaks(track.samples) });
+    this.changed('restored', { id, peaks: peaks(track.samples), effects: effectsConfig(track.effects) });
   }
   load(data) {
     this.stop();
-    this.tracks = data.tracks;
+    this.tracks = data.tracks.map(t => ({ ...t, effects: effectsConfig(t.effects) }));
+    this.tracks.forEach((t, id) => { this.fx[id] = new EffectsChain(this.rate, t.effects); this.monitorFx[id] = new EffectsChain(this.rate, t.effects); });
     this.length = data.length;
     this.master = data.master;
     this.undo = null;
@@ -177,6 +184,7 @@ export class LoopEngine {
         if (Number.isFinite(m.volume)) t.volume = clamp(m.volume, 0, 1.5);
         if (typeof m.muted === 'boolean') t.muted = m.muted;
         if (typeof m.solo === 'boolean') t.solo = m.solo;
+        if (m.effects != null) { const config = effectsConfig(m.effects); t.effects = config; this.fx[m.id].set(config); this.monitorFx[m.id].set(config); }
         this.changed(); break;
       }
       case 'settings':
@@ -184,6 +192,8 @@ export class LoopEngine {
         if (Number.isFinite(m.inputGain)) this.inputGain = clamp(m.inputGain, 0, 2);
         if (Number.isFinite(m.compensation)) this.compensation = clamp(m.compensation, 0, 750);
         if (typeof m.monitor === 'boolean') this.monitor = m.monitor;
+        if (Number.isInteger(m.inputTrack) && m.inputTrack >= 0 && m.inputTrack < TRACKS) this.inputTrack = m.inputTrack;
+        if (typeof m.tuning === 'boolean') this.tuning = m.tuning;
         this.emit({ type: 'state' }); break;
     }
   }
@@ -215,13 +225,13 @@ export class LoopEngine {
         }
         for (let t = 0; t < TRACKS; t++) {
           this.gains[t] += (this.targets[t] - this.gains[t]) * this.smoothing;
-          if (this.tracks[t].samples) mixed += this.tracks[t].samples[this.pos] * this.gains[t];
+          if (this.tracks[t].samples) mixed += this.fx[t].process(this.tracks[t].samples[this.pos]) * this.gains[t];
         }
         this.pos = (this.pos + 1) % this.length;
         if (complete) { if (r.endAt != null && r.endAt < this.length) this.finishRecording(true); else this.completeRecording(); }
       }
-      if (this.monitor) mixed += mic;
-      mixed *= this.master;
+      if (this.monitor) mixed += this.monitorFx[this.recording?.id ?? this.inputTrack].process(mic);
+      mixed *= this.tuning ? 0 : this.master;
       this.outputPeak = Math.max(this.outputPeak, Math.abs(mixed));
       output[i] = clamp(mixed, -1, 1);
     }

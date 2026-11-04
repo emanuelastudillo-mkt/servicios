@@ -11,7 +11,7 @@ document.querySelector('#prepare').onclick = async () => {
   document.querySelector('#master').value = 0;
   document.querySelector('#master-value').textContent = '0%';
   localStorage.setItem('seis.interface-mode', 'simple');
-  let testContext, noAudio = false, lastCapture, denyNext = false, captureRequests = 0, captureGate;
+  let testContext, noAudio = false, lastCapture, denyNext = false, captureRequests = 0, captureGate, toneMode = false;
   let appContext;
   const NativeAudioContext = window.AudioContext;
   window.AudioContext = class extends NativeAudioContext {
@@ -19,9 +19,12 @@ document.querySelector('#prepare').onclick = async () => {
   };
   const createSignal = async (level = .15) => {
     testContext ||= new AudioContext(); await testContext.resume();
-    const oscillator = testContext.createConstantSource(); oscillator.offset.value = level;
+    const oscillator = toneMode ? testContext.createOscillator() : testContext.createConstantSource();
+    if (toneMode) oscillator.frequency.value = 220; else oscillator.offset.value = level;
     const destination = testContext.createMediaStreamDestination();
-    oscillator.connect(destination); oscillator.start();
+    if (toneMode) { const gain = testContext.createGain(); gain.gain.value = level; oscillator.connect(gain); gain.connect(destination); }
+    else oscillator.connect(destination);
+    oscillator.start();
     return destination.stream;
   };
   Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: async options => {
@@ -43,7 +46,7 @@ document.querySelector('#prepare').onclick = async () => {
     { kind: 'audioinput', deviceId: 'qa-focusrite', label: 'Focusrite · señal de prueba' }
   ] });
   window.addEventListener('pagehide', () => testContext?.close());
-  await import('../app.js?v=1.6.0');
+  await import('../app.js?v=1.7.0');
   const run = document.createElement('button'); run.textContent = 'Verificar fuentes y teclas'; note.append(document.createElement('br'), run);
   const results = document.createElement('pre'); results.id = 'ui-results'; results.style.whiteSpace = 'pre-wrap'; note.append(results);
   run.onclick = async () => {
@@ -58,7 +61,7 @@ document.querySelector('#prepare').onclick = async () => {
       }, 30);
     });
     const change = (element, value, event = 'change') => { element.value = value; element.dispatchEvent(new Event(event, { bubbles: true })); };
-    const space = () => { document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', key: ' ', bubbles: true, cancelable: true })); document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', key: ' ', bubbles: true, cancelable: true })); };
+    const space = () => { const target = document.activeElement || document; target.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', key: ' ', bubbles: true, cancelable: true })); target.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', key: ' ', bubbles: true, cancelable: true })); };
     try {
       assert(document.body.dataset.mode === 'simple' && $('#mode-simple').getAttribute('aria-pressed') === 'true', 'Primer inicio en modo Simple');
       assert($('#tracks').dataset.openCount === '1' && !track(0).classList.contains('is-collapsed') && captureRequests === 0, 'Inicio progresivo: solo Loop 1 abierto, sin pedir micrófono');
@@ -159,7 +162,7 @@ document.querySelector('#prepare').onclick = async () => {
       URL.createObjectURL = blob => { savedBlob = blob; return originalCreate(blob); };
       HTMLAnchorElement.prototype.click = function () {};
       try { $('#save').click(); await wait(() => savedBlob); } finally { URL.createObjectURL = originalCreate; HTMLAnchorElement.prototype.click = originalClick; }
-      const { decodeSession, encodeSession } = await import('../files.js?v=1.6.0');
+      const { decodeSession, encodeSession } = await import('../files.js?v=1.7.0');
       const binary = await savedBlob.arrayBuffer(), saved = decodeSession(binary);
       const expected = [.15, .175, .55];
       assert(saved.tracks.slice(0, 3).every((t, i) => Math.abs(t.samples[Math.floor(t.samples.length / 2)] - expected[i]) < .002), 'La sesión descargada contiene micrófono, placa al 50% y aplicación sin mezclarlos');
@@ -217,6 +220,61 @@ document.querySelector('#prepare').onclick = async () => {
       $('#new').click(); await wait(() => $('#confirm').open); $('#confirm button[value=ok]').click();
       await wait(() => document.querySelectorAll('.has-audio').length === 0);
       assert($('#tracks').dataset.openCount === '1' && !track(0).classList.contains('is-collapsed'), 'Nueva sesión vuelve al primer panel sin conexiones');
+      change($('#master'), '0', 'input'); toneMode = true;
+      track(0).querySelector('.fx-open').click();
+      assert($('#effects-dialog').open && $('#fx-add-select').options.length === 16, 'Pedalera ofrece los 16 efectos en una pista vacía');
+      change($('#fx-add-select'), 'boost'); $('#fx-add').click();
+      const boost = () => $('#fx-pedals [data-effect=boost]');
+      assert(boost().querySelector('.fx-switch').getAttribute('aria-pressed') === 'true' && track(0).querySelector('.fx-open').textContent === 'FX 1', 'Agregar Booster enciende el pedal y actualiza el panel');
+      change(boost().querySelector('input'), '9', 'input');
+      assert(boost().querySelector('output').textContent.includes('9 dB') && boost().querySelector('input').getAttribute('aria-valuetext').includes('dB'), 'Perilla usa la unidad del efecto y actualiza el valor accesible');
+      change($('#fx-add-select'), 'delay'); $('#fx-add').click();
+      $('#fx-pedals [aria-label="Antes: Delay"]').click();
+      assert($('#fx-pedals .fx-pedal').dataset.effect === 'delay', 'Los pedales se pueden reordenar');
+      $('#fx-bypass').click(); assert($('#fx-bypass').getAttribute('aria-pressed') === 'true' && track(0).querySelector('.fx-open').textContent === 'FX', 'Bypass conserva la cadena y apaga su indicador');
+      $('#fx-bypass').click();
+      boost().querySelector('.fx-switch').click(); assert(boost().querySelector('.fx-switch').getAttribute('aria-pressed') === 'false', 'Cada pedal se puede apagar sin quitarlo');
+      boost().querySelector('.fx-switch').click();
+      $('#fx-connect').click(); await wait(() => track(0).classList.contains('input-connected'));
+      $('#fx-listen').click(); assert($('#fx-listen').checked, 'Escucha con efectos se puede activar desde la pedalera');
+      $('#fx-tuner').click(); await wait(() => $('#tuner-note').textContent === 'La3' && $('#tuner-status').textContent === 'Afinada');
+      assert($('#tuner-dialog').open && $('#tuner-status').textContent === 'Afinada', 'Afinador real recibe el La de 220 Hz del grafo de audio');
+      await appContext.suspend(); await wait(() => $('#tuner-reading').textContent === 'Audio pausado');
+      assert($('#tuner-note').textContent === '—', 'Afinador no presenta una nota congelada cuando el motor se suspende');
+      await appContext.resume(); await wait(() => $('#tuner-note').textContent === 'La3' && $('#tuner-status').textContent === 'Afinada');
+      assert($('#tuner-reading').textContent.includes('Hz'), 'Afinador vuelve a medir al reactivar el motor');
+      $('#tuner-close').click(); await wait(() => !$('#tuner-dialog').open);
+      $('#fx-record').focus(); space(); await wait(() => !track(0).querySelector('.countdown').hidden);
+      space(); assert(!track(0).querySelector('.countdown').hidden, 'Espacio en pedalera conserva la cuenta sin cancelar ni borrar');
+      await wait(() => track(0).classList.contains('is-recording')); await wait(() => Number($('#decimals').textContent) >= .5);
+      space(); await wait(() => track(0).classList.contains('has-audio'));
+      assert(track(0).classList.contains('is-collapsed') && $('#effects-dialog').open, 'Grabar desde la pedalera conserva el recorrido progresivo');
+      $('#fx-listen').click(); $('#fx-close').click(); $('#stop').click();
+      await wait(() => !track(0).classList.contains('is-playing')); change($('#master'), '75', 'input');
+      async function captureDownload(button) {
+        const create = URL.createObjectURL, click = HTMLAnchorElement.prototype.click; let blob;
+        URL.createObjectURL = value => { blob = value; return create(value); }; HTMLAnchorElement.prototype.click = function () {};
+        try { button.click(); await wait(() => blob, 15000); return blob; }
+        finally { URL.createObjectURL = create; HTMLAnchorElement.prototype.click = click; }
+      }
+      const fxBlob = await captureDownload($('#save')), fxSession = decodeSession(await fxBlob.arrayBuffer());
+      assert(fxSession.tracks[0].effects.pedals.map(p=>p.type).join(',') === 'delay,boost' && fxSession.tracks[0].effects.pedals[1].params.gain === 9, 'Sesión guarda orden y parámetros de efectos');
+      assert(Math.max(...fxSession.tracks[0].samples) <= .151 && fxSession.tracks[0].samples.some(x => x > .14), 'Grabar con Booster y Delay conserva la señal original de 0,15');
+      const fxTransfer = new DataTransfer(); fxTransfer.items.add(new File([await fxBlob.arrayBuffer()], 'pedales.seisloop')); $('#file').files = fxTransfer.files; $('#file').dispatchEvent(new Event('change'));
+      await wait(() => $('#notification').textContent.startsWith('Sesión abierta'));
+      track(0).querySelector('.panel-expand').click(); track(0).querySelector('.fx-open').click();
+      assert($('#fx-pedals .fx-pedal').dataset.effect === 'delay' && boost().querySelector('input').value === '9', 'Reabrir sesión recupera los pedales editables');
+      $('#fx-close').click(); change($('#cycles'), '1');
+      const exported = await captureDownload($('#export')), wav = await exported.arrayBuffer();
+      const { encodeWav } = await import('../files.js?v=1.7.0');
+      const expectedWav = new Uint8Array(encodeWav(fxSession, 1)), actualWav = new Uint8Array(wav);
+      assert(expectedWav.length === actualWav.length && expectedWav.every((byte,i)=>byte===actualWav[i]), 'Worker exporta WAV con los mismos efectos, niveles y orden que la sesión');
+      const canCancel = new Promise(resolve => { const observer = new MutationObserver(() => { if (!$('#export-cancel').hidden) { observer.disconnect(); resolve(); } }); observer.observe($('#export-cancel'), { attributes: true }); });
+      $('#export').click(); await canCancel; $('#export-cancel').click();
+      await wait(() => $('#notification').textContent.startsWith('Exportación cancelada'));
+      assert(track(0).classList.contains('has-audio') && $('#export-cancel').hidden && !$('#export').disabled, 'Cancelar WAV detiene el worker y conserva las tomas y controles');
+      track(0).querySelector('.fx-open').click(); $('#fx-pedals [aria-label="Quitar Booster"]').click();
+      assert(!boost() && track(0).classList.contains('has-audio'), 'Quitar un pedal conserva la grabación'); $('#fx-close').click();
       $('#disconnect-inputs').click();
       results.textContent += '\nRESULTADO: ' + checks + ' comprobaciones correctas.';
     } catch (e) { results.textContent += 'ERROR: ' + (e.stack || e.message); }

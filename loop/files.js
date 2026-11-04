@@ -1,5 +1,6 @@
-import { MAX_SECONDS, TRACKS, targetGains, mixSample } from './audio-core.js';
-import { inputConfig } from './inputs.js?v=1.6.0';
+import { MAX_SECONDS, TRACKS, targetGains } from './audio-core.js?v=1.7.0';
+import { inputConfig } from './inputs.js?v=1.7.0';
+import { EffectsChain, effectsConfig } from './effects.js?v=1.7.0';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -8,13 +9,13 @@ const validName = (s, fallback) => typeof s === 'string' ? s.slice(0, 80) : fall
 
 export function encodeSession(data, title, names, inputs) {
   const meta = {
-    version: 1, rate: data.rate, length: data.length, master: data.master,
+    version: 2, rate: data.rate, length: data.length, master: data.master,
     title: validName(title, 'Mi sesión'),
     tracks: data.tracks.map((t, i) => ({ name: validName(names[i], `Loop ${i + 1}`),
-      volume: t.volume, muted: t.muted, solo: t.solo, frames: t.samples?.length || 0, input: inputConfig(inputs?.[i] ?? t.input) }))
+      volume: t.volume, muted: t.muted, solo: t.solo, frames: t.samples?.length || 0, input: inputConfig(inputs?.[i] ?? t.input), effects: effectsConfig(t.effects) }))
   };
   const json = encoder.encode(JSON.stringify(meta));
-  if (json.length > 16_384) throw Error('Las etiquetas de las entradas son demasiado largas para guardar esta sesión.');
+  if (json.length > 65_536) throw Error('Los ajustes son demasiado largos para guardar esta sesión.');
   const audioBytes = meta.tracks.reduce((n, t) => n + t.frames * 4, 0);
   const buffer = new ArrayBuffer(12 + json.length + audioBytes);
   const bytes = new Uint8Array(buffer);
@@ -33,10 +34,10 @@ export function decodeSession(buffer) {
   const view = new DataView(buffer);
   if (decoder.decode(new Uint8Array(buffer, 0, 8)) !== MAGIC) bad();
   const size = view.getUint32(8, true);
-  if (size > 16_384 || size < 2 || 12 + size > buffer.byteLength) bad();
+  if (size > 65_536 || size < 2 || 12 + size > buffer.byteLength) bad();
   let meta;
   try { meta = JSON.parse(decoder.decode(new Uint8Array(buffer, 12, size))); } catch { bad(); }
-  if (!meta || meta.version !== 1 || !Number.isInteger(meta.rate) || meta.rate < 8000 || meta.rate > 192000 ||
+  if (!meta || ![1, 2].includes(meta.version) || !Number.isInteger(meta.rate) || meta.rate < 8000 || meta.rate > 192000 ||
       !Number.isInteger(meta.length) || meta.length < 0 || meta.length > meta.rate * MAX_SECONDS ||
       !Number.isFinite(meta.master) || meta.master < 0 || meta.master > 1 || !Array.isArray(meta.tracks) || meta.tracks.length !== TRACKS) bad();
   let bytes = 12 + size;
@@ -54,7 +55,7 @@ export function decodeSession(buffer) {
       if (!Number.isFinite(n) || Math.abs(n) > 16) bad();
       samples[j] = n;
     }
-    return { samples, volume: t.volume, muted: t.muted, solo: t.solo, name: validName(t.name, `Loop ${i + 1}`), input: inputConfig(t.input) };
+    return { samples, volume: t.volume, muted: t.muted, solo: t.solo, name: validName(t.name, `Loop ${i + 1}`), input: inputConfig(t.input), effects: effectsConfig(meta.version === 2 ? t.effects : null) };
   });
   return { rate: meta.rate, length: meta.length, master: meta.master, title: validName(meta.title, 'Mi sesión'), tracks };
 }
@@ -76,7 +77,7 @@ export function resampleSession(data, rate) {
   return { ...data, rate, length, tracks };
 }
 
-export function encodeWav(data, cycles = 1) {
+export function encodeWav(data, cycles = 1, onProgress) {
   if (!data.length || !data.tracks.some(t => t.samples)) throw Error('Todavía no hay loops para exportar.');
   if (!Number.isInteger(cycles) || cycles < 1 || cycles > 8) throw Error('Cantidad de vueltas inválida.');
   const frames = data.length * cycles;
@@ -89,8 +90,12 @@ export function encodeWav(data, cycles = 1) {
   view.setUint16(22, 1, true); view.setUint32(24, data.rate, true); view.setUint32(28, data.rate * 2, true);
   view.setUint16(32, 2, true); view.setUint16(34, 16, true); write(36, 'data'); view.setUint32(40, frames * 2, true);
   const gains = targetGains(data.tracks);
+  const chains = data.tracks.map(t => new EffectsChain(data.rate, t.effects));
   for (let i = 0; i < frames; i++) {
-    const value = mixSample(data.tracks, gains, i % data.length, data.master);
+    if (onProgress && (i & 32767) === 0) onProgress(i / frames);
+    let mixed = 0;
+    for (let t = 0; t < TRACKS; t++) if (data.tracks[t].samples && gains[t]) mixed += chains[t].process(data.tracks[t].samples[i % data.length]) * gains[t];
+    const value = Math.max(-1, Math.min(1, mixed * data.master));
     view.setInt16(44 + i * 2, Math.round(value * (value < 0 ? 32768 : 32767)), true);
   }
   return buffer;

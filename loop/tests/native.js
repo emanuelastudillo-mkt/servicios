@@ -1,8 +1,8 @@
-import { InputManager } from '../inputs.js?v=1.6.0';
+import { InputManager } from '../inputs.js?v=1.7.0';
 const results = document.querySelector('#results');
 let listener, starts = 0, stops = 0;
 const streams = new Map();
-window.seisDesktop = { version: '1.6.0' };
+window.seisDesktop = { version: '1.7.0' };
 window.chrome ||= {};
 window.chrome.webview = {
   addEventListener(name, fn) { listener = fn; },
@@ -28,8 +28,8 @@ document.querySelector('#run').onclick = async () => {
     const start = performance.now(), timer = setInterval(() => { if (check()) { clearInterval(timer); resolve(); } else if (performance.now() - start > 6500) { clearInterval(timer); reject(Error('Tiempo agotado')); } }, 25);
   });
   try {
-    const { captureNative } = await import('../desktop.js?v=1.6.0');
-    ctx = new AudioContext({ sampleRate: 48000 }); await ctx.resume(); await ctx.audioWorklet.addModule('../processor.js?v=1.6.0');
+    const { captureNative } = await import('../desktop.js?v=1.7.0');
+    ctx = new AudioContext({ sampleRate: 48000 }); await ctx.resume(); await ctx.audioWorklet.addModule('../processor.js?v=1.7.0');
     const node = new AudioWorkletNode(ctx, 'seis-looper', { numberOfInputs: 6, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
     const gain = ctx.createGain(); gain.gain.value = 0; node.connect(gain).connect(ctx.destination);
     const getGraph = async () => ({ ctx, node });

@@ -2,7 +2,7 @@
 
 Aplicación estática publicada en **https://emanuelmkt.com.ar/loop/** mediante el GitHub Pages existente del repositorio. La ruta `/loop` redirige a `/loop/`. No requiere compilación, servidor de audio ni dependencias externas.
 
-**Versión 1.6.0:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). La versión de escritorio incluye captura nativa de aplicaciones y salidas de Windows; la versión web mantiene los permisos y opciones del navegador.
+**Versión 1.7.0:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). La versión de escritorio incluye captura nativa de aplicaciones y salidas de Windows; la versión web mantiene los permisos y opciones del navegador.
 
 **Aplicar a todas**, disponible en cada pista, copia fuente, ganancia, silencio y compensación de entrada a las seis. Si la fuente ya está conectada, comparte la conexión. Conserva el audio grabado, los nombres y la mezcla. Si está desconectada, copia la asignación; conectá una pista y volvé a aplicar para compartirla. No funciona durante una toma.
 
@@ -17,6 +17,20 @@ El transporte, la duración y las seis pistas caben desde una ventana de 780 × 
 Paneles de equipo, pantallas retro y botones luminosos según el estado real: grabación, preparación, reproducción y silencio. Las perillas controlan volumen por pista y salida general; Avanzado agrega nivel de entrada. Conservan los rangos nativos y las etiquetas accesibles. Arrastrar verticalmente ajusta el nivel; Shift reduce la sensibilidad; flechas/Home/End permiten usar el teclado; doble clic restaura el valor inicial (VOL 80%, IN 100%, salida 75%). La rueda actúa solo sobre la perilla enfocada. Los cambios de sesión, Aplicar a todas y los dos modos actualizan también la posición visual de las perillas. La cuenta de tres segundos y Espacio mantienen su funcionamiento.
 
 ## Uso
+
+**Pedalera FX · 1.7.0:** cada panel tiene un botón FX, también en Simple. Agregá hasta un pedal de cada tipo, movelo con las flechas de la cadena, ajustá sus perillas y encendelo/apagalo. Bypass permite comparar con el original conservando todos los ajustes. Cada loop tiene una cadena independiente. Aplicar a todas sigue copiando únicamente la configuración de entrada, no la pedalera.
+
+Incluye Noise Gate, compresor, booster, pedal de volumen, overdrive, distorsión, fuzz, chorus, flanger, phaser, trémolo, vibrato, delay, reverb, wah y octavador/pitch. El afinador está separado de la cadena. Los efectos se aplican antes del volumen VOL; guardar conserva las muestras originales y los parámetros, no imprime los efectos. Las perillas responden a mouse, flechas, Home/End y doble clic. No se requiere ni se incorpora MIDI; los movimientos de perilla no se guardan como una automatización.
+
+**Escuchar con efectos** conecta la escucha de la entrada ya autorizada; también funciona antes y durante una toma. Usá auriculares. La escucha sigue teniendo el retardo del dispositivo y los retardos creativos de algunos efectos. Direct Monitor de la placa se suma como señal seca si está activado; SEIS no cambia esa función. Para evitar realimentación no se permite escuchar el loopback de la salida completa. El audio grabado siempre conserva la señal previa a FX, incluyendo la ganancia de entrada elegida.
+
+**Afinador:** requiere una entrada conectada, trabaja con notas individuales entre aproximadamente 45 y 1200 Hz y usa La 440 Hz. Silencia la salida completa de SEIS mientras está abierto; al cerrar o pulsar Escape restaura la salida sin cambiar el volumen guardado. No afina automáticamente, no detecta acordes y no cambia la escucha directa de la placa. No se abre durante una grabación.
+
+**WAV con efectos:** se procesa en un worker para mantener la interfaz disponible, con porcentaje y Cancelar WAV. Renderiza desde el inicio, con los efectos recién inicializados, el número de vueltas elegido. Las colas continúan entre vueltas y se cortan en el límite final del archivo; Detener todo también corta las colas de los loops. La mezcla sigue siendo mono. La v1.7 abre sesiones anteriores; las sesiones nuevas usan formato 2 para preservar FX y requieren v1.7 o posterior (las versiones anteriores no las abren).
+
+**Alcance sonoro:** reverb algorítmica, saturaciones propias y pitch granular, sin plugins externos ni emulación certificada de pedales físicos. El pitch puede agregar textura en acordes/transitorios; chorus y reverb no crean una salida estéreo. Noise Gate reduce el ruido entre notas, no separa zumbidos de una nota sostenida. Si una PC no sostiene muchas cadenas simultáneas, apagá los efectos innecesarios. Se validaron señales sintéticas, no una actuación completa con guitarra/Pro Tools.
+
+Referencias técnicas: [Web Audio del W3C](https://www.w3.org/TR/webaudio-1.1/), [Audio EQ Cookbook del W3C](https://www.w3.org/TR/audio-eq-cookbook/), [reverberadores Schroeder, Julius O. Smith](https://www.dsprelated.com/freebooks/pasp/Schroeder_Reverberators.html). El afinador usa diferencia normalizada acumulativa y refinamiento parabólico; el motor y el exportador comparten los mismos procesadores locales.
 
 **Simple / Avanzado:** primera visita en Simple. El selector superior recuerda la preferencia en este navegador o perfil de escritorio; no guarda audio. Simple muestra fuente, conexión, grabar/silenciar, volumen, borrado, medidor y Aplicar a todas. Avanzado agrega Solo, ganancia y silencio de entrada, escucha y sincronización. Cambiar de modo no altera tomas, conexiones, niveles ni compensación. Simple indica si siguen activos Solo, Escuchar, entrada silenciada o compensación; Ajustes abre Avanzado en esa pista. Si el almacenamiento de preferencias está bloqueado, la aplicación sigue funcionando.
 

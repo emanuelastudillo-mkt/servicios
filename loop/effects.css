@@ -1,0 +1,18 @@
+.fx-open{height:21px;min-height:21px;padding:0 5px;font-size:8px;flex:none}.fx-open.active{color:#e9ffd0;border-color:#c0e694;box-shadow:0 0 7px #a4d66f44}
+#effects-dialog{width:1080px;max-width:calc(100vw - 24px);max-height:calc(100svh - 24px);padding:18px;overflow:auto}
+#effects-dialog h2{font-size:20px}#effects-dialog p{font-size:11px;line-height:1.4}.fx-description{color:#ccddb3}
+.fx-live,.fx-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid #667653}
+.fx-live label,.fx-toolbar label{font-size:11px}.fx-live button,.fx-toolbar button{min-height:30px;padding:4px 9px;font-size:11px}
+.fx-live input{accent-color:var(--accent)}#fx-source{font-size:10px;color:#c3d0b2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx-listen-note,.fx-footnote{color:#b9c5a8}.fx-toolbar select{font-size:11px;height:30px;max-width:220px}
+#fx-bypass[aria-pressed=true]{border-color:#e0be79;color:#f9d99a;background:#65522f}
+.fx-pedals{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin:14px 0}
+.fx-pedal{min-width:0;display:flex;flex-direction:column;padding:12px;border:1px solid #758767;border-top:3px solid #99ad83;border-radius:8px;background:linear-gradient(145deg,#4a5540,#263622);box-shadow:inset 0 1px #ecffbf33,0 3px 6px #0007}
+.fx-pedal[data-effect=overdrive],.fx-pedal[data-effect=distortion],.fx-pedal[data-effect=fuzz]{background:linear-gradient(145deg,#715735,#3c3024)}
+.fx-pedal[data-effect=delay],.fx-pedal[data-effect=reverb]{background:linear-gradient(145deg,#3d5866,#203b39)}
+.fx-pedal h3{margin:0;font-size:14px}.fx-pedal p{min-height:32px;color:#d3d7c5;margin:7px 0 12px}
+.fx-knobs{display:flex;justify-content:center;flex-wrap:wrap;gap:10px 8px;flex:1;align-content:center;margin:8px 0 16px}
+.fx-knob{display:flex;align-items:center;flex-direction:column;gap:8px;min-width:63px;font-size:9px}.fx-knob .rotary{--dial-size:42px}.fx-knob output{font:10px Consolas,monospace;color:#f3f4d7}
+.fx-pedal-actions{display:flex;gap:4px;align-items:stretch}.fx-pedal-actions button{min-height:30px;padding:4px 6px;font-size:9px}.fx-switch{flex:1;border-bottom-width:3px}.fx-pedal.is-on .fx-switch{background:linear-gradient(#728951,#3f602c);border-color:#d3f6a3;box-shadow:0 0 9px #c8ff8344;color:#f3ffcf}.fx-pedal:not(.is-on){border-top-color:#69745c}
+#tuner-dialog{width:420px;max-width:calc(100vw - 24px)}.tuner-screen{padding:24px 16px;background:#0c1c12;border:1px solid #7d9560;border-radius:6px;text-align:center;color:#dff4b2}#tuner-note{display:block;font:48px Consolas,monospace}#tuner-reading{font:13px Consolas,monospace}.tuner-scale{height:40px;position:relative;display:flex;justify-content:space-between;align-items:center;margin-top:14px;border-bottom:1px solid #77915c}.tuner-scale i{position:absolute;width:3px;height:32px;background:#efbd8c;left:50%;transition:left .1s}.in-tune .tuner-scale i{background:#c7f69b;box-shadow:0 0 8px #c7f69b}#tuner-status{min-height:35px;font-size:12px}
+@media(max-width:699px){#effects-dialog{padding:12px}.fx-pedals{grid-template-columns:1fr}.fx-pedal p{min-height:0}.fx-toolbar select{max-width:190px}.fx-live button{font-size:10px}}

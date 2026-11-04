@@ -1,4 +1,4 @@
-import { NativeBuffer } from './native-buffer.js?v=1.6.0';
+import { NativeBuffer } from './native-buffer.js?v=1.7.0';
 class NativeInput extends AudioWorkletProcessor {
   constructor() {
     super(); this.buffer = new NativeBuffer(sampleRate);
