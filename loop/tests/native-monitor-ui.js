@@ -10,7 +10,7 @@ document.querySelector('#prepare').onclick = async () => {
   const change = (selector,value) => { const e=document.querySelector(selector); if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new Event(e.type==='range'?'input':'change',{bubbles:true})); };
   const Worklet = window.AudioWorkletNode;
   window.AudioWorkletNode = class extends Worklet { constructor(ctx,name,options){super(ctx,name,options);if(name==='seis-looper'){const send=this.port.postMessage.bind(this.port);this.port.postMessage=(data,...rest)=>{messages.push(data);send(data,...rest);};}} };
-  window.seisDesktop = {version:'1.8.0'}; window.chrome ||= {};
+  window.seisDesktop = {version:'1.8.1'}; window.chrome ||= {};
   window.chrome.webview = {
     addEventListener(type,fn){listener=fn;},
     postMessage({id,action,args}) {
@@ -34,7 +34,7 @@ document.querySelector('#prepare').onclick = async () => {
   Object.defineProperty(navigator.mediaDevices,'enumerateDevices',{configurable:true,value:async()=>[]});
   window.addEventListener('pagehide',()=>{for(const timer of packets.values())clearInterval(timer);});
   try {
-    await import('../app.js?v=1.8.0'); await wait(()=>document.querySelector('#source-0 option[value="native:in:0:qa"]'));
+    await import('../app.js?v=1.8.1'); await wait(()=>document.querySelector('#source-0 option[value="native:in:0:qa"]'));
     change('#source-0','native:in:0:qa'); document.querySelector('.input-connect').click(); await wait(()=>document.querySelector('.input-listen input').disabled===false);
     assert(packets.size===1,'Entrada física nativa conectada sin abrir getUserMedia');
     change('.input-listen input',true); await wait(()=>last?.active);

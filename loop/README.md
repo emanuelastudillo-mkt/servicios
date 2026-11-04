@@ -2,7 +2,7 @@
 
 Aplicación estática publicada en **https://emanuelmkt.com.ar/loop/** mediante el GitHub Pages existente del repositorio. La ruta `/loop` redirige a `/loop/`. No requiere compilación, servidor de audio ni dependencias externas.
 
-**Versión 1.8.0:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). Incluye escucha nativa de instrumentos con efectos, además de captura de aplicaciones y salidas de Windows. La versión web mantiene los permisos y opciones del navegador.
+**Versión 1.8.1:** el botón **Descargar última versión de escritorio** ofrece el ejecutable portátil para Windows x64. Código fuente, requisitos y compilación en [`loop-desktop`](../loop-desktop/README.md). Incluye escucha nativa de instrumentos con efectos, además de captura de aplicaciones y salidas de Windows. La versión web mantiene los permisos y opciones del navegador.
 
 ## Escuchar instrumentos con efectos · escritorio 1.8.0
 

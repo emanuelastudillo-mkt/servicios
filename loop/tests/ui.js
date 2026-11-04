@@ -46,7 +46,7 @@ document.querySelector('#prepare').onclick = async () => {
     { kind: 'audioinput', deviceId: 'qa-focusrite', label: 'Focusrite · señal de prueba' }
   ] });
   window.addEventListener('pagehide', () => testContext?.close());
-  await import('../app.js?v=1.8.0');
+  await import('../app.js?v=1.8.1');
   const run = document.createElement('button'); run.textContent = 'Verificar fuentes y teclas'; note.append(document.createElement('br'), run);
   const results = document.createElement('pre'); results.id = 'ui-results'; results.style.whiteSpace = 'pre-wrap'; note.append(results);
   run.onclick = async () => {
@@ -162,7 +162,7 @@ document.querySelector('#prepare').onclick = async () => {
       URL.createObjectURL = blob => { savedBlob = blob; return originalCreate(blob); };
       HTMLAnchorElement.prototype.click = function () {};
       try { $('#save').click(); await wait(() => savedBlob); } finally { URL.createObjectURL = originalCreate; HTMLAnchorElement.prototype.click = originalClick; }
-      const { decodeSession, encodeSession } = await import('../files.js?v=1.8.0');
+      const { decodeSession, encodeSession } = await import('../files.js?v=1.8.1');
       const binary = await savedBlob.arrayBuffer(), saved = decodeSession(binary);
       const expected = [.15, .175, .55];
       assert(saved.tracks.slice(0, 3).every((t, i) => Math.abs(t.samples[Math.floor(t.samples.length / 2)] - expected[i]) < .002), 'La sesión descargada contiene micrófono, placa al 50% y aplicación sin mezclarlos');
@@ -266,7 +266,7 @@ document.querySelector('#prepare').onclick = async () => {
       assert($('#fx-pedals .fx-pedal').dataset.effect === 'delay' && boost().querySelector('input').value === '9', 'Reabrir sesión recupera los pedales editables');
       $('#fx-close').click(); change($('#cycles'), '1');
       const exported = await captureDownload($('#export')), wav = await exported.arrayBuffer();
-      const { encodeWav } = await import('../files.js?v=1.8.0');
+      const { encodeWav } = await import('../files.js?v=1.8.1');
       const expectedWav = new Uint8Array(encodeWav(fxSession, 1)), actualWav = new Uint8Array(wav);
       assert(expectedWav.length === actualWav.length && expectedWav.every((byte,i)=>byte===actualWav[i]), 'Worker exporta WAV con los mismos efectos, niveles y orden que la sesión');
       const canCancel = new Promise(resolve => { const observer = new MutationObserver(() => { if (!$('#export-cancel').hidden) { observer.disconnect(); resolve(); } }); observer.observe($('#export-cancel'), { attributes: true }); });

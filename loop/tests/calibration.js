@@ -1,4 +1,4 @@
-import { calibrate } from '../calibration.js?v=1.8.0';
+import { calibrate } from '../calibration.js?v=1.8.1';
 const run = document.querySelector('#run'), results = document.querySelector('#results');
 run.onclick = async () => {
   run.disabled = true; results.textContent = ''; let checks = 0, ctx;

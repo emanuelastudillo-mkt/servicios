@@ -1,4 +1,4 @@
-import { EffectsChain, effectsConfig } from './effects.js?v=1.8.0';
+import { EffectsChain, effectsConfig } from './effects.js?v=1.8.1';
 export const TRACKS = 6;
 export const MAX_SECONDS = 120;
 export const COUNT_IN_SECONDS = 3;

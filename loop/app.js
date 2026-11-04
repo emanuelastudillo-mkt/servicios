@@ -1,16 +1,16 @@
-import { encodeSession, decodeSession, resampleSession } from './files.js?v=1.8.0';
-import { sealLoop } from './audio-core.js?v=1.8.0';
-import { spaceAction } from './controls.js?v=1.8.0';
+import { encodeSession, decodeSession, resampleSession } from './files.js?v=1.8.1';
+import { sealLoop } from './audio-core.js?v=1.8.1';
+import { spaceAction } from './controls.js?v=1.8.1';
 
-import { InputManager, inputConfig } from './inputs.js?v=1.8.0';
-import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.8.0';
-import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.8.0';
-import { calibrate } from './calibration.js?v=1.8.0';
-import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.8.0';
-import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.8.0';
-import { effectsConfig } from './effects.js?v=1.8.0';
-import { createEffectsUI } from './effects-ui.js?v=1.8.0';
-import { NativeMonitorControl, nativeMonitorDescription, matchingOutput } from './native-monitor.js?v=1.8.0';
+import { InputManager, inputConfig } from './inputs.js?v=1.8.1';
+import { desktop, desktopRequest, captureNative } from './desktop.js?v=1.8.1';
+import { latencyConfig, routeKey, resolveLatency, MAX_LATENCY_MS } from './latency.js?v=1.8.1';
+import { calibrate } from './calibration.js?v=1.8.1';
+import { readMode, writeMode, audioError, capabilities, signalResult } from './experience.js?v=1.8.1';
+import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.8.1';
+import { effectsConfig } from './effects.js?v=1.8.1';
+import { createEffectsUI } from './effects-ui.js?v=1.8.1';
+import { NativeMonitorControl, nativeMonitorDescription, matchingOutput } from './native-monitor.js?v=1.8.1';
 
 const $ = selector => document.querySelector(selector);
 const colors = ['#c7f69b', '#d8b5f8', '#93d8e9', '#efbd8c', '#f0a7ba', '#a6bafa'];
@@ -283,7 +283,7 @@ async function ensureAudio(rate) {
       if (!window.AudioContext || !window.AudioWorkletNode) throw Error('Abrí SEIS en una versión actual de Chrome o Edge.');
       const nextCtx = new AudioContext({ latencyHint: 'interactive', ...(rate ? { sampleRate: rate } : {}) });
       try {
-        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.8.0', import.meta.url));
+        await nextCtx.audioWorklet.addModule(new URL('./processor.js?v=1.8.1', import.meta.url));
         const nextNode = new AudioWorkletNode(nextCtx, 'seis-looper', { numberOfInputs: 6, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' });
         nextNode.port.onmessage = onMessage;
         nextNode.onprocessorerror = () => { notify('El motor de audio se interrumpió. Recargá la página y abrí tu última sesión guardada.', true); };
@@ -724,7 +724,7 @@ $('#export').addEventListener('click', () => withBusy(async () => {
   const cycles = Number($('#cycles').value);
   notify('Preparando WAV con efectos… La duración incluye las vueltas elegidas; las colas se cortan al final.');
   const wav = await new Promise((resolve, reject) => {
-    const worker = new Worker(new URL('./export-worker.js?v=1.8.0', import.meta.url), { type: 'module' });
+    const worker = new Worker(new URL('./export-worker.js?v=1.8.1', import.meta.url), { type: 'module' });
     $('#export-progress').textContent = '0%'; $('#export-progress').hidden = false; $('#export-cancel').hidden = false;
     const done = () => { worker.terminate(); $('#export-progress').hidden = true; $('#export-cancel').hidden = true; $('#export-cancel').onclick = null; };
     $('#export-cancel').onclick = () => { done(); reject(Error('Exportación cancelada. Tus loops se conservaron.')); };

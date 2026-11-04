@@ -30,6 +30,10 @@ Check(queue.Underruns > 0 && block.All(n => n == 0), "underflow must silence ins
 for (int i = 0; i < 100; i++) queue.Push(Enumerable.Repeat(.75f, 480).ToArray());
 Check(queue.QueuedMs < 51 && queue.Discarded > 0, "bursts must not create growing monitor latency");
 queue.Read(block); Check(block.All(n => Math.Abs(n - .75f) < .00001), "backlog must resume recent sound");
+foreach (int frames in new[] { 10000, 48000 }) {
+    queue.Push(Enumerable.Repeat(.4f,frames).ToArray()); queue.Read(block);
+    Check(queue.QueuedMs <= 50 && block.All(n => Math.Abs(n-.4f)<.00001), "oversized capture packet must stay bounded and preserve the newest audio");
+}
 var resampled = new MonitorQueue(44100, 48000, 3); resampled.Push(Enumerable.Repeat(.3f, 4410).ToArray()); resampled.Read(block);
 Check(block.All(n => Math.Abs(n - .3f) < .00001), "different device rates");
 var invalid = new MonitorQueue(48000,48000,3); invalid.Push(Enumerable.Repeat(float.NaN,480).ToArray()); invalid.Read(block); Check(block.All(n => n == 0), "nonfinite samples");

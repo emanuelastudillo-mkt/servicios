@@ -10,13 +10,13 @@
   <base href="/loop/">
   <title>SEIS · Looper de audio</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=1.8.0">
-  <link rel="stylesheet" href="./compact.css?v=1.8.0">
-  <link rel="stylesheet" href="./experience.css?v=1.8.0">
-  <link rel="stylesheet" href="./analog.css?v=1.8.0">
-  <link rel="stylesheet" href="./progressive.css?v=1.8.0">
-  <link rel="stylesheet" href="./effects.css?v=1.8.0">
-  <script type="module" src="./app.js?v=1.8.0"></script>
+  <link rel="stylesheet" href="./style.css?v=1.8.1">
+  <link rel="stylesheet" href="./compact.css?v=1.8.1">
+  <link rel="stylesheet" href="./experience.css?v=1.8.1">
+  <link rel="stylesheet" href="./analog.css?v=1.8.1">
+  <link rel="stylesheet" href="./progressive.css?v=1.8.1">
+  <link rel="stylesheet" href="./effects.css?v=1.8.1">
+  <script type="module" src="./app.js?v=1.8.1"></script>
 </head>
 <body data-mode="simple">
   <div class="shell">
@@ -52,10 +52,10 @@
       </section>
       <details class="help"><summary>Guía rápida y ajustes <span>?</span></summary>      <p class="source-guide">En cada loop elegí un micrófono, una entrada de tu placa o <b>Aplicación / ventana</b> para abrir el selector del navegador. Activá <b>Compartir audio</b> si aparece. La disponibilidad depende de Chrome/Edge, Windows y el controlador de audio.</p><div class="help-content"><div><h3>De una idea a un loop</h3><ol><li>Usá auriculares. Pulsá <b>Grabar</b>: conectamos la entrada elegida y pedimos permiso si hace falta. Para revisar niveles antes, usá <b>Conectar</b>.</li><li>Pulsá <b>Grabar</b> en una pista. El <b>Loop 1</b> cuenta 3, 2, 1 antes de empezar. Volvé a pulsar para cerrar el primer loop.</li><li>Al cerrar una toma, queda en un bloque compacto y se abre la siguiente pista vacía. Grabala cuando quieras: espera la próxima vuelta y termina sola.</li><li>Combiná las pistas con <b>Silenciar</b>, <b>Solo</b> y sus volúmenes.</li></ol></div><div><h3>Todo a mano</h3><p><b>FX:</b> abrí la pedalera de cada loop para agregar y ordenar efectos editables. <b>Escuchar con efectos</b> permite oírlos mientras tocás, con auriculares. La toma original se conserva. El afinador silencia SEIS hasta cerrarlo. Volumen y wah se manejan con sus perillas y flechas.</p><p><b>Paneles:</b> tocá el nombre de un bloque para abrirlo; <b>−</b> minimiza sin detener ni borrar. Su botón <b>■ / ▶</b> detiene o reanuda el loop en el ciclo compartido. <b>Abrir los 6</b> mantiene todos desplegados; <b>Paso a paso</b> retoma la próxima pista vacía.</p><p><b>Perillas:</b> arrastrá arriba o abajo para ajustar, usá las flechas con el control seleccionado o hacé doble clic para volver al valor inicial. <b>Shift</b> permite un arrastre más fino.</p><p><kbd>1</kbd> a <kbd>6</kbd> graban una pista vacía o silencian una grabada. <kbd>Espacio</kbd> inicia la primera pista vacía o cierra la grabación conservando el audio. Durante la cuenta no cancela. Con seis pistas completas, reproduce o detiene sin borrar. <kbd>Esc</kbd> cancela una grabación.</p><p><b>Guardar sesión</b> conserva las 6 pistas, sus niveles y fuentes asignadas (requieren reconectar al abrir) en un archivo .seisloop. <b>WAV</b> exporta la mezcla con efectos, silencios, solos y volumen de salida, desde el inicio y por las vueltas elegidas; las colas se cortan al final. Las sesiones nuevas con FX requieren v1.7 o posterior. Guardá antes de cerrar.</p></div><div><h3>Pro Tools, Edge y tu placa</h3><p>Para capturar una pestaña de Edge, abrí SEIS también en Edge y compartí esa pestaña con audio. Para Pro Tools, probá <b>Aplicación / ventana</b>. Si el navegador no ofrece audio de esa ventana, usá una entrada <b>Loopback</b> de tu placa o un dispositivo virtual ya configurado. Solo aparecen dispositivos que Windows expone como entradas; una salida Focusrite no es automáticamente una entrada de grabación.</p><p><b>Todo el audio del sistema</b> también captura los loops que estén sonando. No aísla aplicaciones. La escucha de esa entrada está deshabilitada para evitar realimentación.</p><p>El navegador puede pedir compartir imagen para habilitar el sonido: SEIS procesa únicamente audio. No guarda ni transmite la imagen.</p><h3>Alinear nuevas capas</h3><p>En cada pista, <b>Sincronizar</b> permite compensar la latencia de esa entrada y la salida elegida. Usá <b>Medir retorno</b> para calibrar el recorrido real; también podés ingresar el total en milisegundos. Repetí la medición si cambiás el búfer, los efectos o la ruta de Pro Tools. La calibración alinea las tomas nuevas; no elimina el retardo al escucharte.</p><p>La grabación es mono. Máximo: 120 segundos por loop. Sin cambios de tempo.</p></div></div></details>
     </main>
-    <footer><span>SEIS / v1.8.0 <span class="footer-divider">·</span> Hecho para darle otra vuelta.</span><button id="demo" class="text-button">♫ Escuchar demo sin micrófono</button></footer>
+    <footer><span>SEIS / v1.8.1 <span class="footer-divider">·</span> Hecho para darle otra vuelta.</span><button id="demo" class="text-button">♫ Escuchar demo sin micrófono</button></footer>
       <section class="desktop-banner" aria-label="Versión de escritorio">
-        <div><strong id="desktop-title">SEIS 1.8.0 para Windows</strong><span id="desktop-description">Versión portátil x64 · Aplicaciones y salidas de audio nativas · Requiere WebView2</span></div>
-        <a id="desktop-download" class="download-button" href="https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.8.0/SEIS-1.8.0-Windows-x64.exe">↓ Descargar última versión de escritorio</a>
+        <div><strong id="desktop-title">SEIS 1.8.1 para Windows</strong><span id="desktop-description">Versión portátil x64 · Aplicaciones y salidas de audio nativas · Requiere WebView2</span></div>
+        <a id="desktop-download" class="download-button" href="https://github.com/emanuelastudillo-mkt/servicios/releases/download/seis-v1.8.1/SEIS-1.8.1-Windows-x64.exe">↓ Descargar última versión de escritorio</a>
         <a id="desktop-updates" class="download-button" href="https://emanuelmkt.com.ar/loop/" hidden>Ver actualizaciones</a>
       </section>
   </div>

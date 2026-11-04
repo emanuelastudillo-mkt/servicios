@@ -19,7 +19,13 @@ internal sealed class MonitorQueue
     public void Push(ReadOnlySpan<float> samples)
     {
         lock (gate) {
-            if (samples.Length >= data.Length) { Discarded += samples.Length - target; samples = samples[^target..]; read = write; running = false; }
+            // Bound the incoming packet too: a single stalled capture callback
+            // can contain more audio than the entire permitted monitoring queue.
+            int keep = ceiling - target;
+            if (samples.Length > keep) {
+                Discarded += samples.Length - target + (long)Math.Ceiling(write - read);
+                samples = samples[^target..]; read = write; running = false;
+            }
             if (write - read + samples.Length > ceiling) {
                 long next = Math.Max((long)Math.Ceiling(read), write - target);
                 Discarded += next - (long)Math.Ceiling(read); read = next;

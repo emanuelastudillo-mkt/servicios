@@ -1,6 +1,6 @@
-import { EFFECTS, EFFECT_ORDER, pedal, effectsConfig } from './effects.js?v=1.8.0';
-import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.8.0';
-import { detectPitch } from './tuner.js?v=1.8.0';
+import { EFFECTS, EFFECT_ORDER, pedal, effectsConfig } from './effects.js?v=1.8.1';
+import { enhanceKnob, refreshKnobs } from './knobs.js?v=1.8.1';
+import { detectPitch } from './tuner.js?v=1.8.1';
 
 export function createEffectsUI(hooks) {
   let id = 0, config = effectsConfig(), tunerTimer, tunerNode, tunerSlot;

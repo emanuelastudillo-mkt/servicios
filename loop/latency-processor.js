@@ -1,4 +1,4 @@
-import { LatencyProbe } from './latency.js?v=1.8.0';
+import { LatencyProbe } from './latency.js?v=1.8.1';
 class LatencyProcessor extends AudioWorkletProcessor {
   constructor() {
     super(); this.probe = null;
