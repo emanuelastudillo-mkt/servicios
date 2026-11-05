@@ -20,3 +20,5 @@ main{width:min(1080px,calc(100% - 64px));margin:auto;padding:32px 0 52px}.toplin
 .owner p,.owner strong{font-size:12px}.situation,.choice{font-size:14px}#auto-next-hint{font-size:11px}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}.choice:hover,.btn:hover{transform:none}}
 @media print{body{background:white!important;color:#233c34;font:11pt/1.65 var(--sans)}body:before,.topline,.site-footer,.no-print,#intro,#survey,#analysis{display:none!important}main,#results{width:100%;margin:0;padding:0}.report-head{padding-top:0}.report-head h1{font-size:30pt}.panel,.warning{background:white;box-shadow:none;border-radius:0;padding:15px;break-inside:avoid}.report-columns{display:block}.letter p{font-size:11pt}.report-lead{font-size:13pt}.detail article,.answer-row{break-inside:avoid}.closing{font-size:20pt}a{color:inherit}#download-status{display:none}}
+
+.practice{background:var(--soft);border-left:3px solid var(--green)}.practice h2{margin-bottom:12px}.practice p{margin-bottom:12px;max-width:68ch}.practice .practice-cue{margin-bottom:0;font-size:14px;color:var(--ink)}
