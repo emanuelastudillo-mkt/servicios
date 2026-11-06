@@ -1,12 +1,25 @@
 {
-  "updatedAt": "2026-09-06T16:17:01.561Z",
-  "checkedAt": "2026-09-06T16:17:01.561Z",
+  "updatedAt": "2026-11-06T00:53:24.268Z",
+  "checkedAt": "2026-11-06T00:53:24.268Z",
   "source": {
     "spreadsheetId": "1W57cUM6iFoMkjhzJeTsCp3AKWBc46k7Xesxh5mUihZs",
     "servicesSheet": "Servicios_Web",
     "codesSheet": "Codigos_Web"
   },
   "services": [
+    {
+      "id": "crear-cuenta-publicitaria-y-portfolio-metodo-de-pago-y-verificacion-de-negocio-digital",
+      "title": "Crear cuenta publicitaria y portfolio + metodo de pago y verificacion de negocio digital.",
+      "description": "Configurar cuenta de meta para publicidad (Plazo de 30 días, al menos 2 llamadas para sincronizar informacion importante)",
+      "category": "Meta Ads",
+      "costo": 100000,
+      "presupuestoMinimo": 50000,
+      "presupuestoMaximo": 0,
+      "details": [
+        "Requisitos: Tener cuenta de facebook e instagram"
+      ],
+      "kind": "normal"
+    },
     {
       "id": "campana-de-alcance",
       "title": "Campaña de Alcance",
@@ -45,6 +58,32 @@
       "kind": "auditoria"
     },
     {
+      "id": "actividad-cada-48hs-con-contenidos-anteriores",
+      "title": "Actividad cada 48hs con contenidos anteriores",
+      "description": "Compartir historias y reels anteriores",
+      "category": "Meta Ads",
+      "costo": 30000,
+      "presupuestoMinimo": 50000,
+      "presupuestoMaximo": 0,
+      "details": [
+        "Requisitos: Tener una campaña activa"
+      ],
+      "kind": "normal"
+    },
+    {
+      "id": "pack-de-10-contenidos-edicion-minima-para-emergencia",
+      "title": "Pack de 10 contenidos (edición minima para emergencia)",
+      "description": "Subir reels con contenido de valor (grabado por el cliente), respuestas a preguntas frecuentes, datos importantes de tu sector, informacion importante para tus clientes potenciales. Edicion simple, musica de fondo, logo, solo para adaptar a la identidad de marca, subtitulos si es necesario y copy para redes.",
+      "category": "Meta Ads",
+      "costo": 120000,
+      "presupuestoMinimo": 50000,
+      "presupuestoMaximo": 0,
+      "details": [
+        "Requisitos: Plataforma de meta ads configurada con metodo de pago // Tener una campaña activa // Tener contenidos aptos de productos o servicios"
+      ],
+      "kind": "normal"
+    },
+    {
       "id": "dashboard-con-informacion-clave-de-campanas",
       "title": "Dashboard con información clave de campañas",
       "description": "Panel de informacion general de las campañas sin necesidad de ingresar en la plataforma de meta",
@@ -71,47 +110,7 @@
       "kind": "normal"
     }
   ],
-  "inactiveServices": [
-    {
-      "id": "crear-cuenta-publicitaria-y-portfolio-metodo-de-pago-y-verificacion-de-negocio-digital",
-      "title": "Crear cuenta publicitaria y portfolio + metodo de pago y verificacion de negocio digital.",
-      "description": "Configurar cuenta de meta para publicidad (Plazo de 30 días, al menos 2 llamadas para sincronizar informacion importante)",
-      "category": "Meta Ads",
-      "costo": 100000,
-      "presupuestoMinimo": 50000,
-      "presupuestoMaximo": 0,
-      "details": [
-        "Requisitos: Tener cuenta de facebook e instagram"
-      ],
-      "kind": "normal"
-    },
-    {
-      "id": "actividad-diaria-con-contenidos-anteriores",
-      "title": "Actividad diaria con contenidos anteriores",
-      "description": "Compartir historias y reels anteriores",
-      "category": "Meta Ads",
-      "costo": 30000,
-      "presupuestoMinimo": 50000,
-      "presupuestoMaximo": 0,
-      "details": [
-        "Requisitos: Tener una campaña activa"
-      ],
-      "kind": "normal"
-    },
-    {
-      "id": "pack-de-10-contenidos-edicion-minima-para-emergencia",
-      "title": "Pack de 10 contenidos (edición minima para emergencia)",
-      "description": "Subir reels con contenido de valor (grabado por el cliente), respuestas a preguntas frecuentes, datos importantes de tu sector, informacion importante para tus clientes potenciales. Edicion simple, musica de fondo, logo, solo para adaptar a la identidad de marca, subtitulos si es necesario y copy para redes.",
-      "category": "Meta Ads",
-      "costo": 120000,
-      "presupuestoMinimo": 50000,
-      "presupuestoMaximo": 0,
-      "details": [
-        "Requisitos: Plataforma de meta ads configurada con metodo de pago // Tener una campaña activa // Tener contenidos aptos de productos o servicios"
-      ],
-      "kind": "normal"
-    }
-  ],
+  "inactiveServices": [],
   "codes": [
     {
       "code": "ABCD",
