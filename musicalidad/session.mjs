@@ -1,4 +1,6 @@
-import {CHROMATIC,MINOR_NAMES,TYPES,LETTERS,pitch,mod,spell} from './theory.mjs?v=1.1.1';
+import {CHROMATIC,MINOR_NAMES,TYPES,LETTERS,pitch,mod,spell} from './theory.mjs?v=1.2.0';
+
+import {INSTRUMENTS,PATTERNS} from './performance.mjs?v=1.2.0';
 
 export function transposeChord(c,from,to) {
   const degree=(LETTERS.indexOf(c.root[0])-LETTERS.indexOf(from[0])+7)%7;
@@ -14,6 +16,7 @@ export function normalizeSession(value) {
     root:(value.mode==='major'?CHROMATIC:MINOR_NAMES)[pitch(value.root)],mode:value.mode,
     capo:value.capo,sequence:value.sequence.map(c=>({root:c.root,type:c.type})),
     bpm:Number.isFinite(tempo)?Math.min(180,Math.max(40,tempo)):80,
-    pattern:['strum','arpeggio','six'].includes(value.pattern)?value.pattern:'strum'
+    pattern:Object.hasOwn(PATTERNS,value.pattern)?value.pattern:'strum',
+    instrument:Object.hasOwn(INSTRUMENTS,value.instrument)?value.instrument:'steel'
   };
 }

@@ -19,6 +19,7 @@ export const SCALES = {
  locrian:{name:'Locrio',steps:[0,1,3,5,6,8,10],degrees:[0,1,2,3,4,5,6],hint:'Tiene quinta rebajada y un centro menos estable. Es una exploración avanzada; empezá por mayor o pentatónica.'}
 };
 export const TYPES = {
+ '5':{name:'Quinta (power chord)',steps:[0,7],degrees:[0,4],formula:'1 · 5 · (8)'},
  '':{name:'Mayor',steps:[0,4,7],degrees:[0,2,4],formula:'1 · 3 · 5'},
  m:{name:'Menor',steps:[0,3,7],degrees:[0,2,4],formula:'1 · ♭3 · 5'},
  '7':{name:'Séptima',steps:[0,4,7,10],degrees:[0,2,4,6],formula:'1 · 3 · 5 · ♭7'},
@@ -74,6 +75,7 @@ const OPEN={
 const A_SHAPES={ '':[-1,0,2,2,2,0],m:[-1,0,2,2,1,0],'7':[-1,0,2,0,2,0],maj7:[-1,0,2,1,2,0],m7:[-1,0,2,0,1,0],sus2:[-1,0,2,2,0,0],sus4:[-1,0,2,2,3,0],dim:[-1,0,1,2,1,-1],dim7:[-1,0,1,2,1,2],m7b5:[-1,0,1,0,1,-1],add9:[-1,0,2,4,2,0]};
 const E_SHAPES={ '':[0,2,2,1,0,0],m:[0,2,2,0,0,0],'7':[0,2,0,1,0,0],m7:[0,2,0,0,0,0],sus4:[0,2,2,2,0,0]};
 export function voicings(c) {
+ if(c.type==='5')return [4,9].map(base=>{const f=mod(pitch(c.root)-base),frets=base===4?[f,f+2,f+2,-1,-1,-1]:[-1,f,f+2,f+2,-1,-1];return {frets,label:'Quinta · raíz en '+(base===4?'6ª':'5ª')+' cuerda',barre:null};}).sort((a,b)=>Math.max(...a.frets)-Math.max(...b.frets));
  const list=[];const openKey=Object.keys(OPEN).find(k=>{const m=k.match(/^([A-G][b#]?)(.*)$/);return pitch(m[1])===pitch(c.root)&&m[2]===c.type;});
  if(openKey) list.push({frets:OPEN[openKey],label:openKey==='C7'?'Abierta · sin quinta':'Posición abierta',barre:null});
  for(const [base,shapes] of [[9,A_SHAPES],[4,E_SHAPES]]){
