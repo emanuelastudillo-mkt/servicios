@@ -211,6 +211,7 @@ footer { font-size: 12px; }
 .instrument-label select { max-width: 235px; }
 .instrument-hint { flex: 1 1 65%; font-size: 12px; color: var(--muted); line-height: 1.6; }
 .rhythm-guide { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+.loop-controls #pattern { width: 245px; max-width: 100%; }
 .rhythm-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; margin-bottom: 12px; color: var(--muted); }
 .rhythm-heading>span { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
 .rhythm-heading small { font-size: 11px; }
