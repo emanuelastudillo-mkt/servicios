@@ -1,0 +1,207 @@
+/* Shared semantic colors for the instrument, guide, and research page. */
+:root {
+  --muted: #59675e;
+  --ochre: #985521;
+  --surface: #efeee5;
+  --surface-raised: #fffdf7;
+  --accent: #284c40;
+  --on-accent: #fffdf7;
+  --current-bg: #284c40;
+  --current-ink: #f5f2e9;
+  --diagram-ink: #435247;
+  --diagram-line: #6c7967;
+  --card-muted: #455349;
+  --warm-line: #c8bca4;
+  --cool-line: #bccdd5;
+  --violet-line: #c9bbcf;
+  --fret-bg: #e8dcc4;
+  --fret-open: #f6f1e7;
+  --fret-wire: #867f6b;
+  --fret-ink: #655e4c;
+  --note-bg: #d8decb;
+  --note-ink: #284c40;
+  --root-bg: #93501d;
+  --root-ink: #ffffff;
+  --hover-wash: #ffffff45;
+}
+:root[data-theme="dark"] {
+  --paper: #151c19;
+  --ink: #eceee5;
+  --muted: #b4beb4;
+  --line: #46534a;
+  --white: #202a24;
+  --surface: #202a24;
+  --surface-raised: #26322b;
+  --accent: #b2d6bc;
+  --on-accent: #14251c;
+  --ochre: #e9b675;
+  --soft-green: #2a3c30;
+  --orange: #3a3024;
+  --blue: #26353c;
+  --lavender: #342d3c;
+  --current-bg: #243d31;
+  --current-ink: #f2f3e9;
+  --diagram-ink: #e0e7d7;
+  --diagram-line: #a0af9c;
+  --card-muted: #d0d6c8;
+  --warm-line: #78674b;
+  --cool-line: #516c79;
+  --violet-line: #71627b;
+  --fret-bg: #302d25;
+  --fret-open: #24251e;
+  --fret-wire: #b2aa8e;
+  --fret-ink: #e1d7bf;
+  --note-bg: #c4cfb5;
+  --note-ink: #203426;
+  --root-bg: #e9b675;
+  --root-ink: #302014;
+  --hover-wash: #ffffff0c;
+}
+body { background: var(--paper); color: var(--ink); }
+a { color: var(--accent); }
+button, input, select, summary { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline-color: var(--ochre); }
+.skip { background: var(--surface-raised); }
+.topbar { min-height: 86px; height: auto; padding-top: 14px; padding-bottom: 14px; gap: 20px; }
+.header-actions { margin-left: auto; display: flex; align-items: center; gap: 20px; }
+.theme-control { white-space: nowrap; font-size: 12px; gap: 8px; color: var(--muted); }
+.theme-control select { padding-top: 8px; padding-bottom: 8px; min-height: 40px; width: 108px; }
+.author { margin-left: 0; white-space: nowrap; }
+.brand-mark { color: #f5f2e9; background: #284c40; }
+.secondary { border-color: var(--line); }
+.primary { background: var(--accent); color: var(--on-accent); }
+.primary:hover { background: var(--accent); filter: brightness(.94); }
+.secondary:hover { background: var(--soft-green); }
+.tab { color: var(--muted); }
+.segmented { background: var(--surface); border: 1px solid var(--line); }
+.segmented button.selected { background: var(--surface-raised); }
+input[type="range"], input[type="checkbox"] { accent-color: var(--accent); }
+.current-card { background: var(--current-bg); color: var(--current-ink); border: 1px solid #53735e; }
+.current-card .primary { background: #f5f2e9; color: #284c40; }
+.current-card .secondary, .current-card .add-current { color: var(--current-ink); }
+.current-card .secondary:hover, .current-card .add-current:hover { background: #ffffff12; }
+.current-card .eyebrow, .chord-title span, .diagram-key, .position-line { color: #d0ddce; }
+.suggestion-card { border-color: var(--warm-line); }
+.suggestion-card:nth-child(2) { border-color: var(--cool-line); }
+.suggestion-card:nth-child(3) { border-color: var(--violet-line); }
+.suggestion-main .why { color: var(--card-muted); }
+.suggestion-main:hover, .suggestion-buttons button:hover { background: var(--hover-wash); }
+.suggestion-buttons, .suggestion-buttons button+button { border-color: var(--line); }
+.suggestion-buttons button { min-height: 44px; }
+.family-chip { background: var(--surface); }
+.family-chip[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.family-chip:hover { background: var(--soft-green); }
+.looper { background: var(--surface); }
+.sequence { align-items: stretch; }
+.sequence-item { flex: 1 0 138px; min-width: 0; max-width: 300px; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-raised); overflow: hidden; }
+.sequence-step { background: transparent; border: 0; border-radius: 0; width: 100%; min-width: 0; min-height: 65px; padding: 12px; gap: 12px; }
+.sequence-step span { color: var(--muted); }
+.sequence-step .step-chord { display: block; }
+.sequence-step strong { display: block; line-height: 1.3; }
+.sequence-step small { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
+.sequence-step.active { color: var(--on-accent); background: var(--accent); }
+.sequence-step.active span, .sequence-step.active small { color: var(--on-accent); }
+.step-tools { display: flex; border-top: 1px solid var(--line); }
+.step-tools button { background: transparent; min-height: 36px; flex: 1; font-size: 16px; padding: 5px 8px; }
+.step-tools button:hover:not(:disabled) { background: var(--soft-green); }
+.step-tools button:disabled { opacity: .28; }
+.loop-controls input[type="number"] { border-color: var(--line); }
+.loop-controls input[type="number"], .loop-controls select { min-height: 42px; }
+.text-button { min-height: 36px; }
+.toast { background: var(--accent); color: var(--on-accent); line-height: 1.6; border: 1px solid var(--line); }
+.fret-scroll { background: var(--fret-bg); border-color: var(--warm-line); }
+.fret-cell { border-right-color: var(--fret-wire); height: 46px; }
+.fret-cell:before { background: var(--fret-wire); box-shadow: none; }
+.fret-cell.open { background: var(--fret-open); border-right-color: var(--fret-wire); }
+.fret-number, .string-name { color: var(--fret-ink); }
+.fret-cell button { width: 36px; height: 36px; background: var(--note-bg); color: var(--note-ink); border-color: var(--fret-wire); font-size: 12px; }
+.fret-cell button.root { background: var(--root-bg); color: var(--root-ink); border-color: var(--root-bg); }
+.fret-cell button.chord-note { background: #284c40; color: #ffffff; border-color: #aec9b5; }
+.root-dot { background: var(--root-bg); }
+.chord-dot { background: #284c40; border: 1px solid #aec9b5; }
+.scale-dot { background: var(--note-bg); border: 1px solid var(--fret-wire); }
+.lessons p { color: var(--muted); }
+.position-line, .current-card .text-button, .diagram-key { font-size: 11px; }
+.eyebrow, .current-card .eyebrow, .suggestion-main .path-label, .family-chip span { font-size: 11px; }
+.small-note, .gentle-note, .suggestion-main .why, #audio-status { font-size: 12px; }
+.suggestion-main .spanish, .suggestion-buttons button { font-size: 12px; }
+.family-chip strong { font-size: 20px; }
+.focus-exit { position: static; background: var(--surface-raised); white-space: nowrap; }
+.focus-mode .topbar { height: auto; min-height: 64px; }
+.focus-mode .author { display: none; }
+.focus-mode .current-card { align-self: start; }
+.focus-mode .current-card svg { height: 180px; }
+.focus-mode .suggestion-card svg { height: 132px; }
+.focus-mode .looper { margin-top: 20px; }
+.current-card .chord-title h2 { font-size: clamp(34px, 4vw, 55px); white-space: nowrap; }
+.current-card .chord-title h2.long-chord, .focus-mode .current-card .chord-title h2.long-chord { font-size: 29px; letter-spacing: -1px; }
+.focus-mode .current-card .chord-title h2 { font-size: clamp(38px, 4vw, 64px); }
+.chord-title { min-width: 0; flex-wrap: wrap; gap: 8px 16px; }
+.chord-title>div { min-width: 0; flex: 1 1 85px; overflow-wrap: anywhere; line-height: 1.5; }
+footer { font-size: 12px; }
+.playing-note { outline: 3px solid var(--ochre); outline-offset: 3px; }
+@media (max-width: 1100px) {
+  .header-actions { gap: 14px; }
+  .family-row { flex-wrap: wrap; }
+  .family-chip { flex: 1 1 64px; }
+  .suggestion-main .path-label { font-size: 11px; }
+  .settings .volume-label { margin-left: auto; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 13px 5%; gap: 10px; flex-wrap: wrap; }
+  .brand { font-size: 23px; gap: 8px; }
+  .brand-mark { width: 32px; height: 32px; font-size: 25px; }
+  .header-actions { gap: 8px; }
+  .header-actions .author { display: none; }
+  .theme-control { gap: 5px; font-size: 11px; }
+  .theme-control select { width: 98px; }
+  .settings .volume-label { display: flex; margin-left: 0; }
+  .settings { gap: 14px 10px; }
+  label { font-size: 12px; }
+  .workspace-toolbar nav { width: 100%; justify-content: space-between; gap: 8px; }
+  .tab { font-size: 10px; }
+  .tab span { font-size: 12px; }
+  #audio-status { flex-basis: auto; max-width: 100%; }
+  .position-line, .current-card .text-button { font-size: 11px; }
+  .current-actions button { font-size: 12px; min-height: 44px; }
+  .current-actions { flex-wrap: wrap; }
+  .diagram-key { grid-row: 5 / 7; font-size: 10px; line-height: 1.8; }
+  .add-current { font-size: 12px; min-height: 44px; }
+  .current-card .chord-title h2 { font-size: 38px; }
+  .current-card, .focus-mode .current-card { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .chord-title { display: block; align-self: start; }
+  .chord-title>div { margin-top: 8px; }
+  .current-card svg, .focus-mode .current-card svg { width: 100%; max-width: 140px; height: auto; }
+  .family-chip { flex-basis: 65px; padding: 12px 5px; }
+  .family-chip span { font-size: 11px; }
+  .family-section .text-button { font-size: 11px; }
+  .sequence-item { flex-basis: 125px; }
+  .step-tools button { min-height: 42px; }
+  .preset-label { align-items: flex-start; flex-direction: column; }
+  .preset-label select { width: 100%; }
+  .focus-mode .topbar { min-height: 64px; }
+  .focus-mode .header-actions { flex-wrap: wrap; }
+  .focus-mode .topbar .brand { margin-right: auto; }
+  .focus-exit { padding: 9px 12px; font-size: 12px; }
+}
+@media (max-width: 520px) {
+  .suggestion-grid { grid-template-columns: 1fr; }
+  .suggestion-main { display: grid; grid-template-columns: 1fr 92px; align-items: start; gap: 5px 10px; padding: 17px; }
+  .suggestion-main .path-label { grid-column: 1; }
+  .suggestion-main strong { font-size: 32px; grid-column: 1; }
+  .suggestion-main .spanish { grid-column: 1; }
+  .suggestion-card svg, .focus-mode .suggestion-card svg { width: 90px; height: 110px; grid-column: 2; grid-row: 1 / 5; margin: 0; }
+  .suggestion-main .why { grid-column: 1; min-height: 0; font-size: 12px; margin-top: 4px; }
+  .suggestion-buttons button { min-height: 44px; font-size: 13px; }
+}
+@media (max-width: 400px) {
+  .current-card .chord-title h2.long-chord, .focus-mode .current-card .chord-title h2.long-chord { font-size: 24px; }
+  .current-card, .focus-mode .current-card { padding: 18px 16px; column-gap: 12px; }
+  .topbar .brand { font-size: 21px; }
+  .topbar .header-actions { margin-left: auto; }
+  .tab { font-size: 9px; }
+  .tab span { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}

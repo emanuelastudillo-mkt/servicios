@@ -42,6 +42,7 @@ export function spell(root, offset, degree) {
 export function scaleNotes(root,kind) {const s=SCALES[kind];return s.steps.map((v,i)=>spell(root,v,s.degrees[i]));}
 export function chord(root,type='') {return {root,type};}
 export const chordId=c=>c.root+c.type;
+export const sameChord=(a,b)=>pitch(a.root)===pitch(b.root)&&a.type===b.type;
 export const chordLabel=c=>pretty(c.root)+c.type.replace('dim','°').replace('b','♭');
 export const chordSpanish=c=>spanish(c.root)+(c.type==='m'?' menor':c.type===''?' mayor':' '+TYPES[c.type].name.toLowerCase());
 export function chordNotes(c) {const t=TYPES[c.type];return t.steps.map((v,i)=>spell(c.root,v,t.degrees[i]));}
@@ -51,13 +52,14 @@ export function family(root,mode) {
 }
 export function dominant(root,mode) {return chord(scaleNotes(root,mode)[4],'7');}
 export function suggestions(root,mode,current) {
- const fam=family(root,mode),id=chordId(current),same=c=>chordId(c)===id;
+ const fam=family(root,mode),same=c=>sameChord(c,current);
  const d=fam.findIndex(same);const dom=dominant(root,mode);
  let result;
  if(same(dom)||d===4||d===6&&mode==='major') result=[[fam[0],'Volvé a casa','Un cierre claro para la frase.'],[fam[mode==='major'?5:5],'Seguí la historia','Una llegada menos esperada.'],[fam[3],'Abrí otra vuelta','Mantené el movimiento.']];
  else if(d===1||d===3) result=[[dom,'Prepará el regreso','La séptima agrega tensión antes de volver.'],[fam[0],'Volvé con suavidad','Probá cómo descansa la frase.'],[fam[mode==='major'?5:6],'Cambiá el color','Otra salida dentro de la familia.']];
  else result=[[fam[3],'Abrí el sonido','Alejate un poco del punto de partida.'],[dom,'Buscá movimiento','Dejá el regreso a casa preparado.'],[fam[mode==='major'?5:5],'Cambiá el color','Escuchá un contraste dentro de la familia.']];
- return result.filter(([c])=>!same(c)).map(([c,title,why])=>({c,title,why}));
+ const seen=new Set([pitch(current.root)+':'+current.type]);
+ return [...result,[fam[0],'Volvé a casa','Descansá en el centro de esta familia.'],[fam[2],'Probá otro matiz','Escuchá una alternativa de la misma familia.'],...fam.map(c=>[c,'Explorá la familia','Probá cómo conecta con tu melodía.'])].filter(([c])=>{const key=pitch(c.root)+':'+c.type;if(seen.has(key))return false;seen.add(key);return true;}).slice(0,3).map(([c,title,why])=>({c,title,why}));
 }
 // Frets run from the sixth (low E) string to the first. -1 means muted.
 const OPEN={

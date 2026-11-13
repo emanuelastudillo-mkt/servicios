@@ -1,4 +1,4 @@
-import {midiNotes} from './theory.mjs';
+import {midiNotes} from './theory.mjs?v=1.1.1';
 // FluidR3 acoustic steel samples. See credits in fuentes.html.
 export class GuitarAudio {
  constructor(onStatus=()=>{}){this.onStatus=onStatus;this.buffers=new Map();this.sources=new Set();this.generation=0;this.volume=.65;}
